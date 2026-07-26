@@ -1,0 +1,113 @@
+---
+interface Props {
+  slug: string;
+  titulo: string;
+  cachedNarrativas?: Record<string, { narrativa: string; gancho: string }>;
+}
+
+const { slug, titulo, cachedNarrativas } = Astro.props;
+
+const PERFILES = [
+  { id: 'productor', label: 'Productor Agrícola', icon: '🌾' },
+  { id: 'campestre', label: 'Vivienda Campestre', icon: '🏡' },
+  { id: 'nomada', label: 'Nómada Digital', icon: '💻' },
+  { id: 'turistico', label: 'Emprendedor Turístico', icon: '🏕️' },
+  { id: 'patrimonial', label: 'Inversionista Patrimonial', icon: '📈' },
+];
+---
+
+<div class="storytelling bg-white rounded-2xl p-6 border border-gray-100" data-slug={slug}>
+  <div class="flex items-center gap-2 mb-4">
+    <span class="text-xl">✨</span>
+    <h3 class="font-black text-[#1B4332] tracking-tight text-sm uppercase">Tu Historia con Esta Propiedad</h3>
+    <span class="ml-auto text-[9px] font-bold uppercase tracking-widest text-[#C8933E] bg-[#C8933E]/10 px-2 py-1 rounded-full">IA</span>
+  </div>
+
+  <!-- Profile Tabs -->
+  <div class="flex flex-wrap gap-2 mb-6">
+    {PERFILES.map((p) => (
+      <button
+        class="st-tab px-3 py-2 rounded-xl text-xs font-bold border transition-all"
+        data-perfil={p.id}
+      >
+        {p.icon} {p.label}
+      </button>
+    ))}
+  </div>
+
+  <!-- Narrative Display -->
+  <div class="st-content min-h-[120px]">
+    <div class="st-placeholder text-center py-6">
+      <p class="text-sm text-gray-400">Selecciona tu perfil para descubrir cómo esta propiedad se conecta con tu proyecto de vida.</p>
+    </div>
+    <div class="st-narrative hidden">
+      <p class="st-gancho text-lg font-black text-[#C8933E] mb-3 italic"></p>
+      <p class="st-text text-gray-700 leading-relaxed"></p>
+    </div>
+    <div class="st-loading hidden text-center py-6">
+      <div class="inline-block w-6 h-6 border-2 border-[#C8933E] border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs text-gray-400 mt-2">Escribiendo tu historia...</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .st-tab { border-color: #e5e7eb; color: #6b7280; background: white; }
+  .st-tab:hover { border-color: #52B788; color: #1B4332; }
+  .st-tab.active { background: #1B4332; color: white; border-color: #1B4332; }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('.storytelling');
+    if (!container) return;
+    const slug = container.getAttribute('data-slug');
+    const tabs = container.querySelectorAll('.st-tab');
+    const placeholder = container.querySelector('.st-placeholder');
+    const narrative = container.querySelector('.st-narrative');
+    const loading = container.querySelector('.st-loading');
+    const ganchoEl = container.querySelector('.st-gancho');
+    const textEl = container.querySelector('.st-text');
+    const cache: Record<string, any> = {};
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', async () => {
+        const perfil = tab.getAttribute('data-perfil')!;
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        if (cache[perfil]) {
+          showNarrative(cache[perfil]);
+          return;
+        }
+
+        placeholder?.classList.add('hidden');
+        narrative?.classList.add('hidden');
+        loading?.classList.remove('hidden');
+
+        try {
+          const res = await fetch('/api/storytelling', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug, perfil }),
+          });
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          cache[perfil] = data;
+          showNarrative(data);
+        } catch {
+          loading?.classList.add('hidden');
+          placeholder?.classList.remove('hidden');
+        }
+      });
+    });
+
+    function showNarrative(data: any) {
+      loading?.classList.add('hidden');
+      placeholder?.classList.add('hidden');
+      narrative?.classList.remove('hidden');
+      ganchoEl!.textContent = data.gancho || '';
+      textEl!.textContent = data.narrativa || '';
+    }
+  });
+</script>

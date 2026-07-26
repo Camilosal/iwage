@@ -1,0 +1,38 @@
+---
+interface Props {
+  currentTipo?: string;
+  currentOperacion?: string;
+}
+
+const { currentTipo = '', currentOperacion = '' } = Astro.props;
+
+const CHIPS = [
+  { label: '🌾 Fincas', href: '/tierras/propiedades?tipo=finca', active: currentTipo === 'finca' },
+  { label: '📐 Lotes', href: '/tierras/propiedades?tipo=lote', active: currentTipo === 'lote' },
+  { label: '🏡 Casas Campestres', href: '/tierras/propiedades?tipo=casa_campestre', active: currentTipo === 'casa_campestre' },
+  { label: '🏕️ Glamping', href: '/tierras/propiedades?tipo=glamping', active: currentTipo === 'glamping' },
+  { label: '💰 Venta', href: '/tierras/propiedades?operacion=venta', active: currentOperacion === 'venta' },
+  { label: '🔑 Arriendo', href: '/tierras/propiedades?operacion=arriendo', active: currentOperacion === 'arriendo' },
+];
+---
+
+<div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+  {CHIPS.map((chip) => (
+    <a
+      href={chip.href}
+      class:list={[
+        'shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-all',
+        chip.active
+          ? 'bg-[#1B4332] text-white border-[#1B4332] shadow-md'
+          : 'bg-white text-gray-600 border-gray-200 hover:border-[#52B788] hover:text-[#1B4332]',
+      ]}
+    >
+      {chip.label}
+    </a>
+  ))}
+</div>
+
+<style>
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

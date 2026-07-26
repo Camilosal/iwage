@@ -1,0 +1,96 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import { strapiFetch } from '@/lib/strapi';
+
+interface SEOLanding {
+  id: number;
+  slug: string;
+  titulo_h1: string;
+  meta_description: string | null;
+  hero_text: string | null;
+  propiedad_filter: Record<string, any> | null;
+  faqs: Array<{ pregunta: string; respuesta: string }> | null;
+  cta_text: string | null;
+  publicado: boolean;
+}
+
+export async function getStaticPaths() {
+  try {
+    const res = await strapiFetch<SEOLanding>('seo-landings', {
+      filters: { publicado: { $eq: true } },
+      pagination: { pageSize: 100 },
+      ttl: 300,
+    });
+    return (res.data || []).map((page) => ({
+      params: { slug: page.slug },
+      props: { page },
+    }));
+  } catch {
+    return [];
+  }
+}
+
+const { page } = Astro.props;
+if (!page) return Astro.redirect('/tierras/propiedades', 302);
+---
+
+<BrandLayout brand="tierras" title={`${page.titulo_h1} · Iwagé Tierras`} description={page.meta_description || page.hero_text || ''}>
+
+  <!-- Hero -->
+  <section class="bg-[#1A1E18] text-white py-20 md:py-28 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-[#C8933E]/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
+    <div class="max-w-5xl mx-auto px-6 relative z-10">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="w-12 h-[1px] bg-[#C8933E]"></span>
+        <span class="text-[#C8933E] text-xs font-bold uppercase tracking-[0.4em]">Iwagé Tierras</span>
+      </div>
+      <h1 class="text-3xl md:text-5xl lg:text-6xl font-serif leading-tight mb-6">{page.titulo_h1}</h1>
+      {page.hero_text && <p class="text-xl text-white/60 font-light max-w-2xl leading-relaxed">{page.hero_text}</p>}
+    </div>
+  </section>
+
+  <!-- Property CTA -->
+  <section class="py-16 px-6 bg-[#FAF8F5]">
+    <div class="max-w-4xl mx-auto text-center">
+      <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
+        Explora nuestro catálogo de propiedades verificadas con el Protocolo VAP. Cada predio pasa por 5 fases de auditoría para garantizar tu inversión.
+      </p>
+      <a href="/tierras/propiedades" class="inline-flex items-center gap-2 bg-[#1A1E18] text-white px-8 py-4 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#40916C] transition-colors">
+        Ver Propiedades Verificadas →
+      </a>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  {page.faqs && page.faqs.length > 0 && (
+    <section class="py-16 px-6 bg-white">
+      <div class="max-w-3xl mx-auto">
+        <h2 class="font-serif text-2xl text-[#1A1E18] mb-8 text-center">Preguntas Frecuentes</h2>
+        <div class="space-y-4">
+          {page.faqs.map((faq) => (
+            <details class="bg-[#FAF8F5] rounded-xl border border-[#EDE5D4] p-4">
+              <summary class="font-medium text-[#1A1E18] cursor-pointer">{faq.pregunta}</summary>
+              <p class="mt-3 text-sm text-gray-600 leading-relaxed">{faq.respuesta}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Final CTA -->
+  <section class="py-16 px-6 bg-[#1A1E18] text-white text-center">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="font-serif text-2xl md:text-3xl mb-4">{page.cta_text || '¿Listo para invertir en el Tolima?'}</h2>
+      <p class="text-white/60 mb-8">Nuestro equipo te acompaña en todo el proceso: desde la búsqueda hasta la escrituración.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/tierras/propiedades" class="px-8 py-3 bg-[#C8933E] text-[#1A1E18] rounded-full font-bold text-sm uppercase tracking-wider hover:bg-white transition-colors">
+          Explorar Catálogo
+        </a>
+        <a href="https://wa.me/573028413141?text=Hola, vi la landing y quiero más info" target="_blank" rel="noopener" class="px-8 py-3 border border-white/20 text-white rounded-full font-bold text-sm uppercase tracking-wider hover:bg-white/10 transition-colors">
+          💬 WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+</BrandLayout>

@@ -1,0 +1,105 @@
+---
+interface Insight {
+  titulo: string;
+  descripcion: string;
+  valor: string;
+  icono: string;
+  categoria: string;
+}
+
+interface Props {
+  slug: string;
+  cachedInsights?: Insight[];
+}
+
+const { slug, cachedInsights } = Astro.props;
+---
+
+<div class="business-insights bg-white rounded-2xl p-6 border border-gray-100" data-slug={slug}>
+  <div class="flex items-center gap-2 mb-4">
+    <span class="text-xl">📊</span>
+    <h3 class="font-black text-[#1B4332] tracking-tight text-sm uppercase">Inteligencia Estratégica</h3>
+    <span class="ml-auto text-[9px] font-bold uppercase tracking-widest text-[#52B788] bg-[#52B788]/10 px-2 py-1 rounded-full">IA</span>
+  </div>
+
+  {cachedInsights && cachedInsights.length > 0 ? (
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {cachedInsights.map((insight) => (
+        <div class="p-4 rounded-xl bg-[#FAFAF7] border border-gray-100 hover:border-[#52B788]/30 transition-colors">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-lg">{insight.icono}</span>
+            <h4 class="text-xs font-black text-[#1B4332] uppercase tracking-tight">{insight.titulo}</h4>
+          </div>
+          <p class="text-sm font-bold text-[#52B788] mb-1">{insight.valor}</p>
+          <p class="text-xs text-gray-500 leading-relaxed">{insight.descripcion}</p>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div class="bi-loading text-center py-8">
+      <button id="bi-generate" class="px-6 py-3 bg-[#1B4332] text-white rounded-xl text-sm font-bold hover:bg-[#52B788] hover:text-[#0F120E] transition-all">
+        🤖 Generar análisis con IA
+      </button>
+      <p class="text-xs text-gray-400 mt-3">Análisis de valorización, conectividad, agua, energía y vocación del suelo.</p>
+    </div>
+    <div class="bi-results hidden grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    <div class="bi-spinner hidden text-center py-8">
+      <div class="inline-block w-8 h-8 border-3 border-[#52B788] border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs text-gray-400 mt-3">Analizando datos de la propiedad...</p>
+    </div>
+    <div class="bi-error hidden text-center py-4">
+      <p class="text-sm text-red-500">No se pudo generar el análisis. Intenta de nuevo.</p>
+    </div>
+  )}
+</div>
+
+{!(cachedInsights && cachedInsights.length > 0) && (
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('.business-insights');
+    if (!container) return;
+    const slug = container.getAttribute('data-slug');
+    const btn = document.getElementById('bi-generate');
+    const loading = container.querySelector('.bi-loading');
+    const results = container.querySelector('.bi-results');
+    const spinner = container.querySelector('.bi-spinner');
+    const error = container.querySelector('.bi-error');
+
+    btn?.addEventListener('click', async () => {
+      loading?.classList.add('hidden');
+      spinner?.classList.remove('hidden');
+      error?.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/business-insights', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug }),
+        });
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+        const insights = data.insights || [];
+
+        if (insights.length === 0) throw new Error('Empty');
+
+        results!.innerHTML = insights.map((i: any) => `
+          <div class="p-4 rounded-xl bg-[#FAFAF7] border border-gray-100">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">${i.icono || '📌'}</span>
+              <h4 class="text-xs font-black text-[#1B4332] uppercase tracking-tight">${i.titulo}</h4>
+            </div>
+            <p class="text-sm font-bold text-[#52B788] mb-1">${i.valor}</p>
+            <p class="text-xs text-gray-500 leading-relaxed">${i.descripcion}</p>
+          </div>
+        `).join('');
+
+        spinner?.classList.add('hidden');
+        results?.classList.remove('hidden');
+      } catch {
+        spinner?.classList.add('hidden');
+        error?.classList.remove('hidden');
+      }
+    });
+  });
+</script>
+)}

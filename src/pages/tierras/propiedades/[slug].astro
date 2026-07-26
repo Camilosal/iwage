@@ -1,0 +1,292 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import FichaTecnica from '@/components/tierras/FichaTecnica.astro';
+import SelloVAP from '@/components/tierras/SelloVAP.astro';
+import VAPHub from '@/components/tierras/VAPHub.astro';
+import VAPEvidenceGallery from '@/components/tierras/VAPEvidenceGallery.astro';
+import BusinessInsights from '@/components/tierras/BusinessInsights.astro';
+import ProtectionPeriodAlert from '@/components/tierras/ProtectionPeriodAlert.astro';
+import Storytelling from '@/components/tierras/Storytelling.astro';
+import MediaGallery from '@/components/shared/MediaGallery.astro';
+import { getPropiedadBySlug, getAllPropiedadSlugs, formatPrecio, formatArea, propiedadImagen, SELLOS_VAP } from '@/lib/tierras';
+import { strapiImage } from '@/lib/strapi';
+import { getBrand } from '@/config/brands';
+
+const { slug } = Astro.params;
+const prop = await getPropiedadBySlug(slug!);
+
+if (!prop) {
+  return Astro.redirect('/tierras/propiedades');
+}
+
+const images = prop.imagenes?.map(img => strapiImage(img.url)).filter(Boolean) || [];
+if (prop.imagen_principal?.url && !images.includes(strapiImage(prop.imagen_principal.url)!)) {
+  images.unshift(strapiImage(prop.imagen_principal.url)!);
+}
+
+// Build Ficha Técnica sections
+const dr = prop.detalle_rural;
+const fichaSections = [
+  {
+    id: 'general',
+    title: 'General',
+    icon: '🏠',
+    items: [
+      { label: 'Área Total', value: prop.area_total ? `${prop.area_total.toLocaleString('es-CO')} m²` : null, tip: 'Superficie total que define el potencial de aprovechamiento del terreno.' },
+      { label: 'Hectáreas', value: prop.area_hectareas ? `${prop.area_hectareas} ha` : null, tip: 'Unidad clave para valorar la escala de inversión rural.' },
+      { label: 'Área Construida', value: prop.area_construida ? `${prop.area_construida.toLocaleString('es-CO')} m²` : null, tip: 'Metros cuadrados techados validados en sitio.' },
+      { label: 'Habitaciones', value: prop.numero_habitaciones?.toString() || null },
+      { label: 'Baños', value: prop.numero_banos?.toString() || null },
+      { label: 'Garajes', value: prop.numero_garajes?.toString() || null },
+      { label: 'Año Construcción', value: prop.anno_construccion?.toString() || null, tip: 'Dato vital para estimar depreciación y cumplimiento de normas.' },
+      { label: 'Tipo', value: prop.tipo_propiedad ? prop.tipo_propiedad.replace(/_/g, ' ') : null },
+      { label: 'Operación', value: prop.operacion === 'venta' ? 'Venta' : 'Arriendo' },
+    ],
+  },
+  {
+    id: 'ubicacion',
+    title: 'Ubicación & Acceso',
+    icon: '📍',
+    items: [
+      { label: 'Municipio', value: prop.ubicacion_municipio },
+      { label: 'Departamento', value: prop.ubicacion_departamento },
+      { label: 'Dirección', value: prop.ubicacion_direccion },
+      { label: 'Vía de acceso', value: dr?.tipo_via_acceso ? dr.tipo_via_acceso.replace(/_/g, ' ') : prop.tipo_via, tip: 'Calidad de la vía que impacta directamente en valorización y logística.' },
+      { label: 'Al casco urbano', value: dr?.distancia_casco_urbano_min ? `${dr.distancia_casco_urbano_min} min` : prop.distancia_centro_poblado ? `${prop.distancia_centro_poblado} min` : null },
+      { label: 'Coordenadas', value: prop.ubicacion_latitud && prop.ubicacion_longitud ? `${prop.ubicacion_latitud.toFixed(4)}, ${prop.ubicacion_longitud.toFixed(4)}` : null },
+    ],
+  },
+  {
+    id: 'rural',
+    title: 'Detalle Rural',
+    icon: '🌱',
+    items: [
+      { label: 'Agua', value: prop.disponibilidad_agua || (dr?.tiene_concesion_agua ? 'Con concesión' : null), tip: 'La disponibilidad de agua determina la viabilidad agrícola y el valor del predio.', highlight: !!prop.disponibilidad_agua || dr?.tiene_concesion_agua },
+      { label: 'Tipo concesión', value: dr?.tipo_concesion_agua ? dr.tipo_concesion_agua.replace(/_/g, ' ') : null, tip: 'Certifica el derecho legal al uso del agua, blindando tu inversión.' },
+      { label: 'Caudal autorizado', value: dr?.caudal_autorizado_ls ? `${dr.caudal_autorizado_ls} L/s` : null, tip: 'Volumen de agua disponible, crítico para proyectos agrícolas o de riego.' },
+      { label: 'Energía eléctrica', value: prop.energia_electrica ? '✓ Disponible' : null, tip: 'La capacidad eléctrica determina la viabilidad de proyectos industriales o residenciales.', highlight: prop.energia_electrica },
+      { label: 'Energía trifásica', value: dr?.tiene_energia_trifasica ? '✓ Sí' : null, highlight: dr?.tiene_energia_trifasica },
+      { label: 'Internet', value: dr?.velocidad_internet_mbps ? `${dr.velocidad_internet_mbps} Mbps` : null, tip: 'Conectividad verificada, esencial para trabajo remoto y gestión moderna.' },
+      { label: 'Starlink verificado', value: dr?.cobertura_starlink_verificada ? '✓ Sí' : null, tip: 'Internet satelital de alta velocidad confirmado en campo.', highlight: dr?.cobertura_starlink_verificada },
+      { label: 'Topografía', value: dr?.inclinacion_topografica ? dr.inclinacion_topografica.replace(/_/g, ' ') : null, tip: 'Determina la facilidad de construcción y el tipo de uso del terreno.' },
+      { label: 'Área plana', value: dr?.porcentaje_area_plana ? `${dr.porcentaje_area_plana}%` : null, tip: 'El porcentaje de terreno nivelado incrementa el valor por m².' },
+      { label: 'Apta glamping', value: dr?.apta_glamping_agroturismo ? '✓ Sí' : null, highlight: dr?.apta_glamping_agroturismo },
+      { label: 'ROI glamping est.', value: dr?.roi_estimado_glamping_pct ? `${dr.roi_estimado_glamping_pct}%` : null },
+      { label: 'Vocación PBOT', value: dr?.vocacion_suelo_pbot ? dr.vocacion_suelo_pbot.replace(/_/g, ' ') : null, tip: 'Alineación con el plan de desarrollo municipal para evitar riesgos legales.' },
+    ],
+  },
+  {
+    id: 'legal',
+    title: 'Estado Legal',
+    icon: '⚖️',
+    items: [
+      { label: 'Estado legal', value: dr?.estado_legal ? dr.estado_legal.replace(/_/g, ' ') : null, tip: 'Situación jurídica actual del predio, fundamental para una compra segura.' },
+      { label: 'Seguridad del sector', value: dr?.seguridad_sector ? dr.seguridad_sector.replace(/_/g, ' ') : null, tip: 'Evaluación del entorno que influye en tranquilidad y valorización a largo plazo.' },
+      { label: 'Análisis PBOT', value: dr?.analisis_pbot_realizado ? '✓ Realizado' : null, highlight: dr?.analisis_pbot_realizado },
+    ],
+  },
+];
+
+const waPhone = getBrand('tierras')?.whatsapp || '573001234567';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateListing',
+  name: prop.titulo,
+  description: prop.seo_descripcion || prop.descripcion?.slice(0, 200),
+  url: `https://iwage.co/tierras/propiedades/${prop.slug}`,
+  offers: prop.precio ? { '@type': 'Offer', price: prop.precio, priceCurrency: prop.moneda } : undefined,
+  address: { '@type': 'PostalAddress', addressLocality: prop.ubicacion_municipio, addressRegion: prop.ubicacion_departamento, addressCountry: 'CO' },
+};
+---
+
+<BrandLayout brand="tierras" title={`${prop.seo_titulo || prop.titulo} · Iwagé Tierras`} description={prop.seo_descripcion || prop.descripcion?.slice(0, 160) || `Propiedad rural en ${prop.ubicacion_municipio}, Tolima. Verificada con Protocolo VAP.`}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- Breadcrumb -->
+  <nav class="bg-white border-b border-gray-100 py-3">
+    <div class="max-w-7xl mx-auto px-6 text-xs text-gray-400">
+      <a href="/tierras" class="hover:text-[#52B788]">Tierras</a> /
+      <a href="/tierras/propiedades" class="hover:text-[#52B788]">Propiedades</a> /
+      <span class="text-[#1B4332] font-medium">{prop.titulo}</span>
+    </div>
+  </nav>
+
+  <!-- Protection Period Alert -->
+  <div class="max-w-7xl mx-auto px-6 pt-4">
+    <ProtectionPeriodAlert fechaInicio={prop.fecha_proteccion_inicio} diasProteccion={prop.dias_proteccion || 0} />
+  </div>
+
+  <!-- Image Gallery with Lightbox -->
+  <section class="bg-[#0F120E] py-6">
+    <div class="max-w-7xl mx-auto px-6">
+      {images.length > 0 ? (
+        <MediaGallery images={images} title={prop.titulo} columns={4} />
+      ) : (
+        <div class="h-64 md:h-96 rounded-2xl bg-[#1B4332]/20 flex items-center justify-center">
+          <span class="text-6xl">🌄</span>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <section class="bg-[#FAFAF7] py-10">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <!-- Left: Details -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Title + Price + VAP Badge -->
+        <div>
+          <div class="flex flex-wrap items-center gap-3 mb-3">
+            <SelloVAP sello={prop.sello_vap} variant="badge" />
+            <span class="px-3 py-1 rounded-full bg-[#1B4332]/5 text-[#1B4332] text-xs font-medium capitalize">{prop.tipo_propiedad?.replace(/_/g, ' ')}</span>
+            {prop.es_destacado && <span class="px-3 py-1 rounded-full bg-[#C8933E]/10 text-[#C8933E] text-xs font-bold">★ Destacada</span>}
+          </div>
+          <h1 class="text-3xl md:text-4xl font-bold text-[#1B4332] mb-2">{prop.titulo}</h1>
+          <p class="text-gray-500 flex items-center gap-2">
+            📍 {prop.ubicacion_municipio}, {prop.ubicacion_departamento}
+            {prop.area_hectareas && <span>· {prop.area_hectareas} ha</span>}
+          </p>
+        </div>
+
+        <!-- Description -->
+        {prop.descripcion && (
+          <div class="bg-white rounded-2xl p-6 border border-gray-100">
+            <p class="text-gray-700 leading-relaxed whitespace-pre-line">{prop.descripcion}</p>
+          </div>
+        )}
+
+        <!-- Ficha Técnica (Accordion) -->
+        <FichaTecnica sections={fichaSections} />
+
+        <!-- Business Insights (AI) -->
+        <BusinessInsights slug={prop.slug} cachedInsights={prop.business_insights} />
+
+        <!-- Storytelling (AI Narratives) -->
+        <Storytelling slug={prop.slug} titulo={prop.titulo} cachedNarrativas={prop.narrativas} />
+
+        <!-- VAP Hub (Full Verification Card) -->
+        <VAPHub
+          sello={prop.sello_vap}
+          verificado={!!prop.sello_vap && prop.sello_vap !== 'sin_verificar'}
+          fase={prop.verificacion_vap?.fase || 0}
+          fechaAuditoria={prop.verificacion_vap?.fecha_aprobacion}
+          auditor={prop.verificacion_vap?.auditor}
+          itemsAprobados={prop.verificacion_vap?.items_aprobados || 0}
+          itemsTotal={prop.verificacion_vap?.items_total || 0}
+          notaTransparencia={prop.verificacion_vap?.nota_transparencia}
+          reporteBanderas={prop.verificacion_vap?.reporte_banderas || []}
+          fechaVencimiento={prop.verificacion_vap?.fecha_vencimiento}
+        />
+
+        <!-- VAP Evidence Gallery -->
+        {prop.fotos_evidencia && prop.fotos_evidencia.length > 0 && (
+          <VAPEvidenceGallery fotos={prop.fotos_evidencia} />
+        )}
+
+        <!-- Media Links -->
+        {(prop.video_url || prop.tour_virtual_url || prop.link_drone) && (
+          <div class="flex flex-wrap gap-3">
+            {prop.video_url && <a href={prop.video_url} target="_blank" rel="noopener" class="bg-white border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:border-[#52B788] transition-colors">🎬 Video</a>}
+            {prop.tour_virtual_url && <a href={prop.tour_virtual_url} target="_blank" rel="noopener" class="bg-white border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:border-[#52B788] transition-colors">🔄 Tour 360°</a>}
+            {prop.link_drone && <a href={prop.link_drone} target="_blank" rel="noopener" class="bg-white border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:border-[#52B788] transition-colors">🛸 Vista Drone</a>}
+          </div>
+        )}
+
+        <!-- Cross-brand Ecosystem -->
+        {((prop.experiencias && prop.experiencias.length > 0) || (prop.proveedores && prop.proveedores.length > 0)) && (
+          <div class="bg-white rounded-2xl p-6 border border-gray-100">
+            <h2 class="text-lg font-semibold text-[#1B4332] mb-4">Conectada al ecosistema Iwagé</h2>
+            <div class="space-y-5">
+              {prop.experiencias && prop.experiencias.length > 0 && (
+                <div>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">🌿 Experiencia{prop.experiencias.length > 1 ? 's' : ''} en Naturaleza</h3>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    {prop.experiencias.map((exp) => (
+                      <a href={`/naturaleza/experiencias/${exp.slug}`} class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#2E7D32]/30 hover:shadow-md transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-[#2E7D32]/10 flex items-center justify-center text-lg shrink-0">🌿</div>
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-sm font-bold text-[#2E7D32] group-hover:text-[#52B788] transition-colors truncate">{exp.titulo}</h4>
+                          <p class="text-[11px] text-gray-400">{exp.categoria || 'Naturaleza'}{exp.precio_desde ? ` · desde $${(exp.precio_desde / 1000).toFixed(0)}k` : ''}</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-[#52B788] shrink-0">→</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {prop.proveedores && prop.proveedores.length > 0 && (
+                <div>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">☕ Proveedor{prop.proveedores.length > 1 ? 'es' : ''} de Café</h3>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    {prop.proveedores.map((prov) => (
+                      <a href={`/cafe/proveedores#${prov.slug}`} class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#6D4C41]/30 hover:shadow-md transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-[#6D4C41]/10 flex items-center justify-center text-lg shrink-0">☕</div>
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-sm font-bold text-[#6D4C41] group-hover:text-[#52B788] transition-colors truncate">{prov.nombre}</h4>
+                          <p class="text-[11px] text-gray-400">{prov.producto || 'Proveedor'}{prov.ubicacion ? ` · ${prov.ubicacion}` : ''}</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-[#52B788] shrink-0">→</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Right: Sidebar -->
+      <div class="space-y-6">
+        <!-- CTA Card -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 sticky top-24">
+          <p class="text-2xl font-bold text-[#1B4332] mb-1">{formatPrecio(prop.precio, prop.moneda)}</p>
+          <p class="text-xs text-gray-400 mb-6">{prop.operacion === 'venta' ? 'Venta' : 'Arriendo'} · {formatArea(prop)}</p>
+
+          <a href={`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hola, me interesa la propiedad: ${prop.titulo} (${prop.slug}). ¿Podemos agendar una visita?`)}`}
+            target="_blank" rel="noopener"
+            class="block w-full bg-[#52B788] text-[#0F120E] text-center py-3 rounded-xl font-bold text-sm hover:bg-[#52B788]/90 transition-all mb-3">
+            💬 WhatsApp Directo
+          </a>
+          <a href="/tierras/vender" class="block w-full border border-[#1B4332] text-[#1B4332] text-center py-3 rounded-xl font-bold text-sm hover:bg-[#1B4332] hover:text-white transition-all mb-3">
+            📞 Agendar Visita
+          </a>
+          <a href="/tierras/herramientas/calculadora-notarial" class="block w-full text-center text-sm text-gray-400 hover:text-[#52B788] transition-colors py-2">
+            🧮 Calcular gastos notariales →
+          </a>
+
+          {prop.modelo_sugerido && (
+            <div class="mt-4 p-4 bg-[#52B788]/5 rounded-xl border border-[#52B788]/20">
+              <p class="text-xs font-bold text-[#52B788] uppercase mb-1">Modelo sugerido</p>
+              <p class="text-sm font-medium text-[#1B4332]">{prop.modelo_sugerido.icono} {prop.modelo_sugerido.titulo}</p>
+              {prop.modelo_sugerido.valor && <p class="text-xs text-gray-500 mt-1">{prop.modelo_sugerido.valor}</p>}
+            </div>
+          )}
+        </div>
+
+        <!-- Map placeholder -->
+        {prop.ubicacion_latitud && prop.ubicacion_longitud && (
+          <div class="bg-white rounded-2xl overflow-hidden border border-gray-100">
+            <div class="h-48 bg-[#1B4332]/10 flex items-center justify-center">
+              <div class="text-center">
+                <span class="text-3xl">🗺️</span>
+                <p class="text-xs text-gray-400 mt-2">{prop.ubicacion_latitud.toFixed(4)}, {prop.ubicacion_longitud.toFixed(4)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <!-- Tools -->
+        <div class="bg-white rounded-2xl p-5 border border-gray-100">
+          <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Herramientas</p>
+          <div class="space-y-2">
+            <a href="/tierras/herramientas/roi-calculator" class="flex items-center gap-2 text-sm text-gray-600 hover:text-[#52B788] transition-colors">📊 Calculadora ROI</a>
+            <a href="/tierras/herramientas/calculadora-notarial" class="flex items-center gap-2 text-sm text-gray-600 hover:text-[#52B788] transition-colors">📋 Gastos notariales</a>
+            <a href="/tierras/herramientas/evaluacion-vap" class="flex items-center gap-2 text-sm text-gray-600 hover:text-[#52B788] transition-colors">📝 Evaluar con VAP</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BrandLayout>

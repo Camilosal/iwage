@@ -1,0 +1,102 @@
+---
+interface FotoEvidencia {
+  url: string;
+  label: string;
+  item_clave?: string;
+}
+
+interface Props {
+  fotos: FotoEvidencia[];
+}
+
+const { fotos } = Astro.props;
+---
+
+{fotos && fotos.length > 0 && (
+  <div class="vap-evidence mt-8">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="text-xl">📸</span>
+      <h3 class="font-black text-[#1B4332] tracking-tight uppercase text-sm">Evidencia de Auditoría en Campo</h3>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {fotos.map((foto, idx) => (
+        <button
+          class="vap-evidence-item group relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 cursor-zoom-in hover:shadow-xl transition-all"
+          data-index={idx}
+          data-url={foto.url}
+          data-label={foto.label}
+          data-clave={foto.item_clave || ''}
+        >
+          <img
+            src={foto.url}
+            alt={foto.label}
+            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
+            <p class="text-[10px] font-black text-white uppercase tracking-wider leading-none">{foto.label}</p>
+            <p class="text-[8px] text-[#52B788] font-bold mt-1 uppercase">Validado por Auditor</p>
+          </div>
+        </button>
+      ))}
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="vap-lightbox" class="fixed inset-0 z-[100] bg-[#0F120E]/95 backdrop-blur-md hidden items-center justify-center p-4 md:p-12">
+      <button id="vap-lb-close" class="absolute top-6 right-6 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-all">✕</button>
+      <div class="relative max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden rounded-3xl bg-[#1a1a1a] shadow-2xl border border-white/5">
+        <img id="vap-lb-img" src="" alt="" class="w-full h-full object-contain bg-black" />
+        <div class="p-6 bg-[#1a1a1a] border-t border-white/5 flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-black text-[#52B788] uppercase tracking-widest mb-1 italic">Evidencia Validada VAP®</p>
+            <h4 id="vap-lb-label" class="text-xl font-black text-white tracking-tighter"></h4>
+          </div>
+          <div class="hidden md:flex flex-col items-end">
+            <span class="text-[10px] text-gray-500 font-bold uppercase">Referencia</span>
+            <span id="vap-lb-clave" class="text-sm font-mono text-gray-300 underline decoration-[#52B788]/30"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const lightbox = document.getElementById('vap-lightbox');
+    const lbImg = document.getElementById('vap-lb-img') as HTMLImageElement;
+    const lbLabel = document.getElementById('vap-lb-label');
+    const lbClave = document.getElementById('vap-lb-clave');
+    const lbClose = document.getElementById('vap-lb-close');
+
+    if (!lightbox) return;
+
+    document.querySelectorAll('.vap-evidence-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const url = btn.getAttribute('data-url');
+        const label = btn.getAttribute('data-label');
+        const clave = btn.getAttribute('data-clave');
+        lbImg.src = url || '';
+        lbImg.alt = label || '';
+        lbLabel.textContent = label || '';
+        lbClave.textContent = clave || '—';
+        lightbox.classList.remove('hidden');
+        lightbox.classList.add('flex');
+      });
+    });
+
+    const close = () => {
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+    };
+
+    lbClose?.addEventListener('click', close);
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close();
+    });
+  });
+</script>

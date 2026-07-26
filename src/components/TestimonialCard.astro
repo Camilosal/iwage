@@ -1,0 +1,23 @@
+---
+interface Props {
+  quote: string;
+  name: string;
+  role: string;
+  location?: string;
+}
+const { quote, name, role, location } = Astro.props;
+const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+---
+
+<div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm border-l-4 border-l-accent">
+  <p class="text-base text-text-secondary leading-relaxed italic mb-6">"{quote}"</p>
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-brand-muted flex items-center justify-center text-brand font-semibold text-sm">
+      {initials}
+    </div>
+    <div>
+      <p class="text-sm font-semibold text-text-primary">{name}</p>
+      <p class="text-xs text-text-muted">{role}{location && ` · ${location}`}</p>
+    </div>
+  </div>
+</div>

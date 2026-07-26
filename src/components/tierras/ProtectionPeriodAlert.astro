@@ -1,0 +1,59 @@
+---
+interface Props {
+  fechaInicio?: string;
+  diasProteccion?: number;
+}
+
+const { fechaInicio, diasProteccion = 0 } = Astro.props;
+
+let daysRemaining = 0;
+let isActive = false;
+let isNearExpiry = false;
+let percentRemaining = 0;
+
+if (fechaInicio && diasProteccion > 0) {
+  const start = new Date(fechaInicio);
+  const end = new Date(start);
+  end.setDate(end.getDate() + diasProteccion);
+  const now = new Date();
+  const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff > 0) {
+    isActive = true;
+    daysRemaining = diff;
+    isNearExpiry = diff <= 7;
+    percentRemaining = Math.round((diff / diasProteccion) * 100);
+  }
+}
+---
+
+{isActive && (
+  <div class={`rounded-xl p-4 mb-6 border-l-4 ${isNearExpiry ? 'bg-yellow-50 border-yellow-500' : 'bg-green-50 border-green-500'}`}>
+    <div class="flex items-start gap-3">
+      <span class="text-xl shrink-0">{isNearExpiry ? '⚠️' : '🛡️'}</span>
+      <div class="flex-1">
+        <div class="flex justify-between items-center mb-2">
+          <p class={`text-sm font-bold ${isNearExpiry ? 'text-yellow-800' : 'text-green-800'}`}>
+            Período de Protección Activo
+          </p>
+          <span class={`text-sm font-black ${isNearExpiry ? 'text-yellow-700' : 'text-green-700'}`}>
+            {daysRemaining} días
+          </span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+          <div
+            class={`h-2 rounded-full transition-all ${isNearExpiry ? 'bg-yellow-500' : 'bg-green-500'}`}
+            style={`width: ${percentRemaining}%`}
+          ></div>
+        </div>
+        <p class={`text-xs ${isNearExpiry ? 'text-yellow-700' : 'text-green-700'}`}>
+          Los leads presentados durante este período están protegidos bajo los términos del contrato de intermediación.
+        </p>
+        {isNearExpiry && (
+          <p class="text-xs text-yellow-700 mt-2 font-semibold">
+            ⚠️ El período expira pronto. Asegúrate de cerrar cualquier negociación pendiente.
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+)}

@@ -1,0 +1,159 @@
+---
+/**
+ * Unified lead capture form. Routes to /api/contacto with brand context.
+ * Embeds brand slug as hidden field for CRM attribution.
+ */
+interface Props {
+  brand?: string;
+  title?: string;
+  subtitle?: string;
+  compact?: boolean;
+}
+
+const {
+  brand = 'general',
+  title = 'Hablemos de tu proyecto',
+  subtitle = 'Déjanos tus datos y te contactamos por WhatsApp en menos de 24 horas.',
+  compact = false,
+} = Astro.props;
+
+const projectTypes: Record<string, string[]> = {
+  meliponas: ['Comprar miel/cajas', 'Polinización', 'Proyecto educativo', 'Asistencia técnica'],
+  cafe: ['Comprar café', 'Venta al por mayor', 'Visita a finca', 'Otro'],
+  tierras: ['Comprar propiedad', 'Vender propiedad', 'Asesoría de tierras', 'Otro'],
+  naturaleza: ['Reservar experiencia', 'Ser anfitrión', 'Paquete grupal', 'Otro'],
+  gestion: ['Renta corta', 'Segunda residencia', 'Finca productiva', 'Operación turística', 'Alianza'],
+  general: ['Meliponario', 'Café', 'Tierras', 'Turismo', 'Gestión', 'Otro'],
+};
+
+const types = projectTypes[brand] ?? projectTypes.general;
+---
+
+<div class={`w-full ${compact ? '' : 'max-w-lg mx-auto'}`}>
+  <div class="text-center mb-8">
+    <h3 class="text-2xl font-bold text-text-primary">{title}</h3>
+    <p class="mt-2 text-sm text-text-secondary">{subtitle}</p>
+  </div>
+
+  <form id={`contact-form-${brand}`} class="space-y-4" novalidate>
+    <input type="hidden" name="brand" value={brand} />
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1.5">Nombre *</label>
+        <input
+          type="text"
+          name="nombre"
+          required
+          minlength="2"
+          placeholder="Tu nombre"
+          class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1.5">WhatsApp *</label>
+        <input
+          type="tel"
+          name="whatsapp"
+          required
+          minlength="7"
+          placeholder="+57 300 000 0000"
+          class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+        />
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1.5">Municipio</label>
+        <input
+          type="text"
+          name="municipio"
+          placeholder="Ibagué, Cajamarca, etc."
+          class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1.5">Tipo de proyecto *</label>
+        <select
+          name="tipo_proyecto"
+          required
+          class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+        >
+          <option value="" disabled selected>Selecciona...</option>
+          {types.map((t) => (
+            <option value={t}>{t}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-text-secondary mb-1.5">Mensaje (opcional)</label>
+      <textarea
+        name="mensaje"
+        rows={compact ? 2 : 4}
+        placeholder="Cuéntanos más sobre lo que necesitas..."
+        class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+      ></textarea>
+    </div>
+
+    <button
+      type="submit"
+      class="w-full rounded-xl bg-brand px-6 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-light active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Enviar mensaje
+    </button>
+
+    <p class="text-center text-xs text-text-muted">
+      Sin spam. Solo una respuesta por WhatsApp.
+    </p>
+
+    <!-- Status message -->
+    <div class="form-status hidden rounded-xl px-4 py-3 text-sm font-medium text-center"></div>
+  </form>
+</div>
+
+<script define:vars={{ brandSlug: brand }}>
+  (function () {
+    const form = document.getElementById(`contact-form-${brandSlug}`);
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('button[type="submit"]');
+      const status = form.querySelector('.form-status');
+      const originalText = btn.textContent;
+
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      try {
+        const data = Object.fromEntries(new FormData(form).entries());
+        const res = await fetch('/api/contacto', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          status.className = 'form-status rounded-xl px-4 py-3 text-sm font-medium text-center bg-green-50 text-green-700 border border-green-200';
+          status.textContent = '✓ ' + (result.message || 'Mensaje enviado correctamente.');
+          form.reset();
+        } else {
+          status.className = 'form-status rounded-xl px-4 py-3 text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200';
+          status.textContent = result.error || 'Error al enviar. Intenta de nuevo.';
+        }
+      } catch {
+        status.className = 'form-status rounded-xl px-4 py-3 text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200';
+        status.textContent = 'Error de conexión. Verifica tu internet.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        setTimeout(() => { status.classList.add('hidden'); }, 6000);
+      }
+    });
+  })();
+</script>

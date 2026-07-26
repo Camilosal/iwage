@@ -1,0 +1,11 @@
+{
+  "kind": "collectionType",
+  "collectionName": "etapa_proyectos",
+  "info": { "singularName": "etapa-proyecto", "pluralName": "etapa-proyectos", "displayName": "Etapa Proyecto" },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "numero": { "type": "integer", "required": true },
+    "titulo": { "type": "string", "required": true },
+    "descripcion": { "type": "text" }
+  }
+}

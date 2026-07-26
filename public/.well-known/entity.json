@@ -1,0 +1,83 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://iwage.co/#organization",
+      "name": "Iwagé",
+      "alternateName": "Iwage",
+      "url": "https://iwage.co",
+      "description": "Ecosistema de desarrollo rural en el corredor Ambalá, Ibagué, Tolima, Colombia. Cinco líneas de acción: meliponicultura, café de origen, inmobiliaria rural, turismo regenerativo y property management.",
+      "foundingLocation": {
+        "@type": "Place",
+        "name": "Corredor Ambalá, Ibagué, Tolima, Colombia"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Ibagué",
+        "addressRegion": "Tolima",
+        "addressCountry": "CO"
+      },
+      "areaServed": {
+        "@type": "AdministrativeArea",
+        "name": "Tolima, Colombia"
+      },
+      "knowsAbout": [
+        "Meliponicultura",
+        "Tetragonisca angustula",
+        "Café especial",
+        "Inmobiliaria rural",
+        "Turismo regenerativo",
+        "Property management",
+        "Agricultura regenerativa",
+        "Polinización gestionada",
+        "Biodiversidad nativa"
+      ],
+      "subOrganization": [
+        {
+          "@type": "Organization",
+          "@id": "https://iwage.co/meliponas/#organization",
+          "name": "Iwagé Meliponario",
+          "url": "https://iwage.co/meliponas/",
+          "description": "Meliponario y biotecnología nativa. Miel de Tetragonisca angustula, cajas INPA/AF en nogal cafetero, polinización gestionada."
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://iwage.co/cafe/#organization",
+          "name": "Iwagé Café",
+          "url": "https://iwage.co/cafe/",
+          "description": "Café especial de origen Tolima con trazabilidad por finca y lote."
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://iwage.co/tierras/#organization",
+          "name": "Iwagé Tierras",
+          "url": "https://iwage.co/tierras/",
+          "description": "Inmobiliaria rural: fincas productivas, lotes campestres, proyectos de desarrollo territorial en el Tolima."
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://iwage.co/naturaleza/#organization",
+          "name": "Iwagé Naturaleza",
+          "url": "https://iwage.co/naturaleza/",
+          "description": "Turismo regenerativo con anfitriones locales. Experiencias sensoriales, escalafón de 5 niveles, paquetes de inmersión."
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://iwage.co/gestion/#organization",
+          "name": "Iwagé Gestión",
+          "url": "https://iwage.co/gestion/",
+          "description": "Property management rural: segunda residencia, renta corta, finca productiva, operación turística, alianzas."
+        }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://iwage.co/#website",
+      "url": "https://iwage.co",
+      "name": "Iwagé",
+      "publisher": { "@id": "https://iwage.co/#organization" },
+      "inLanguage": "es-CO"
+    }
+  ]
+}

@@ -1,0 +1,336 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+export const prerender = true;
+---
+
+<BrandLayout brand="tierras" title="Calculadora ROI Rural · Iwagé Tierras" description="Compara el retorno de inversión de 5 modelos rurales: glamping, agricultura, ganadería, arriendo y valorización de tierra en el Tolima. Con tabla comparativa y periodo de recuperación.">
+
+  <section class="bg-[#0F120E] text-white py-12">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Herramientas de Inversión</p>
+      <h1 class="text-3xl md:text-4xl font-bold">Calculadora ROI Rural</h1>
+      <p class="text-white/60 mt-3 max-w-xl mx-auto">Compara el retorno de 5 modelos de negocio rural. Ingresa los datos de tu propiedad y proyecta ingresos reales.</p>
+    </div>
+  </section>
+
+  <section class="bg-[#FAFAF7] py-12">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Input Panel -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm sticky top-24">
+            <h2 class="font-bold text-[#1B4332] mb-4">Tu inversión</h2>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-medium text-[#1B4332] mb-1">Valor de la propiedad (COP)</label>
+                <input type="text" id="valor-propiedad" value="150.000.000" inputmode="numeric"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-[#1B4332] mb-1">Inversión adicional (infraestructura)</label>
+                <input type="text" id="valor-infra" value="50.000.000" inputmode="numeric"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]" />
+              </div>
+            </div>
+
+            <!-- Scenario selector -->
+            <h3 class="font-bold text-[#1B4332] mt-6 mb-3 text-sm">Escenario a detallar</h3>
+            <div class="space-y-2" id="scenario-tabs">
+              <button data-scenario="turismo" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border-2 border-[#52B788] bg-[#52B788]/10 text-[#1B4332] transition-all">🏕️ Turismo / Glamping</button>
+              <button data-scenario="agricola" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all">🌱 Agricultura</button>
+              <button data-scenario="ganaderia" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all">🐄 Ganadería</button>
+              <button data-scenario="arriendo" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all">🏠 Arriendo Rural</button>
+              <button data-scenario="valorizacion" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all">📈 Valorización</button>
+            </div>
+
+            <!-- Dynamic inputs per scenario -->
+            <div class="mt-5 space-y-3" id="scenario-inputs"></div>
+
+            <button id="btn-calcular-roi" class="w-full mt-5 bg-[#1B4332] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#1B4332]/90 transition-all active:scale-[0.98]">
+              Calcular ROI
+            </button>
+          </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="lg:col-span-2">
+          <!-- Empty state -->
+          <div id="roi-empty" class="bg-white rounded-2xl p-12 border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center min-h-[400px]">
+            <span class="text-5xl mb-4">📊</span>
+            <h3 class="text-lg font-bold text-[#1B4332] mb-2">Calcula tu retorno</h3>
+            <p class="text-gray-500 text-sm max-w-xs">Ingresa los datos de tu propiedad y modelo de negocio para ver el retorno proyectado con tabla comparativa.</p>
+          </div>
+
+          <!-- Results -->
+          <div id="roi-resultados" class="hidden space-y-6">
+            <!-- ROI Hero -->
+            <div class="bg-[#0F120E] rounded-2xl p-8 text-center text-white">
+              <p class="text-xs uppercase tracking-widest text-white/40 mb-1" id="roi-scenario-label">Turismo / Glamping</p>
+              <p class="text-5xl font-bold text-[#52B788] mb-2" id="roi-pct">0%</p>
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold" id="roi-badge">—</span>
+            </div>
+
+            <!-- State of results -->
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 class="font-bold text-[#1B4332] mb-4">Estado de Resultados Anual</h3>
+              <div class="space-y-3">
+                <div class="flex justify-between items-center p-4 bg-[#52B788]/5 rounded-xl">
+                  <div><p class="text-xs text-gray-500">Ingreso Bruto</p><p class="text-lg font-bold text-[#1B4332]" id="roi-ingreso">—</p></div>
+                  <span class="text-2xl">💰</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl" id="roi-costos-row">
+                  <div><p class="text-xs text-gray-500">Costos Operativos</p><p class="text-lg font-semibold text-gray-600" id="roi-costos">—</p></div>
+                  <span class="text-2xl">⚙️</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-[#52B788]/10 rounded-xl border border-[#52B788]/20">
+                  <div><p class="text-xs font-medium text-gray-600">Utilidad Neta</p><p class="text-xl font-bold text-[#52B788]" id="roi-utilidad">—</p></div>
+                  <span class="text-2xl">✅</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payback + Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 bg-[#52B788]/10 rounded-full flex items-center justify-center shrink-0"><span class="text-2xl">⏱️</span></div>
+                <div>
+                  <p class="text-xs text-gray-500">Periodo de Recuperación</p>
+                  <p class="text-2xl font-bold text-[#1B4332]" id="roi-payback">—</p>
+                </div>
+              </div>
+              <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 bg-[#52B788]/10 rounded-full flex items-center justify-center shrink-0"><span class="text-2xl">📐</span></div>
+                <div>
+                  <p class="text-xs text-gray-500">Inversión Total</p>
+                  <p class="text-2xl font-bold text-[#1B4332]" id="roi-inversion-total">—</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comparison table -->
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm overflow-x-auto">
+              <h3 class="font-bold text-[#1B4332] mb-4">Comparativa de Escenarios</h3>
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="text-left py-2 px-3 text-xs font-semibold text-gray-500">Modelo</th>
+                    <th class="text-right py-2 px-3 text-xs font-semibold text-gray-500">Ingreso Bruto</th>
+                    <th class="text-right py-2 px-3 text-xs font-semibold text-gray-500">Utilidad Neta</th>
+                    <th class="text-right py-2 px-3 text-xs font-semibold text-gray-500">ROI</th>
+                    <th class="text-right py-2 px-3 text-xs font-semibold text-gray-500">Payback</th>
+                  </tr>
+                </thead>
+                <tbody id="roi-tabla"></tbody>
+              </table>
+            </div>
+
+            <!-- Disclaimer -->
+            <p class="text-xs text-gray-400 text-center">* Proyecciones referenciales basadas en promedios del mercado rural tolimense 2024-2026. No constituyen asesoría financiera.</p>
+
+            <!-- CTA -->
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm text-center">
+              <h3 class="font-bold text-[#1B4332] mb-2">¿Listo para invertir en tierra rural?</h3>
+              <p class="text-sm text-gray-500 mb-4">Te ayudamos a encontrar la propiedad ideal para tu modelo de negocio.</p>
+              <a href="/tierras/propiedades" class="inline-block px-8 py-3 bg-[#52B788] text-[#0F120E] rounded-full text-sm font-bold hover:bg-[#52B788]/90 transition-all">Ver Catálogo →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ─── Scenario definitions ───
+    interface ScenarioInput { key: string; label: string; value: string; suffix?: string; }
+    interface ScenarioResult { ingreso: number; costos: number; utilidad: number; roi: number; payback: number; }
+
+    const SCENARIOS: Record<string, { label: string; icon: string; inputs: ScenarioInput[]; calc: (v: Record<string, number>, total: number) => ScenarioResult }> = {
+      turismo: {
+        label: 'Turismo / Glamping', icon: '🏕️',
+        inputs: [
+          { key: 'tarifa', label: 'Tarifa por noche (COP)', value: '350000' },
+          { key: 'ocupacion', label: 'Ocupación (%)', value: '45', suffix: '%' },
+          { key: 'unidades', label: 'N° de unidades (domos/cabañas)', value: '4' },
+          { key: 'costoPct', label: 'Costo operativo (% ingreso)', value: '35', suffix: '%' },
+        ],
+        calc: (v, total) => {
+          const ingreso = v.tarifa * (v.ocupacion / 100) * 365 * v.unidades;
+          const costos = ingreso * (v.costoPct / 100);
+          const utilidad = ingreso - costos;
+          return { ingreso, costos, utilidad, roi: (utilidad / total) * 100, payback: total / utilidad };
+        },
+      },
+      agricola: {
+        label: 'Agricultura', icon: '🌱',
+        inputs: [
+          { key: 'hectareas', label: 'Hectáreas productivas', value: '5' },
+          { key: 'produccion', label: 'Producción anual (kg/ha)', value: '8000' },
+          { key: 'precioKg', label: 'Precio de venta ($/kg)', value: '4500' },
+          { key: 'costoPct', label: 'Costo de producción (% ingreso)', value: '45', suffix: '%' },
+        ],
+        calc: (v, total) => {
+          const ingreso = v.hectareas * v.produccion * v.precioKg;
+          const costos = ingreso * (v.costoPct / 100);
+          const utilidad = ingreso - costos;
+          return { ingreso, costos, utilidad, roi: (utilidad / total) * 100, payback: total / utilidad };
+        },
+      },
+      ganaderia: {
+        label: 'Ganadería', icon: '🐄',
+        inputs: [
+          { key: 'animales', label: 'N° de animales', value: '30' },
+          { key: 'precioAnimal', label: 'Precio por animal (COP)', value: '2500000' },
+          { key: 'cicloMeses', label: 'Ciclo de venta (meses)', value: '18' },
+          { key: 'costoMensual', label: 'Costo mensual por animal', value: '150000' },
+        ],
+        calc: (v, total) => {
+          const ingresoAnual = (v.animales * v.precioAnimal) / (v.cicloMeses / 12);
+          const costos = v.animales * v.costoMensual * 12;
+          const utilidad = ingresoAnual - costos;
+          return { ingreso: ingresoAnual, costos, utilidad, roi: (utilidad / total) * 100, payback: total / utilidad };
+        },
+      },
+      arriendo: {
+        label: 'Arriendo Rural', icon: '🏠',
+        inputs: [
+          { key: 'canon', label: 'Canon mensual (COP)', value: '3500000' },
+          { key: 'ocupacion', label: 'Ocupación (%)', value: '90', suffix: '%' },
+          { key: 'adminPct', label: 'Administración (% canon)', value: '10', suffix: '%' },
+        ],
+        calc: (v, total) => {
+          const ingreso = v.canon * 12 * (v.ocupacion / 100);
+          const costos = ingreso * (v.adminPct / 100);
+          const utilidad = ingreso - costos;
+          return { ingreso, costos, utilidad, roi: (utilidad / total) * 100, payback: total / utilidad };
+        },
+      },
+      valorizacion: {
+        label: 'Valorización Tierra', icon: '📈',
+        inputs: [
+          { key: 'pctAnual', label: 'Valorización anual esperada (%)', value: '10', suffix: '%' },
+          { key: 'anos', label: 'Horizonte de inversión (años)', value: '5' },
+        ],
+        calc: (v, total) => {
+          const valorFinal = total * Math.pow(1 + v.pctAnual / 100, v.anos);
+          const ganancia = valorFinal - total;
+          const ingresoAnual = ganancia / v.anos;
+          return { ingreso: ingresoAnual, costos: 0, utilidad: ingresoAnual, roi: v.pctAnual, payback: v.anos };
+        },
+      },
+    };
+
+    let activeScenario = 'turismo';
+
+    function fmtCOP(n: number): string {
+      if (Math.abs(n) >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
+      if (Math.abs(n) >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+      return '$' + Math.round(n).toLocaleString('es-CO');
+    }
+
+    function parseNum(str: string): number {
+      return Number(str.replace(/\./g, '').replace(/,/g, '')) || 0;
+    }
+
+    function formatInput(el: HTMLInputElement) {
+      const raw = el.value.replace(/\D/g, '');
+      el.value = raw ? Number(raw).toLocaleString('es-CO') : '';
+    }
+
+    // Render scenario-specific inputs
+    function renderInputs() {
+      const container = document.getElementById('scenario-inputs')!;
+      const scenario = SCENARIOS[activeScenario];
+      container.innerHTML = scenario.inputs.map(inp => `
+        <div>
+          <label class="block text-xs font-medium text-[#1B4332] mb-1">${inp.label}${inp.suffix ? ` <span class="text-gray-400">${inp.suffix}</span>` : ''}</label>
+          <input type="text" data-key="${inp.key}" value="${inp.value}" inputmode="numeric"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]" />
+        </div>
+      `).join('');
+
+      // Add formatting to numeric inputs (skip percentage fields)
+      container.querySelectorAll('input').forEach(el => {
+        const key = el.dataset.key || '';
+        if (!key.includes('Pct') && !key.includes('ocupacion') && !key.includes('anos') && !key.includes('cicloMeses') && !key.includes('unidades') && !key.includes('hectareas') && !key.includes('animales')) {
+          el.value = Number(el.value.replace(/\D/g, '')).toLocaleString('es-CO');
+          el.addEventListener('input', () => formatInput(el as HTMLInputElement));
+        }
+      });
+    }
+
+    // Tab switching
+    document.querySelectorAll('.scenario-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeScenario = (btn as HTMLElement).dataset.scenario || 'turismo';
+        document.querySelectorAll('.scenario-tab').forEach(b => {
+          b.classList.remove('border-2', 'border-[#52B788]', 'bg-[#52B788]/10', 'text-[#1B4332]');
+          b.classList.add('border', 'border-gray-200', 'text-gray-600');
+        });
+        btn.classList.remove('border', 'border-gray-200', 'text-gray-600');
+        btn.classList.add('border-2', 'border-[#52B788]', 'bg-[#52B788]/10', 'text-[#1B4332]');
+        renderInputs();
+      });
+    });
+
+    // Calculate
+    document.getElementById('btn-calcular-roi')!.addEventListener('click', () => {
+      const valorProp = parseNum((document.getElementById('valor-propiedad') as HTMLInputElement).value);
+      const infra = parseNum((document.getElementById('valor-infra') as HTMLInputElement).value);
+      const total = valorProp + infra;
+      if (total <= 0) return;
+
+      // Gather scenario inputs
+      const inputs: Record<string, number> = {};
+      document.querySelectorAll('#scenario-inputs input').forEach(el => {
+        inputs[(el as HTMLInputElement).dataset.key || ''] = parseNum((el as HTMLInputElement).value);
+      });
+
+      const scenario = SCENARIOS[activeScenario];
+      const result = scenario.calc(inputs, total);
+
+      // Render hero
+      document.getElementById('roi-scenario-label')!.textContent = `${scenario.icon} ${scenario.label}`;
+      document.getElementById('roi-pct')!.textContent = result.roi.toFixed(1) + '%';
+
+      const badge = document.getElementById('roi-badge')!;
+      if (result.roi >= 20) { badge.textContent = '🔥 Alto rendimiento'; badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#52B788]/20 text-[#52B788]'; }
+      else if (result.roi >= 10) { badge.textContent = '✓ Buen rendimiento'; badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400'; }
+      else { badge.textContent = '○ Rendimiento moderado'; badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-gray-500/20 text-gray-400'; }
+
+      // Render state
+      document.getElementById('roi-ingreso')!.textContent = fmtCOP(result.ingreso);
+      document.getElementById('roi-costos')!.textContent = '-' + fmtCOP(result.costos);
+      document.getElementById('roi-costos-row')!.style.display = result.costos > 0 ? 'flex' : 'none';
+      document.getElementById('roi-utilidad')!.textContent = fmtCOP(result.utilidad);
+      document.getElementById('roi-payback')!.textContent = result.payback > 0 && result.payback < 50 ? result.payback.toFixed(1) + ' años' : 'N/A';
+      document.getElementById('roi-inversion-total')!.textContent = fmtCOP(total);
+
+      // Comparison table
+      const tabla = document.getElementById('roi-tabla')!;
+      tabla.innerHTML = Object.entries(SCENARIOS).map(([key, s]) => {
+        const sInputs: Record<string, number> = {};
+        s.inputs.forEach(inp => { sInputs[inp.key] = parseNum(inp.value); });
+        // Use current inputs for active scenario
+        const r = key === activeScenario ? result : s.calc(sInputs, total);
+        const isActive = key === activeScenario;
+        return `
+          <tr class="border-b border-gray-50 ${isActive ? 'bg-[#52B788]/5' : ''}">
+            <td class="py-3 px-3 font-medium text-[#1B4332]">${s.icon} ${s.label}${isActive ? ' <span class="text-[10px] text-[#52B788] font-bold">●</span>' : ''}</td>
+            <td class="py-3 px-3 text-right text-gray-600">${fmtCOP(r.ingreso)}</td>
+            <td class="py-3 px-3 text-right font-semibold ${r.utilidad > 0 ? 'text-[#52B788]' : 'text-red-500'}">${fmtCOP(r.utilidad)}</td>
+            <td class="py-3 px-3 text-right font-bold text-[#1B4332]">${r.roi.toFixed(1)}%</td>
+            <td class="py-3 px-3 text-right text-gray-500">${r.payback > 0 && r.payback < 50 ? r.payback.toFixed(1) + 'a' : '—'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // Show
+      document.getElementById('roi-empty')!.classList.add('hidden');
+      document.getElementById('roi-resultados')!.classList.remove('hidden');
+    });
+
+    // Init
+    renderInputs();
+  </script>
+</BrandLayout>

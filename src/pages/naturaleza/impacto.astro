@@ -1,0 +1,255 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+
+const ESG = [
+  {
+    letter: 'E', title: 'Ambiental', color: '#40916C',
+    items: [
+      'Protección de hectáreas de bosque andino mediante turismo de conservación',
+      'Grupos reducidos para minimizar impacto en fauna y flora',
+      'Fondo de regeneración: porcentaje de cada visita financia siembra nativa',
+      'Restauración de microcuencas y corredores biológicos',
+    ],
+  },
+  {
+    letter: 'S', title: 'Social', color: '#C8933E',
+    items: [
+      'Ingresos directos para familias locales proveedoras de servicios',
+      'Preservación del conocimiento ancestral y saberes locales',
+      'Capacitación y certificación de guías comunitarios',
+      'Soberanía alimentaria mediante apoyo a bancos de semillas nativas',
+    ],
+  },
+  {
+    letter: 'G', title: 'Gobernanza', color: '#1A1E18',
+    items: [
+      'Transparencia total: cuentas claras sobre el destino de cada peso',
+      'Evaluación y certificación de anfitriones con escalafón público',
+      'Seguro de asistencia médica incluido en cada experiencia',
+      'Alianzas verificadas con comunidades y propietarios rurales',
+    ],
+  },
+];
+
+const BIC_CARDS = [
+  { icon: '🏔️', title: 'Protección del Territorio', desc: 'Cada experiencia financia directamente la conservación de hectáreas de bosque andino. Trabajamos con propietarios rurales para que la protección sea económicamente sostenible.' },
+  { icon: '❤️', title: 'Bienestar Comunitario', desc: 'Generamos ingresos dignos para familias rurales que han sido guardianas del territorio por generaciones. El turismo se convierte en alternativa económica a la deforestación.' },
+  { icon: '🌱', title: 'Regeneración Activa', desc: 'No solo conservamos: regeneramos. Nuestro fondo de restauración financia siembra de especies nativas, recuperación de suelos y protección de fuentes hídricas.' },
+  { icon: '🎯', title: 'Transparencia Total', desc: 'Publicamos cómo se distribuye cada peso de tu experiencia. Sabes exactamente cuánto llega al anfitrión, cuánto al fondo de impacto y cuánto a la operación.' },
+];
+
+const METRICS = [
+  { icon: '🌲', value: '6.8', label: 'Hectáreas protegidas' },
+  { icon: '👨‍👩‍👧‍👦', value: '5', label: 'Familias beneficiadas' },
+  { icon: '🌿', value: '3.5%', label: 'Fondo de impacto' },
+  { icon: '🔍', value: '100%', label: 'Transparencia' },
+];
+
+const INITIATIVES = [
+  { icon: '🌱', title: 'Fondo de Semillas Nativas', desc: 'Recolección y propagación de especies clave para restaurar el Corredor del Combeima.', status: 'En curso', metric: '1.200 plántulas', progress: 75 },
+  { icon: '👥', title: 'Escuela de Guías Locales', desc: 'Programa de capacitación en bilingüismo y primeros auxilios para jóvenes rurales.', status: 'Activo', metric: '12 becados', progress: 60 },
+  { icon: '🌲', title: 'Vivero de Alta Montaña', desc: 'Infraestructura para la producción masiva de frailejones en el Páramo de Anaime.', status: 'Construcción', metric: '60% avance', progress: 60 },
+];
+---
+
+<BrandLayout brand="naturaleza" title="Impacto Regenerativo · Iwagé Naturaleza" description="Cómo cada experiencia Iwagé Naturaleza contribuye a la restauración del territorio: fondo de impacto, siembra nativa, protección hídrica y formación de guardianes.">
+
+  <!-- Hero -->
+  <section class="bg-[#0e1a08] text-white py-16 md:py-24 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-[#40916C]/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
+    <div class="absolute bottom-0 left-0 w-80 h-80 bg-[#C8933E]/5 rounded-full blur-3xl -ml-40 -mb-40"></div>
+    <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <span class="w-8 h-[1px] bg-[#40916C]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#40916C]">Propósito Iwagé</span>
+        <span class="w-8 h-[1px] bg-[#40916C]"></span>
+      </div>
+      <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl leading-tight mb-6">
+        Turismo que <span class="text-[#40916C] italic">regenera</span>
+      </h1>
+      <p class="text-lg md:text-xl text-white/60 font-serif italic max-w-2xl mx-auto leading-relaxed">
+        "Cada experiencia que diseñamos tiene un doble propósito: reconectar tu espíritu y devolverle la vida a nuestra montaña andina."
+      </p>
+    </div>
+  </section>
+
+  <!-- ESG Pillars -->
+  <section class="py-16 px-6 bg-[#f8faf5]">
+    <div class="max-w-6xl mx-auto">
+      <div class="mb-10">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="w-6 h-[1px] bg-[#40916C]"></span>
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#40916C]">Estándar ESG</p>
+        </div>
+        <h2 class="font-serif text-2xl md:text-3xl text-[#1a3009]">
+          Nuestro compromiso con el <span class="text-[#40916C] italic">desarrollo sostenible</span>
+        </h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {ESG.map((pillar) => (
+          <div class="bg-white rounded-xl border border-[#EDE5D4] p-6">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-xl font-bold" style={`background: ${pillar.color}15; color: ${pillar.color}`}>
+              {pillar.letter}
+            </div>
+            <h3 class="font-serif text-lg font-bold text-[#1a3009] mb-3">{pillar.title} ({pillar.letter})</h3>
+            <ul class="space-y-2 text-sm text-gray-600">
+              {pillar.items.map((item) => (
+                <li class="flex items-start gap-2">
+                  <span class="text-[#40916C] shrink-0 mt-0.5">✓</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- BIC Section -->
+  <section class="py-16 px-6 bg-[#0e1a08] text-white">
+    <div class="max-w-6xl mx-auto">
+      <div class="mb-10">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="w-6 h-[1px] bg-[#C8933E]"></span>
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#C8933E]">Sociedad BIC</p>
+        </div>
+        <h2 class="font-serif text-2xl md:text-3xl">
+          Empresa de <span class="text-[#C8933E] italic">Beneficio e Interés Colectivo</span>
+        </h2>
+        <p class="text-white/40 font-serif text-sm italic mt-2 max-w-2xl">
+          "Iwagé opera bajo el modelo BIC: generamos valor económico mientras protegemos el territorio y fortalecemos a las comunidades rurales."
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {BIC_CARDS.map((card) => (
+          <div class="bg-white/5 rounded-xl border border-white/10 p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="text-2xl">{card.icon}</span>
+              <h3 class="font-serif text-lg font-bold">{card.title}</h3>
+            </div>
+            <p class="text-white/60 text-sm leading-relaxed">{card.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Metrics -->
+  <section class="py-16 px-6 bg-[#f8faf5]">
+    <div class="max-w-6xl mx-auto">
+      <div class="mb-10 text-center">
+        <div class="flex items-center justify-center gap-3 mb-3">
+          <span class="w-6 h-[1px] bg-[#40916C]"></span>
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#40916C]">Resultados Medibles</p>
+          <span class="w-6 h-[1px] bg-[#40916C]"></span>
+        </div>
+        <h2 class="font-serif text-2xl md:text-3xl text-[#1a3009]">
+          Nuestro impacto en <span class="text-[#40916C] italic">números</span>
+        </h2>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {METRICS.map((m) => (
+          <div class="bg-white rounded-xl border border-[#EDE5D4] p-6 text-center">
+            <span class="text-2xl block mb-3">{m.icon}</span>
+            <p class="text-3xl font-serif font-bold text-[#1a3009]">{m.value}</p>
+            <p class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mt-1">{m.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Active Initiatives -->
+  <section class="py-16 px-6 bg-white">
+    <div class="max-w-6xl mx-auto">
+      <div class="mb-10 text-center">
+        <h2 class="font-serif text-2xl md:text-3xl text-[#1a3009] mb-2">Iniciativas de Temporada</h2>
+        <p class="text-gray-500">Proyectos activos financiados por el fondo de restauración</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        {INITIATIVES.map((init) => (
+          <div class="bg-[#f8faf5] rounded-xl border border-[#EDE5D4] p-6">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-3xl">{init.icon}</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#40916C]/10 text-[#40916C]">{init.status}</span>
+            </div>
+            <h3 class="font-serif text-lg font-bold text-[#1a3009] mb-2">{init.title}</h3>
+            <p class="text-sm text-gray-600 mb-4">{init.desc}</p>
+            <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+              <span>{init.metric}</span>
+              <span>{init.progress}%</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-[#40916C] rounded-full transition-all" style={`width: ${init.progress}%`}></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Fund Model -->
+  <section class="py-16 px-4 bg-[#f8faf5]">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-light text-[#1a3009] mb-8 text-center">El Fondo de Restauración</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="p-6 rounded-2xl bg-white shadow-sm text-center">
+          <div class="text-4xl mb-3">🌱</div>
+          <h3 class="font-semibold text-[#1a3009] mb-2">2% de cada experiencia</h3>
+          <p class="text-sm text-gray-600">De cada reserva, un porcentaje va directo al fondo comunitario de restauración.</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-white shadow-sm text-center">
+          <div class="text-4xl mb-3">🌳</div>
+          <h3 class="font-semibold text-[#1a3009] mb-2">Siembra nativa</h3>
+          <p class="text-sm text-gray-600">Financiamos jornadas de siembra de especies nativas en corredores biológicos del Ambalá.</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-white shadow-sm text-center">
+          <div class="text-4xl mb-3">💧</div>
+          <h3 class="font-semibold text-[#1a3009] mb-2">Protección hídrica</h3>
+          <p class="text-sm text-gray-600">Aislamiento de fuentes de agua y restauración de rondas hídricas con familias campesinas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-light text-[#1a3009] mb-8 text-center">¿Cómo funciona?</h2>
+      <div class="space-y-6">
+        {[
+          { step: '01', title: 'Reservas una experiencia', desc: 'El 2% de tu reserva se separa automáticamente para el fondo.' },
+          { step: '02', title: 'El fondo se acumula', desc: 'Cada mes consolidamos los aportes de todas las experiencias realizadas.' },
+          { step: '03', title: 'La comunidad decide', desc: 'Los anfitriones de nivel Raíz o superior priorizan proyectos de restauración.' },
+          { step: '04', title: 'Ejecutamos y medimos', desc: 'Jornadas de siembra, aislamiento de fuentes, formación. Todo con métricas públicas.' },
+        ].map((item) => (
+          <div class="flex gap-6 items-start">
+            <span class="text-3xl font-bold text-[#4a7c23]/20 shrink-0">{item.step}</span>
+            <div>
+              <h3 class="font-semibold text-[#1a3009]">{item.title}</h3>
+              <p class="text-sm text-gray-600 mt-1">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-12 bg-[#0e1a08] text-white">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <span class="text-3xl block mb-4">❤️</span>
+      <h2 class="font-serif text-2xl md:text-3xl mb-4">
+        Sé parte del <span class="text-[#C8933E] italic">cambio</span>
+      </h2>
+      <p class="text-white/60 font-serif italic text-sm max-w-xl mx-auto mb-8">
+        Cada experiencia que reservas contribuye directamente a la conservación del territorio y al bienestar de las familias locales.
+      </p>
+      <a href="/naturaleza/experiencias" class="inline-flex items-center gap-3 bg-[#C8933E] text-[#1A1E18] font-bold px-10 py-4 rounded-xl hover:bg-white transition-all shadow-xl">
+        Explorar experiencias →
+      </a>
+    </div>
+  </section>
+</BrandLayout>

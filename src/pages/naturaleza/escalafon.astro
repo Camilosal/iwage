@@ -1,0 +1,85 @@
+---
+export const prerender = true;
+
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import { NIVELES_ESCALAFON } from '@/lib/naturaleza';
+
+const niveles = Object.entries(NIVELES_ESCALAFON).map(([k, v]) => ({ nivel: Number(k), ...v }));
+
+const CRITERIOS_DETALLE = [
+  { nivel: 1, anos: 0, experiencias: 0, resenas: 0, calificacion: 0, certificaciones: 0, hectareas: 0 },
+  { nivel: 2, anos: 1, experiencias: 1, resenas: 3, calificacion: 4.0, certificaciones: 1, hectareas: 0 },
+  { nivel: 3, anos: 3, experiencias: 2, resenas: 10, calificacion: 4.3, certificaciones: 2, hectareas: 5 },
+  { nivel: 4, anos: 5, experiencias: 3, resenas: 25, calificacion: 4.5, certificaciones: 3, hectareas: 15 },
+  { nivel: 5, anos: 10, experiencias: 5, resenas: 50, calificacion: 4.7, certificaciones: 4, hectareas: 30 },
+];
+---
+
+<BrandLayout brand="naturaleza" title="Escalafón de Anfitriones · Iwagé Naturaleza" description="Sistema de 5 niveles para anfitriones: Semilla, Brote, Raíz, Guardián y Sabio Ancestral. Criterios objetivos de crecimiento y reconocimiento.">
+
+  <!-- Header -->
+  <section class="pt-28 pb-12 px-4 bg-[#0e1a08]">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="text-xs font-bold tracking-[0.4em] text-[#d4920a] uppercase">Sistema de reconocimiento</span>
+      <h1 class="text-4xl lg:text-5xl font-light text-white mt-4 mb-4">Escalafón de Anfitriones</h1>
+      <p class="text-white/60 max-w-xl mx-auto">Cinco niveles que honran el compromiso, la experiencia y el impacto regenerativo de cada guardián del territorio.</p>
+    </div>
+  </section>
+
+  <!-- Levels -->
+  <section class="py-16 px-4 bg-[#f8faf5]">
+    <div class="max-w-4xl mx-auto space-y-8">
+      {niveles.map((nivel) => {
+        const criterios = CRITERIOS_DETALLE.find(c => c.nivel === nivel.nivel);
+        return (
+          <div class="p-8 rounded-2xl bg-white shadow-sm border-l-4" style={`border-left-color: ${nivel.color}`}>
+            <div class="flex items-center gap-4 mb-4">
+              <span class="text-4xl">{nivel.icono}</span>
+              <div>
+                <h2 class="text-xl font-semibold text-[#1a3009]">Nivel {nivel.nivel}: {nivel.nombre}</h2>
+                <p class="text-sm text-gray-500">{nivel.descripcion}</p>
+              </div>
+            </div>
+            {criterios && (
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
+                <div class="px-3 py-2 rounded-lg bg-[#f8faf5] text-center">
+                  <div class="text-sm font-bold text-[#2d5016]">{criterios.anos}+</div>
+                  <div class="text-[9px] text-gray-500 uppercase">Años</div>
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-[#f8faf5] text-center">
+                  <div class="text-sm font-bold text-[#2d5016]">{criterios.experiencias}+</div>
+                  <div class="text-[9px] text-gray-500 uppercase">Experiencias</div>
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-[#f8faf5] text-center">
+                  <div class="text-sm font-bold text-[#2d5016]">{criterios.resenas}+</div>
+                  <div class="text-[9px] text-gray-500 uppercase">Reseñas</div>
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-[#f8faf5] text-center">
+                  <div class="text-sm font-bold text-[#2d5016]">★ {criterios.calificacion}</div>
+                  <div class="text-[9px] text-gray-500 uppercase">Calificación</div>
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-[#f8faf5] text-center">
+                  <div class="text-sm font-bold text-[#2d5016]">{criterios.certificaciones}+</div>
+                  <div class="text-[9px] text-gray-500 uppercase">Certificados</div>
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-[#f8faf5] text-center">
+                  <div class="text-sm font-bold text-[#2d5016]">{criterios.hectareas} ha</div>
+                  <div class="text-[9px] text-gray-500 uppercase">Impacto</div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-12 px-4 bg-[#0e1a08] text-center">
+    <h2 class="text-2xl font-light text-white mb-4">¿Eres guía local en el Tolima?</h2>
+    <p class="text-white/60 mb-8 max-w-md mx-auto text-sm">Únete a la red de anfitriones Iwagé y comienza tu camino desde Semilla.</p>
+    <a href="https://wa.me/573001234567?text=Hola,%20quiero%20ser%20anfitrión%20Iwagé" target="_blank" rel="noopener" class="inline-block px-8 py-3 rounded-full bg-[#d4920a] text-[#0e1a08] text-sm font-bold uppercase tracking-wider hover:bg-[#f5c842] transition-colors">
+      Postularme como anfitrión
+    </a>
+  </section>
+</BrandLayout>

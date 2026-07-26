@@ -1,0 +1,89 @@
+{
+  "kind": "collectionType",
+  "collectionName": "paquetes",
+  "info": {
+    "singularName": "paquete",
+    "pluralName": "paquetes",
+    "displayName": "Paquete",
+    "description": "Programas y paquetes independientes de turismo"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "targetField": "titulo",
+      "required": true
+    },
+    "titulo": {
+      "type": "string",
+      "required": true
+    },
+    "tagline": {
+      "type": "text"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "categoria": {
+      "type": "string"
+    },
+    "duracion_dias": {
+      "type": "integer",
+      "default": 1
+    },
+    "duracion_texto": {
+      "type": "string"
+    },
+    "precio_base": {
+      "type": "decimal"
+    },
+    "precio_por_persona": {
+      "type": "boolean",
+      "default": true
+    },
+    "ubicacion": {
+      "type": "string"
+    },
+    "dificultad": {
+      "type": "integer"
+    },
+    "incluye": {
+      "type": "json"
+    },
+    "no_incluye": {
+      "type": "json"
+    },
+    "imagen_hero": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "imagenes": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"]
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "destacado": {
+      "type": "boolean",
+      "default": false
+    },
+    "experiencias_data": {
+      "type": "json"
+    },
+    "anfitriones_data": {
+      "type": "json"
+    },
+    "seo_titulo": {
+      "type": "string"
+    },
+    "seo_descripcion": {
+      "type": "text"
+    }
+  }
+}

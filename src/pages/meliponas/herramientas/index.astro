@@ -1,0 +1,276 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { SEO } from '@/config/site';
+import {
+  SIMULADOR_URL,
+  INTRANET_URL,
+  INTRANET_CATEGORIES,
+  INTRANET_LANDINGS,
+  intranetUrl,
+} from '@/config/tools';
+
+const herramientas = [
+  {
+    id: 'trazabilidad',
+    icono: '🔬',
+    titulo: 'Sistema de Trazabilidad',
+    tag: 'Interno',
+    desc: 'Tres estándares verificables — miel, cajas IoT y polinización — que respaldan cada producto y servicio del meliponario.',
+    href: '/meliponas/trazabilidad',
+    cta: 'Explorar estándares',
+    externo: false,
+  },
+  {
+    id: 'modelador',
+    icono: '📊',
+    titulo: 'Modelador Financiero Pro',
+    tag: 'App externa',
+    desc: 'Simulador financiero para proyectos apícolas y meliponícolas: P&L, flujo de caja, capital de trabajo, deuda e inflación.',
+    href: SIMULADOR_URL,
+    cta: 'Abrir simulador',
+    externo: true,
+  },
+  {
+    id: 'intranet',
+    icono: '🗂️',
+    titulo: 'Intranet de Planeación',
+    tag: 'App externa',
+    desc: 'El sistema de planeación del ecosistema: estrategia, audiencias, operaciones, marketing y protocolo de trazabilidad.',
+    href: INTRANET_URL,
+    cta: 'Abrir intranet',
+    externo: true,
+  },
+];
+
+const trazabilidadStandards = [
+  { icono: '🍯', titulo: 'Estándar de Miel', desc: 'Trazabilidad por lote, laboratorio y QR.', href: '/meliponas/trazabilidad/miel' },
+  { icono: '📦', titulo: 'Estándar de Cajas', desc: 'ID único, sensores IoT e historial transferible.', href: '/meliponas/trazabilidad/cajas' },
+  { icono: '🐝', titulo: 'Estándar de Polinización', desc: 'Diagnóstico, contrato y monitoreo en campo.', href: '/meliponas/trazabilidad/polinizacion' },
+];
+---
+
+<BrandLayout title={SEO.herramientas.title} description={SEO.herramientas.description}>
+  <!-- Hero -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Meliponario Iwagé</p>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
+        Herramientas del<br />Meliponario
+      </h1>
+      <p class="text-lg text-dark-text/60 leading-relaxed max-w-2xl mx-auto">
+        Todo lo que necesitas para decidir, operar y verificar: trazabilidad de producto,
+        modelado financiero y el sistema de planeación del ecosistema.
+      </p>
+    </div>
+  </section>
+
+  <!-- Tres herramientas principales -->
+  <Section>
+    <div class="grid md:grid-cols-3 gap-6">
+      {herramientas.map((h, i) => (
+        <ScrollReveal delay={i * 100}>
+          <div class="flex flex-col h-full rounded-2xl border border-border bg-surface p-8 hover:border-brand/40 hover:shadow-lg transition-all">
+            <div class="flex items-center justify-between mb-5">
+              <span class="text-4xl">{h.icono}</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full bg-brand-muted/40 text-brand">
+                {h.tag}
+              </span>
+            </div>
+            <h3 class="text-xl font-bold mb-3 text-text-primary">{h.titulo}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed mb-6 flex-grow">{h.desc}</p>
+            <a
+              href={h.href}
+              target={h.externo ? '_blank' : undefined}
+              rel={h.externo ? 'noopener noreferrer' : undefined}
+              class="inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-light transition-colors"
+            >
+              {h.cta}
+              {h.externo && (
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              )}
+            </a>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Trazabilidad (detalle) -->
+  <Section>
+    <div class="rounded-3xl border border-border bg-surface overflow-hidden">
+      <div class="p-8 md:p-12 border-b border-border/60">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-3xl">🔬</span>
+          <span class="font-mono text-xs uppercase tracking-widest text-brand">Herramienta interna</span>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold mb-3 text-text-primary">Sistema de Trazabilidad</h2>
+        <p class="text-text-secondary leading-relaxed max-w-2xl">
+          Tres estándares independientes, cada uno pensado para una audiencia distinta.
+          Verifica el origen y la historia de lo que compras o adoptas.
+        </p>
+      </div>
+      <div class="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/60">
+        {trazabilidadStandards.map((s) => (
+          <a href={s.href} class="group p-8 hover:bg-brand-muted/20 transition-colors">
+            <span class="text-3xl block mb-4">{s.icono}</span>
+            <h3 class="font-bold mb-2 text-text-primary group-hover:text-brand transition-colors">{s.titulo}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed mb-4">{s.desc}</p>
+            <span class="inline-flex items-center gap-1 text-sm font-medium text-brand">
+              Ver estándar
+              <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </Section>
+
+  <!-- Modelador Financiero Pro (detalle) -->
+  <Section>
+    <div class="rounded-3xl bg-dark-bg text-dark-text overflow-hidden">
+      <div class="grid md:grid-cols-2 gap-8 p-8 md:p-12 items-center">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">📊</span>
+            <span class="font-mono text-xs uppercase tracking-widest text-accent">App externa</span>
+          </div>
+          <h2 class="text-2xl md:text-3xl font-bold mb-4">Modelador Financiero Pro</h2>
+          <p class="text-dark-text/60 leading-relaxed mb-6">
+            Simula la viabilidad económica de tu proyecto apícola o meliponícola antes de invertir.
+            Proyecta estados financieros completos con supuestos ajustables.
+          </p>
+          <ul class="space-y-2 mb-8">
+            {['Estado de resultados (P&L)', 'Flujo de caja y capital de trabajo', 'Depreciación, deuda e inflación', 'Escenarios comparables'].map((f) => (
+              <li class="flex items-center gap-2 text-sm text-dark-text/70">
+                <svg class="w-4 h-4 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <a
+            href={SIMULADOR_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-dark-bg hover:opacity-90 transition-opacity"
+          >
+            Abrir Modelador Pro
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+        </div>
+        <div class="rounded-2xl border border-dark-text/10 bg-dark-text/5 p-6 font-mono text-xs">
+          <div class="flex items-center gap-2 mb-4 pb-3 border-b border-dark-text/10">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-400/70"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-yellow-400/70"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-green-400/70"></span>
+            <span class="ml-2 text-dark-text/40">simulacion.iwage.co</span>
+          </div>
+          <div class="space-y-2 text-dark-text/60">
+            <p><span class="text-accent">Colonias</span> · 120</p>
+            <p><span class="text-accent">Rendimiento</span> · 1.8 kg/colonia</p>
+            <p><span class="text-accent">Precio/kg</span> · $48.000</p>
+            <p class="pt-2 border-t border-dark-text/10"><span class="text-dark-text/40">Ingresos año 1</span></p>
+            <p class="text-lg text-accent">$10.368.000</p>
+            <p class="text-green-400/80">▲ Punto de equilibrio: mes 14</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Intranet de Planeación (detalle) -->
+  <Section>
+    <div class="rounded-3xl border border-border bg-surface overflow-hidden">
+      <div class="p-8 md:p-12 border-b border-border/60">
+        <div class="flex items-center justify-between flex-wrap gap-4 mb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl">🗂️</span>
+            <span class="font-mono text-xs uppercase tracking-widest text-brand">App externa</span>
+          </div>
+          <a
+            href={INTRANET_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-full border border-brand px-5 py-2 text-sm font-medium text-brand hover:bg-brand hover:text-white transition-colors"
+          >
+            Abrir intranet
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold mb-3 text-text-primary">Intranet de Planeación</h2>
+        <p class="text-text-secondary leading-relaxed max-w-2xl">
+          El sistema de planeación del ecosistema Iwagé, organizado en cuatro bloques.
+          Cada documento se abre en la intranet.
+        </p>
+      </div>
+
+      <!-- Categorías de documentos -->
+      <div class="p-8 md:p-12 space-y-10">
+        {INTRANET_CATEGORIES.map((cat) => (
+          <div>
+            <h3 class="flex items-center gap-2 text-sm font-mono uppercase tracking-widest text-text-primary mb-4">
+              <span class="text-lg">{cat.icon}</span>
+              {cat.label}
+            </h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cat.docs.map((doc) => (
+                <a
+                  href={intranetUrl(doc.file)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="group flex flex-col rounded-xl border border-border/70 p-5 hover:border-brand/40 hover:bg-brand-muted/20 transition-colors"
+                >
+                  <div class="flex items-start justify-between mb-2">
+                    <h4 class="font-medium text-text-primary group-hover:text-brand transition-colors leading-snug">{doc.title}</h4>
+                    <svg class="w-3.5 h-3.5 text-text-muted opacity-0 group-hover:opacity-60 transition-opacity shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  </div>
+                  <p class="text-xs text-text-secondary leading-relaxed">{doc.desc}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <!-- Landings -->
+        <div>
+          <h3 class="flex items-center gap-2 text-sm font-mono uppercase tracking-widest text-text-primary mb-4">
+            <span class="text-lg">🚀</span>
+            Landings comerciales
+          </h3>
+          <div class="flex flex-wrap gap-2">
+            {INTRANET_LANDINGS.map((l) => (
+              <a
+                href={intranetUrl(l.file)}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={l.desc}
+                class="inline-flex items-center gap-1.5 rounded-full border border-border/70 px-4 py-1.5 text-xs font-medium text-text-secondary hover:border-brand/40 hover:text-brand hover:bg-brand-muted/20 transition-colors"
+              >
+                {l.title}
+                <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <!-- CTA final -->
+  <Section>
+    <div class="rounded-3xl bg-brand text-white p-10 md:p-16 text-center">
+      <h2 class="text-2xl md:text-3xl font-bold mb-4">¿Listo para empezar?</h2>
+      <p class="text-white/80 leading-relaxed max-w-xl mx-auto mb-8">
+        Habla con nuestro equipo para resolver cualquier duda sobre trazabilidad,
+        modelado financiero o el sistema de planeación.
+      </p>
+      <a
+        href="/meliponas/contacto"
+        class="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-medium text-brand hover:bg-white/90 transition-colors"
+      >
+        Contactar al equipo
+      </a>
+    </div>
+  </Section>
+</BrandLayout>

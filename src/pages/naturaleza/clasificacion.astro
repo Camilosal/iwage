@@ -1,0 +1,196 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+export const prerender = true;
+
+const NIVELES = [
+  {
+    level: 1,
+    nombre: 'Rarezas del Viento',
+    icono: '🍃',
+    color: '#10B981',
+    descripcion: 'Caminata pasiva de contemplación absoluta. Ideal para quienes buscan paz y conexión con la naturaleza sin esfuerzo.',
+    esfuerzo: 'Mínimo',
+    duracion: '1-3 horas',
+    terreno: 'Plano y pavimentado',
+    edad: 'Todas las edades',
+    requisitos: ['No requiere condición física', 'Accesible parcialmente', 'Sin límite de edad'],
+    recomendaciones: ['Calzado cómodo', 'Protector solar', 'Cámara para fotos'],
+  },
+  {
+    level: 2,
+    nombre: 'Ritmo de la Tierra',
+    icono: '🌿',
+    color: '#34D399',
+    descripcion: 'Senderismo suave por terrenos estables. Perfecto para familias y principiantes en ecoturismo.',
+    esfuerzo: 'Bajo',
+    duracion: '2-4 horas',
+    terreno: 'Senderos planos y compactos',
+    edad: '5+ años',
+    requisitos: ['Condición física básica', 'Caminar 1hr continua', 'Sin miedo a la naturaleza'],
+    recomendaciones: ['Tennis de trekking', 'Agua mínimo 1L', 'Repelente'],
+  },
+  {
+    level: 3,
+    nombre: 'Senda del Agua',
+    icono: '💧',
+    color: '#06B6D4',
+    descripcion: 'Requiere equilibrio y paso firme junto al río. Cruces de agua y terrenos húmedos.',
+    esfuerzo: 'Moderado',
+    duracion: '3-5 horas',
+    terreno: 'Senderos junto a ríos, zonas húmedas',
+    edad: '8+ años',
+    requisitos: ['Buen equilibrio', 'No temer mojarse', 'Condición física regular'],
+    recomendaciones: ['Botas de agua', 'Ropa de cambio', 'Bolsa seca para electrónicos'],
+  },
+  {
+    level: 4,
+    nombre: 'Pasos de Montaña',
+    icono: '🥾',
+    color: '#F59E0B',
+    descripcion: 'Ascensos moderados que exigen aliento constante. Ganancias de elevación significativas.',
+    esfuerzo: 'Moderado-Alto',
+    duracion: '4-6 horas',
+    terreno: 'Pendientes suaves a moderadas',
+    edad: '12+ años',
+    requisitos: ['Condición física buena', 'Sin problemas cardíacos', 'Experiencia básica de senderismo'],
+    recomendaciones: ['Botas de trekking', 'Bastones opcionales', 'Alimentos energéticos'],
+  },
+  {
+    level: 5,
+    nombre: 'Vuelo del Águila',
+    icono: '🦅',
+    color: '#F97316',
+    descripcion: 'Reto físico en pendientes pronunciadas. Requiere resistencia y determinación.',
+    esfuerzo: 'Alto',
+    duracion: '5-8 horas',
+    terreno: 'Pendientes pronunciadas, escaleras naturales',
+    edad: '16+ años',
+    requisitos: ['Excelente condición física', 'Sin mareos de altura', 'Experiencia en montaña'],
+    recomendaciones: ['Botas de montaña', 'Bastones recomendados', 'Kit de emergencia personal'],
+  },
+  {
+    level: 6,
+    nombre: 'Cúspide de la Roca',
+    icono: '🗻',
+    color: '#EF4444',
+    descripcion: 'Zonas de alta montaña y clima variable. Exposiciones a viento y cambios de temperatura.',
+    esfuerzo: 'Muy Alto',
+    duracion: '6-10 horas',
+    terreno: 'Alta montaña, rocas, pasos técnicos',
+    edad: '18+ años',
+    requisitos: ['Condición atlética', 'Experiencia en alta montaña', 'Equipo técnico propio'],
+    recomendaciones: ['Casco', 'Arnés si aplica', 'Guía certificado obligatorio'],
+  },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: NIVELES.map(n => ({
+    '@type': 'Question',
+    name: `¿Qué es nivel ${n.level} - ${n.nombre}?`,
+    acceptedAnswer: { '@type': 'Answer', text: `${n.descripcion} Esfuerzo: ${n.esfuerzo}. Duración: ${n.duracion}. Edad mínima: ${n.edad}.` },
+  })),
+};
+---
+
+<BrandLayout brand="naturaleza" title="Clasificación de Dificultad · Iwagé Naturaleza" description="Sistema de 6 niveles de dificultad para experiencias de ecoturismo en el Tolima. Desde caminatas pasivas hasta alta montaña. Encuentra tu nivel ideal.">
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- Hero -->
+  <section class="bg-[#0e1a08] text-white py-14 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20 bg-gradient-to-br from-[#4a7c23]/30 to-transparent"></div>
+    <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#7bc74d] mb-3">Sistema de Clasificación</p>
+      <h1 class="text-3xl md:text-5xl font-light mb-4">6 Niveles de <span class="font-serif italic text-[#7bc74d]">Dificultad</span></h1>
+      <p class="text-white/60 max-w-xl mx-auto">Cada experiencia Iwagé está clasificada para que elijas con confianza. Desde contemplación pasiva hasta retos de alta montaña.</p>
+      
+      <!-- Level quick nav -->
+      <div class="flex flex-wrap justify-center gap-2 mt-8">
+        {NIVELES.map(n => (
+          <a href={`#nivel-${n.level}`} class="w-10 h-10 rounded-full flex items-center justify-center text-lg border border-white/20 hover:border-white/60 hover:scale-110 transition-all" title={`Nivel ${n.level}: ${n.nombre}`}>
+            {n.icono}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Levels -->
+  <section class="bg-[#FAFAF7] py-12">
+    <div class="max-w-4xl mx-auto px-6 space-y-6">
+      {NIVELES.map((n) => (
+        <div id={`nivel-${n.level}`} class="bg-white rounded-2xl border border-gray-100 overflow-hidden scroll-mt-24">
+          <!-- Header -->
+          <div class="flex items-center gap-4 px-6 py-5 border-b border-gray-50" style={`border-left: 4px solid ${n.color}`}>
+            <span class="text-3xl">{n.icono}</span>
+            <div class="flex-1">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-mono px-2 py-0.5 rounded-full text-white" style={`background: ${n.color}`}>Nivel {n.level}</span>
+                <h2 class="text-lg font-bold text-[#1a2e12]">{n.nombre}</h2>
+              </div>
+              <p class="text-sm text-gray-500 mt-1">{n.descripcion}</p>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 py-4 bg-gray-50/50">
+            <div>
+              <p class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Esfuerzo</p>
+              <p class="text-sm font-semibold text-[#1a2e12]">{n.esfuerzo}</p>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Duración</p>
+              <p class="text-sm font-semibold text-[#1a2e12]">{n.duracion}</p>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Terreno</p>
+              <p class="text-sm font-semibold text-[#1a2e12]">{n.terreno}</p>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Edad mínima</p>
+              <p class="text-sm font-semibold text-[#1a2e12]">{n.edad}</p>
+            </div>
+          </div>
+
+          <!-- Requirements + Recommendations -->
+          <div class="grid md:grid-cols-2 gap-6 px-6 py-5">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">⚡ Requisitos</p>
+              <ul class="space-y-2">
+                {n.requisitos.map(r => (
+                  <li class="flex items-start gap-2 text-sm text-gray-600">
+                    <span class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={`background: ${n.color}`}></span>
+                    {r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">🎒 Recomendaciones</p>
+              <ul class="space-y-2">
+                {n.recomendaciones.map(r => (
+                  <li class="flex items-start gap-2 text-sm text-gray-600">
+                    <span class="text-xs mt-0.5">✓</span>
+                    {r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-[#0e1a08] py-12">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-light text-white mb-3">¿Listo para elegir tu nivel?</h2>
+      <p class="text-white/50 text-sm mb-6">Todas nuestras experiencias indican su nivel de dificultad. Filtra por el tuyo.</p>
+      <a href="/naturaleza/experiencias" class="inline-block bg-[#7bc74d] text-[#0e1a08] px-8 py-3 rounded-full font-bold text-sm hover:bg-[#7bc74d]/90 transition-all">
+        Ver Experiencias →
+      </a>
+    </div>
+  </section>
+</BrandLayout>

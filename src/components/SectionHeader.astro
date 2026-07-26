@@ -1,0 +1,24 @@
+---
+interface Props {
+  label?: string;
+  title: string;
+  subtitle?: string;
+  align?: 'left' | 'center';
+  dark?: boolean;
+}
+const { label, title, subtitle, align = 'left', dark = false } = Astro.props;
+---
+
+<div class={`mb-8 ${align === 'center' ? 'text-center mx-auto max-w-2xl' : ''}`}>
+  {label && (
+    <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">{label}</p>
+  )}
+  <h2 class={`text-3xl md:text-4xl font-bold tracking-tight ${dark ? 'text-dark-text' : 'text-text-primary'}`}>
+    {title}
+  </h2>
+  {subtitle && (
+    <p class={`mt-4 text-base leading-relaxed ${dark ? 'text-dark-text/60' : 'text-text-secondary'}`}>
+      {subtitle}
+    </p>
+  )}
+</div>

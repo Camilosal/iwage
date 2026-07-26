@@ -1,0 +1,17 @@
+{
+  "kind": "collectionType",
+  "collectionName": "productos",
+  "info": { "singularName": "producto", "pluralName": "productos", "displayName": "Producto" },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "nombre": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "nombre" },
+    "descripcion": { "type": "text" },
+    "precio": { "type": "integer", "required": true },
+    "presentacion": { "type": "string" },
+    "categoria": { "type": "enumeration", "enum": ["miel", "caja", "kit", "asistencia"], "required": true },
+    "imagen": { "type": "string" },
+    "stock_disponible": { "type": "boolean", "default": true },
+    "destacado": { "type": "boolean", "default": false }
+  }
+}

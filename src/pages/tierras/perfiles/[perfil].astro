@@ -1,0 +1,108 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { getPropiedades, formatPrecio, formatArea, propiedadImagen, PERFILES_COMPRADOR } from '@/lib/tierras';
+
+export const prerender = true;
+export function getStaticPaths() {
+  return PERFILES_COMPRADOR.map(p => ({ params: { perfil: p.id } }));
+}
+
+const { perfil: perfilId } = Astro.params;
+const perfilData = PERFILES_COMPRADOR.find(p => p.id === perfilId);
+
+if (!perfilData) {
+  return Astro.redirect('/tierras');
+}
+
+const { data: propiedades } = await getPropiedades({ perfil: perfilId, pageSize: 6 });
+---
+
+<BrandLayout brand="tierras" title={`${perfilData.label} · Iwagé Tierras`} description={perfilData.subheadline}>
+
+  <!-- Hero -->
+  <section class="bg-[#0F120E] text-white py-14 md:py-20">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">{perfilData.tag}</p>
+      <h1 class="text-3xl md:text-5xl font-bold leading-tight mb-4">{perfilData.headline}</h1>
+      <p class="text-white/70 text-lg max-w-2xl mx-auto">{perfilData.subheadline}</p>
+      <div class="flex justify-center gap-8 mt-8">
+        {perfilData.metrics.map((m) => (
+          <div class="text-center">
+            <p class="text-2xl font-bold text-[#52B788]">{m.val}</p>
+            <p class="text-xs text-white/40">{m.lbl}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Buyer benefits -->
+  <Section class="bg-white">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-xl font-bold text-[#1B4332] mb-2">Lo que recibes en este perfil</h2>
+      <p class="text-sm text-gray-500 mb-6">Cada propiedad incluye documentación completa respaldada por nuestro <a href="/tierras/protocolo-vap" class="text-[#52B788] font-medium underline underline-offset-2 hover:text-[#1B4332] transition-colors">Protocolo VAP</a>.</p>
+      <div class="space-y-4">
+        {perfilData.checks.map((check) => (
+          <ScrollReveal>
+            <div class="flex items-start gap-4 bg-[#FAFAF7] rounded-xl p-5 border border-gray-100">
+              <span class="w-8 h-8 rounded-full bg-[#52B788]/10 flex items-center justify-center shrink-0 text-[#52B788] font-bold text-sm">→</span>
+              <div>
+                <p class="font-medium text-[#1B4332]">{check.text}</p>
+                <p class="text-sm text-gray-500">{check.detail}</p>
+              </div>
+            </div>
+          </ScrollReveal>
+        ))}
+      </div>
+      <div class="mt-6 p-4 bg-[#52B788]/5 rounded-xl border border-[#52B788]/15 flex items-center gap-3">
+        <span class="text-xl">🛡️</span>
+        <p class="text-xs text-gray-600"><strong class="text-[#1B4332]">Garantía VAP:</strong> Todas las propiedades pasan por auditoría de títulos, topografía, recurso hídrico y normativa. <a href="/tierras/protocolo-vap" class="text-[#52B788] font-medium">Conocer el protocolo →</a></p>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Properties for this profile -->
+  {propiedades.length > 0 && (
+    <Section class="bg-[#FAFAF7]">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-xl font-bold text-[#1B4332] mb-6">Propiedades para este perfil</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {propiedades.map((prop) => (
+            <a href={`/tierras/propiedades/${prop.slug}`} class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#52B788]/40 hover:shadow-lg transition-all">
+              <div class="h-44 bg-gray-100 overflow-hidden">
+                {propiedadImagen(prop) ? (
+                  <img src={propiedadImagen(prop)!} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center bg-[#1B4332]/10"><span class="text-3xl">🌄</span></div>
+                )}
+              </div>
+              <div class="p-4">
+                <h3 class="font-bold text-[#1B4332] text-sm group-hover:text-[#52B788] transition-colors">{prop.titulo}</h3>
+                <p class="text-xs text-gray-400 mt-1">📍 {prop.ubicacion_municipio || 'Tolima'}</p>
+                <p class="text-lg font-bold text-[#1B4332] mt-2">{formatPrecio(prop.precio, prop.moneda)}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div class="text-center mt-8">
+          <a href={`/tierras/propiedades?perfil=${perfilId}`} class="inline-block bg-[#1B4332] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#1B4332]/90 transition-all">Ver todas →</a>
+        </div>
+      </div>
+    </Section>
+  )}
+
+  <!-- CTA -->
+  <section class="py-16 bg-white">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-bold text-[#1B4332] mb-4">¿Listo para encontrar tu tierra?</h2>
+      <p class="text-gray-500 mb-8">Cuéntanos qué buscas y te enviamos una selección personalizada.</p>
+      <a href={`https://wa.me/573001234567?text=${encodeURIComponent(`Hola, busco tierra para: ${perfilData.label}. ¿Qué opciones tienen?`)}`}
+        target="_blank" rel="noopener"
+        class="inline-block bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg">
+        💬 Búsqueda Personalizada
+      </a>
+    </div>
+  </section>
+</BrandLayout>

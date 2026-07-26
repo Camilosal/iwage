@@ -1,0 +1,88 @@
+---
+// QR Traceability demo: phone mockup with slide-up animation
+---
+
+<div class="flex flex-col items-center">
+  <div class="relative w-64 h-[500px] bg-dark-bg rounded-[2.5rem] border-4 border-dark-surface shadow-2xl overflow-hidden">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-5 bg-dark-surface rounded-full"></div>
+    <div class="h-full flex flex-col items-center justify-center p-6 text-center">
+      <div id="qr-idle" class="transition-all duration-300">
+        <div class="w-32 h-32 mx-auto bg-white rounded-xl p-3 mb-4">
+          <div class="w-full h-full bg-dark-bg rounded-lg flex items-center justify-center">
+            <i data-lucide="qr-code" class="w-16 h-16 text-white"></i>
+          </div>
+        </div>
+        <p class="text-dark-text/60 text-sm">Escanea el código QR del frasco</p>
+      </div>
+      <div id="qr-result" class="hidden absolute inset-0 bg-dark-bg p-6 pt-14 overflow-y-auto animate-slide-up">
+        <div class="text-left space-y-4">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-2 h-2 rounded-full bg-green-400"></span>
+            <span class="text-xs font-mono text-green-400 uppercase tracking-wider">Lote verificado</span>
+          </div>
+          <div class="bg-dark-surface rounded-xl p-4">
+            <p class="text-xs text-dark-text/40 mb-1">Código de lote</p>
+            <p class="text-lg font-mono font-bold text-dark-text">L25-05-001</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-dark-surface rounded-xl p-3">
+              <p class="text-xs text-dark-text/40">Cosecha</p>
+              <p class="text-sm font-medium text-dark-text">Mayo 2025</p>
+            </div>
+            <div class="bg-dark-surface rounded-xl p-3">
+              <p class="text-xs text-dark-text/40">Flora</p>
+              <p class="text-sm font-medium text-dark-text">Guamo + Café</p>
+            </div>
+            <div class="bg-dark-surface rounded-xl p-3">
+              <p class="text-xs text-dark-text/40">pH</p>
+              <p class="text-sm font-medium text-dark-text">3.8</p>
+            </div>
+            <div class="bg-dark-surface rounded-xl p-3">
+              <p class="text-xs text-dark-text/40">Humedad</p>
+              <p class="text-sm font-medium text-dark-text">22.4%</p>
+            </div>
+          </div>
+          <div class="bg-dark-surface rounded-xl p-4">
+            <p class="text-xs text-dark-text/40 mb-1">Origen</p>
+            <p class="text-sm text-dark-text">Meliponario Iwagé · Corredor Ambalá · 1,250 m.s.n.m.</p>
+          </div>
+          <div class="bg-dark-surface rounded-xl p-4">
+            <p class="text-xs text-dark-text/40 mb-1">Perfil de cata</p>
+            <p class="text-sm text-dark-text/80">Notas cítricas, final floral. Textura sedosa, acidez media-baja.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button id="qr-simulate" type="button" class="mt-6 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+    Simular escaneo
+  </button>
+</div>
+
+<style>
+  @keyframes slide-up {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .animate-slide-up {
+    animation: slide-up 0.4s ease-out;
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('qr-simulate');
+  const idle = document.getElementById('qr-idle');
+  const result = document.getElementById('qr-result');
+
+  btn?.addEventListener('click', () => {
+    if (result?.classList.contains('hidden')) {
+      idle?.classList.add('hidden');
+      result?.classList.remove('hidden');
+      btn.textContent = 'Reiniciar';
+    } else {
+      result?.classList.add('hidden');
+      idle?.classList.remove('hidden');
+      btn.textContent = 'Simular escaneo';
+    }
+  });
+</script>

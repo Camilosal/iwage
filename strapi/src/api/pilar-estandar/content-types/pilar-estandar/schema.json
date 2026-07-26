@@ -1,0 +1,12 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pilar_estandars",
+  "info": { "singularName": "pilar-estandar", "pluralName": "pilar-estandars", "displayName": "Pilar Estándar" },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "numero": { "type": "integer", "required": true },
+    "titulo": { "type": "string", "required": true },
+    "descripcion": { "type": "text" },
+    "icono": { "type": "string" }
+  }
+}

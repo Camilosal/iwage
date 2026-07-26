@@ -1,0 +1,168 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+
+const VALUES = [
+  { icon: '🔍', title: 'Transparencia Radical', desc: 'Cada predio pasa por verificación VAP de 5 fases. Publicamos hallazgos completos, incluso las banderas rojas.' },
+  { icon: '🌱', title: 'Regeneración Territorial', desc: 'No solo vendemos tierra: protegemos ecosistemas. El 2% de cada operación financia restauración.' },
+  { icon: '🤝', title: 'Comercio Justo', desc: 'Comisiones 3-5% vs 6-10% del mercado. El campesino recibe el valor real de su tierra.' },
+  { icon: '🤖', title: 'Tecnología con Propósito', desc: 'IA, PropTech y datos al servicio del territorio, no del extractivismo.' },
+];
+
+const TEAM = [
+  { name: 'Manuel Camilo Saldarriaga', role: 'Fundador & CEO', desc: 'Ingeniero de sistemas con maestría en IA. Hijo del campo tolimense, puente entre tecnología y territorio.', initials: 'MC' },
+  { name: 'Equipo VAP', role: 'Verificación & Auditoría', desc: 'Abogados, topógrafos y ambientalistas que garantizan la seguridad de cada inversión.', initials: 'VAP' },
+  { name: 'Red de Anfitriones', role: 'Operación Territorial', desc: 'Familias rurales certificadas que guían, hospedan y comparten su sabiduría ancestral.', initials: 'RA' },
+];
+
+const MILESTONES = [
+  { year: '2023', event: 'Nace Iwagé como visión: unir PropTech con regeneración territorial en el Tolima.' },
+  { year: '2024', event: 'Primeros predios verificados con VAP. Lanzamiento del protocolo de 5 fases.' },
+  { year: '2025', event: 'Expansión a turismo regenerativo. Primeros anfitriones certificados. Modelo BIC.' },
+  { year: '2026', event: 'Plataforma unificada multi-marca. IA narrativa. Lab & Data. Comunidad activa.' },
+];
+---
+
+<BrandLayout brand="tierras" title="Sobre Nosotros · Iwagé" description="Conoce al equipo detrás de Iwagé: tecnología con propósito al servicio del campo tolimense. Nuestra historia, misión y valores.">
+
+  <!-- Hero -->
+  <section class="bg-[#1A1E18] text-white py-20 md:py-28 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-[#C8933E]/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
+    <div class="max-w-5xl mx-auto px-6 relative z-10">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="w-12 h-[1px] bg-[#C8933E]"></span>
+        <span class="text-[#C8933E] text-xs font-bold uppercase tracking-[0.4em]">Quiénes Somos</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-serif leading-tight mb-6">
+        Tecnología con <span class="italic text-[#C8933E]">raíces</span>
+      </h1>
+      <p class="text-xl text-white/60 font-light max-w-2xl leading-relaxed">
+        Somos una empresa BIC que combina inteligencia artificial, verificación jurídica rigurosa y amor profundo por el campo colombiano.
+      </p>
+    </div>
+  </section>
+
+  <!-- Mission -->
+  <section class="py-16 px-6 bg-[#FAF8F5]">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="font-serif text-2xl md:text-3xl text-[#1A1E18] mb-6">Nuestra Misión</h2>
+      <p class="text-lg text-gray-600 leading-relaxed font-serif italic max-w-3xl mx-auto">
+        "Democratizar el acceso a tierra segura en Colombia, usando tecnología de punta para eliminar la asimetría de información, mientras generamos ingresos dignos para las familias rurales que han sido guardianas del territorio."
+      </p>
+    </div>
+  </section>
+
+  <!-- Founder's Letter -->
+  <section class="py-16 px-6 bg-white">
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-[#FAF8F3] p-8 md:p-14 rounded-[2.5rem] border border-[#EDE5D4]/50 relative">
+        <div class="mb-10">
+          <h2 class="text-2xl md:text-3xl font-serif text-[#1A1E18] mb-3">Carta del Fundador</h2>
+          <div class="w-16 h-1 bg-[#C8933E] rounded-full"></div>
+        </div>
+
+        <div class="font-serif text-[#333] leading-relaxed space-y-5 text-base md:text-lg italic">
+          <p class="first-letter:text-5xl first-letter:font-bold first-letter:text-[#C8933E] first-letter:mr-2 first-letter:float-left">
+            Si me preguntan de dónde viene Iwagé, tengo que regresar a las madrugadas en el campo.
+          </p>
+          <p>
+            Vengo de una familia rural. Sé exactamente lo que significa el peso del rocío antes de que salga el sol, lo que es caminar por la trocha para llegar a la escuela, el sabor de la leche recién ordeñada y el privilegio simple de bajar la fruta directamente del palo en la finca de un vecino.
+          </p>
+          <p>
+            Pero también conozco la otra cara de la moneda. Conozco la presión y las miradas de los "primos ricos de la capital". Conozco esa brecha silenciosa que la sociedad ha trazado entre el que trabaja la tierra y el que viene de la ciudad a consumirla.
+          </p>
+          <p>
+            La vida me dio un privilegio inmenso: pude salir, estudiar, cruzar fronteras y conocer el mundo. Durante años he trabajado en los niveles más exigentes de la tecnología, y he caminado de la mano con proyectos sociales y ambientales.
+          </p>
+
+          <div class="bg-white p-6 rounded-2xl border-l-4 border-[#C8933E] my-8 not-italic">
+            <p class="text-[#1A1E18] font-serif text-lg md:text-xl font-medium leading-snug">
+              "Entre más lejos viajaba y más tecnología construía, más fuerte era el llamado de la montaña."
+            </p>
+          </div>
+
+          <p>
+            Iwagé nace de una deuda de gratitud y de un acto de rebeldía. Quería usar todo el conocimiento técnico, logístico y corporativo que adquirí en la ciudad y en el exterior, para ponerlo al servicio de la gente del campo.
+          </p>
+          <p>
+            Iwagé es el puente entre el rigor técnico del siglo XXI y la sabiduría ancestral del Tolima. Es nuestra forma de demostrar que la tierra no se tiene que vender al mejor postor para ser rentable, y que el turismo no tiene que ser extractivo para ser un buen negocio.
+          </p>
+        </div>
+
+        <!-- Signature -->
+        <div class="mt-12 pt-8 border-t border-[#EDE5D4]">
+          <p class="font-serif text-xl text-[#1A1E18] mb-1">Manuel Camilo Saldarriaga</p>
+          <p class="text-[#C8933E] font-bold text-xs uppercase tracking-widest">Fundador de Iwagé</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Values -->
+  <section class="py-16 px-6 bg-[#FAF8F5]">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="font-serif text-2xl md:text-3xl text-[#1A1E18] mb-10 text-center">Lo que nos define</h2>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {VALUES.map((v) => (
+          <div class="bg-white rounded-2xl p-6 text-center border border-[#EDE5D4]">
+            <span class="text-3xl block mb-4">{v.icon}</span>
+            <h3 class="font-bold text-[#1A1E18] mb-2">{v.title}</h3>
+            <p class="text-sm text-gray-500">{v.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Timeline -->
+  <section class="py-16 px-6 bg-[#1A1E18] text-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-2xl md:text-3xl mb-10 text-center">Nuestro camino</h2>
+      <div class="space-y-8">
+        {MILESTONES.map((m) => (
+          <div class="flex gap-6 items-start">
+            <span class="text-2xl font-bold text-[#C8933E] shrink-0 w-16">{m.year}</span>
+            <div class="border-l-2 border-white/10 pl-6 pb-2">
+              <p class="text-white/70">{m.event}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="py-16 px-6 bg-[#FAF8F5]">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="font-serif text-2xl md:text-3xl text-[#1A1E18] mb-10 text-center">El equipo</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        {TEAM.map((member) => (
+          <div class="bg-white rounded-2xl p-8 text-center border border-[#EDE5D4] shadow-sm">
+            <div class="w-16 h-16 rounded-full bg-[#1A1E18] text-white flex items-center justify-center mx-auto mb-4 font-bold text-lg">
+              {member.initials}
+            </div>
+            <h3 class="font-serif text-lg font-bold text-[#1A1E18]">{member.name}</h3>
+            <p class="text-xs font-bold uppercase tracking-wider text-[#C8933E] mb-3">{member.role}</p>
+            <p class="text-sm text-gray-500">{member.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 px-6 bg-white text-center">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="font-serif text-2xl md:text-3xl text-[#1A1E18] mb-4">¿Quieres ser parte?</h2>
+      <p class="text-gray-500 mb-8">Ya sea como vendedor, comprador, anfitrión o aliado estratégico — hay espacio para ti en Iwagé.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/tierras/propiedades" class="px-8 py-3 bg-[#1A1E18] text-white rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#40916C] transition-colors">
+          Explorar Tierras
+        </a>
+        <a href="/contacto" class="px-8 py-3 border-2 border-[#1A1E18] text-[#1A1E18] rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#1A1E18] hover:text-white transition-all">
+          Contactar
+        </a>
+      </div>
+    </div>
+  </section>
+</BrandLayout>

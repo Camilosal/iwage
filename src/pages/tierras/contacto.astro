@@ -1,0 +1,144 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+
+const INTERESES = [{"value": "comprar", "label": "Comprar propiedad", "link": "/tierras/propiedades"}, {"value": "vender", "label": "Vender propiedad", "link": "/tierras/vender"}, {"value": "vap", "label": "Verificación VAP", "link": "/tierras/protocolo-vap"}, {"value": "herramientas", "label": "Herramientas / Lab", "link": "/tierras/lab"}, {"value": "otro", "label": "Otro", "link": "/tierras/ayuda"}];
+---
+
+<BrandLayout brand="tierras" title="Contacto · Iwagé Tierras" description="Contáctanos por WhatsApp, email o formulario. Respondemos en minutos durante horario de oficina.">
+  <!-- Hero -->
+  <section class="bg-surface pt-12 pb-8">
+    <div class="max-w-5xl mx-auto px-6">
+      <span class="text-xs font-bold uppercase tracking-[0.3em] text-brand block mb-4">Hablemos</span>
+      <h1 class="text-3xl md:text-4xl font-serif text-text-primary mb-4">
+        ¿En qué podemos <span class="italic text-brand">ayudarte</span>?
+      </h1>
+      <p class="text-text-secondary max-w-xl">Estamos disponibles por múltiples canales. Cuéntanos qué necesitas: comprar, vender o verificar una propiedad rural.</p>
+    </div>
+  </section>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid lg:grid-cols-2 gap-16">
+      <!-- Contact Form -->
+      <div>
+        <form id="contact-form" class="space-y-5">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label for="nombre" class="block text-sm font-medium text-text-secondary mb-2">Nombre *</label>
+              <input type="text" id="nombre" name="nombre" required class="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="Tu nombre" />
+            </div>
+            <div>
+              <label for="telefono" class="block text-sm font-medium text-text-secondary mb-2">WhatsApp *</label>
+              <input type="tel" id="telefono" name="telefono" required class="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="+57 300 000 0000" />
+            </div>
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium text-text-secondary mb-2">Email</label>
+            <input type="email" id="email" name="email" class="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="tu@correo.com" />
+          </div>
+          <div>
+            <label for="interes" class="block text-sm font-medium text-text-secondary mb-2">¿Qué te interesa? *</label>
+            <select id="interes" name="interes" required class="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
+              <option value="">Selecciona una opción</option>
+              {INTERESES.map(i => (
+                <option value={i.value}>{i.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label for="mensaje" class="block text-sm font-medium text-text-secondary mb-2">Mensaje</label>
+            <textarea id="mensaje" name="mensaje" rows="4" class="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand resize-none" placeholder="Cuéntanos más..."></textarea>
+          </div>
+          <input type="hidden" name="marca" value="tierras" />
+          <button type="submit" class="w-full bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+            Enviar mensaje
+          </button>
+          <p id="form-status" class="text-sm text-center hidden"></p>
+        </form>
+      </div>
+
+      <!-- Channels -->
+      <div class="space-y-6">
+        <div class="bg-surface-raised rounded-2xl border border-border p-6">
+          <h3 class="font-semibold text-text-primary mb-4">Canales directos</h3>
+          <div class="space-y-4">
+            <a href="https://wa.me/573001234567" target="_blank" rel="noopener" class="flex items-center gap-4 group">
+              <span class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">💬</span>
+              <div>
+                <p class="text-sm font-medium text-text-primary">WhatsApp</p>
+                <p class="text-xs text-text-muted">Respuesta en &lt; 2h (horario laboral)</p>
+              </div>
+            </a>
+            <a href="mailto:hola@iwage.co" class="flex items-center gap-4 group">
+              <span class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">✉️</span>
+              <div>
+                <p class="text-sm font-medium text-text-primary">Email</p>
+                <p class="text-xs text-text-muted">hola@iwage.co · Respuesta en 24h</p>
+              </div>
+            </a>
+            <div class="flex items-center gap-4">
+              <span class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-lg">📍</span>
+              <div>
+                <p class="text-sm font-medium text-text-primary">Oficina</p>
+                <p class="text-xs text-text-muted">Ibagué, Tolima · Lun-Vie 8am-6pm</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-surface-raised rounded-2xl border border-border p-6">
+          <h3 class="font-semibold text-text-primary mb-3">Enlaces rápidos</h3>
+          <div class="grid grid-cols-2 gap-3">
+            {INTERESES.slice(0, 4).map(i => (
+              <a href={i.link} class="text-sm text-brand hover:underline">{i.label}</a>
+            ))}
+          </div>
+        </div>
+
+        <div class="bg-brand/5 rounded-2xl border border-brand/10 p-6">
+          <p class="text-sm text-text-secondary leading-relaxed">
+            <span class="font-semibold text-text-primary">⏱️ Tiempos de respuesta:</span><br/>
+            WhatsApp: &lt; 2 horas · Formulario: &lt; 24 horas · Email: &lt; 48 horas
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BrandLayout>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const status = document.getElementById('form-status') as HTMLElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const data = new FormData(form);
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(data)),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        status.textContent = '¡Mensaje enviado! Te contactaremos pronto.';
+        status.className = 'text-sm text-center text-brand';
+        form.reset();
+      } else {
+        status.textContent = result.error || 'Error al enviar. Intenta de nuevo.';
+        status.className = 'text-sm text-center text-red-500';
+      }
+    } catch {
+      status.textContent = 'Error de conexión. Intenta de nuevo.';
+      status.className = 'text-sm text-center text-red-500';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Enviar mensaje';
+      status.classList.remove('hidden');
+    }
+  });
+</script>

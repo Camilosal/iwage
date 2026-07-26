@@ -1,0 +1,17 @@
+{
+  "kind": "collectionType",
+  "collectionName": "lote_miels",
+  "info": { "singularName": "lote-miel", "pluralName": "lote-miels", "displayName": "Lote de Miel" },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "codigo_lote": { "type": "string", "required": true, "unique": true },
+    "fecha_cosecha": { "type": "date" },
+    "flora": { "type": "string" },
+    "ph": { "type": "decimal" },
+    "humedad": { "type": "decimal" },
+    "fenolicos": { "type": "integer" },
+    "origen_meliponario": { "type": "string" },
+    "origen_altitud": { "type": "string" },
+    "perfil_cata": { "type": "text" }
+  }
+}

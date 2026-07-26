@@ -1,0 +1,157 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { SEO, SITE } from '@/config/site';
+
+const opciones = [
+  { icon: 'message-circle', title: 'WhatsApp directo', desc: 'Respuesta en menos de 2 horas en horario laboral.', href: `https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}`, cta: 'Escribir ahora' },
+  { icon: 'file-text', title: 'Cotización formal', desc: 'Para empresas e instituciones. Respuesta en 48h con propuesta detallada.', href: `mailto:${SITE.email}`, cta: 'Enviar correo' },
+  { icon: 'clipboard-check', title: 'Diagnóstico de predio', desc: 'Visita técnica gratuita para evaluar tu espacio.', href: '#formulario', cta: 'Agendar visita' },
+];
+---
+
+<BrandLayout title={SEO.contacto.title} description={SEO.contacto.description}>
+  <!-- Hero -->
+  <section class="bg-surface">
+    <div class="max-w-4xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Contacto</p>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-text-primary leading-tight mb-6">
+        Hablemos de tu proyecto
+      </h1>
+      <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+        Cuéntanos qué tienes en mente. Respondemos en menos de 24 horas por WhatsApp o en 48 horas por formulario.
+      </p>
+    </div>
+  </section>
+
+  <!-- Contact options -->
+  <Section class="!pt-0">
+    <div class="grid md:grid-cols-3 gap-6">
+      {opciones.map((o, i) => (
+        <ScrollReveal delay={i * 100}>
+          <a href={o.href} target={o.href.startsWith('http') ? '_blank' : undefined} rel={o.href.startsWith('http') ? 'noopener' : undefined} class="group block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
+              <i data-lucide={o.icon} class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{o.title}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed mb-4">{o.desc}</p>
+            <span class="inline-flex items-center gap-1 text-sm font-medium text-brand group-hover:gap-2 transition-all">
+              {o.cta}
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </span>
+          </a>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Form -->
+  <Section bg="sunken" id="formulario">
+    <div class="grid md:grid-cols-2 gap-12 items-start">
+      <ScrollReveal>
+        <SectionHeader
+          label="Formulario"
+          title="Cuéntanos tu idea"
+          subtitle="Máximo 5 campos. Sin spam, sin newsletters no solicitados."
+        />
+        <div class="space-y-6">
+          <div class="flex items-start gap-3">
+            <i data-lucide="clock" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <div>
+              <p class="text-sm font-medium text-text-primary">Tiempo de respuesta</p>
+              <p class="text-sm text-text-secondary">WhatsApp: &lt; 2h · Formulario: &lt; 48h</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="map-pin" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <div>
+              <p class="text-sm font-medium text-text-primary">Ubicación</p>
+              <p class="text-sm text-text-secondary">{SITE.location}</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="instagram" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <div>
+              <p class="text-sm font-medium text-text-primary">Instagram</p>
+              <p class="text-sm text-text-secondary">{SITE.instagram}</p>
+            </div>
+          </div>
+        </div>
+      </ScrollReveal>
+      <ScrollReveal delay={200}>
+        <form id="contact-form" class="bg-surface-raised rounded-2xl border border-border p-6 md:p-8 shadow-sm space-y-5">
+          <div>
+            <label for="nombre" class="block text-sm font-medium text-text-secondary mb-2">Nombre completo *</label>
+            <input type="text" id="nombre" name="nombre" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="Tu nombre" />
+          </div>
+          <div>
+            <label for="whatsapp" class="block text-sm font-medium text-text-secondary mb-2">WhatsApp *</label>
+            <input type="tel" id="whatsapp" name="whatsapp" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="+57 300 000 0000" />
+          </div>
+          <div>
+            <label for="municipio" class="block text-sm font-medium text-text-secondary mb-2">Municipio</label>
+            <input type="text" id="municipio" name="municipio" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="¿Dónde estás?" />
+          </div>
+          <div>
+            <label for="tipo_proyecto" class="block text-sm font-medium text-text-secondary mb-2">Tipo de proyecto *</label>
+            <select id="tipo_proyecto" name="tipo_proyecto" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
+              <option value="">Selecciona una opción</option>
+              <option value="meliponario">Instalar un meliponario</option>
+              <option value="polinizacion">Polinización de cultivos</option>
+              <option value="tienda">Compra de productos</option>
+              <option value="b2b">Alianza comercial / B2B</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label for="mensaje" class="block text-sm font-medium text-text-secondary mb-2">Mensaje</label>
+            <textarea id="mensaje" name="mensaje" rows="4" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand resize-none" placeholder="Cuéntanos más sobre tu proyecto..."></textarea>
+          </div>
+          <button type="submit" class="w-full bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+            Enviar mensaje
+          </button>
+          <p id="form-status" class="text-sm text-center hidden"></p>
+        </form>
+      </ScrollReveal>
+    </div>
+  </Section>
+</BrandLayout>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const status = document.getElementById('form-status') as HTMLElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const data = new FormData(form);
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(data)),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        status.textContent = '¡Mensaje enviado! Te contactaremos pronto.';
+        status.className = 'text-sm text-center text-brand';
+        form.reset();
+      } else {
+        status.textContent = result.error || 'Error al enviar. Intenta de nuevo.';
+        status.className = 'text-sm text-center text-red-500';
+      }
+    } catch {
+      status.textContent = 'Error de conexión. Intenta de nuevo.';
+      status.className = 'text-sm text-center text-red-500';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Enviar mensaje';
+      status.classList.remove('hidden');
+    }
+  });
+</script>

@@ -1,0 +1,218 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import { PERFILES_COMPRADOR, SELLOS_VAP } from '@/lib/tierras';
+
+export const prerender = true;
+
+// Extended profile data with detailed descriptions and image references
+const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
+  const extended: Record<string, { descripcion: string; idealPara: string; incluye: string[]; imagen: string; imagenAlt: string; color: string }> = {
+    productivo: {
+      descripcion: 'Fincas con vocación agropecuaria verificada por el PBOT municipal. Cada predio incluye análisis de suelos, concesión de agua vigente ante Cortolima, y acceso vial confirmado para maquinaria agrícola. Sabrás exactamente qué puedes producir, cuánta agua tienes disponible y cómo sacar tu cosecha al mercado.',
+      idealPara: 'Agricultores, ganaderos, inversionistas agropecuarios y familias que quieren producir su propio alimento en tierra fértil del Tolima.',
+      incluye: ['Análisis de vocación productiva del suelo', 'Concesión de agua con caudal verificado (L/s)', 'Topografía certificada con % de terreno plano', 'Registro fotográfico aéreo con drone', 'Historial productivo del predio (últimos 5 años)', 'Acceso vial confirmado para camiones'],
+      imagen: '/images/perfiles/productivo.jpg',
+      imagenAlt: 'Finca productiva con cultivos y sistema de riego en el Tolima',
+      color: '#2D6A4F',
+    },
+    campestre: {
+      descripcion: 'Casas y lotes en condominios campestres o parcelaciones con vigilancia, vías pavimentadas y todos los servicios. A máximo 30 minutos de Ibagué, con la tranquilidad del campo y la conectividad de la ciudad. Cada propiedad incluye distancia real medida en minutos, no estimaciones optimistas.',
+      idealPara: 'Familias que buscan calidad de vida, retirados activos, profesionales que trabajan híbrido y cualquiera que quiera despertar con montañas en la ventana.',
+      incluye: ['Distancia real en minutos desde Ibagué (GPS)', 'Verificación de servicios: acueducto, energía, gas', 'Estado del condominio: vigilancia, zonas comunes', 'Fotografía aérea con drone incluida', 'Entorno y vecindario documentado', 'Potencial de ampliación o remodelación'],
+      imagen: '/images/perfiles/campestre.jpg',
+      imagenAlt: 'Casa campestre moderna con vista a montañas del Tolima',
+      color: '#40916C',
+    },
+    nomada: {
+      descripcion: 'Propiedades con internet real verificado en sitio. No promesas de cobertura: medimos la velocidad en el predio y solo listamos las que superan 200 Mbps. Espacios adaptables para home office, cielo despejado confirmado para antenas satelitales, y gestión 100% remota con recorridos virtuales 360°.',
+      idealPara: 'Nómadas digitales, freelancers internacionales, creadores de contenido y emprendedores remotos que ganan en USD y quieren vivir en el campo colombiano.',
+      incluye: ['Sello Internet Verificado (medición en sitio)', 'Velocidad mínima garantizada: 200 Mbps', 'Cielo despejado confirmado para Starlink/antenas', 'Espacios home office identificados en plano', 'Recorrido virtual 360° disponible', 'Documentos digitales para cierre remoto'],
+      imagen: '/images/perfiles/nomada.jpg',
+      imagenAlt: 'Espacio de trabajo con laptop y vista al campo verde',
+      color: '#52B788',
+    },
+    turistico: {
+      descripcion: 'Lotes y fincas con pre-viabilidad turística analizada: miradores naturales, fuentes hídricas, vocación de suelo compatible y acceso para visitantes. Incluimos estimación de ROI basada en proyectos comparables de glamping y ecoturismo en la región. Si compras, te administramos el proyecto.',
+      idealPara: 'Inversionistas de hospitality, operadores de glamping, emprendedores de ecoturismo y familias que quieren un negocio de experiencias en su tierra.',
+      incluye: ['Pre-viabilidad turística del predio', 'Análisis de atractivos: miradores, ríos, cascadas', 'Estimación de ROI anual (18–35% típico)', 'Internet verificado (indispensable para huéspedes)', 'Normativa de uso turístico confirmada', 'Opción de Property Management Iwagé'],
+      imagen: '/images/perfiles/turistico.jpg',
+      imagenAlt: 'Glamping con domo geodésico y vista panorámica al valle',
+      color: '#74C69D',
+    },
+    patrimonial: {
+      descripcion: 'Tierra rural como vehículo de inversión y protección patrimonial. Estudio de títulos completo con cadena de tradición, avalúo certificado por profesionales RNA, y análisis de valorización por corredor geográfico. La tierra del Tolima ha valorizado +12% anual sostenido. Sin volatilidad de bolsa, sin riesgo de hackeo.',
+      idealPara: 'Inversionistas conservadores, familias que construyen patrimonio generacional, empresarios que diversifican fuera del sistema financiero tradicional.',
+      incluye: ['Estudio de títulos con cadena de tradición', 'Avalúo certificado por profesional RNA', 'Análisis de valorización por corredor (5 años)', 'Calculadora de gastos notariales y registro', 'Sello VAP Oro o Plata (máxima seguridad jurídica)', 'Acompañamiento legal hasta escrituración'],
+      imagen: '/images/perfiles/patrimonial.jpg',
+      imagenAlt: 'Vista aérea de terreno rural con linderos definidos y escritura',
+      color: '#1B4332',
+    },
+  };
+  return { ...p, ext: extended[p.id] };
+});
+---
+
+<BrandLayout brand="tierras" title="Perfiles de Comprador · Iwagé Tierras" description="Encuentra tu perfil de comprador de tierra rural. 5 perfiles con propiedades curadas, documentación completa y acompañamiento especializado en el Tolima.">
+
+  <!-- Hero -->
+  <section class="bg-[#0F120E] text-white py-16 md:py-24 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+      <div class="absolute top-0 right-0 w-96 h-96 rounded-full bg-[#52B788] blur-[120px]"></div>
+      <div class="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-[#2D6A4F] blur-[100px]"></div>
+    </div>
+    <div class="max-w-4xl mx-auto px-6 text-center relative">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">¿Para qué buscas tu tierra?</p>
+      <h1 class="text-3xl md:text-5xl font-bold leading-tight mb-4">Perfiles de Comprador</h1>
+      <p class="text-white/70 text-lg max-w-2xl mx-auto mb-8">No todas las tierras sirven para lo mismo. Identifica tu perfil y accede a propiedades curadas con la documentación exacta que necesitas.</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        {PERFILES_EXTENDED.map((p) => (
+          <a href={`#perfil-${p.id}`} class="px-4 py-2 rounded-full border border-white/15 text-xs font-medium text-white/70 hover:border-[#52B788] hover:text-[#52B788] transition-all">
+            {p.num}. {p.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Accordions -->
+  <Section class="bg-[#FAFAF7]">
+    <div class="max-w-4xl mx-auto space-y-4">
+      {PERFILES_EXTENDED.map((perfil) => (
+        <details id={`perfil-${perfil.id}`} class="group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow" open={perfil.id === 'productivo'}>
+          <!-- Summary (always visible) -->
+          <summary class="cursor-pointer select-none list-none p-6 md:p-8 flex items-start gap-5">
+            <div class="hidden sm:flex w-14 h-14 rounded-xl items-center justify-center shrink-0 text-white font-bold text-lg" style={`background-color: ${perfil.ext.color}`}>
+              {perfil.num}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-3 mb-1">
+                <span class="text-[10px] font-bold tracking-[0.2em] uppercase px-2 py-0.5 rounded-full" style={`background-color: ${perfil.ext.color}15; color: ${perfil.ext.color}`}>{perfil.tag}</span>
+              </div>
+              <h2 class="text-xl md:text-2xl font-bold text-[#1B4332] group-open:text-[#2D6A4F] transition-colors">{perfil.label}</h2>
+              <p class="text-sm text-gray-500 mt-1 italic">"{perfil.headline}"</p>
+              <div class="flex flex-wrap gap-4 mt-3">
+                {perfil.metrics.map((m) => (
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-sm font-bold" style={`color: ${perfil.ext.color}`}>{m.val}</span>
+                    <span class="text-[10px] text-gray-400">{m.lbl}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div class="shrink-0 w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-open:rotate-180 transition-transform duration-300">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </summary>
+
+          <!-- Expanded content -->
+          <div class="px-6 md:px-8 pb-8 border-t border-gray-50">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-6">
+              <!-- Left: Description + includes -->
+              <div>
+                <h3 class="text-sm font-bold text-[#1B4332] uppercase tracking-wide mb-3">Descripción detallada</h3>
+                <p class="text-sm text-gray-600 leading-relaxed mb-5">{perfil.ext.descripcion}</p>
+
+                <h3 class="text-sm font-bold text-[#1B4332] uppercase tracking-wide mb-3">Ideal para</h3>
+                <p class="text-sm text-gray-600 mb-5">{perfil.ext.idealPara}</p>
+
+                <h3 class="text-sm font-bold text-[#1B4332] uppercase tracking-wide mb-3">Qué incluye cada propiedad</h3>
+                <ul class="space-y-2">
+                  {perfil.ext.incluye.map((item) => (
+                    <li class="flex items-start gap-2 text-sm text-gray-600">
+                      <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] text-white font-bold" style={`background-color: ${perfil.ext.color}`}>✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <!-- Right: Image + checks + CTA -->
+              <div class="space-y-5">
+                <!-- Reference image -->
+                <div class="rounded-xl overflow-hidden border border-gray-100 h-48 lg:h-56 relative">
+                  <img
+                    src={perfil.ext.imagen}
+                    alt={perfil.ext.imagenAlt}
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#1B4332] to-[#52B788]\'><span class=\'text-4xl mb-2\'>🌄</span><span class=\'text-white/60 text-xs\'>Imagen de referencia</span></div>'"
+                  />
+                  <div class="absolute bottom-2 right-2 bg-black/50 text-white/80 text-[9px] px-2 py-1 rounded-full">Imagen de referencia</div>
+                </div>
+
+                <!-- Verification checks -->
+                <div class="bg-[#FAFAF7] rounded-xl p-4 border border-gray-100">
+                  <h4 class="text-xs font-bold text-[#1B4332] uppercase tracking-wide mb-3">🛡️ Verificaciones VAP incluidas</h4>
+                  <div class="space-y-2">
+                    {perfil.checks.map((check) => (
+                      <div class="flex items-start gap-2">
+                        <span class="text-[#52B788] text-xs mt-0.5">●</span>
+                        <p class="text-xs text-gray-600"><strong class="text-[#1B4332]">{check.text}</strong> {check.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <!-- CTA -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <a href={`/tierras/perfiles/${perfil.id}`} class="flex-1 text-center px-5 py-3 rounded-full text-white text-sm font-bold transition-all hover:opacity-90" style={`background-color: ${perfil.ext.color}`}>
+                    {perfil.cta} →
+                  </a>
+                  <a href={`https://wa.me/573001234567?text=${encodeURIComponent(`Hola, me interesa el perfil: ${perfil.label}. ¿Qué opciones tienen?`)}`}
+                    target="_blank" rel="noopener"
+                    class="flex-1 text-center px-5 py-3 rounded-full border-2 border-[#1B4332]/15 text-[#1B4332] text-sm font-bold hover:border-[#52B788] hover:text-[#52B788] transition-all">
+                    💬 Asesoría directa
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+      ))}
+    </div>
+  </Section>
+
+  <!-- How it works -->
+  <Section class="bg-white">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-2xl font-bold text-[#1B4332] mb-3">¿Cómo funciona?</h2>
+      <p class="text-gray-500 text-sm mb-10 max-w-xl mx-auto">Tres pasos entre tú y tu tierra. Sin intermediarios ocultos, sin sorpresas jurídicas.</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-6 rounded-2xl bg-[#FAFAF7] border border-gray-100">
+          <div class="w-10 h-10 rounded-full bg-[#52B788]/10 flex items-center justify-center mx-auto mb-4 text-lg">1️⃣</div>
+          <h3 class="font-bold text-[#1B4332] text-sm mb-2">Identifica tu perfil</h3>
+          <p class="text-xs text-gray-500">Cada perfil tiene propiedades curadas con la documentación exacta que necesitas.</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-[#FAFAF7] border border-gray-100">
+          <div class="w-10 h-10 rounded-full bg-[#52B788]/10 flex items-center justify-center mx-auto mb-4 text-lg">2️⃣</div>
+          <h3 class="font-bold text-[#1B4332] text-sm mb-2">Recibe selección personalizada</h3>
+          <p class="text-xs text-gray-500">Te enviamos opciones que cumplen tu perfil. Sin spam, sin propiedades irrelevantes.</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-[#FAFAF7] border border-gray-100">
+          <div class="w-10 h-10 rounded-full bg-[#52B788]/10 flex items-center justify-center mx-auto mb-4 text-lg">3️⃣</div>
+          <h3 class="font-bold text-[#1B4332] text-sm mb-2">Cierra con seguridad VAP</h3>
+          <p class="text-xs text-gray-500">Acompañamiento legal completo hasta escrituración. Protocolo VAP en cada paso.</p>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <!-- CTA Final -->
+  <section class="py-16 bg-[#0F120E] text-white">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <h2 class="text-2xl md:text-3xl font-bold mb-4">¿No sabes cuál es tu perfil?</h2>
+      <p class="text-white/60 mb-8 text-sm">Cuéntanos qué buscas en 2 minutos y te asignamos el perfil correcto con propiedades disponibles.</p>
+      <a href="https://wa.me/573001234567?text=Hola%2C%20quiero%20que%20me%20ayuden%20a%20identificar%20mi%20perfil%20de%20comprador%20de%20tierra."
+        target="_blank" rel="noopener"
+        class="inline-block bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg shadow-[#52B788]/20">
+        💬 Diagnóstico Gratuito
+      </a>
+    </div>
+  </section>
+</BrandLayout>
+
+<style>
+  details summary::-webkit-details-marker { display: none; }
+  details[open] summary { border-bottom: 1px solid #f3f4f6; }
+</style>

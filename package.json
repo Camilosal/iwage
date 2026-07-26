@@ -1,0 +1,34 @@
+{
+  "name": "app_iwage",
+  "type": "module",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^11.0.2",
+    "@astrojs/react": "^4.2.0",
+    "@astrojs/sitemap": "^3.2.1",
+    "@lucide/astro": "^1.26.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.1.3",
+    "ioredis": "^5.4.2",
+    "leaflet": "^1.9.4",
+    "marked": "^18.0.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.33.5",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.14",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0"
+  }
+}

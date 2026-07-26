@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "bitacoras",
+  "info": {
+    "singularName": "bitacora",
+    "pluralName": "bitacoras",
+    "displayName": "Bitácora"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "titulo": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "titulo"
+    },
+    "extracto": {
+      "type": "text"
+    },
+    "contenido": {
+      "type": "richtext"
+    },
+    "categoria": {
+      "type": "string"
+    },
+    "tiempo_lectura": {
+      "type": "integer"
+    },
+    "imagen": {
+      "type": "string"
+    },
+    "fecha": {
+      "type": "date"
+    },
+    "marca": {
+      "type": "enumeration",
+      "enum": [
+        "tierras",
+        "naturaleza",
+        "meliponas",
+        "cafe",
+        "gestion"
+      ],
+      "required": true,
+      "default": "tierras"
+    },
+    "destacado": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

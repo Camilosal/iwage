@@ -1,0 +1,73 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+---
+
+<BrandLayout brand="gestion" title="Segunda Residencia · Iwagé Gestión" description="Administración de segunda residencia campestre en el Tolima. Mantenimiento preventivo, supervisión de personal, informes fotográficos mensuales. Tu refugio siempre impecable.">
+
+  <!-- Banner -->
+  <div class="bg-[#52B788]/10 border-b border-[#52B788]/20 px-4 py-3 text-center">
+    <p class="text-sm text-[#122640]">Conoce las residencias que supervisamos → <a href="/gestion/propiedades?tipo=segunda_residencia" class="font-bold text-[#2d5a8f] underline hover:text-[#52B788]">Ver portafolio</a></p>
+  </div>
+
+  <section class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
+    <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1600&q=80" alt="Casa campestre segunda residencia" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+    <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-4">
+      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Segunda Residencia</span>
+      <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
+        Tu refugio, <span class="font-serif italic text-[#52B788]">siempre impecable.</span>
+      </h1>
+      <p class="text-xl text-white/70 max-w-2xl">Tranquilidad absoluta para propietarios ausentes. Supervisamos que tu casa campestre esté segura, mantenida y lista para cuando llegues.</p>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 bg-[#f8f9fb]">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-light text-[#122640] text-center mb-12">Cuidamos cada detalle</h2>
+      <div class="grid sm:grid-cols-2 gap-6">
+        {[
+          { icon: '🏊', title: 'Áreas Sociales & Piscinas', desc: 'Mantenimiento preventivo de piscinas, zonas BBQ, jardines y áreas recreativas.' },
+          { icon: '👤', title: 'Personal Doméstico', desc: 'Supervisión de mayordomía, jardinería y servicio. Coordinación de horarios y tareas.' },
+          { icon: '⚡', title: 'Servicios & Impuestos', desc: 'Gestión técnica de servicios públicos, pago de impuestos prediales y obligaciones.' },
+          { icon: '📸', title: 'Informes Fotográficos', desc: 'Reporte mensual con registro visual del estado general de la propiedad.' },
+          { icon: '🐛', title: 'Control de Plagas', desc: 'Fumigación programada, control de roedores y prevención de plagas tropicales.' },
+          { icon: '🔧', title: 'Mantenimiento Correctivo', desc: 'Atención de emergencias: daños locativos, fallas eléctricas, plomería y estructura.' },
+        ].map((item) => (
+          <div class="p-6 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-all">
+            <div class="text-3xl mb-3">{item.icon}</div>
+            <h3 class="font-semibold text-[#122640] mb-2">{item.title}</h3>
+            <p class="text-sm text-gray-600">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-2xl font-light text-[#122640] mb-8">Planes de supervisión</h2>
+      <div class="grid sm:grid-cols-3 gap-6">
+        {[
+          { plan: 'Básico', freq: '2 visitas/mes', items: 'Inspección general, reporte fotográfico, coordinación de servicios' },
+          { plan: 'Estándar', freq: '4 visitas/mes', items: 'Todo lo básico + supervisión de personal, mantenimiento preventivo, control de plagas' },
+          { plan: 'Premium', freq: 'Semana + disponibilidad', items: 'Todo lo estándar + mayordomía dedicada, atención 24/7, gestión de mejoras' },
+        ].map((p) => (
+          <div class="p-6 rounded-2xl bg-[#f8f9fb] border border-gray-100">
+            <h3 class="font-bold text-[#122640]">{p.plan}</h3>
+            <p class="text-sm text-[#2d5a8f] font-medium mt-1">{p.freq}</p>
+            <p class="text-xs text-gray-600 mt-3">{p.items}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 bg-[#0c1520] text-center">
+    <h2 class="text-3xl font-light text-white mb-4">Llega y disfruta, sin preocupaciones</h2>
+    <p class="text-white/60 mb-8">Visita de diagnóstico sin costo.</p>
+    <a href="https://wa.me/573001234567?text=Hola,%20quiero%20gestión%20de%20segunda%20residencia" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
+      Agendar visita
+    </a>
+  </section>
+</BrandLayout>

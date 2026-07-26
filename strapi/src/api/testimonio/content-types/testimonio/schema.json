@@ -1,0 +1,13 @@
+{
+  "kind": "collectionType",
+  "collectionName": "testimonios",
+  "info": { "singularName": "testimonio", "pluralName": "testimonios", "displayName": "Testimonio" },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "nombre": { "type": "string", "required": true },
+    "rol": { "type": "string" },
+    "ubicacion": { "type": "string" },
+    "texto": { "type": "text", "required": true },
+    "rating": { "type": "integer", "min": 1, "max": 5 }
+  }
+}

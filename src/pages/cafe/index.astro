@@ -1,0 +1,131 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { getCafeConfig, getMenuItems, getProveedores, itemImage, proveedorFoto } from '@/lib/cafe';
+
+const [config, menuItems, proveedores] = await Promise.all([
+  getCafeConfig(),
+  getMenuItems(),
+  getProveedores(),
+]);
+
+// Fallback data if Strapi is unavailable
+const destacados = menuItems.filter(i => i.destacado).slice(0, 4);
+const fallbackMenu = destacados.length > 0 ? destacados : [
+  { nombre: 'Café de origen Ambalá', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Notas de panela y cítricos.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: true, imagen: null },
+  { nombre: 'Miel de Angelita con café', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, imagen: null },
+  { nombre: 'Aromática de flora nativa', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, imagen: null },
+  { nombre: 'Chocolate de cacao local', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, imagen: null },
+];
+
+const fallbackProveedores = proveedores.length > 0 ? proveedores : [
+  { nombre: 'Familia Cardona', producto: 'Café de origen', ubicacion: 'Vereda El Carmen', distancia_km: 2.3, foto: null },
+  { nombre: 'Finca La Cumbre', producto: 'Leche y quesos', ubicacion: 'Cajamarca', distancia_km: 3.8, foto: null },
+  { nombre: 'Cacao El Espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, foto: null },
+];
+
+const whatsapp = config?.whatsapp ?? '573001234567';
+---
+
+<BrandLayout brand="cafe">
+  <!-- Hero -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Café Iwagé</p>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6 font-display">
+        {config?.titulo ?? 'El territorio en cada taza'}
+      </h1>
+      <p class="text-lg text-dark-text/60 leading-relaxed max-w-2xl mx-auto">
+        {config?.descripcion ?? 'Un café comunitario construido sobre ingredientes nombrados, proveedores a menos de 4 km y un menú donde cada producto es un personaje.'}
+      </p>
+      <div class="mt-8 flex flex-wrap justify-center gap-4">
+        <a href="/cafe/menu" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-6 py-3 font-medium hover:bg-accent-light transition-all">
+          Ver menú
+        </a>
+        <a href="/cafe/proveedores" class="inline-flex items-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-6 py-3 font-medium hover:border-accent hover:text-accent transition-all">
+          Nuestros proveedores
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Menu -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader
+        label="Menú"
+        title="Cada producto tiene nombre"
+        subtitle="No vendemos café genérico. Cada taza cuenta la historia de quien la cultivó."
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 gap-6">
+      {fallbackMenu.map((item, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class={`bg-surface-raised rounded-2xl border p-6 shadow-sm h-full ${item.destacado ? 'border-accent ring-1 ring-accent/20' : 'border-border'}`}>
+            <div class="flex items-start justify-between mb-3">
+              <h3 class="text-base font-semibold text-text-primary">{item.nombre}</h3>
+              <span class="text-lg font-bold text-brand shrink-0 ml-4">{item.precio}</span>
+            </div>
+            <p class="text-sm text-text-secondary italic leading-relaxed mb-4">{item.historia}</p>
+            <div class="flex flex-wrap gap-2">
+              {(item.tags ?? []).map((tag: string) => (
+                <span class="bg-brand-muted text-brand text-xs font-medium rounded-full px-3 py-1">{tag}</span>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+    <div class="text-center mt-8">
+      <a href="/cafe/menu" class="text-brand font-medium hover:text-accent transition-colors">
+        Ver menú completo →
+      </a>
+    </div>
+  </Section>
+
+  <!-- Suppliers -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader
+        label="Proveedores"
+        title="Cadena corta, nombre propio"
+        subtitle="Cada ingrediente tiene un rostro y una distancia máxima de 4 km (excepto el cacao)."
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6">
+      {fallbackProveedores.map((p, i) => (
+        <ScrollReveal delay={i * 100}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center">
+            <div class="w-12 h-12 rounded-full bg-brand-muted flex items-center justify-center text-brand font-semibold mx-auto mb-4">
+              {p.nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-1">{p.nombre}</h3>
+            <p class="text-sm text-text-secondary mb-2">{p.producto}</p>
+            <p class="text-xs text-text-muted flex items-center justify-center gap-1">
+              📍 {p.ubicacion} · {p.distancia_km} km
+            </p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- B2B CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold text-dark-text mb-4 font-display">
+          {config?.b2b_titulo ?? '¿Quieres nuestro café en tu negocio?'}
+        </h2>
+        <p class="text-dark-text/60 mb-8">
+          {config?.b2b_descripcion ?? 'Suministro de café de origen y miel para restaurantes, hoteles y tiendas especializadas.'}
+        </p>
+        <a href={`https://wa.me/${(config?.b2b_whatsapp ?? whatsapp).replace(/\+/g, '')}`} target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+          💬 Cotizar suministro
+        </a>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

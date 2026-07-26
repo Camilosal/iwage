@@ -1,0 +1,137 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+
+const TOOLS = [
+  {
+    title: 'Calculadora de Gastos Notariales',
+    desc: 'Simula los costos reales de escrituración, registro e impuestos para predios rurales en 2026. Sin sorpresas legales.',
+    url: '/tierras/herramientas/calculadora-notarial',
+    cta: 'Abrir Calculadora',
+    icon: '🧮',
+  },
+  {
+    title: 'Estimador ROI Glamping',
+    desc: 'Analiza la viabilidad económica de un proyecto turístico basándote en tarifas reales y ocupación proyectada 2026.',
+    url: '/tierras/herramientas/roi-calculator',
+    cta: 'Iniciar Análisis',
+    icon: '📊',
+  },
+  {
+    title: 'Evaluación VAP Express',
+    desc: 'Autoevalúa tu predio con los criterios del Protocolo VAP antes de solicitar la auditoría formal.',
+    url: '/tierras/herramientas/evaluacion-vap',
+    cta: 'Evaluar mi Predio',
+    icon: '🛡️',
+  },
+  {
+    title: 'AI Match Inmobiliario',
+    desc: 'Nuestro motor de IA analiza tu perfil de comprador y te recomienda las propiedades ideales del catálogo.',
+    url: '/tierras/propiedades',
+    cta: 'Encontrar mi Tierra',
+    icon: '🤖',
+  },
+];
+
+const STRATEGIC = [
+  { label: 'Análisis Normativo', desc: 'Validación de usos de suelo y compatibilidad con proyectos turísticos o productivos.' },
+  { label: 'Seguridad Jurídica', desc: 'Estudio exhaustivo de títulos para garantizar inversiones libres de riesgos legales.' },
+  { label: 'Proyección Geo-Espacial', desc: 'Identificación de áreas con mayor potencial de valorización por infraestructura.' },
+];
+---
+
+<BrandLayout brand="tierras" title="Iwagé Lab & Data · Inteligencia Rural" description="Herramientas de precisión, análisis de retorno y datos de valorización en tiempo real para inversores inteligentes.">
+
+  <!-- Premium Hero -->
+  <section class="relative pt-28 pb-20 overflow-hidden bg-[#1A1E18]">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#1A1E18]/95 via-[#1A1E18]/80 to-[#40916C]/20"></div>
+    <div class="max-w-6xl mx-auto px-6 relative z-10">
+      <div class="max-w-3xl">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-2 h-2 rounded-full bg-[#C8933E] animate-pulse"></div>
+          <span class="text-xs font-bold tracking-[0.4em] text-[#C8933E] uppercase">Iwagé Lab & Data</span>
+        </div>
+        <h1 class="text-4xl lg:text-6xl font-light text-white leading-tight mb-8">
+          Inteligencia <span class="font-serif italic text-[#C8933E]">Rural.</span>
+        </h1>
+        <p class="text-xl text-white/70 leading-relaxed max-w-2xl font-light">
+          Hemos digitalizado el campo del Tolima. Accede a herramientas de precisión, análisis de retorno y datos de valorización en tiempo real para inversores inteligentes.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tools Grid -->
+  <section class="py-16 px-6 bg-[#FAF8F5]">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {TOOLS.map((tool) => (
+          <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between group hover:shadow-xl transition-all duration-300 border-b-4 border-b-[#C8933E]/30 hover:border-b-[#C8933E]">
+            <div class="space-y-4">
+              <span class="text-4xl">{tool.icon}</span>
+              <h3 class="text-2xl font-bold text-[#1A1E18]">{tool.title}</h3>
+              <p class="text-gray-500 leading-relaxed">{tool.desc}</p>
+            </div>
+            <div class="pt-8">
+              <a href={tool.url} class="inline-flex items-center gap-2 bg-[#1A1E18] text-white px-8 py-3 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-[#40916C] transition-all">
+                {tool.cta} →
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Strategic Potential -->
+  <section class="py-16 px-6 bg-[#1A1E18]">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div class="space-y-8">
+          <h2 class="text-3xl lg:text-4xl font-light text-white leading-tight">
+            Potencial <span class="font-serif italic text-[#C8933E]">Estratégico.</span>
+          </h2>
+          <p class="text-white/60 text-lg leading-relaxed font-light">
+            No solo buscamos tierras, buscamos proyecciones. Nuestra metodología de análisis integra variables geográficas, jurídicas y de desarrollo territorial.
+          </p>
+          <div class="space-y-6">
+            {STRATEGIC.map((item) => (
+              <div class="border-l-2 border-[#C8933E]/30 pl-6 py-2">
+                <p class="text-[10px] font-bold tracking-widest text-[#C8933E] uppercase mb-1">{item.label}</p>
+                <p class="text-white/70 text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-10">
+          <h4 class="text-white font-bold text-xl mb-4">Neuro-Marketing Inmobiliario</h4>
+          <p class="text-white/60 text-sm leading-relaxed mb-6">
+            Aplicamos principios de neurociencia para entender por qué las personas conectan con la tierra. En nuestro Lab, analizamos patrones de comportamiento para optimizar la comercialización de proyectos de lujo rural.
+          </p>
+          <a href="/contacto" class="text-[#C8933E] text-xs font-bold tracking-widest uppercase border-b border-[#C8933E]/30 pb-1 hover:text-[#C8933E]/80 transition-colors">
+            Solicitar Consultoría de Proyecto →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="py-16 px-6 bg-[#FAF8F5] text-center">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-3xl font-bold text-[#1A1E18] mb-6">Únete al Radar Rural</h2>
+      <p class="text-gray-500 mb-10 leading-relaxed">
+        Suscríbete para recibir mensualmente análisis de títulos, cambios en el PBOT y las mejores oportunidades de inversión antes de que lleguen al catálogo público.
+      </p>
+      <form class="flex flex-col sm:flex-row gap-4" onsubmit="return false;">
+        <input type="email" placeholder="tu@email.com" class="flex-grow px-8 py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#40916C]/20" />
+        <button type="submit" class="bg-[#1A1E18] text-white px-10 py-4 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-[#40916C] transition-all shadow-lg">
+          Suscribirme
+        </button>
+      </form>
+      <p class="mt-6 text-[10px] text-gray-400 uppercase tracking-widest">
+        Más de 500 inversores ya están en el radar de Iwagé.
+      </p>
+    </div>
+  </section>
+</BrandLayout>

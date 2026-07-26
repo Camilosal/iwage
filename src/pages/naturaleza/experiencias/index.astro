@@ -1,0 +1,179 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import { getExperiencias, experienciaImagen, formatPrecioCOP, dificultadInfo, CATEGORIAS, TIPOS_EXPERIENCIA } from '@/lib/naturaleza';
+import ExperienciasMap from '@/components/naturaleza/ExperienciasMap.astro';
+
+const url = new URL(Astro.request.url);
+const categoria = url.searchParams.get('categoria') || '';
+const dificultad = url.searchParams.get('dificultad') ? Number(url.searchParams.get('dificultad')) : undefined;
+const tipo = url.searchParams.get('tipo') || '';
+const search = url.searchParams.get('search') || '';
+const sort = url.searchParams.get('sort') || '';
+const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
+
+const { data: experiencias, total, pageSize } = await getExperiencias({
+  categoria: categoria || undefined,
+  dificultad,
+  tipo: tipo || undefined,
+  search: search || undefined,
+  sort: sort || undefined,
+  page,
+  pageSize: 12,
+});
+
+const totalPages = Math.ceil(total / pageSize);
+const activeFilters = [categoria, dificultad?.toString(), tipo, search].filter(Boolean).length;
+
+function buildUrl(overrides: Record<string, string>) {
+  const params = new URLSearchParams(url.search);
+  Object.entries(overrides).forEach(([k, v]) => {
+    if (v) params.set(k, v);
+    else params.delete(k);
+  });
+  return `/naturaleza/experiencias?${params.toString()}`;
+}
+---
+
+<BrandLayout brand="naturaleza" title="Experiencias · Iwagé Naturaleza" description="Catálogo de experiencias de turismo regenerativo en el Tolima. Filtra por categoría, dificultad y ubicación.">
+
+  <!-- Header -->
+  <section class="pt-28 pb-8 px-4 bg-[#0e1a08]">
+    <div class="max-w-6xl mx-auto text-center">
+      <h1 class="text-4xl lg:text-5xl font-light text-white mb-4">Experiencias</h1>
+      <p class="text-white/60 max-w-xl mx-auto">Caminatas sensoriales, avistamiento, retiros y días de campo guiados por anfitriones locales.</p>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <section class="sticky top-16 z-30 bg-[#f8faf5]/95 backdrop-blur border-b border-gray-200 py-4 px-4">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center gap-3">
+      <!-- Search -->
+      <form method="get" class="flex-1 min-w-[200px]">
+        <input
+          type="text"
+          name="search"
+          value={search}
+          placeholder="Buscar experiencia..."
+          class="w-full px-4 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:border-[#4a7c23] bg-white"
+        />
+      </form>
+
+      <!-- Category -->
+      <a href={buildUrl({ categoria: '', page: '' })} class:list={[
+        'px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
+        !categoria ? 'bg-[#2d5016] text-white' : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4a7c23]'
+      ]}>Todas</a>
+      {CATEGORIAS.map((cat) => (
+        <a href={buildUrl({ categoria: cat, page: '' })} class:list={[
+          'px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
+          categoria === cat ? 'bg-[#2d5016] text-white' : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4a7c23]'
+        ]}>{cat}</a>
+      ))}
+
+      <!-- Sort -->
+      <select
+        onchange="window.location.href=this.value"
+        class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none"
+      >
+        <option value={buildUrl({ sort: '' })} selected={!sort}>Recientes</option>
+        <option value={buildUrl({ sort: 'precio_asc' })} selected={sort === 'precio_asc'}>Precio ↑</option>
+        <option value={buildUrl({ sort: 'precio_desc' })} selected={sort === 'precio_desc'}>Precio ↓</option>
+        <option value={buildUrl({ sort: 'dificultad' })} selected={sort === 'dificultad'}>Dificultad</option>
+        <option value={buildUrl({ sort: 'nombre' })} selected={sort === 'nombre'}>Nombre A-Z</option>
+      </select>
+
+      {activeFilters > 0 && (
+        <a href="/naturaleza/experiencias" class="text-xs text-red-500 underline">Limpiar ({activeFilters})</a>
+      )}
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="py-12 px-4 bg-[#f8faf5] min-h-[50vh]">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center justify-between mb-6">
+        <p class="text-sm text-gray-500">{total} experiencia{total !== 1 ? 's' : ''} encontrada{total !== 1 ? 's' : ''}</p>
+        <button id="exp-view-toggle" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#EDE5D4] text-xs font-bold text-[#2d5016] hover:bg-[#2d5016] hover:text-white transition-all">
+          🗺️ <span id="exp-toggle-label">Ver mapa</span>
+        </button>
+      </div>
+
+      <!-- Map View -->
+      <div id="exp-map-view" class="hidden mb-8">
+        <ExperienciasMap experiencias={experiencias} />
+      </div>
+
+      {experiencias.length > 0 ? (
+        <div id="exp-grid-view"><div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {experiencias.map((exp) => {
+            const diff = dificultadInfo(exp.nivel_dificultad);
+            return (
+              <a href={`/naturaleza/experiencias/${exp.slug}`} class="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="relative h-48 overflow-hidden">
+                  <img src={experienciaImagen(exp)} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#2d5016]/90 text-white text-[10px] font-bold uppercase tracking-wider">
+                    {exp.categoria}
+                  </div>
+                  {exp.tipo_propiedad === 'iwage-managed' && (
+                    <div class="absolute top-3 right-3 px-2 py-1 rounded-full bg-[#d4920a]/90 text-white text-[9px] font-bold uppercase">
+                      Iwagé
+                    </div>
+                  )}
+                </div>
+                <div class="p-5">
+                  <h3 class="text-base font-semibold text-[#1a3009] mb-2 group-hover:text-[#4a7c23] transition-colors">{exp.titulo}</h3>
+                  <p class="text-sm text-gray-600 line-clamp-2 mb-3">{exp.resumen}</p>
+                  <div class="flex items-center justify-between text-xs text-gray-500">
+                    <span>⏱ {exp.duracion || '4-5h'}</span>
+                    <span>👥 {exp.cupo_maximo_desc || '6-8'}</span>
+                    <span class="font-bold text-[#2d5016]">{formatPrecioCOP(exp.precio_desde)}</span>
+                  </div>
+                  <div class="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 flex-wrap">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#f8faf5] text-[#4a7c23] font-medium">{diff.label}</span>
+                    {exp.ubicacion && <span class="text-[10px] text-gray-400">📍 {exp.ubicacion}</span>}
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div></div>
+      ) : (
+        <div class="text-center py-14">
+          <p class="text-4xl mb-4">🌿</p>
+          <p class="text-gray-500">No encontramos experiencias con esos filtros.</p>
+          <a href="/naturaleza/experiencias" class="mt-4 inline-block text-sm text-[#4a7c23] underline">Ver todas</a>
+        </div>
+      )}
+
+      <!-- Pagination -->
+      {totalPages > 1 && (
+        <div class="flex justify-center gap-2 mt-12">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <a
+              href={buildUrl({ page: p === 1 ? '' : String(p) })}
+              class:list={[
+                'w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-colors',
+                p === page ? 'bg-[#2d5016] text-white' : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4a7c23]'
+              ]}
+            >{p}</a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+</BrandLayout>
+
+<script>
+  const toggle = document.getElementById('exp-view-toggle');
+  const mapView = document.getElementById('exp-map-view');
+  const gridView = document.getElementById('exp-grid-view');
+  const label = document.getElementById('exp-toggle-label');
+  let showMap = false;
+
+  toggle?.addEventListener('click', () => {
+    showMap = !showMap;
+    mapView?.classList.toggle('hidden', !showMap);
+    if (gridView) gridView.style.display = showMap ? 'none' : '';
+    if (label) label.textContent = showMap ? 'Ver lista' : 'Ver mapa';
+  });
+</script>

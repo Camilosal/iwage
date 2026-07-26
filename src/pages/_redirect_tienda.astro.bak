@@ -1,0 +1,3 @@
+---
+return Astro.redirect('/meliponas/tienda', 301);
+---

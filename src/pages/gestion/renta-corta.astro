@@ -1,0 +1,90 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+---
+
+<BrandLayout brand="gestion" title="Renta Corta (Airbnb) · Iwagé Gestión" description="Gestión integral de renta corta en Airbnb, Booking y Vrbo. Revenue management, hospitalidad 24/7, limpieza profesional. Tu propiedad generando ingresos sin esfuerzo.">
+
+  <!-- Banner -->
+  <div class="bg-[#52B788]/10 border-b border-[#52B788]/20 px-4 py-3 text-center">
+    <p class="text-sm text-[#122640]">Conoce las propiedades que operamos en renta corta → <a href="/gestion/propiedades?tipo=renta_corta" class="font-bold text-[#2d5a8f] underline hover:text-[#52B788]">Ver portafolio</a></p>
+  </div>
+
+  <!-- Hero -->
+  <section class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
+    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80" alt="Propiedad de renta corta" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+    <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-4">
+      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Renta Corta</span>
+      <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
+        Tu propiedad <span class="font-serif italic text-[#52B788]">generando ingresos.</span>
+      </h1>
+      <p class="text-xl text-white/70 max-w-2xl">Gestionamos tu Airbnb y plataformas de arriendo temporal. Tú recibes las utilidades, nosotros nos encargamos de todo lo demás.</p>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="py-16 px-4 bg-[#f8f9fb]">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-light text-[#122640] text-center mb-12">¿Por qué rentar en corto?</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        {[
+          { icon: '📅', title: 'Disponibilidad Total', desc: 'Usa tu propiedad cuando quieras. El resto del tiempo genera ingresos superiores al arriendo tradicional.' },
+          { icon: '💰', title: 'Mayor Rentabilidad', desc: 'Revenue management con precios dinámicos por temporada, eventos y demanda local.' },
+          { icon: '🛡️', title: 'Cero Complicaciones', desc: 'Nosotros manejamos huéspedes, limpieza, mantenimiento y reseñas. Tú solo recibes tu estado de cuenta.' },
+        ].map((b) => (
+          <div class="p-8 rounded-3xl bg-white border border-gray-100 text-center hover:shadow-xl transition-all">
+            <div class="text-4xl mb-4">{b.icon}</div>
+            <h3 class="text-lg font-semibold text-[#122640] mb-3">{b.title}</h3>
+            <p class="text-sm text-gray-600">{b.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Process -->
+  <section class="py-16 px-4 bg-[#1e3a5f]">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-light text-white text-center mb-12">¿Cómo funciona?</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {[
+          { step: '1', title: 'Evaluamos', desc: 'Analizamos tu propiedad y su potencial de renta' },
+          { step: '2', title: 'Configuramos', desc: 'Creamos perfiles en Airbnb, Booking, Vrbo con fotos profesionales' },
+          { step: '3', title: 'Gestionamos', desc: 'Operamos reservas, check-in, limpieza y mantenimiento' },
+          { step: '4', title: 'Ganas', desc: 'Recibes ingresos mensuales con estado de cuenta transparente' },
+        ].map((item) => (
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-full bg-[#52B788] text-[#0c1520] font-bold flex items-center justify-center text-lg mx-auto mb-4">{item.step}</div>
+            <h3 class="font-bold text-white mb-2">{item.title}</h3>
+            <p class="text-white/60 text-sm">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Services included -->
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-light text-[#122640] text-center mb-10">Operación 360°</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        {['Gestión multi-canal (Airbnb, Booking, Vrbo)', 'Precios dinámicos por temporada y eventos', 'Check-in y check-out 24/7', 'Limpieza profesional y lavandería', 'Producción fotográfica y listing optimization', 'Gestión de reseñas y reputación', 'Mantenimiento preventivo y correctivo', 'Seguro contra daños a la propiedad'].map((item) => (
+          <div class="flex items-center gap-3 p-4 rounded-xl bg-[#f8f9fb]">
+            <span class="text-[#52B788]">✓</span>
+            <span class="text-sm text-gray-700">{item}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 px-4 bg-[#0c1520] text-center">
+    <h2 class="text-3xl font-light text-white mb-4">¿Listo para activar tu propiedad?</h2>
+    <p class="text-white/60 mb-8">Evaluación gratuita y sin compromiso.</p>
+    <a href="https://wa.me/573001234567?text=Hola,%20quiero%20gestión%20de%20renta%20corta%20para%20mi%20propiedad" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
+      Solicitar evaluación
+    </a>
+  </section>
+</BrandLayout>

@@ -1,0 +1,84 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+---
+
+<BrandLayout brand="gestion" title="Operación Turística · Iwagé Gestión" description="Convierte tu propiedad en un negocio turístico rentable. Branding, marketing, reservas, personal operativo y posicionamiento en plataformas especializadas.">
+
+  <!-- Banner -->
+  <div class="bg-[#52B788]/10 border-b border-[#52B788]/20 px-4 py-3 text-center">
+    <p class="text-sm text-[#122640]">Conoce los proyectos turísticos que operamos → <a href="/gestion/propiedades?tipo=operacion_turistica" class="font-bold text-[#2d5a8f] underline hover:text-[#52B788]">Ver portafolio</a></p>
+  </div>
+
+  <section class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
+    <img src="https://images.unsplash.com/photo-1499696010180-025ef6e1a8f9?w=1600&q=80" alt="Glamping operación turística rural" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+    <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-4">
+      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Operación Turística</span>
+      <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
+        De finca a <span class="font-serif italic text-[#52B788]">destino turístico.</span>
+      </h1>
+      <p class="text-xl text-white/70 max-w-2xl">Desarrollamos y operamos proyectos turísticos rurales: glamping, ecoturismo, retiros y experiencias inmersivas. Del estudio de viabilidad a la operación diaria.</p>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 bg-[#f8f9fb]">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-light text-[#122640] text-center mb-12">Desarrollo integral del proyecto</h2>
+      <div class="grid sm:grid-cols-2 gap-6">
+        {[
+          { icon: '📐', title: 'Estudio de Viabilidad', desc: 'Análisis de mercado, competencia, demanda turística y ROI proyectado para tu predio.' },
+          { icon: '🎨', title: 'Branding & Narrativa', desc: 'Identidad de marca, storytelling del territorio y posicionamiento diferenciador.' },
+          { icon: '📱', title: 'Growth Marketing', desc: 'Estrategias en redes sociales, contenido visual y campañas de adquisición de huéspedes.' },
+          { icon: '📋', title: 'Reservas & Logística', desc: 'Sistema de reservas, gestión de insumos, coordinación de transporte y actividades.' },
+          { icon: '👥', title: 'Personal Operativo', desc: 'Selección, capacitación y administración de guías, cocineros y personal de servicio.' },
+          { icon: '🌐', title: 'Plataformas', desc: 'Posicionamiento en Glamping Hub, Airbnb Experiences, Booking y canales especializados.' },
+        ].map((item) => (
+          <div class="p-6 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-all">
+            <div class="text-3xl mb-3">{item.icon}</div>
+            <h3 class="font-semibold text-[#122640] mb-2">{item.title}</h3>
+            <p class="text-sm text-gray-600">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 bg-[#1e3a5f]">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-2xl font-light text-white mb-10">Fases del proyecto</h2>
+      <div class="grid sm:grid-cols-4 gap-6">
+        {[
+          { fase: '1', titulo: 'Diagnóstico', desc: 'Visita técnica + estudio de viabilidad (2-3 semanas)' },
+          { fase: '2', titulo: 'Diseño', desc: 'Concepto, branding, infraestructura y permisos (1-2 meses)' },
+          { fase: '3', titulo: 'Lanzamiento', desc: 'Montaje, capacitación, soft opening y marketing (1 mes)' },
+          { fase: '4', titulo: 'Operación', desc: 'Gestión diaria, optimización y escalamiento continuo' },
+        ].map((f) => (
+          <div class="text-center">
+            <div class="w-10 h-10 rounded-full bg-[#52B788] text-[#0c1520] font-bold flex items-center justify-center mx-auto mb-3">{f.fase}</div>
+            <h3 class="font-bold text-white text-sm mb-1">{f.titulo}</h3>
+            <p class="text-white/60 text-xs">{f.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-2xl font-light text-[#122640] mb-4">Conectado con Iwagé Naturaleza</h2>
+      <p class="text-gray-600 mb-6">Los proyectos turísticos que desarrollamos se integran al ecosistema de experiencias regenerativas de <a href="/naturaleza" class="text-[#2d5a8f] font-medium underline">Iwagé Naturaleza</a>, accediendo a la red de anfitriones, itinerarios sensoriales y viajeros conscientes.</p>
+      <a href="/naturaleza" class="inline-block px-8 py-3 rounded-full border-2 border-[#2d5a8f] text-[#2d5a8f] text-sm font-bold hover:bg-[#2d5a8f] hover:text-white transition-colors">
+        Explorar experiencias →
+      </a>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 bg-[#0c1520] text-center">
+    <h2 class="text-3xl font-light text-white mb-4">¿Tu finca tiene potencial turístico?</h2>
+    <p class="text-white/60 mb-8">Estudio de viabilidad inicial sin costo.</p>
+    <a href="https://wa.me/573001234567?text=Hola,%20quiero%20evaluar%20mi%20propiedad%20para%20operación%20turística" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
+      Solicitar estudio
+    </a>
+  </section>
+</BrandLayout>

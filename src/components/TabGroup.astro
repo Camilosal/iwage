@@ -1,0 +1,88 @@
+---
+interface Tab {
+  id: string;
+  label: string;
+}
+interface Props {
+  tabs: Tab[];
+  defaultTab?: string;
+}
+const { tabs, defaultTab } = Astro.props;
+const active = defaultTab || tabs[0]?.id;
+---
+
+<div class="tab-group" data-active={active}>
+  <div class="flex gap-1 border-b border-border overflow-x-auto no-scrollbar">
+    {tabs.map((tab) => (
+      <button
+        type="button"
+        class="tab-btn relative px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors"
+        data-tab={tab.id}
+        aria-selected={tab.id === active}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+  <div class="mt-8">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .tab-btn {
+    color: var(--color-text-muted);
+  }
+  .tab-btn[aria-selected="true"] {
+    color: var(--color-brand);
+  }
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-brand);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+  }
+  .tab-btn[aria-selected="true"]::after {
+    transform: scaleX(1);
+  }
+  .tab-panel {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+  .tab-panel.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.tab-group').forEach((group) => {
+    const buttons = group.querySelectorAll('.tab-btn');
+    const panels = group.querySelectorAll('.tab-panel');
+    const active = group.getAttribute('data-active');
+
+    function activate(id: string) {
+      buttons.forEach((btn) => {
+        const isActive = btn.getAttribute('data-tab') === id;
+        btn.setAttribute('aria-selected', String(isActive));
+      });
+      panels.forEach((panel) => {
+        panel.classList.toggle('active', panel.getAttribute('data-panel') === id);
+      });
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => activate(btn.getAttribute('data-tab')!));
+    });
+
+    if (active) activate(active);
+  });
+</script>

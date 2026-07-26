@@ -1,0 +1,48 @@
+---
+interface Props {
+  title: string;
+  location: string;
+  type: string;
+  status: 'activo' | 'en-proceso';
+  description: string;
+  colmenas?: number;
+  image?: string;
+}
+const { title, location, type, status, description, colmenas, image } = Astro.props;
+
+const statusConfig = {
+  activo: { label: 'Activo', class: 'bg-brand-muted text-brand' },
+  'en-proceso': { label: 'En proceso', class: 'bg-accent-muted text-accent' },
+};
+const st = statusConfig[status];
+---
+
+<div class="group bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+  {image && (
+    <div class="aspect-[16/10] overflow-hidden bg-surface-sunken">
+      <img
+        src={image}
+        alt={title}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+      />
+    </div>
+  )}
+  <div class="p-6">
+    <div class="flex items-center gap-2 mb-3">
+      <span class={`text-xs font-medium rounded-full px-3 py-1 ${st.class}`}>{st.label}</span>
+      <span class="text-xs text-text-muted capitalize">{type}</span>
+    </div>
+    <h3 class="text-lg font-semibold text-text-primary mb-1">{title}</h3>
+    <p class="flex items-center gap-1 text-sm text-text-muted mb-3">
+      <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+      {location}
+    </p>
+    <p class="text-sm text-text-secondary leading-relaxed line-clamp-2">{description}</p>
+    {colmenas && (
+      <div class="mt-4 pt-4 border-t border-border">
+        <span class="text-sm font-medium text-brand">{colmenas} colmenas instaladas</span>
+      </div>
+    )}
+  </div>
+</div>

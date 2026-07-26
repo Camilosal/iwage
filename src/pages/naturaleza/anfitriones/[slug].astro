@@ -1,0 +1,430 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import MediaGallery from '@/components/shared/MediaGallery.astro';
+import { getAnfitrionBySlug, anfitrionFoto, nivelInfo, NIVELES_ESCALAFON, formatPrecioCOP, dificultadInfo } from '@/lib/naturaleza';
+
+const { slug } = Astro.params;
+const host = await getAnfitrionBySlug(slug!);
+
+if (!host) {
+  return Astro.redirect('/naturaleza/anfitriones');
+}
+
+const nivel = nivelInfo(host.nivel_escalafon);
+const foto = anfitrionFoto(host);
+const nivelesList = Object.entries(NIVELES_ESCALAFON).map(([key, n]) => ({ nivel: Number(key), ...n }));
+const firstName = host.nombre.split(' ')[0];
+
+// Per-host custom prices from each experiencia's junction data
+const precioPorHost = (exp: any): number | null => {
+  const j = exp.anfitriones_data?.find((d: any) => d.anfitrion_id === host.slug);
+  return j?.precio_personalizado ?? null;
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: host.nombre,
+  description: host.especialidad,
+  image: foto,
+  jobTitle: host.especialidad,
+  address: host.arraigo ? { '@type': 'PostalAddress', addressLocality: host.arraigo } : undefined,
+  aggregateRating: host.numero_resenas > 0 ? {
+    '@type': 'AggregateRating',
+    ratingValue: host.calificacion_promedio,
+    reviewCount: host.numero_resenas,
+  } : undefined,
+};
+---
+
+<BrandLayout brand="naturaleza" title={host.seo_titulo || `${host.nombre} · Anfitrión · Iwagé Naturaleza`} description={host.seo_descripcion || host.manifiesto || `${host.nombre} - ${host.especialidad}`}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- Hero -->
+  <section class="relative pt-32 pb-16 px-4 bg-[#0e1a08] overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#2d5016_0%,transparent_50%)] opacity-30"></div>
+    <div class="relative z-10 max-w-4xl mx-auto text-center">
+      <img src={foto} alt={host.nombre} class="w-32 h-32 rounded-full object-cover mx-auto mb-6 ring-4 ring-[#d4920a]/30" />
+      <button id="level-trigger" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-sm text-white/80 mb-4 hover:bg-white/20 transition-colors cursor-pointer">
+        <span>{nivel.icono}</span>
+        <span class="font-bold" style={`color: ${nivel.color}`}>{nivel.nombre}</span>
+        <span class="text-[#d4920a]">★ {host.calificacion_promedio?.toFixed(1) || '5.0'}</span>
+        <span class="text-white/40">({host.numero_resenas || 0})</span>
+        <span class="text-[10px] text-white/40 ml-1">ℹ️</span>
+      </button>
+      <h1 class="text-4xl lg:text-5xl font-light text-white mb-3">{host.nombre}</h1>
+      <p class="text-lg text-[#d4920a]">{host.especialidad}</p>
+      {host.arraigo && <p class="text-sm text-white/50 mt-2">📍 {host.arraigo}</p>}
+    </div>
+  </section>
+
+  <div class="max-w-4xl mx-auto px-4 py-12 space-y-12">
+    <!-- Manifesto + Dream -->
+    {host.manifiesto && (
+      <section>
+        <div class="mb-5">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="w-6 h-px bg-[#d4920a]"></span>
+            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">El manifiesto de {firstName}</p>
+          </div>
+          <h2 class="text-2xl font-light text-[#1a3009]">Lo que cree y lo que vive</h2>
+        </div>
+        <blockquote class="p-6 md:p-8 rounded-2xl bg-[#0e1a08] text-white font-serif text-xl lg:text-2xl italic leading-relaxed relative overflow-hidden">
+          <span class="absolute top-3 right-5 text-6xl text-white/5 font-serif">"</span>
+          "{host.manifiesto}"
+        </blockquote>
+        {(host.momento_favorito || host.sueno_narrativa) && (
+          <div class="grid md:grid-cols-2 gap-4 mt-4">
+            {host.momento_favorito && (
+              <div class="p-5 rounded-2xl bg-white border border-gray-100 flex items-start gap-3">
+                <span class="w-9 h-9 rounded-xl bg-[#d4920a]/10 flex items-center justify-center shrink-0 text-lg">✨</span>
+                <div>
+                  <p class="text-[9px] font-bold uppercase tracking-widest text-[#d4920a] mb-1">Momento que detiene el tiempo</p>
+                  <p class="text-sm text-gray-700 font-serif italic leading-relaxed">"{host.momento_favorito}"</p>
+                </div>
+              </div>
+            )}
+            {host.sueno_narrativa && (
+              <div class="p-5 rounded-2xl bg-[#4a7c23]/5 border border-[#4a7c23]/20 flex items-start gap-3">
+                <span class="w-9 h-9 rounded-xl bg-[#4a7c23]/10 flex items-center justify-center shrink-0 text-lg">🌄</span>
+                <div>
+                  <p class="text-[9px] font-bold uppercase tracking-widest text-[#4a7c23] mb-1">Mi gran sueño</p>
+                  <p class="text-sm text-[#1a3009] font-serif italic leading-relaxed">"{host.sueno_narrativa}"</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+    )}
+
+    <!-- Guarantee & Suitability: Level + Certifications -->
+    <section>
+      <div class="mb-5">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="w-6 h-px bg-[#d4920a]"></span>
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Garantía & idoneidad</p>
+        </div>
+        <h2 class="text-2xl font-light text-[#1a3009]">Nivel y certificaciones</h2>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <!-- Tier card -->
+        <div class="rounded-2xl bg-[#0e1a08] p-6 text-white relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-[#d4920a]/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-4">🛡️ Escalafón oficial</p>
+          <div class="flex items-center gap-3 mb-4">
+            <span class="w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0" style={`background: ${nivel.color}25; border: 2px solid ${nivel.color}`}>{nivel.icono}</span>
+            <div>
+              <p class="font-serif text-lg">Nivel {host.nivel_escalafon} · <span class="italic" style={`color: ${nivel.color}`}>{host.nombre_escalafon || nivel.nombre}</span></p>
+              <p class="text-xs text-white/50">★ {host.calificacion_promedio?.toFixed(1) || '5.0'} · {host.numero_resenas || 0} reseñas</p>
+            </div>
+          </div>
+          {host.insignia_narrativa && (
+            <div class="mb-4 p-3 bg-white/5 rounded-xl border border-white/10">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-[#8BC34A] mb-1.5">✦ El peso de una insignia</p>
+              <p class="text-white/80 font-serif text-sm italic leading-relaxed">"{host.insignia_narrativa}"</p>
+            </div>
+          )}
+          {(host.descripcion_escalafon || nivel.descripcion) && (
+            <p class="text-white/70 font-serif text-sm italic leading-relaxed mb-4">"{host.descripcion_escalafon || nivel.descripcion}"</p>
+          )}
+          <button data-level-open class="text-[10px] uppercase tracking-widest text-[#d4920a] hover:text-white transition-colors pt-3 border-t border-white/10 w-full text-left">
+            🏆 Ver los niveles del escalafón →
+          </button>
+        </div>
+        <!-- Certifications card -->
+        <div class="rounded-2xl bg-white border border-gray-100 p-6">
+          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">✅ Acreditaciones técnicas</p>
+          {host.certificaciones_seguridad && host.certificaciones_seguridad.length > 0 ? (
+            <div class="space-y-2.5">
+              {host.certificaciones_seguridad.map((cert: any) => {
+                const isString = typeof cert === 'string';
+                return (
+                  <div class="flex gap-2.5 items-start bg-[#f8faf5] p-3 rounded-xl">
+                    <span class="text-[#d4920a] shrink-0 mt-0.5">🛡️</span>
+                    <div>
+                      <p class="text-sm font-bold text-[#1a3009]">{isString ? cert : cert.titulo}</p>
+                      {!isString && cert.entidad && (
+                        <p class="text-xs text-gray-500">{cert.entidad}{(cert.ano || cert.año) ? ` · ${cert.ano || cert.año}` : ''}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p class="text-sm text-gray-400 italic">Sin acreditaciones registradas.</p>
+          )}
+        </div>
+      </div>
+    </section>
+
+    <!-- Territory Bond: history + stats + photo + video -->
+    <section>
+      <div class="mb-5">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="w-6 h-px bg-[#d4920a]"></span>
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">La historia de {firstName}</p>
+        </div>
+        <h2 class="text-2xl font-light text-[#1a3009]">Raíz, legado y conexión con la tierra</h2>
+      </div>
+
+      <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        {host.anos_en_territorio && (
+          <div class="p-4 rounded-xl bg-[#0e1a08] text-center text-white">
+            <div class="text-2xl font-bold text-[#d4920a]">{host.anos_en_territorio}</div>
+            <div class="text-[10px] text-white/50 uppercase tracking-wider mt-1">Años en territorio</div>
+          </div>
+        )}
+        {host.generaciones_familia && (
+          <div class="p-4 rounded-xl bg-[#0e1a08] text-center text-white">
+            <div class="text-2xl font-bold text-[#d4920a]">{host.generaciones_familia}</div>
+            <div class="text-[10px] text-white/50 uppercase tracking-wider mt-1">Generaciones</div>
+          </div>
+        )}
+        {host.impacto_hectareas && (
+          <div class="p-4 rounded-xl bg-[#0e1a08] text-center text-white">
+            <div class="text-2xl font-bold text-[#d4920a]">{host.impacto_hectareas}</div>
+            <div class="text-[10px] text-white/50 uppercase tracking-wider mt-1">{host.impacto_hectareas_desc || 'Hectáreas'}</div>
+          </div>
+        )}
+        {host.impacto_familias && (
+          <div class="p-4 rounded-xl bg-[#0e1a08] text-center text-white">
+            <div class="text-2xl font-bold text-[#d4920a]">{host.impacto_familias}</div>
+            <div class="text-[10px] text-white/50 uppercase tracking-wider mt-1">{host.impacto_familias_desc || 'Familias'}</div>
+          </div>
+        )}
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-6 items-start">
+        <div class="flex-1">
+          {host.historia_personal ? (
+            <div class="space-y-3">
+              {host.historia_personal.split('\n').filter((p: string) => p.trim()).map((p: string) => (
+                <p class="text-gray-700 font-serif italic leading-relaxed">"{p}"</p>
+              ))}
+            </div>
+          ) : (
+            host.arraigo && <p class="text-gray-700 font-serif italic">"{host.arraigo}"</p>
+          )}
+          {host.video_url && (
+            <a
+              href={host.video_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-5 inline-flex items-center gap-3 bg-[#0e1a08] text-white px-5 py-3 rounded-xl hover:bg-[#2d5016] transition-colors group"
+            >
+              <span class="w-8 h-8 bg-[#d4920a]/20 rounded-full flex items-center justify-center shrink-0 group-hover:bg-[#d4920a]/40 transition-colors">▶</span>
+              <span class="text-xs font-medium">Ver video de {firstName}</span>
+            </a>
+          )}
+        </div>
+        {host.foto_territorio && (
+          <div class="shrink-0 w-full md:w-44">
+            <img
+              src={host.foto_territorio}
+              alt={`${firstName} en su territorio`}
+              class="w-full aspect-[3/4] object-cover rounded-2xl shadow-md"
+              loading="lazy"
+            />
+            <p class="text-[10px] text-gray-400 text-center mt-2">{firstName} en su territorio</p>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- Media Gallery -->
+    {host.galeria_fotos && host.galeria_fotos.length > 0 && (
+      <section>
+        <div class="mb-5">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="w-6 h-px bg-[#d4920a]"></span>
+            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">En imágenes</p>
+          </div>
+          <h2 class="text-2xl font-light text-[#1a3009]">En su territorio</h2>
+        </div>
+        <MediaGallery
+          images={host.galeria_fotos.map((g: any) => g.url).filter(Boolean)}
+          title={host.nombre}
+          columns={3}
+        />
+      </section>
+    )}
+
+    <!-- Impact Dashboard -->
+    {(host.impacto_mensaje || host.fondo_impacto_titulo) && (
+      <section>
+        <div class="mb-5">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="w-6 h-px bg-[#4a7c23]"></span>
+            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#4a7c23]">Aporte al territorio</p>
+          </div>
+          <h2 class="text-2xl font-light text-[#1a3009]">La huella de <span class="text-[#4a7c23] italic">{firstName}</span></h2>
+        </div>
+        <div class="space-y-4">
+          {host.fondo_impacto_titulo && (
+            <div class="flex items-center gap-4 p-5 rounded-2xl bg-[#0e1a08] text-white">
+              <span class="w-11 h-11 rounded-xl bg-[#4a7c23]/20 flex items-center justify-center shrink-0 text-xl">💚</span>
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-[#8BC34A] mb-1">{host.fondo_impacto_titulo}</p>
+                {host.fondo_impacto_descripcion && <p class="text-sm text-white/70">{host.fondo_impacto_descripcion}</p>}
+              </div>
+            </div>
+          )}
+          {host.impacto_mensaje && (
+            <div class="p-5 rounded-2xl bg-white border border-gray-100 text-center">
+              <p class="text-gray-700 font-serif text-sm italic">"{host.impacto_mensaje}"</p>
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    <!-- Experiences this host leads -->
+    {host.experiencias && host.experiencias.length > 0 && (
+      <section>
+        <div class="mb-5">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="w-6 h-px bg-[#d4920a]"></span>
+            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Sus rutas</p>
+          </div>
+          <h2 class="text-2xl font-light text-[#1a3009]">Experiencias que guía</h2>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          {host.experiencias.map((exp: any) => {
+            const diff = dificultadInfo(exp.nivel_dificultad);
+            const precio = precioPorHost(exp) ?? exp.precio_desde;
+            const junction = exp.anfitriones_data?.find((d: any) => d.anfitrion_id === host.slug);
+            return (
+              <a href={`/naturaleza/experiencias/${exp.slug}`} class="group p-5 rounded-2xl bg-white border border-gray-100 hover:border-[#4a7c23]/40 hover:shadow-md transition-all">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="px-2 py-0.5 rounded-full bg-[#4a7c23]/10 text-[9px] font-bold text-[#4a7c23] uppercase">{exp.categoria}</span>
+                  <span class="text-[10px] text-gray-400">{diff.label}</span>
+                </div>
+                <h3 class="font-semibold text-sm text-[#1a3009] group-hover:text-[#4a7c23] transition-colors mb-1">{exp.titulo}</h3>
+                <p class="text-xs text-gray-500 mb-2">{exp.duracion || '4-5 horas'}</p>
+                {junction?.superpoder_en_esta_ruta && (
+                  <p class="text-[11px] text-gray-500 font-serif italic mb-2">"{junction.superpoder_en_esta_ruta}"</p>
+                )}
+                {precio && <span class="text-sm font-bold text-[#2d5016]">{formatPrecioCOP(precio)}</span>}
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- Pact / Covenant -->
+    {host.pacto_items && host.pacto_items.length > 0 && (
+      <section class="p-6 md:p-8 rounded-2xl bg-[#0e1a08] text-white">
+        <h2 class="text-lg font-semibold text-[#d4920a] mb-2">{host.insignia_titulo || 'Pacto del Guardián'}</h2>
+        {host.pacto_subtitulo && <p class="text-sm text-white/60 mb-4">{host.pacto_subtitulo}</p>}
+        <div class="space-y-3">
+          {host.pacto_items.map((item) => (
+            <div class="flex items-start gap-3">
+              <span class="text-lg">{item.icono_name || '🤝'}</span>
+              <div>
+                <span class="font-medium text-sm">{item.titulo}</span>
+                {item.descripcion && <p class="text-xs text-white/60">{item.descripcion}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Guestbook / Reviews -->
+    {host.resenas && host.resenas.length > 0 && (
+      <section>
+        <div class="mb-5">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="w-6 h-px bg-[#d4920a]"></span>
+            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Voces del camino</p>
+          </div>
+          <h2 class="text-2xl font-light text-[#1a3009]">Libro de visitantes</h2>
+        </div>
+        <div class="space-y-4">
+          {host.resenas.map((resena) => (
+            <div class="p-5 rounded-2xl bg-white border border-gray-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-medium text-sm text-[#1a3009]">{resena.author}</span>
+                <span class="text-[#d4920a] text-sm">{'★'.repeat(Math.round(resena.rating || 5))}</span>
+              </div>
+              {resena.profile && <span class="text-[10px] text-gray-400 uppercase tracking-wider">{resena.profile}</span>}
+              <p class="text-sm text-gray-600 mt-2">{resena.text}</p>
+              {resena.date && <span class="text-[10px] text-gray-400 mt-2 block">{resena.date}</span>}
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- FAQs -->
+    {host.faqs && host.faqs.length > 0 && (
+      <section>
+        <h2 class="text-2xl font-light text-[#1a3009] mb-6">Preguntas frecuentes</h2>
+        <div class="space-y-3">
+          {host.faqs.map((faq) => (
+            <details class="group p-4 rounded-2xl bg-white border border-gray-100">
+              <summary class="cursor-pointer font-medium text-sm text-[#1a3009] group-open:text-[#4a7c23]">{faq.pregunta}</summary>
+              <p class="mt-2 text-sm text-gray-600">{faq.respuesta}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- CTA -->
+    <section class="text-center py-8">
+      <a
+        href={`https://wa.me/573001234567?text=${encodeURIComponent(`Hola, quiero una experiencia con ${host.nombre}`)}`}
+        target="_blank"
+        rel="noopener"
+        class="inline-block px-10 py-4 rounded-full bg-[#2d5016] text-white text-sm font-bold uppercase tracking-wider hover:bg-[#4a7c23] transition-colors"
+      >
+        Vivir una experiencia con {firstName}
+      </a>
+    </section>
+  </div>
+
+  <!-- Level System Modal -->
+  <div id="level-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-8">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-[#1a3009]">Sistema de Escalafón</h3>
+        <button id="level-modal-close" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200">✕</button>
+      </div>
+      <p class="text-sm text-gray-600 mb-6">Cada anfitrión progresa en 5 niveles según su experiencia, impacto y compromiso con el territorio.</p>
+      <div class="space-y-4">
+        {nivelesList.map((n) => (
+          <div class:list={['flex items-center gap-4 p-4 rounded-xl border', n.nivel === host.nivel_escalafon ? 'border-[#4a7c23] bg-[#f8faf5]' : 'border-gray-100']}>
+            <span class="text-2xl">{n.icono}</span>
+            <div class="flex-1">
+              <span class="font-bold text-sm" style={`color: ${n.color}`}>{n.nombre}</span>
+              <p class="text-xs text-gray-500">{n.descripcion}</p>
+            </div>
+            {n.nivel === host.nivel_escalafon && <span class="text-[9px] font-bold uppercase text-[#4a7c23] bg-[#4a7c23]/10 px-2 py-1 rounded-full">Actual</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('level-modal');
+      const closeBtn = document.getElementById('level-modal-close');
+      if (!modal) return;
+
+      const open = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
+      const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+
+      document.querySelectorAll('[data-level-open], #level-trigger').forEach((btn) => {
+        btn.addEventListener('click', open);
+      });
+      closeBtn?.addEventListener('click', close);
+      modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    });
+  </script>
+</BrandLayout>

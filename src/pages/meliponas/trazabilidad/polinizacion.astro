@@ -1,0 +1,126 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { SEO, SITE } from '@/config/site';
+
+const pilares = [
+  { numero: 1, titulo: 'Diagnóstico de predio', desc: 'Evaluación de flora, cultivo objetivo y capacidad de carga antes de instalar.', icono: 'search-check' },
+  { numero: 2, titulo: 'Contrato de servicio', desc: 'Alcance, duración, número de colonias y compromisos por escrito.', icono: 'file-signature' },
+  { numero: 3, titulo: 'Colonias certificadas', desc: 'Solo colmenas sanas con reina activa y población verificada.', icono: 'badge-check' },
+  { numero: 4, titulo: 'Monitoreo en campo', desc: 'Visitas programadas con registro de actividad de pecoreo.', icono: 'clipboard-list' },
+  { numero: 5, titulo: 'Informe de resultados', desc: 'Métricas de cuajado y actividad entregadas al finalizar el ciclo.', icono: 'bar-chart-3' },
+];
+
+const cultivos = [
+  { titulo: 'Aguacate Hass', desc: 'Aumento de cuajado con pecoreo dirigido en floración.', icono: 'leaf' },
+  { titulo: 'Café', desc: 'Polinización complementaria que mejora llenado de grano.', icono: 'coffee' },
+  { titulo: 'Mora y Cítricos', desc: 'Mayor tamaño y uniformidad de fruto con meliponas.', icono: 'citrus' },
+];
+---
+
+<BrandLayout title={SEO.trazabilidadPolinizacion.title} description={SEO.trazabilidadPolinizacion.description}>
+  <!-- Hero -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Trazabilidad · Estándar 03</p>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
+        Polinización con<br />resultados medibles
+      </h1>
+      <p class="text-lg text-dark-text/60 leading-relaxed max-w-2xl mx-auto">
+        La polinización gestionada no es un acto de fe: es un protocolo con diagnóstico, contrato, monitoreo e informe de resultados.
+      </p>
+    </div>
+  </section>
+
+  <!-- Pilares -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader
+        label="Protocolo"
+        title="5 pilares del servicio de polinización"
+        subtitle="Del diagnóstico al informe: cada paso queda documentado."
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      {pilares.map((p, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-5 shadow-sm text-center h-full">
+            <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-3">
+              <i data-lucide={p.icono} class="w-5 h-5"></i>
+            </div>
+            <p class="font-mono text-xs text-accent mb-1">{String(p.numero).padStart(2, '0')}</p>
+            <h3 class="text-sm font-semibold text-text-primary mb-2">{p.titulo}</h3>
+            <p class="text-xs text-text-secondary leading-relaxed">{p.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Cultivos -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader
+        label="Cultivos atendidos"
+        title="Donde nuestras colonias trabajan"
+        subtitle="Especies con respuesta comprobada a la polinización por meliponas en el corredor Ambalá."
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6">
+      {cultivos.map((c, i) => (
+        <ScrollReveal delay={i * 100}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
+              <i data-lucide={c.icono} class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{c.titulo}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed">{c.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- CTA diagnóstico -->
+  <Section>
+    <ScrollReveal>
+      <div class="max-w-3xl mx-auto text-center">
+        <div class="w-14 h-14 rounded-2xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-5">
+          <i data-lucide="search-check" class="w-7 h-7"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-text-primary mb-4">Diagnóstico de predio gratuito</h2>
+        <p class="text-sm text-text-secondary leading-relaxed max-w-xl mx-auto mb-6">
+          Antes de cualquier contrato, evaluamos tu predio sin costo: flora disponible, cultivo objetivo y capacidad de carga. Solo recomendamos el servicio si hay condiciones reales de éxito.
+        </p>
+        <a href="/meliponas/polinizacion" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 font-medium text-sm hover:bg-brand-light transition-all">
+          Solicitar diagnóstico
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </ScrollReveal>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold text-dark-text mb-4">¿Tienes un cultivo que polinizar?</h2>
+        <p class="text-dark-text/60 mb-8">Cuéntanos qué produces y te decimos si nuestras colonias pueden ayudarte.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/meliponas/polinizacion" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+            <i data-lucide="leaf" class="w-5 h-5"></i>
+            Ver el servicio
+          </a>
+          <a href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}`} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
+            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            WhatsApp
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

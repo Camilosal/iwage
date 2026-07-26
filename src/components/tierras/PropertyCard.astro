@@ -1,0 +1,52 @@
+---
+import { formatPrecio, formatArea, propiedadImagen } from '@/lib/tierras';
+import { strapiImage } from '@/lib/strapi';
+
+interface Props {
+  prop: any;
+}
+
+const { prop } = Astro.props;
+const img = propiedadImagen(prop);
+---
+
+<a href={`/tierras/propiedades/${prop.slug}`} class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#52B788]/40 hover:shadow-xl transition-all">
+  <div class="relative h-52 bg-gray-100 overflow-hidden">
+    {img ? (
+      <img src={img} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+    ) : (
+      <div class="w-full h-full flex items-center justify-center bg-[#1B4332]/10">
+        <span class="text-4xl">🌄</span>
+      </div>
+    )}
+    <div class="absolute top-3 left-3 flex gap-2">
+      <span class="bg-[#52B788] text-[#0F120E] text-[10px] font-bold px-2 py-1 rounded-full uppercase">{prop.tipo_propiedad?.replace('_', ' ')}</span>
+      {prop.sello_vap === 'oro' && <span class="bg-yellow-400 text-black text-[10px] font-bold px-2 py-1 rounded-full">🥇 VAP Oro</span>}
+      {prop.sello_vap === 'plata' && <span class="bg-gray-300 text-black text-[10px] font-bold px-2 py-1 rounded-full">🥈 VAP Plata</span>}
+      {prop.sello_vap === 'bronce' && <span class="bg-orange-300 text-black text-[10px] font-bold px-2 py-1 rounded-full">🥉 VAP Bronce</span>}
+    </div>
+    {prop.es_destacado && (
+      <span class="absolute top-3 right-3 bg-[#C8933E] text-white text-[10px] font-bold px-2 py-1 rounded-full">★ Destacada</span>
+    )}
+    {prop.fecha_proteccion_inicio && prop.dias_proteccion > 0 && (
+      <span class="absolute bottom-3 left-3 bg-green-600 text-white text-[9px] font-bold px-2 py-1 rounded-full">🛡️ Protección activa</span>
+    )}
+  </div>
+  <div class="p-5">
+    <h3 class="font-bold text-[#1B4332] group-hover:text-[#52B788] transition-colors mb-1 line-clamp-1">{prop.titulo}</h3>
+    <p class="text-xs text-gray-500 mb-3">
+      📍 {prop.ubicacion_municipio || 'Tolima'}
+      {prop.distancia_centro_poblado ? ` · ${prop.distancia_centro_poblado} min al centro` : ''}
+    </p>
+    <div class="flex items-center gap-3 text-xs text-gray-400 mb-3">
+      {prop.area_hectareas && <span>🌿 {formatArea(prop)}</span>}
+      {prop.numero_habitaciones && <span>🛏️ {prop.numero_habitaciones}</span>}
+      {prop.numero_banos && <span>🚿 {prop.numero_banos}</span>}
+      {prop.disponibilidad_agua && <span>💧 {prop.disponibilidad_agua}</span>}
+    </div>
+    <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+      <span class="text-lg font-bold text-[#1B4332]">{formatPrecio(prop.precio, prop.moneda)}</span>
+      <span class="text-xs text-[#52B788] font-bold group-hover:translate-x-1 transition-transform">Ver detalle →</span>
+    </div>
+  </div>
+</a>

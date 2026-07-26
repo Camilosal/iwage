@@ -1,0 +1,188 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import FeatureCard from '@/components/FeatureCard.astro';
+import StatGrid from '@/components/StatGrid.astro';
+import TestimonialCard from '@/components/TestimonialCard.astro';
+import BitacoraCard from '@/components/BitacoraCard.astro';
+import { SEO } from '@/config/site';
+
+const stats = [
+  { value: '120+', label: 'Colmenas activas' },
+  { value: '4', label: 'Modelos de caja' },
+  { value: '12 km', label: 'Flora nativa' },
+  { value: '100%', label: 'Trazable por lote' },
+];
+
+const features = [
+  {
+    icon: 'shopping-bag',
+    title: 'Tienda',
+    description: 'Miel de Angelita pura, cajas tecnificadas INPA/AF y kits de meliponicultura con envío a todo Colombia.',
+    href: '/meliponas/tienda',
+  },
+  {
+    icon: 'sprout',
+    title: 'Proyectos',
+    description: 'Diseño e instalación de meliponarios para colegios, fincas, turismo y paisajismo residencial.',
+    href: '/meliponas/proyectos',
+  },
+  {
+    icon: 'flower-2',
+    title: 'Polinización',
+    description: 'Servicio de polinización gestionada con abejas nativas para cultivos del corredor Ambalá.',
+    href: '/meliponas/polinizacion',
+  },
+];
+
+const testimonials = [
+  {
+    quote: 'Las colmenas de Iwagé transformaron nuestro proyecto PRAE. Los estudiantes ahora entienden la biodiversidad desde la observación directa.',
+    name: 'María Fernanda Gutiérrez',
+    role: 'Coordinadora Académica',
+    location: 'I.E. Ambalá',
+  },
+  {
+    quote: 'La miel de Angelita tiene un perfil de cata que no encontramos en ningún otro proveedor. Trazabilidad impecable.',
+    name: 'Andrés Restrepo',
+    role: 'Chef Ejecutivo',
+    location: 'Restaurante Origen, Bogotá',
+  },
+  {
+    quote: 'Instalaron 8 colmenas en nuestra finca y la polinización del café mejoró notablemente en una temporada.',
+    name: 'Jorge Iván Cardona',
+    role: 'Caficultor',
+    location: 'Vereda El Carmen, Ibagué',
+  },
+];
+
+const bitacoraPosts = [
+  {
+    title: 'Guía completa de la miel de Tetragonisca angustula',
+    excerpt: 'Todo lo que necesitas saber sobre la miel de abejas Angelita: propiedades, cosecha, conservación y usos.',
+    category: 'Guías',
+    date: '15 May 2025',
+    readTime: '8',
+    href: '/meliponas/bitacora/guia-miel-angelita',
+  },
+  {
+    title: 'Flora melífera del corredor Ambalá',
+    excerpt: 'Las 12 especies nativas que alimentan nuestras colmenas y por qué el territorio importa.',
+    category: 'Territorio',
+    date: '02 May 2025',
+    readTime: '6',
+    href: '/meliponas/bitacora/flora-melifera-ambala',
+  },
+  {
+    title: 'Cajas INPA vs AF: cuál elegir para tu meliponario',
+    excerpt: 'Comparativa técnica de los dos modelos de caja más usados en meliponicultura colombiana.',
+    category: 'Técnica',
+    date: '20 Abr 2025',
+    readTime: '5',
+    href: '/meliponas/bitacora/cajas-inpa-vs-af',
+  },
+];
+---
+
+<BrandLayout brand="meliponas" title={SEO.home.title} description={SEO.home.description}>
+  <!-- Hero -->
+  <section class="relative overflow-hidden bg-surface">
+    <div class="absolute inset-0 bg-gradient-to-br from-brand-muted/50 via-surface to-accent-muted/30"></div>
+    <div class="relative max-w-4xl mx-auto px-6 py-20 md:py-28 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Meliponario · Ibagué, Tolima</p>
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-text-primary leading-tight">
+        Biotecnología<br />
+        <span class="text-brand">Nativa</span>
+      </h1>
+      <p class="mt-6 text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl mx-auto">
+        Miel de abejas Angelita, polinización gestionada y proyectos de impacto desde el piedemonte tolimense.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/meliponas/tienda" class="inline-flex items-center justify-center gap-2 bg-brand text-white rounded-full px-8 py-4 font-medium hover:bg-brand-light hover:scale-[1.02] transition-all shadow-lg shadow-brand/20">
+          Explorar tienda →
+        </a>
+        <a href="/meliponas/proyectos" class="inline-flex items-center justify-center gap-2 border border-border rounded-full px-8 py-4 font-medium text-text-primary hover:border-brand hover:text-brand transition-all">
+          Ver proyectos
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust bar -->
+  <Section bg="sunken" class="!py-10 md:!py-12">
+    <ScrollReveal>
+      <StatGrid stats={stats} />
+    </ScrollReveal>
+  </Section>
+
+  <!-- Features -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader
+        label="Qué hacemos"
+        title="Tres líneas de acción"
+        subtitle="Un ecosistema completo alrededor de las abejas nativas y el territorio."
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6">
+      {features.map((f, i) => (
+        <ScrollReveal delay={i * 100}>
+          <FeatureCard icon={f.icon} title={f.title} description={f.description} href={f.href} />
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Testimonials -->
+  <Section bg="dark">
+    <ScrollReveal>
+      <SectionHeader label="Testimonios" title="Lo que dicen de nosotros" dark align="center" />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6">
+      {testimonials.map((t, i) => (
+        <ScrollReveal delay={i * 100}>
+          <TestimonialCard quote={t.quote} name={t.name} role={t.role} location={t.location} />
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Bitácora preview -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader label="Bitácora" title="Conocimiento abierto" subtitle="Guías técnicas, flora nativa y territorio Pijao." />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6">
+      {bitacoraPosts.map((post, i) => (
+        <ScrollReveal delay={i * 100}>
+          <BitacoraCard {...post} />
+        </ScrollReveal>
+      ))}
+    </div>
+    <div class="mt-10 text-center">
+      <a href="/meliponas/bitacora" class="inline-flex items-center gap-2 text-brand font-medium hover:gap-3 transition-all">
+        Ver todos los artículos →
+      </a>
+    </div>
+  </Section>
+
+  <!-- Final CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-dark-text mb-4">
+          ¿Listo para empezar?
+        </h2>
+        <p class="text-dark-text/60 mb-8">
+          Cuéntanos qué tienes en mente. Respondemos en menos de 24 horas.
+        </p>
+        <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light hover:scale-[1.02] transition-all">
+          Hablemos →
+        </a>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

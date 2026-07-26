@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Default brand (Meliponas) */
+  --color-brand: #2d4a3e;
+  --color-brand-light: #3d6354;
+  --color-brand-dark: #1e332b;
+  --color-brand-muted: #e8efe9;
+
+  /* Accent (honey amber) */
+  --color-accent: #d4920a;
+  --color-accent-light: #f5c842;
+  --color-accent-muted: #fdf3dc;
+
+  /* Surfaces */
+  --color-surface: #fafaf8;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f2f2ee;
+
+  /* Text */
+  --color-text-primary: #1a1a17;
+  --color-text-secondary: #5f5f58;
+  --color-text-muted: #8a8a82;
+
+  /* Borders */
+  --color-border: #e5e5df;
+
+  /* Dark sections */
+  --color-dark-bg: #16211c;
+  --color-dark-surface: #1e2d26;
+  --color-dark-text: #e8efe9;
+
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ─── Brand theme overrides ─── */
+
+[data-brand="cafe"] {
+  --color-brand: #5c3d2e;
+  --color-brand-light: #7a5540;
+  --color-brand-dark: #3e2a1f;
+  --color-brand-muted: #f3ebe4;
+  --color-accent: #c8933e;
+  --color-accent-light: #e8b96a;
+  --color-accent-muted: #fdf3e0;
+  --color-surface: #fdf9f3;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f5efe6;
+  --color-dark-bg: #1a120d;
+  --color-dark-surface: #2a1f16;
+  --color-dark-text: #f3ebe4;
+}
+
+[data-brand="tierras"] {
+  --color-brand: #1B4332;
+  --color-brand-light: #52B788;
+  --color-brand-dark: #0f2b20;
+  --color-brand-muted: #e0f0e8;
+  --color-accent: #C8933E;
+  --color-accent-light: #E8B96A;
+  --color-accent-muted: #fdf3e0;
+  --color-surface: #FAFAF7;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f0f0ea;
+  --color-dark-bg: #0F120E;
+  --color-dark-surface: #1a2118;
+  --color-dark-text: #e8efe9;
+}
+
+[data-brand="naturaleza"] {
+  --color-brand: #2d5016;
+  --color-brand-light: #4a7c23;
+  --color-brand-dark: #1a3009;
+  --color-brand-muted: #e8f3e0;
+  --color-accent: #d4920a;
+  --color-accent-light: #f5c842;
+  --color-accent-muted: #fdf3dc;
+  --color-surface: #f8faf5;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #eef2e8;
+  --color-dark-bg: #0e1a08;
+  --color-dark-surface: #162510;
+  --color-dark-text: #e8f3e0;
+}
+
+[data-brand="gestion"] {
+  --color-brand: #1e3a5f;
+  --color-brand-light: #2d5a8f;
+  --color-brand-dark: #122640;
+  --color-brand-muted: #e0eaf5;
+  --color-accent: #52B788;
+  --color-accent-light: #7fc4a2;
+  --color-accent-muted: #e0f5ec;
+  --color-surface: #f8f9fb;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #eef1f5;
+  --color-dark-bg: #0c1520;
+  --color-dark-surface: #142030;
+  --color-dark-text: #e0eaf5;
+}
+
+/* ─── Dark mode overrides ─── */
+.dark {
+  --color-brand: #4a9b76;
+  --color-brand-light: #5cb28a;
+  --color-brand-dark: #7fc4a2;
+  --color-brand-muted: #1c2b24;
+
+  --color-accent: #c48a10;
+  --color-accent-light: #f5c842;
+  --color-accent-muted: #2a2310;
+
+  --color-surface: #131311;
+  --color-surface-raised: #1c1c19;
+  --color-surface-sunken: #0e0e0c;
+
+  --color-text-primary: #ececea;
+  --color-text-secondary: #a8a8a0;
+  --color-text-muted: #737368;
+
+  --color-border: #2e2e29;
+
+  --color-dark-bg: #0f1713;
+  --color-dark-surface: #16211c;
+  --color-dark-text: #e8efe9;
+}
+
+/* ─── Base styles ─── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+/* Smooth theme transition */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.7s ease forwards;
+}

@@ -1,0 +1,216 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import StepTimeline from '@/components/StepTimeline.astro';
+import PricingCard from '@/components/PricingCard.astro';
+import { SEO } from '@/config/site';
+
+const cultivos = [
+  { nombre: 'Café', rendimiento: '+14% amarre', fuente: 'Corredor Ambalá, 2024', icono: 'coffee' },
+  { nombre: 'Aguacate', rendimiento: '+22% cuajado', fuente: 'Finca El Carmen, 2024', icono: 'tree-deciduous' },
+  { nombre: 'Mora', rendimiento: '+18% frutos', fuente: 'Vereda El Carmen, 2023', icono: 'berry' },
+  { nombre: 'Cítricos', rendimiento: '+12% calibre', fuente: 'Predio La Esperanza, 2024', icono: 'citrus' },
+  { nombre: 'Tomate', rendimiento: '+9% peso', fuente: 'Invernadero PRAE, 2024', icono: 'salad' },
+  { nombre: 'Fresa', rendimiento: '+15% uniformidad', fuente: 'Finca La Cumbre, 2023', icono: 'cherry' },
+];
+
+const proceso = [
+  { number: 1, title: 'Diagnóstico del predio', description: 'Visita técnica para evaluar flora disponible, área de cultivo y condiciones microclimáticas.' },
+  { number: 2, title: 'Diseño del plan', description: 'Definición de especies de abejas, densidad de colmenas y calendario de instalación.' },
+  { number: 3, title: 'Instalación', description: 'Ubicación estratégica de colmenas según flujo de viento, sol y proximidad al cultivo.' },
+  { number: 4, title: 'Monitoreo y ajuste', description: 'Seguimiento semanal de actividad de forrajeo, ajuste de densidad y reporte de resultados.' },
+];
+
+const beneficios = [
+  { icon: 'trending-up', title: 'Mayor rendimiento', desc: 'Incremento medible en cuajado, calibre y uniformidad de frutos.' },
+  { icon: 'leaf', title: 'Sin agroquímicos', desc: 'Polinización 100% natural, compatible con certificación orgánica.' },
+  { icon: 'shield-check', title: 'Abejas sin aguijón', desc: 'Seguras para trabajadores y visitantes. Sin riesgo de picaduras.' },
+  { icon: 'bar-chart-3', title: 'Datos verificables', desc: 'Reportes con métricas antes/después de la intervención.' },
+];
+
+const casos = [
+  { ubicacion: 'Finca El Carmen, Ibagué', cultivo: 'Aguacate Hass', metrica: '+22% cuajado en 1 temporada', detalle: '8 colmenas de T. angustula distribuidas en 2 hectáreas.' },
+  { ubicacion: 'Predio La Esperanza, Coello', cultivo: 'Café Caturra', metrica: '+14% amarre de cereza', detalle: '12 colmenas en bordes de lote con flora de guamo.' },
+];
+
+const planes = [
+  {
+    tier: 'Diagnóstico',
+    price: 'Gratis',
+    features: ['Visita técnica al predio', 'Evaluación de flora', 'Recomendación inicial', 'Sin compromiso'],
+    cta: 'Agendar diagnóstico',
+  },
+  {
+    tier: 'Polinización Estándar',
+    price: '$350.000',
+    period: '/mes',
+    features: ['4-8 colmenas según área', 'Instalación incluida', 'Monitoreo quincenal', 'Reporte mensual', 'Ajustes de densidad'],
+    cta: 'Solicitar servicio',
+    featured: true,
+  },
+  {
+    tier: 'Polinización Premium',
+    price: '$600.000',
+    period: '/mes',
+    features: ['8-20 colmenas', 'Instalación + diseño paisajístico', 'Monitoreo semanal', 'Reporte con datos', 'Asesoría de flora complementaria', 'Prioridad en cosecha de miel'],
+    cta: 'Cotizar proyecto',
+  },
+];
+---
+
+<BrandLayout title={SEO.polinizacion.title} description={SEO.polinizacion.description}>
+  <!-- Hero -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24">
+      <div class="max-w-3xl">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Polinización gestionada</p>
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
+          Tus cultivos merecen<br />polinizadores nativos
+        </h1>
+        <p class="text-lg text-dark-text/60 leading-relaxed mb-8">
+          Servicio de polinización con abejas sin aguijón para café, aguacate, mora y cítricos en el Tolima.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a href="#planes" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+            Ver planes
+            <i data-lucide="arrow-down" class="w-5 h-5"></i>
+          </a>
+          <span class="inline-flex items-center gap-2 text-dark-text/60 px-4 py-4">
+            <span class="text-2xl font-bold text-accent-light">+14%</span>
+            <span class="text-sm">amarre promedio</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cultivos -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader
+        label="Cultivos"
+        title="Resultados por cultivo"
+        subtitle="Datos reales de predios del corredor Ambalá y municipios vecinos."
+      />
+    </ScrollReveal>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+      {cultivos.map((c, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+            <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
+              <i data-lucide={c.icono} class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{c.nombre}</h3>
+            <span class="inline-block bg-accent-muted text-accent text-xs font-medium rounded-full px-3 py-1 mb-2">
+              {c.rendimiento}
+            </span>
+            <p class="text-xs text-text-muted">{c.fuente}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Proceso -->
+  <Section bg="sunken">
+    <div class="grid md:grid-cols-2 gap-12 items-start">
+      <ScrollReveal>
+        <SectionHeader
+          label="Proceso"
+          title="Cómo trabajamos"
+          subtitle="Del diagnóstico al monitoreo continuo."
+        />
+        <StepTimeline steps={proceso} />
+      </ScrollReveal>
+      <ScrollReveal delay={200}>
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-text-primary mb-4">Beneficios clave</h3>
+          {beneficios.map((b) => (
+            <div class="flex gap-4 p-4 bg-surface-raised rounded-xl border border-border">
+              <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
+                <i data-lucide={b.icon} class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-text-primary">{b.title}</p>
+                <p class="text-sm text-text-secondary">{b.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Casos -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader label="Casos" title="Resultados reales" />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 gap-6">
+      {casos.map((c, i) => (
+        <ScrollReveal delay={i * 100}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm">
+            <span class="inline-block bg-brand-muted text-brand text-xs font-medium rounded-full px-3 py-1 mb-3">
+              {c.cultivo}
+            </span>
+            <p class="text-2xl font-bold text-brand mb-2">{c.metrica}</p>
+            <p class="text-sm text-text-secondary mb-1">{c.detalle}</p>
+            <p class="text-xs text-text-muted flex items-center gap-1">
+              <i data-lucide="map-pin" class="w-3 h-3"></i>
+              {c.ubicacion}
+            </p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Planes -->
+  <Section bg="sunken" id="planes">
+    <ScrollReveal>
+      <SectionHeader
+        label="Planes"
+        title="Elige tu plan de polinización"
+        subtitle="Todos incluyen diagnóstico inicial gratuito."
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6 items-start">
+      {planes.map((p, i) => (
+        <ScrollReveal delay={i * 100}>
+          <PricingCard {...p} />
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- CTA Form -->
+  <Section>
+    <ScrollReveal>
+      <div class="max-w-xl mx-auto text-center">
+        <h2 class="text-2xl font-bold text-text-primary mb-4">Solicita tu diagnóstico gratuito</h2>
+        <p class="text-text-secondary mb-8">Déjanos tus datos y te contactamos en menos de 24 horas.</p>
+        <form class="space-y-4 text-left" action="/api/contacto" method="POST">
+          <input type="hidden" name="tipo_proyecto" value="polinizacion" />
+          <div class="grid md:grid-cols-2 gap-4">
+            <input type="text" name="nombre" placeholder="Nombre completo" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
+            <input type="tel" name="whatsapp" placeholder="WhatsApp" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
+          </div>
+          <select name="cultivo" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
+            <option value="">¿Qué cultivo quieres polinizar?</option>
+            <option value="cafe">Café</option>
+            <option value="aguacate">Aguacate</option>
+            <option value="mora">Mora</option>
+            <option value="citricos">Cítricos</option>
+            <option value="otro">Otro</option>
+          </select>
+          <button type="submit" class="w-full bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+            Enviar solicitud
+          </button>
+        </form>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

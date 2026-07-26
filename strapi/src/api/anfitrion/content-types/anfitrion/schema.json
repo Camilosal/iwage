@@ -1,0 +1,160 @@
+{
+  "kind": "collectionType",
+  "collectionName": "anfitriones",
+  "info": {
+    "singularName": "anfitrion",
+    "pluralName": "anfitriones",
+    "displayName": "Anfitrión",
+    "description": "Guías locales y guardianes del territorio"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "targetField": "nombre",
+      "required": true
+    },
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "especialidad": {
+      "type": "string"
+    },
+    "foto_perfil": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "foto_perfil_url": {
+      "type": "string"
+    },
+    "video_thumbnail": {
+      "type": "string"
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "manifiesto": {
+      "type": "text"
+    },
+    "momento_favorito": {
+      "type": "text"
+    },
+    "arraigo": {
+      "type": "string"
+    },
+    "historia_personal": {
+      "type": "text"
+    },
+    "anos_en_territorio": {
+      "type": "integer"
+    },
+    "generaciones_familia": {
+      "type": "integer"
+    },
+    "foto_territorio": {
+      "type": "string"
+    },
+    "galeria_fotos": {
+      "type": "json"
+    },
+    "nivel_escalafon": {
+      "type": "integer",
+      "default": 1,
+      "min": 1,
+      "max": 5
+    },
+    "nombre_escalafon": {
+      "type": "string"
+    },
+    "descripcion_escalafon": {
+      "type": "text"
+    },
+    "calificacion_promedio": {
+      "type": "decimal",
+      "default": 5.0
+    },
+    "numero_resenas": {
+      "type": "integer",
+      "default": 0
+    },
+    "impacto_hectareas": {
+      "type": "decimal"
+    },
+    "impacto_hectareas_desc": {
+      "type": "string"
+    },
+    "impacto_familias": {
+      "type": "integer"
+    },
+    "impacto_familias_desc": {
+      "type": "string"
+    },
+    "impacto_mensaje": {
+      "type": "text"
+    },
+    "fondo_impacto_titulo": {
+      "type": "string"
+    },
+    "fondo_impacto_descripcion": {
+      "type": "text"
+    },
+    "sueno_narrativa": {
+      "type": "text"
+    },
+    "insignia_titulo": {
+      "type": "string"
+    },
+    "insignia_narrativa": {
+      "type": "text"
+    },
+    "pacto_subtitulo": {
+      "type": "text"
+    },
+    "pacto_items": {
+      "type": "json"
+    },
+    "certificaciones_seguridad": {
+      "type": "json"
+    },
+    "faqs": {
+      "type": "json"
+    },
+    "resenas": {
+      "type": "json"
+    },
+    "publicado": {
+      "type": "boolean",
+      "default": true
+    },
+    "experiencias": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::experiencia.experiencia",
+      "mappedBy": "anfitriones"
+    },
+    "seo_titulo": {
+      "type": "string"
+    },
+    "seo_descripcion": {
+      "type": "text"
+    },
+    "proveedores": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::proveedor.proveedor",
+      "mappedBy": "anfitriones"
+    },
+    "propiedades_gestion": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::propiedad-gestion.propiedad-gestion",
+      "mappedBy": "anfitriones"
+    }
+  }
+}

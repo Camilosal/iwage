@@ -1,0 +1,73 @@
+---
+import { propiedadGestionImagen, formatPrecioGestion, tipoGestionInfo } from '@/lib/gestion';
+import type { PropiedadGestion } from '@/lib/gestion';
+
+interface Props {
+  prop: PropiedadGestion;
+}
+
+const { prop } = Astro.props;
+const img = propiedadGestionImagen(prop);
+const tipo = tipoGestionInfo(prop.tipo_gestion);
+const precio = formatPrecioGestion(prop);
+---
+
+<a href={`/gestion/propiedades/${prop.slug}`} class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#52B788]/40 hover:shadow-xl transition-all duration-300">
+  <!-- Image -->
+  <div class="relative h-52 bg-gray-100 overflow-hidden">
+    {img ? (
+      <img src={img} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+    ) : (
+      <div class="w-full h-full flex items-center justify-center bg-[#1e3a5f]/10">
+        <span class="text-4xl">{tipo.icon}</span>
+      </div>
+    )}
+    <!-- Type badge -->
+    <div class="absolute top-3 left-3">
+      <span class="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase text-white" style={`background-color: ${tipo.color}`}>
+        {tipo.label}
+      </span>
+    </div>
+    <!-- Featured -->
+    {prop.es_destacado && (
+      <span class="absolute top-3 right-3 bg-[#C8933E] text-white text-[10px] font-bold px-2 py-1 rounded-full">★ Destacada</span>
+    )}
+    <!-- Cross-link badges -->
+    <div class="absolute bottom-3 left-3 flex gap-1.5">
+      {prop.propiedad_tierras && (
+        <span class="bg-white/90 backdrop-blur-sm text-[#1B4332] text-[9px] font-bold px-2 py-0.5 rounded-full">🏡 En Tierras</span>
+      )}
+      {prop.experiencias && prop.experiencias.length > 0 && (
+        <span class="bg-white/90 backdrop-blur-sm text-[#2E7D32] text-[9px] font-bold px-2 py-0.5 rounded-full">🌿 Experiencia</span>
+      )}
+      {prop.anfitriones && prop.anfitriones.length > 0 && (
+        <span class="bg-white/90 backdrop-blur-sm text-[#1e3a5f] text-[9px] font-bold px-2 py-0.5 rounded-full">👤 Anfitrión{prop.anfitriones.length > 1 ? 'es' : ''}</span>
+      )}
+      {prop.proveedores && prop.proveedores.length > 0 && (
+        <span class="bg-white/90 backdrop-blur-sm text-[#6D4C41] text-[9px] font-bold px-2 py-0.5 rounded-full">☕ Proveedor</span>
+      )}
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="p-5">
+    <h3 class="font-bold text-[#122640] group-hover:text-[#52B788] transition-colors mb-1 line-clamp-1">{prop.titulo}</h3>
+    <p class="text-xs text-gray-500 mb-3">
+      📍 {prop.ubicacion_municipio || 'Tolima'}
+      {prop.area_hectareas ? ` · ${prop.area_hectareas >= 1 ? `${prop.area_hectareas.toFixed(1)} ha` : `${(prop.area_hectareas * 10000).toFixed(0)} m²`}` : ''}
+    </p>
+
+    <!-- Quick stats -->
+    <div class="flex items-center gap-3 text-xs text-gray-400 mb-3">
+      {prop.numero_habitaciones && <span>🛏️ {prop.numero_habitaciones}</span>}
+      {prop.numero_banos && <span>🚿 {prop.numero_banos}</span>}
+      {prop.capacidad_huespedes && <span>👥 {prop.capacidad_huespedes}</span>}
+    </div>
+
+    <!-- Price + CTA -->
+    <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+      <span class="text-sm font-bold text-[#122640]">{precio}</span>
+      <span class="text-xs text-[#52B788] font-bold group-hover:translate-x-1 transition-transform">Ver ficha →</span>
+    </div>
+  </div>
+</a>

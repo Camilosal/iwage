@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "item_menus",
+  "info": {
+    "singularName": "item-menu",
+    "pluralName": "item-menus",
+    "displayName": "Item Menú",
+    "description": "Producto del menú del Café Iwagé. Gestionable desde Strapi con disponibilidad y temporada."
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "nombre": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "nombre" },
+    "descripcion": { "type": "text" },
+    "historia": { "type": "text" },
+    "tags": { "type": "json" },
+    "precio": { "type": "string" },
+    "destacado": { "type": "boolean", "default": false },
+    "categoria": {
+      "type": "enumeration",
+      "enum": ["cafe", "infusion", "acompanamiento", "signature", "frio", "panaderia"],
+      "default": "cafe"
+    },
+    "imagen": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "orden": { "type": "integer", "default": 0 },
+    "disponible": { "type": "boolean", "default": true },
+    "temporada": { "type": "boolean", "default": false },
+    "nota_disponibilidad": { "type": "string" }
+  }
+}

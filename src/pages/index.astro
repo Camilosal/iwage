@@ -1,0 +1,195 @@
+---
+import '@/styles/global.css';
+import { brandList } from '@/config/brands';
+
+const title = 'Iwagé · Ecosistema de Desarrollo Rural · Tolima, Colombia';
+const description = 'Cinco líneas de acción, un solo territorio. Meliponicultura, café de origen, inmobiliaria rural, turismo regenerativo y property management en el corredor Ambalá, Ibagué.';
+
+const stats = [
+  { value: '5', label: 'Líneas de acción' },
+  { value: '120+', label: 'Colmenas activas' },
+  { value: '50+', label: 'Propiedades gestionadas' },
+  { value: '12 km', label: 'Corredor biológico' },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Iwagé",
+  "description": "Ecosistema de desarrollo rural en el Tolima, Colombia",
+  "url": "https://iwage.co",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Ibagué",
+    "addressRegion": "Tolima",
+    "addressCountry": "CO"
+  },
+  "subOrganization": brandList.map((b) => ({
+    "@type": "Organization",
+    "name": b.name,
+    "url": `https://iwage.co/${b.slug}/`,
+    "description": b.seo.defaultDescription,
+  })),
+};
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href="https://iwage.co/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content="https://iwage.co/" />
+    <meta property="og:site_name" content="Iwagé" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- Theme init (no flash) -->
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem('iwage-theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col bg-surface text-text-primary font-[Inter,system-ui,sans-serif]">
+
+    <!-- Theme toggle (fixed) -->
+    <button
+      id="theme-toggle"
+      class="fixed top-5 right-5 z-50 p-2.5 rounded-full border border-border bg-surface-raised/90 backdrop-blur text-text-secondary hover:text-brand hover:border-brand/40 transition-colors shadow-lg"
+      aria-label="Cambiar tema"
+      title="Cambiar entre modo claro y oscuro"
+    >
+      <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.66 7.66l-.71-.71M4.05 4.05l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    </button>
+
+    <!-- Hero -->
+    <header class="relative overflow-hidden">
+      <img
+        src="/images/hero-ecosistema.webp"
+        alt=""
+        aria-hidden="true"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
+      <div class="absolute inset-0 bg-gradient-to-b from-surface/70 via-surface/75 to-surface"></div>
+      <div class="relative mx-auto max-w-5xl px-6 py-14 md:py-28 text-center">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-accent mb-6">
+          Corredor Ambalá · Ibagué, Tolima
+        </p>
+        <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
+          Ecosistema<br />
+          <span class="text-brand">Iwagé</span>
+        </h1>
+        <p class="mt-6 text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl mx-auto">
+          Cinco líneas de acción, un solo territorio. Agricultura regenerativa,
+          café de origen, tierra, turismo y gestión — conectados por la misma visión.
+        </p>
+      </div>
+    </header>
+
+    <!-- Stats bar -->
+    <section class="border-y border-border bg-surface-raised/50">
+      <div class="mx-auto max-w-5xl px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+        {stats.map((s) => (
+          <div class="text-center">
+            <div class="text-3xl font-bold text-brand">{s.value}</div>
+            <div class="mt-1 text-xs uppercase tracking-wider text-text-muted">{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Brand cards -->
+    <main class="flex-1 mx-auto max-w-6xl px-6 py-14">
+      <h2 class="text-center text-sm font-mono uppercase tracking-widest text-accent mb-10">
+        Nuestras líneas de acción
+      </h2>
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {brandList.map((brand) => (
+          <a
+            href={`/${brand.slug}/`}
+            class="group relative overflow-hidden rounded-2xl border border-border bg-surface-raised p-8 transition-all hover:border-brand/40 hover:scale-[1.02] hover:shadow-xl hover:shadow-brand/5"
+          >
+            <div class="absolute top-0 left-0 h-1 w-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={`background: linear-gradient(90deg, ${brand.colors.brand}, ${brand.colors.accent})`}></div>
+            <div class="-mx-8 -mt-8 mb-6 overflow-hidden">
+              <img
+                src={`/images/linea-${brand.slug}.webp`}
+                alt={brand.name}
+                loading="lazy"
+                class="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+            <span class="text-4xl block mb-4">{brand.icon}</span>
+            <h3 class="text-xl font-bold text-text-primary group-hover:text-brand transition-colors">
+              {brand.name}
+            </h3>
+            <p class="mt-1 font-mono text-[10px] uppercase tracking-widest text-accent">
+              {brand.tagline}
+            </p>
+            <p class="mt-4 text-sm text-text-secondary leading-relaxed line-clamp-3">
+              {brand.seo.defaultDescription}
+            </p>
+            <span class="mt-6 inline-flex items-center gap-2 text-sm font-medium text-brand group-hover:gap-3 transition-all">
+              Explorar →
+            </span>
+          </a>
+        ))}
+
+        <!-- Ecosystem card -->
+        <div class="relative overflow-hidden rounded-2xl border border-dashed border-border p-8 flex flex-col items-center justify-center text-center">
+          <span class="text-4xl mb-4">🌱</span>
+          <h3 class="text-lg font-bold text-text-primary/80">Tierra de labranza</h3>
+          <p class="mt-2 text-sm text-text-muted leading-relaxed">
+            Todo lo que hacemos nace del mismo territorio.
+            Cada línea de acción alimenta a las demás.
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-border py-12 px-6">
+      <div class="mx-auto max-w-5xl flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <span class="text-2xl font-bold tracking-wide">IWAGÉ</span>
+          <p class="text-xs text-text-muted mt-1">
+            Tierra de labranza · Corredor Ambalá · Ibagué, Tolima
+          </p>
+        </div>
+        <div class="flex gap-6 text-sm text-text-muted">
+          {brandList.map((b) => (
+            <a href={`/${b.slug}/`} class="hover:text-brand transition-colors">
+              {b.icon} {b.slug}
+            </a>
+          ))}
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const themeBtn = document.getElementById('theme-toggle');
+      themeBtn?.addEventListener('click', () => {
+        const root = document.documentElement;
+        root.classList.add('theme-transition');
+        root.classList.toggle('dark');
+        const isDark = root.classList.contains('dark');
+        localStorage.setItem('iwage-theme', isDark ? 'dark' : 'light');
+        setTimeout(() => root.classList.remove('theme-transition'), 350);
+      });
+    </script>
+  </body>
+</html>

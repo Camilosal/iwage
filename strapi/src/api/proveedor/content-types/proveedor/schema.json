@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "proveedors",
+  "info": {
+    "singularName": "proveedor",
+    "pluralName": "proveedors",
+    "displayName": "Proveedor",
+    "description": "Proveedor de cadena corta del Café Iwagé. Puede ser anfitrión del territorio, ofrecer experiencias, provenir de propiedades en venta o gestionadas."
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "nombre": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "nombre" },
+    "producto": { "type": "string" },
+    "ubicacion": { "type": "string" },
+    "distancia_km": { "type": "decimal" },
+    "historia": { "type": "text" },
+    "foto": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "orden": { "type": "integer", "default": 0 },
+    "publicado": { "type": "boolean", "default": true },
+    "destacado": { "type": "boolean", "default": false },
+    "es_anfitrion": { "type": "boolean", "default": false },
+    "ofrece_experiencias": { "type": "boolean", "default": false },
+    "telefono": { "type": "string" },
+    "whatsapp": { "type": "string" },
+    "instagram": { "type": "string" },
+    "horario": { "type": "string" },
+    "direccion": { "type": "string" },
+    "servicios": { "type": "json" },
+    "anfitriones": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::anfitrion.anfitrion",
+      "inversedBy": "proveedores"
+    },
+    "experiencias": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::experiencia.experiencia",
+      "inversedBy": "proveedores"
+    },
+    "propiedades": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::propiedad.propiedad",
+      "inversedBy": "proveedores"
+    },
+    "propiedades_gestion": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::propiedad-gestion.propiedad-gestion",
+      "inversedBy": "proveedores"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+---
+// Simulator: select area type + size → estimated colmenas recommendation
+---
+
+<div class="bg-surface-raised rounded-2xl border border-border p-6 md:p-8 shadow-sm">
+  <h3 class="text-lg font-semibold text-text-primary mb-6">Simulador de proyecto</h3>
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div>
+      <label for="sim-tipo" class="block text-sm font-medium text-text-secondary mb-2">Tipo de espacio</label>
+      <select id="sim-tipo" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
+        <option value="finca">Finca / Predio rural</option>
+        <option value="colegio">Colegio / Institución</option>
+        <option value="turismo">Centro turístico</option>
+        <option value="urbano">Espacio urbano / Jardín</option>
+      </select>
+    </div>
+    <div>
+      <label for="sim-area" class="block text-sm font-medium text-text-secondary mb-2">Área disponible (m²)</label>
+      <select id="sim-area" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
+        <option value="50">Hasta 50 m²</option>
+        <option value="200">50 – 200 m²</option>
+        <option value="500">200 – 500 m²</option>
+        <option value="1000">500 – 1000 m²</option>
+        <option value="5000">Más de 1000 m²</option>
+      </select>
+    </div>
+  </div>
+  <button id="sim-calc" type="button" class="w-full bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+    Calcular recomendación
+  </button>
+  <div id="sim-result" class="hidden mt-6 p-5 bg-brand-muted rounded-xl animate-fade-up">
+    <p class="text-sm font-medium text-brand mb-1">Recomendación estimada</p>
+    <p id="sim-result-text" class="text-base text-text-primary"></p>
+  </div>
+</div>
+
+<script>
+  const calcBtn = document.getElementById('sim-calc');
+  const resultDiv = document.getElementById('sim-result');
+  const resultText = document.getElementById('sim-result-text');
+
+  const recommendations: Record<string, Record<string, string>> = {
+    finca: {
+      '50': '2-3 colmenas de Tetragonisca angustula. Ideal para iniciar con polinización de huerta.',
+      '200': '4-6 colmenas. Suficiente para polinizar cultivos de café o frutales en 1-2 hectáreas.',
+      '500': '8-12 colmenas. Permite producción de miel y polinización a escala comercial.',
+      '1000': '12-20 colmenas. Proyecto productivo completo con potencial de venta de miel.',
+      '5000': '20+ colmenas. Recomendamos asesoría personalizada para diseño del meliponario.',
+    },
+    colegio: {
+      '50': '2 colmenas educativas. Perfecto para aula viva con observación segura.',
+      '200': '3-4 colmenas. Permite estaciones de aprendizaje y proyecto PRAE completo.',
+      '500': '4-6 colmenas. Incluye sendero interpretativo y estación de cosecha.',
+      '1000': '6-8 colmenas. Proyecto PRAE integral con producción para feria escolar.',
+      '5000': '8-10 colmenas. Campus educativo con laboratorio de biodiversidad.',
+    },
+    turismo: {
+      '50': '2-3 colmenas demostrativas. Experiencia de observación guiada.',
+      '200': '4-6 colmenas. Sendero de meliponas + cata de miel incluida.',
+      '500': '6-10 colmenas. Experiencia completa con taller de extracción.',
+      '1000': '10-15 colmenas. Circuito ecoturístico con producción propia.',
+      '5000': '15+ colmenas. Destino de turismo de naturaleza especializado.',
+    },
+    urbano: {
+      '50': '1-2 colmenas. Balcón o jardín pequeño, ideal para observación.',
+      '200': '2-3 colmenas. Jardín urbano con polinización de hortalizas.',
+      '500': '3-5 colmenas. Terraza comunitaria o azotea verde productiva.',
+      '1000': '5-8 colmenas. Proyecto comunitario con cosecha compartida.',
+      '5000': '8-12 colmenas. Parque urbano con programa educativo.',
+    },
+  };
+
+  calcBtn?.addEventListener('click', () => {
+    const tipo = (document.getElementById('sim-tipo') as HTMLSelectElement)?.value || 'finca';
+    const area = (document.getElementById('sim-area') as HTMLSelectElement)?.value || '200';
+    const rec = recommendations[tipo]?.[area] || recommendations['finca']['200'];
+    if (resultText) resultText.textContent = rec;
+    resultDiv?.classList.remove('hidden');
+  });
+</script>

@@ -1,0 +1,34 @@
+---
+interface Props {
+  tier: string;
+  price: string;
+  period?: string;
+  features: string[];
+  cta: string;
+  href?: string;
+  featured?: boolean;
+}
+const { tier, price, period, features, cta, href = '/contacto', featured = false } = Astro.props;
+---
+
+<div class={`rounded-2xl p-6 flex flex-col ${featured ? 'bg-brand text-white shadow-lg ring-2 ring-accent scale-[1.02]' : 'bg-surface-raised border border-border shadow-sm'}`}>
+  <h3 class={`text-lg font-semibold mb-1 ${featured ? 'text-white' : 'text-text-primary'}`}>{tier}</h3>
+  <div class="mb-6">
+    <span class={`text-3xl font-bold ${featured ? 'text-accent-light' : 'text-brand'}`}>{price}</span>
+    {period && <span class={`text-sm ml-1 ${featured ? 'text-white/60' : 'text-text-muted'}`}>{period}</span>}
+  </div>
+  <ul class="space-y-3 mb-8 flex-1">
+    {features.map((feature) => (
+      <li class="flex items-start gap-2 text-sm">
+        <i data-lucide="check" class={`w-4 h-4 mt-0.5 shrink-0 ${featured ? 'text-accent-light' : 'text-brand'}`}></i>
+        <span class={featured ? 'text-white/80' : 'text-text-secondary'}>{feature}</span>
+      </li>
+    ))}
+  </ul>
+  <a
+    href={href}
+    class={`block text-center rounded-full px-6 py-3 font-medium transition-all hover:scale-[1.02] ${featured ? 'bg-accent text-white hover:bg-accent-light' : 'bg-brand text-white hover:bg-brand-light'}`}
+  >
+    {cta}
+  </a>
+</div>

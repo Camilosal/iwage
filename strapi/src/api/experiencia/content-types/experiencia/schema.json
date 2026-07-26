@@ -1,0 +1,202 @@
+{
+  "kind": "collectionType",
+  "collectionName": "experiencias",
+  "info": {
+    "singularName": "experiencia",
+    "pluralName": "experiencias",
+    "displayName": "Experiencia",
+    "description": "Experiencias de turismo regenerativo Iwagé Naturaleza"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "targetField": "titulo",
+      "required": true
+    },
+    "titulo": {
+      "type": "string",
+      "required": true
+    },
+    "resumen": {
+      "type": "text"
+    },
+    "categoria": {
+      "type": "enumeration",
+      "enum": [
+        "Naturaleza",
+        "Cultura",
+        "Bienestar",
+        "Aventura",
+        "Gastronomia"
+      ],
+      "default": "Naturaleza"
+    },
+    "ubicacion": {
+      "type": "string"
+    },
+    "ubicacion_latitud": {
+      "type": "decimal"
+    },
+    "ubicacion_longitud": {
+      "type": "decimal"
+    },
+    "ciudad_referencia": {
+      "type": "string",
+      "default": "Ibagué Centro"
+    },
+    "distancia_km": {
+      "type": "string"
+    },
+    "tiempo_desde_ciudad": {
+      "type": "string"
+    },
+    "estado_via": {
+      "type": "text"
+    },
+    "ofrece_transporte": {
+      "type": "boolean",
+      "default": false
+    },
+    "duracion": {
+      "type": "string"
+    },
+    "nivel_dificultad": {
+      "type": "integer",
+      "default": 1,
+      "min": 1,
+      "max": 7
+    },
+    "tipo_propiedad": {
+      "type": "enumeration",
+      "enum": [
+        "iwage-managed",
+        "local-partner",
+        "comunitario"
+      ]
+    },
+    "precio_desde": {
+      "type": "decimal"
+    },
+    "cupo_maximo_desc": {
+      "type": "string",
+      "default": "6 a 8 personas"
+    },
+    "porcentaje_fondo_impacto": {
+      "type": "decimal",
+      "default": 2.0
+    },
+    "descripcion_fondo_impacto": {
+      "type": "text"
+    },
+    "es_destacado": {
+      "type": "boolean",
+      "default": false
+    },
+    "publicado": {
+      "type": "boolean",
+      "default": true
+    },
+    "imagen_hero": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "imagen_hero_url": {
+      "type": "string"
+    },
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "videos"
+      ]
+    },
+    "galeria_urls": {
+      "type": "json"
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "tour_360_url": {
+      "type": "string"
+    },
+    "link_drone": {
+      "type": "string"
+    },
+    "mapa_imagen_url": {
+      "type": "string"
+    },
+    "highlights": {
+      "type": "json"
+    },
+    "requirements": {
+      "type": "json"
+    },
+    "includes": {
+      "type": "json"
+    },
+    "excludes": {
+      "type": "json"
+    },
+    "optional_addons": {
+      "type": "json"
+    },
+    "faqs": {
+      "type": "json"
+    },
+    "safety_content": {
+      "type": "json"
+    },
+    "etiquetas_personalizadas": {
+      "type": "json"
+    },
+    "itinerario_sensorial": {
+      "type": "json"
+    },
+    "anfitriones_data": {
+      "type": "json"
+    },
+    "iniciativas_impacto": {
+      "type": "json"
+    },
+    "paquetes_upsell": {
+      "type": "json"
+    },
+    "anfitriones": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::anfitrion.anfitrion",
+      "inversedBy": "experiencias"
+    },
+    "seo_titulo": {
+      "type": "string"
+    },
+    "seo_descripcion": {
+      "type": "text"
+    },
+    "proveedores": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::proveedor.proveedor",
+      "mappedBy": "experiencias"
+    },
+    "propiedades": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::propiedad.propiedad",
+      "inversedBy": "experiencias"
+    },
+    "propiedades_gestion": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::propiedad-gestion.propiedad-gestion",
+      "inversedBy": "experiencias"
+    }
+  }
+}

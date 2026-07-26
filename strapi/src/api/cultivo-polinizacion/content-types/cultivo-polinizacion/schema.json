@@ -1,0 +1,14 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cultivo_polinizacions",
+  "info": { "singularName": "cultivo-polinizacion", "pluralName": "cultivo-polinizaciones", "displayName": "Cultivo Polinización" },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "nombre": { "type": "string", "required": true },
+    "nombre_cientifico": { "type": "string" },
+    "rendimiento": { "type": "string" },
+    "fuente": { "type": "string" },
+    "descripcion": { "type": "text" },
+    "icono": { "type": "string" }
+  }
+}

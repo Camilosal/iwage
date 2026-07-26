@@ -1,0 +1,73 @@
+---
+import '@/styles/global.css';
+import { brandList } from '@/config/brands';
+
+const title = 'Página no encontrada · Iwagé';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Theme init (no flash) -->
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem('iwage-theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col items-center justify-center bg-surface text-text-primary font-[Inter,system-ui,sans-serif] px-6">
+
+    <div class="text-center max-w-lg">
+      <p class="text-7xl mb-6">🌿</p>
+      <h1 class="text-4xl font-extrabold tracking-tight mb-3">
+        <span class="text-brand">404</span> — Página no encontrada
+      </h1>
+      <p class="text-text-secondary leading-relaxed mb-10">
+        Esta ruta no existe en el ecosistema Iwagé. Puede que haya sido movida
+        a una de nuestras marcas durante la migración.
+      </p>
+
+      <!-- Brand directory -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-10">
+        {brandList.map((b) => (
+          <a
+            href={`/${b.slug}/`}
+            class="rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm font-medium text-text-secondary hover:border-brand/40 hover:text-brand transition-all"
+          >
+            {b.icon} {b.slug}
+          </a>
+        ))}
+        <a
+          href="/"
+          class="rounded-xl border border-dashed border-border px-4 py-3 text-sm font-medium text-text-muted hover:text-brand hover:border-brand/30 transition-all"
+        >
+          🌐 Inicio
+        </a>
+      </div>
+
+      <a
+        href="/"
+        class="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-light transition-all"
+      >
+        Volver al ecosistema
+      </a>
+    </div>
+
+    <p class="absolute bottom-6 text-xs text-text-muted font-mono">
+      Iwagé · Corredor Ambalá · Ibagué, Tolima
+    </p>
+  </body>
+</html>

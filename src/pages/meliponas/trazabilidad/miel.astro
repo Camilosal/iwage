@@ -1,0 +1,182 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import QRDemo from '@/components/QRDemo.astro';
+import { SEO, SITE } from '@/config/site';
+
+const pilares = [
+  { numero: 1, titulo: 'Origen verificado', desc: 'Cada lote trazado hasta la colmena y el meliponario de origen.', icono: 'map-pin' },
+  { numero: 2, titulo: 'Cosecha ética', desc: 'Solo se extrae excedente. Nunca se compromete la reserva de la colonia.', icono: 'heart' },
+  { numero: 3, titulo: 'Cadena de frío', desc: 'Refrigeración desde cosecha hasta entrega. Máximo 48h sin refrigerar.', icono: 'thermometer-snowflake' },
+  { numero: 4, titulo: 'Análisis de laboratorio', desc: 'pH, humedad, fenoles y perfil microbiológico en cada lote.', icono: 'flask-conical' },
+  { numero: 5, titulo: 'Empaque consciente', desc: 'Vidrio ámbar, etiqueta con QR de trazabilidad, cero plástico.', icono: 'recycle' },
+];
+
+const bienestar = [
+  'Miel cruda sin pasteurizar: conserva enzimas y polen',
+  'Propiedades antimicrobianas documentadas',
+  'Índice glucémico menor que miel de Apis',
+  'Perfil de cata único por flora y altitud',
+];
+
+const mercados = [
+  { titulo: 'Alta Cocina', desc: 'Miel con perfil de cata y trazabilidad para chefs que exigen origen.', icono: 'utensils-crossed' },
+  { titulo: 'Cosmecéutica', desc: 'Propóleo y miel con análisis de fenoles para formulaciones naturales.', icono: 'sparkles' },
+  { titulo: 'Nutracéutico', desc: 'Producto funcional con respaldo analítico y ficha técnica completa.', icono: 'pill' },
+];
+---
+
+<BrandLayout title={SEO.trazabilidadMiel.title} description={SEO.trazabilidadMiel.description}>
+  <!-- Hero -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Trazabilidad · Estándar 01</p>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
+        Miel que se puede<br />verificar
+      </h1>
+      <p class="text-lg text-dark-text/60 leading-relaxed max-w-2xl mx-auto">
+        Un protocolo clínico y ético detrás de cada frasco. Trazabilidad por lote, cadena de frío y análisis de laboratorio.
+      </p>
+    </div>
+  </section>
+
+  <!-- Pilares -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader
+        label="Protocolo"
+        title="5 pilares del estándar de miel"
+        subtitle="Cada pilar es verificable y auditable."
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      {pilares.map((p, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-5 shadow-sm text-center h-full">
+            <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-3">
+              <i data-lucide={p.icono} class="w-5 h-5"></i>
+            </div>
+            <p class="font-mono text-xs text-accent mb-1">{String(p.numero).padStart(2, '0')}</p>
+            <h3 class="text-sm font-semibold text-text-primary mb-2">{p.titulo}</h3>
+            <p class="text-xs text-text-secondary leading-relaxed">{p.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- QR Traceability -->
+  <Section bg="sunken">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <ScrollReveal>
+        <SectionHeader
+          label="Trazabilidad por lote"
+          title="Escanea y conoce tu miel"
+          subtitle="Cada frasco lleva un código QR que revela el lote, la cosecha, la flora y el perfil de cata."
+        />
+        <div class="space-y-4">
+          <div class="flex items-start gap-3">
+            <i data-lucide="scan-line" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <p class="text-sm text-text-secondary">Escanea el QR del frasco con tu cámara</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="database" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <p class="text-sm text-text-secondary">Accede a la ficha completa del lote en tiempo real</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <i data-lucide="shield-check" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <p class="text-sm text-text-secondary">Verifica autenticidad, origen y análisis de laboratorio</p>
+          </div>
+        </div>
+      </ScrollReveal>
+      <ScrollReveal delay={200}>
+        <QRDemo />
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Bienestar -->
+  <Section>
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <ScrollReveal>
+        <SectionHeader
+          label="Bienestar"
+          title="Miel que nutre"
+          subtitle="Propiedades funcionales de la miel de Tetragonisca angustula."
+        />
+        <ul class="space-y-4">
+          {bienestar.map((item) => (
+            <li class="flex items-start gap-3">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+              <span class="text-sm text-text-secondary">{item}</span>
+            </li>
+          ))}
+        </ul>
+        <a href="/meliponas/bitacora" class="inline-flex items-center gap-2 mt-6 text-brand font-medium text-sm hover:gap-3 transition-all">
+          Leer más en la bitácora
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </ScrollReveal>
+      <ScrollReveal delay={200}>
+        <div class="bg-brand-muted rounded-2xl p-8">
+          <h3 class="text-lg font-semibold text-brand mb-4">Perfil del lote L25-05-001</h3>
+          <dl class="space-y-3">
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">pH</dt><dd class="font-medium text-text-primary">3.8</dd></div>
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Humedad</dt><dd class="font-medium text-text-primary">22.4%</dd></div>
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Fenoles totales</dt><dd class="font-medium text-text-primary">847 mg GAE/kg</dd></div>
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Flora dominante</dt><dd class="font-medium text-text-primary">Guamo + Café</dd></div>
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Altitud</dt><dd class="font-medium text-text-primary">1,250 m.s.n.m.</dd></div>
+          </dl>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- B2B Markets -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader
+        label="B2B"
+        title="Mercados especializados"
+        subtitle="Producto con ficha técnica completa para industrias exigentes."
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6">
+      {mercados.map((m, i) => (
+        <ScrollReveal delay={i * 100}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
+              <i data-lucide={m.icono} class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{m.titulo}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed">{m.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold text-dark-text mb-4">¿Buscas un aliado proveedor?</h2>
+        <p class="text-dark-text/60 mb-8">Suministro constante, ficha técnica y trazabilidad para tu negocio.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/meliponas/tienda" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            Ver la tienda
+          </a>
+          <a href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}`} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
+            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            WhatsApp
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

@@ -1,0 +1,53 @@
+---
+import { SITE, NAV_FLAT_LINKS } from '@/config/site';
+---
+
+<footer class="bg-dark-bg text-dark-text">
+  <div class="max-w-6xl mx-auto px-6 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <!-- Brand -->
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-xl">🐝</span>
+          <span class="font-bold text-lg">{SITE.name}</span>
+        </div>
+        <p class="text-sm text-dark-text/60 leading-relaxed max-w-xs">
+          {SITE.tagline}. Profesionalizando la meliponicultura en el Tolima mediante ciencia, conservación y transparencia radical.
+        </p>
+      </div>
+
+      <!-- Links -->
+      <div>
+        <h3 class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Ecosistema</h3>
+        <ul class="space-y-2.5">
+          {NAV_FLAT_LINKS.map((link) => (
+            <li>
+              <a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined} class="text-sm text-dark-text/60 hover:text-dark-text transition-colors">
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div>
+        <h3 class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Contacto</h3>
+        <ul class="space-y-2.5 text-sm text-dark-text/60">
+          <li>📍 {SITE.location}</li>
+          <li>💬 Asesoría WhatsApp</li>
+          <li>📷 {SITE.instagram}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-dark-text/10 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="font-mono text-xs text-dark-text/40 uppercase tracking-widest">
+        © {new Date().getFullYear()} {SITE.name} Meliponario. Todos los derechos reservados.
+      </p>
+      <a href="/" class="inline-flex items-center gap-1.5 text-xs text-dark-text/50 hover:text-dark-text transition-colors">
+        🌐 Parte del ecosistema Iwagé →
+      </a>
+    </div>
+  </div>
+</footer>

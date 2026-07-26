@@ -1,0 +1,193 @@
+---
+import { NAV_LINKS, SITE } from '@/config/site';
+import EcosystemDropdown from '@/components/shared/EcosystemDropdown.astro';
+import { Menu, Sun, Moon, ChevronDown } from '@lucide/astro';
+---
+
+<header class="fixed top-0 inset-x-0 z-50 border-b border-border/50 bg-surface/80 backdrop-blur-md">
+  <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="/meliponas/" class="flex items-center gap-2 group">
+      <span class="text-xl">🐝</span>
+      <span class="font-bold text-lg tracking-tight text-text-primary group-hover:text-brand transition-colors">
+        {SITE.name}
+      </span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="hidden md:flex items-center gap-1">
+      {NAV_LINKS.map((link) =>
+        link.children ? (
+          <div class="relative group">
+            <button
+              class="flex items-center gap-1 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/50 transition-colors"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              {link.label}
+              <ChevronDown class="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
+            </button>
+            <div
+              class="absolute left-0 top-full pt-2 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 transition-all duration-200"
+            >
+              <div class="min-w-44 bg-surface-raised border border-border rounded-xl shadow-lg py-2">
+                {link.children.map((child) => (
+                  <a
+                    href={child.href}
+                    target={child.external ? '_blank' : undefined}
+                    rel={child.external ? 'noopener noreferrer' : undefined}
+                    class="block px-4 py-2.5 text-sm text-text-secondary hover:text-brand hover:bg-brand-muted/50 transition-colors"
+                  >
+                    {child.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <a
+            href={link.href}
+            target={link.external ? '_blank' : undefined}
+            rel={link.external ? 'noopener noreferrer' : undefined}
+            class="px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/50 transition-colors"
+          >
+            {link.label}
+          </a>
+        ),
+      )}
+    </div>
+
+    <div class="hidden md:flex items-center gap-3">
+      <!-- Ecosystem selector -->
+      <EcosystemDropdown activeBrand="meliponas" variant="pill" />
+      <!-- Theme toggle -->
+      <button
+        id="theme-toggle"
+        class="p-2 rounded-lg text-text-secondary hover:text-brand hover:bg-brand-muted/50 transition-colors"
+        aria-label="Cambiar tema"
+        title="Cambiar entre modo claro y oscuro"
+      >
+        <Sun class="w-5 h-5 hidden dark:block" />
+        <Moon class="w-5 h-5 block dark:hidden" />
+      </button>
+      <a
+        href="/meliponas/contacto"
+        class="bg-brand text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-brand-light transition-colors"
+      >
+        Contáctanos
+      </a>
+    </div>
+
+    <!-- Mobile: theme toggle + menu button -->
+    <div class="flex md:hidden items-center gap-1">
+      <button
+        id="theme-toggle-mobile"
+        class="p-2 rounded-lg text-text-secondary hover:text-brand hover:bg-brand-muted/50 transition-colors"
+        aria-label="Cambiar tema"
+        title="Cambiar entre modo claro y oscuro"
+      >
+        <Sun class="w-5 h-5 hidden dark:block" />
+        <Moon class="w-5 h-5 block dark:hidden" />
+      </button>
+      <button
+        id="menu-toggle"
+        class="p-2 rounded-lg hover:bg-surface-sunken transition-colors"
+        aria-label="Abrir menú"
+      >
+        <Menu class="w-5 h-5" />
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-border bg-surface-raised shadow-lg">
+    <div class="px-6 py-4 space-y-1">
+      {NAV_LINKS.map((link) =>
+        link.children ? (
+          <div>
+            <button
+              class="mobile-dropdown-toggle w-full flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-brand hover:bg-brand-muted/50 rounded-lg transition-colors"
+              aria-expanded="false"
+            >
+              {link.label}
+              <ChevronDown class="w-4 h-4 transition-transform duration-200" />
+            </button>
+            <div class="mobile-dropdown-panel hidden pl-4 space-y-1 mt-1">
+              {link.children.map((child) => (
+                <a
+                  href={child.href}
+                  target={child.external ? '_blank' : undefined}
+                  rel={child.external ? 'noopener noreferrer' : undefined}
+                  class="block px-3 py-2 text-sm text-text-secondary hover:text-brand hover:bg-brand-muted/50 rounded-lg transition-colors"
+                >
+                  {child.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a
+            href={link.href}
+            target={link.external ? '_blank' : undefined}
+            rel={link.external ? 'noopener noreferrer' : undefined}
+            class="block px-3 py-2.5 text-sm text-text-secondary hover:text-brand hover:bg-brand-muted/50 rounded-lg transition-colors"
+          >
+            {link.label}
+          </a>
+        ),
+      )}
+      <!-- Ecosystem selector (mobile) -->
+      <div class="mt-3 pt-3 border-t border-border/50">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2 px-3">Ecosistema Iwagé</p>
+        <div class="grid grid-cols-1 gap-1">
+          <a href="/" class="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/30 transition-colors">🌱 Hub</a>
+          <a href="/meliponas/" class="flex items-center gap-2 px-3 py-2 text-sm text-brand rounded-lg bg-brand-muted/30">🐝 Meliponario <span class="text-[10px] text-brand/60">● actual</span></a>
+          <a href="/cafe/" class="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/30 transition-colors">☕ Café</a>
+          <a href="/tierras/" class="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/30 transition-colors">🌄 Tierras</a>
+          <a href="/naturaleza/" class="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/30 transition-colors">🌿 Naturaleza</a>
+          <a href="/gestion/" class="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/30 transition-colors">🏗️ Gestión</a>
+        </div>
+      </div>
+      <a
+        href="/meliponas/contacto"
+        class="block mt-1 text-center bg-brand text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-brand-light transition-colors"
+      >
+        Contáctanos
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Mobile menu
+  const toggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+  toggle?.addEventListener('click', () => {
+    menu?.classList.toggle('hidden');
+  });
+
+  // Mobile dropdowns (expand/collapse)
+  document.querySelectorAll<HTMLElement>('.mobile-dropdown-toggle').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const panel = btn.parentElement?.querySelector<HTMLElement>('.mobile-dropdown-panel');
+      const chevron = btn.querySelector('svg');
+      const open = panel?.classList.toggle('hidden') === false;
+      btn.setAttribute('aria-expanded', String(open));
+      chevron?.classList.toggle('rotate-180', open);
+    });
+  });
+
+  // Theme toggle (light ↔ dark), persisted + smooth transition
+  function initThemeToggle(btn: HTMLElement | null) {
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const root = document.documentElement;
+      root.classList.add('theme-transition');
+      root.classList.toggle('dark');
+      const isDark = root.classList.contains('dark');
+      localStorage.setItem('iwage-theme', isDark ? 'dark' : 'light');
+      setTimeout(() => root.classList.remove('theme-transition'), 350);
+    });
+  }
+  initThemeToggle(document.getElementById('theme-toggle'));
+  initThemeToggle(document.getElementById('theme-toggle-mobile'));
+</script>

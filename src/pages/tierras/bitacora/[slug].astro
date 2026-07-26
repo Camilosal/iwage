@@ -1,0 +1,161 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import { getBitacoraBySlug, getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
+import { renderMarkdown } from '@/lib/render-markdown';
+
+const BRAND = 'tierras';
+const BRAND_NAME = 'Iwagé Tierras';
+const AUTHOR = 'Equipo Iwagé Tierras';
+const LOCATION = 'Ibagué, Tolima, Colombia';
+const ICON = '🌄';
+
+const { slug } = Astro.params;
+const article = await getBitacoraBySlug(slug!);
+
+if (!article) {
+  return Astro.redirect(`/${BRAND}/bitacora`);
+}
+
+// Fetch related articles from same brand
+const { data: related } = await getBitacoraByMarca(BRAND as any, { pageSize: 4 });
+const relatedPosts = related.filter(a => a.slug !== slug).slice(0, 3);
+
+// Render content with full markdown support
+const htmlContent = article.contenido ? renderMarkdown(article.contenido) : '';
+
+// Word count for reading metadata
+const wordCount = article.contenido ? article.contenido.split(/\s+/).length : 0;
+---
+
+<BrandLayout brand={BRAND} title={`${article.titulo} · ${BRAND_NAME}`} description={article.extracto || article.titulo}>
+  <article class="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <!-- Breadcrumb -->
+    <nav class="mb-8 flex items-center gap-2 text-sm text-text-muted">
+      <a href={`/${BRAND}/`} class="hover:text-brand transition-colors">Inicio</a>
+      <span>/</span>
+      <a href={`/${BRAND}/bitacora`} class="hover:text-brand transition-colors">Bitácora</a>
+      <span>/</span>
+      <span class="text-text-secondary truncate max-w-[200px]">{article.categoria}</span>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-10">
+      {article.categoria && (
+        <span class="inline-block bg-brand-muted text-brand text-xs font-semibold rounded-full px-3.5 py-1.5 mb-5 uppercase tracking-wide">
+          {article.categoria}
+        </span>
+      )}
+      <h1 class="text-3xl md:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-text-primary leading-tight mb-5">
+        {article.titulo}
+      </h1>
+      {article.extracto && (
+        <p class="text-lg text-text-secondary leading-relaxed mb-6">{article.extracto}</p>
+      )}
+      <div class="flex flex-wrap items-center gap-4 text-sm text-text-muted pb-6 border-b border-border">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-brand-muted flex items-center justify-center text-sm">{ICON}</div>
+          <span class="font-medium text-text-secondary">{AUTHOR}</span>
+        </div>
+        <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+        <time>{formatFecha(article.fecha)}</time>
+        {article.tiempo_lectura && (
+          <>
+            <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+            <span>{article.tiempo_lectura} min lectura</span>
+          </>
+        )}
+        <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+        <span>{wordCount.toLocaleString('es-CO')} palabras</span>
+      </div>
+    </header>
+
+    <!-- Hero Image -->
+    {article.imagen ? (
+      <figure class="mb-10 -mx-6 md:mx-0">
+        <img
+          src={article.imagen}
+          alt={article.titulo}
+          class="w-full h-64 md:h-80 object-cover rounded-none md:rounded-2xl shadow-sm"
+        />
+      </figure>
+    ) : (
+      <div class="mb-10 -mx-6 md:mx-0 h-48 md:h-56 rounded-none md:rounded-2xl bg-gradient-to-br from-brand-muted via-brand/10 to-brand/5 flex items-center justify-center">
+        <span class="text-6xl opacity-40">{ICON}</span>
+      </div>
+    )}
+
+    <!-- Article Content (full markdown rendering) -->
+    {htmlContent ? (
+      <div class="article-body" set:html={htmlContent}></div>
+    ) : (
+      <p class="text-text-secondary italic">Contenido no disponible.</p>
+    )}
+
+    <!-- Tags / Category -->
+    <div class="mt-12 pt-6 border-t border-border flex flex-wrap gap-2">
+      {article.categoria && (
+        <a href={`/${BRAND}/bitacora`} class="inline-flex items-center gap-1.5 bg-surface-sunken text-text-secondary text-xs font-medium rounded-full px-3.5 py-2 hover:bg-brand-muted hover:text-brand transition-colors">
+          # {article.categoria}
+        </a>
+      )}
+      <a href={`/${BRAND}/bitacora`} class="inline-flex items-center gap-1.5 bg-surface-sunken text-text-secondary text-xs font-medium rounded-full px-3.5 py-2 hover:bg-brand-muted hover:text-brand transition-colors">
+        # Bitácora
+      </a>
+    </div>
+
+    <!-- Author Box -->
+    <div class="mt-10 p-6 rounded-2xl bg-surface-sunken border border-border">
+      <div class="flex items-start gap-4">
+        <div class="w-14 h-14 rounded-full bg-brand-muted flex items-center justify-center text-2xl shrink-0">
+          {ICON}
+        </div>
+        <div>
+          <p class="font-semibold text-text-primary mb-1">{AUTHOR}</p>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            Publicamos conocimiento práctico sobre territorio, sostenibilidad y desarrollo rural en Colombia.
+            Cada artículo es revisado por nuestro equipo técnico.
+          </p>
+          <p class="text-xs text-text-muted mt-2">{LOCATION}</p>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Related Articles -->
+  {relatedPosts.length > 0 && (
+    <section class="bg-surface-sunken py-16">
+      <div class="max-w-6xl mx-auto px-6">
+        <h2 class="text-2xl font-bold text-text-primary mb-8">Sigue leyendo</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          {relatedPosts.map(post => (
+            <a href={`/${BRAND}/bitacora/${post.slug}`} class="group block bg-surface-raised rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+              <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">
+                <span class="text-3xl opacity-40">{ICON}</span>
+              </div>
+              <div class="p-5">
+                {post.categoria && (
+                  <span class="inline-block bg-brand-muted text-brand text-[10px] font-semibold rounded-full px-2.5 py-0.5 mb-2.5 uppercase tracking-wide">
+                    {post.categoria}
+                  </span>
+                )}
+                <h3 class="text-sm font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors line-clamp-2">
+                  {post.titulo}
+                </h3>
+                <p class="text-xs text-text-muted line-clamp-2">{post.extracto}</p>
+                <div class="mt-3 flex items-center gap-2 text-[11px] text-text-muted">
+                  <span>{formatFecha(post.fecha)}</span>
+                  {post.tiempo_lectura && (
+                    <>
+                      <span class="w-0.5 h-0.5 rounded-full bg-text-muted"></span>
+                      <span>{post.tiempo_lectura} min</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</BrandLayout>

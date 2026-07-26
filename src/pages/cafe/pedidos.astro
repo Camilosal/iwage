@@ -1,0 +1,79 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+
+const POS_URL = 'https://cafe.iwage.co/pos-self/2?access_token=7e3af3cbe34146ad';
+---
+
+<BrandLayout brand="cafe" title="Pedidos en línea · Café Iwagé" description="Pide tu café de origen, infusiones y signatures directamente desde nuestro sistema de pedidos en línea. Recogida en tienda o entrega local.">
+  <!-- Header compacto -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-8 md:py-10 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-2">Café Iwagé</p>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight font-display">Pide en línea</h1>
+      <p class="mt-3 text-dark-text/60 max-w-xl mx-auto text-sm md:text-base">
+        Explora el menú, arma tu pedido y págalo sin salir de esta página.
+      </p>
+    </div>
+  </section>
+
+  <!-- Sistema de pedidos incrustado (Odoo POS Self-Order) -->
+  <section class="bg-surface">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
+      <div id="pos-wrapper" class="relative w-full overflow-hidden rounded-2xl border border-border bg-white shadow-sm" style="height: min(85vh, 900px); min-height: 560px;">
+        <!-- Estado de carga -->
+        <div id="pos-loading" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-surface">
+          <span class="text-4xl animate-pulse">☕</span>
+          <div class="flex items-center gap-2 text-sm text-text-secondary">
+            <svg class="w-4 h-4 animate-spin text-accent" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            Cargando el sistema de pedidos…
+          </div>
+        </div>
+
+        <iframe
+          id="pos-frame"
+          src={POS_URL}
+          title="Pedidos en línea · Café Iwagé"
+          class="absolute inset-0 h-full w-full border-0"
+          allow="payment; clipboard-write"
+          referrerpolicy="strict-origin-when-cross-origin"
+          loading="eager"
+        ></iframe>
+      </div>
+
+      <!-- Fallback si el navegador bloquea el marco -->
+      <div class="mt-4 flex flex-col items-center gap-2 text-center">
+        <p class="text-xs text-text-muted">
+          ¿No carga el pedido?
+          <a href={POS_URL} target="_blank" rel="noopener" class="text-brand font-medium underline underline-offset-2 hover:text-accent transition-colors">
+            Ábrelo en una pestaña nueva
+          </a>
+        </p>
+        <p class="text-xs text-text-muted">
+          Precios en COP · Recogida en tienda o entrega local en Ibagué · Pago en línea o contra entrega.
+        </p>
+      </div>
+    </div>
+  </section>
+</BrandLayout>
+
+<script>
+  // Ocultar el estado de carga cuando el POS termine de cargar
+  const frame = document.getElementById('pos-frame') as HTMLIFrameElement | null;
+  const loading = document.getElementById('pos-loading');
+  if (frame && loading) {
+    frame.addEventListener('load', () => {
+      loading.classList.add('opacity-0', 'pointer-events-none', 'transition-opacity', 'duration-300');
+      setTimeout(() => loading.remove(), 350);
+    });
+    // Red de seguridad: si a los 12s no ha cargado, se muestra igual el marco
+    setTimeout(() => {
+      if (document.body.contains(loading)) {
+        loading.classList.add('opacity-0', 'pointer-events-none', 'transition-opacity', 'duration-300');
+        setTimeout(() => loading.remove(), 350);
+      }
+    }, 12000);
+  }
+</script>

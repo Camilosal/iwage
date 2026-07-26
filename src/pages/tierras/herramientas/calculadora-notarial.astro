@@ -1,0 +1,228 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+export const prerender = true;
+---
+
+<BrandLayout brand="tierras" title="Calculadora Notarial · Iwagé Tierras" description="Estima los gastos de escrituración, registro, beneficencia y retención para tu compra de propiedad rural en Colombia. Desglose completo comprador y vendedor.">
+
+  <section class="bg-[#0F120E] text-white py-12">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Herramientas de Inversión</p>
+      <h1 class="text-3xl md:text-4xl font-bold">Calculadora de Gastos Notariales</h1>
+      <p class="text-white/60 mt-3 max-w-xl mx-auto">Desglose completo de costos de escrituración para compraventa de inmuebles rurales en Colombia. Basado en la legislación vigente.</p>
+    </div>
+  </section>
+
+  <section class="bg-[#FAFAF7] py-12">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Input Panel -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm sticky top-24">
+            <h2 class="font-bold text-[#1B4332] mb-4">Datos de la operación</h2>
+            <div class="space-y-5">
+              <div>
+                <label class="block text-sm font-medium text-[#1B4332] mb-1.5">Valor del inmueble (COP)</label>
+                <input type="text" id="valor-inmueble" value="200.000.000" inputmode="numeric"
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3 text-lg font-medium focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-colors" />
+                <p class="text-xs text-gray-400 mt-1">Ej: 200.000.000 = $200 millones</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#1B4332] mb-1.5">Tipo de operación</label>
+                <select id="tipo-operacion" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]">
+                  <option value="compraventa">Compraventa</option>
+                  <option value="arriendo">Arrendamiento</option>
+                </select>
+              </div>
+              <button id="btn-calcular" class="w-full bg-[#1B4332] text-white py-3.5 rounded-xl font-bold hover:bg-[#1B4332]/90 transition-all active:scale-[0.98]">
+                Calcular Gastos
+              </button>
+            </div>
+
+            <!-- Info box -->
+            <div class="mt-6 p-4 bg-[#52B788]/5 rounded-xl border border-[#52B788]/15">
+              <h3 class="text-xs font-bold text-[#1B4332] uppercase tracking-wider mb-2">¿Qué incluye?</h3>
+              <ul class="space-y-1.5 text-xs text-gray-500">
+                <li class="flex items-start gap-1.5"><span class="text-[#52B788]">•</span> Derechos notariales (escrituración)</li>
+                <li class="flex items-start gap-1.5"><span class="text-[#52B788]">•</span> Impuesto de beneficencia y registro</li>
+                <li class="flex items-start gap-1.5"><span class="text-[#52B788]">•</span> Derechos de inscripción (ORIP)</li>
+                <li class="flex items-start gap-1.5"><span class="text-[#52B788]">•</span> Certificado de Tradición y Libertad</li>
+                <li class="flex items-start gap-1.5"><span class="text-[#52B788]">•</span> Retención en la fuente (vendedor)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="lg:col-span-2">
+          <!-- Empty state -->
+          <div id="empty-state" class="bg-white rounded-2xl p-12 border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center min-h-[400px]">
+            <span class="text-5xl mb-4">📋</span>
+            <h3 class="text-lg font-bold text-[#1B4332] mb-2">Ingresa el valor del inmueble</h3>
+            <p class="text-gray-500 text-sm max-w-xs">Haz clic en "Calcular Gastos" para ver el desglose completo de costos para comprador y vendedor.</p>
+          </div>
+
+          <!-- Results (hidden initially) -->
+          <div id="resultados" class="hidden space-y-6">
+            <!-- Summary cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="bg-[#52B788]/10 rounded-2xl p-5 border border-[#52B788]/20 text-center">
+                <p class="text-xs text-gray-500 mb-1">Total Comprador</p>
+                <p class="text-2xl font-bold text-[#1B4332]" id="total-comprador">—</p>
+              </div>
+              <div class="bg-white rounded-2xl p-5 border border-gray-100 text-center">
+                <p class="text-xs text-gray-500 mb-1">Total Vendedor</p>
+                <p class="text-2xl font-bold text-[#1B4332]" id="total-vendedor">—</p>
+              </div>
+              <div class="bg-white rounded-2xl p-5 border border-gray-100 text-center">
+                <p class="text-xs text-gray-500 mb-1">Total Operación</p>
+                <p class="text-2xl font-bold text-[#52B788]" id="total-operacion">—</p>
+              </div>
+            </div>
+
+            <!-- Detailed breakdown -->
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 class="font-bold text-[#1B4332] mb-4">Desglose de costos</h3>
+              <div class="space-y-1" id="desglose-items"></div>
+            </div>
+
+            <!-- Percentage bar -->
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 class="font-bold text-[#1B4332] mb-3">Costo total como % del inmueble</h3>
+              <div class="flex items-center gap-4">
+                <div class="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                  <div id="pct-bar" class="h-full bg-gradient-to-r from-[#52B788] to-[#1B4332] rounded-full transition-all duration-700" style="width: 0%"></div>
+                </div>
+                <span class="text-lg font-bold text-[#1B4332]" id="pct-label">0%</span>
+              </div>
+              <div class="flex justify-between mt-2 text-xs text-gray-400">
+                <span>Comprador: <strong id="pct-comprador" class="text-[#1B4332]">0%</strong></span>
+                <span>Vendedor: <strong id="pct-vendedor" class="text-[#1B4332]">0%</strong></span>
+              </div>
+            </div>
+
+            <!-- Legal note -->
+            <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+              <p class="text-sm text-blue-800"><strong>Nota legal:</strong> Los valores son referenciales basados en la legislación colombiana vigente (Decreto 960 de 1970, Ley 1537 de 2012). Los porcentajes pueden variar según el municipio y la notaría. Consulte con un abogado o notaría para valores exactos.</p>
+            </div>
+
+            <!-- CTA -->
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 class="font-bold text-[#1B4332]">¿Necesitas asesoría especializada?</h3>
+                <p class="text-sm text-gray-500">Contamos con red de notarías y abogados especializados en propiedad rural.</p>
+              </div>
+              <div class="flex gap-3 shrink-0">
+                <a href="/tierras/propiedades" class="px-5 py-2.5 bg-[#52B788] text-[#0F120E] rounded-full text-sm font-bold hover:bg-[#52B788]/90 transition-all">Ver propiedades</a>
+                <a href="/tierras/vender" class="px-5 py-2.5 border border-[#1B4332] text-[#1B4332] rounded-full text-sm font-bold hover:bg-[#1B4332]/5 transition-all">Vender mi finca</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Format number with dots as thousand separators
+    function formatInput(el: HTMLInputElement) {
+      const raw = el.value.replace(/\D/g, '');
+      el.value = raw ? Number(raw).toLocaleString('es-CO') : '';
+    }
+
+    const valorInput = document.getElementById('valor-inmueble') as HTMLInputElement;
+    valorInput.addEventListener('input', () => formatInput(valorInput));
+
+    function parseValor(str: string): number {
+      return Number(str.replace(/\./g, '').replace(/,/g, '')) || 0;
+    }
+
+    function fmt(n: number): string {
+      return '$' + Math.round(n).toLocaleString('es-CO');
+    }
+
+    document.getElementById('btn-calcular')!.addEventListener('click', () => {
+      const valor = parseValor(valorInput.value);
+      const tipo = (document.getElementById('tipo-operacion') as HTMLSelectElement).value;
+
+      if (valor <= 0) return;
+
+      let items: { label: string; desc: string; amount: number; side: 'comprador' | 'vendedor' | 'ambos' }[] = [];
+      let totalComprador = 0;
+      let totalVendedor = 0;
+
+      if (tipo === 'compraventa') {
+        // Colombian notarial costs — Decreto 960/1970 + Ley 1537/2012
+        const derechosNotarialesTotal = valor * 0.003; // 0.3% (tope máximo)
+        const derechosComprador = derechosNotarialesTotal / 2;
+        const derechosVendedor = derechosNotarialesTotal / 2;
+        const retencionFuente = valor * 0.01; // 1% retención en la fuente (vendedor)
+        const beneficencia = valor * 0.01; // 1% impuesto de beneficencia y registro
+        const inscripcion = valor * 0.005; // 0.5% derechos de inscripción ORIP
+        const certificado = 23000; // Certificado de Tradición y Libertad (fijo)
+        const ivaNotarial = derechosComprador * 0.19; // IVA sobre derechos notariales
+
+        totalComprador = derechosComprador + ivaNotarial + beneficencia + inscripcion + certificado;
+        totalVendedor = derechosVendedor + retencionFuente;
+
+        items = [
+          { label: 'Derechos notariales (comprador)', desc: 'Honorarios de escrituración — 50% del 0.3%', amount: derechosComprador, side: 'comprador' },
+          { label: 'IVA derechos notariales', desc: '19% sobre honorarios de escrituración', amount: ivaNotarial, side: 'comprador' },
+          { label: 'Impuesto de beneficencia y registro', desc: '1% del valor del inmueble (Gobernación)', amount: beneficencia, side: 'comprador' },
+          { label: 'Derechos de inscripción (ORIP)', desc: '0.5% — Oficina de Registro de Instrumentos Públicos', amount: inscripcion, side: 'comprador' },
+          { label: 'Certificado de Tradición y Libertad', desc: 'Documento necesario para la transacción', amount: certificado, side: 'comprador' },
+          { label: 'Derechos notariales (vendedor)', desc: 'Honorarios de escrituración — 50% del 0.3%', amount: derechosVendedor, side: 'vendedor' },
+          { label: 'Retención en la fuente (vendedor)', desc: '1% del valor de la venta (DIAN)', amount: retencionFuente, side: 'vendedor' },
+        ];
+      } else {
+        // Arriendo
+        const derechosNotariales = 150000;
+        const certificado = 23000;
+        totalComprador = derechosNotariales / 2 + certificado; // arrendatario
+        totalVendedor = derechosNotariales / 2; // arrendador
+
+        items = [
+          { label: 'Derechos notariales (arrendador)', desc: 'Autenticación del contrato', amount: derechosNotariales / 2, side: 'vendedor' },
+          { label: 'Derechos notariales (arrendatario)', desc: 'Autenticación del contrato', amount: derechosNotariales / 2, side: 'comprador' },
+          { label: 'Certificado de Tradición y Libertad', desc: 'Verificación de propiedad', amount: certificado, side: 'comprador' },
+        ];
+      }
+
+      const totalOperacion = totalComprador + totalVendedor;
+
+      // Render summary
+      document.getElementById('total-comprador')!.textContent = fmt(totalComprador);
+      document.getElementById('total-vendedor')!.textContent = fmt(totalVendedor);
+      document.getElementById('total-operacion')!.textContent = fmt(totalOperacion);
+
+      // Render breakdown
+      const container = document.getElementById('desglose-items')!;
+      container.innerHTML = items.map(item => `
+        <div class="flex items-center justify-between py-3 px-4 rounded-xl ${item.side === 'comprador' ? 'bg-[#52B788]/5' : item.side === 'vendedor' ? 'bg-orange-50' : 'bg-gray-50'} border-b border-gray-50 last:border-0">
+          <div class="flex-1">
+            <p class="font-medium text-sm text-[#1B4332]">${item.label}</p>
+            <p class="text-xs text-gray-400">${item.desc}</p>
+          </div>
+          <div class="text-right shrink-0 ml-4">
+            <p class="font-bold text-[#1B4332]">${fmt(item.amount)}</p>
+            <span class="text-[10px] uppercase tracking-wider ${item.side === 'comprador' ? 'text-[#52B788]' : 'text-orange-500'}">${item.side}</span>
+          </div>
+        </div>
+      `).join('');
+
+      // Percentage bar
+      const pctTotal = (totalOperacion / valor) * 100;
+      const pctComp = (totalComprador / valor) * 100;
+      const pctVend = (totalVendedor / valor) * 100;
+      document.getElementById('pct-bar')!.style.width = Math.min(pctTotal * 3, 100) + '%';
+      document.getElementById('pct-label')!.textContent = pctTotal.toFixed(2) + '%';
+      document.getElementById('pct-comprador')!.textContent = pctComp.toFixed(2) + '%';
+      document.getElementById('pct-vendedor')!.textContent = pctVend.toFixed(2) + '%';
+
+      // Show results
+      document.getElementById('empty-state')!.classList.add('hidden');
+      document.getElementById('resultados')!.classList.remove('hidden');
+    });
+  </script>
+</BrandLayout>

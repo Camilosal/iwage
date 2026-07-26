@@ -1,0 +1,17 @@
+{
+  "kind": "collectionType",
+  "collectionName": "proyecto_meliponarios",
+  "info": { "singularName": "proyecto-meliponario", "pluralName": "proyecto-meliponarios", "displayName": "Proyecto Meliponario" },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "nombre": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "nombre" },
+    "ubicacion": { "type": "string" },
+    "tipo": { "type": "enumeration", "enum": ["finca", "empresa", "club", "cultivo", "turismo"] },
+    "colmenas": { "type": "integer" },
+    "especies": { "type": "string" },
+    "estado": { "type": "enumeration", "enum": ["activo", "en-proceso"], "default": "activo" },
+    "descripcion": { "type": "text" },
+    "metricas": { "type": "json" }
+  }
+}

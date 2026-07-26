@@ -1,0 +1,98 @@
+---
+import '@/styles/global.css';
+import BrandNavbar from '@/components/brand/BrandNavbar.astro';
+import BrandFooter from '@/components/brand/BrandFooter.astro';
+import ChatWidget from '@/components/ChatWidget.astro';
+import { getBrandFromPath, defaultBrand } from '@/config/brands';
+import type { BrandConfig } from '@/config/brands/types';
+
+interface Props {
+  title?: string;
+  description?: string;
+  brand?: string;
+}
+
+const props = Astro.props;
+
+// Resolve brand: explicit prop > URL detection > default
+const brandSlug = props.brand ?? getBrandFromPath(Astro.url.pathname)?.slug;
+const brandConfig: BrandConfig = brandSlug
+  ? (await import('@/config/brands')).getBrand(brandSlug) ?? defaultBrand
+  : defaultBrand;
+
+const title = props.title ?? brandConfig.seo.defaultTitle;
+const description = props.description ?? brandConfig.seo.defaultDescription;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://iwage.co');
+
+// Structured data: Organization with parentOrganization
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `https://iwage.co/${brandConfig.slug}/#organization`,
+  "name": brandConfig.name,
+  "url": `https://iwage.co/${brandConfig.slug}/`,
+  "description": brandConfig.seo.defaultDescription,
+  "parentOrganization": {
+    "@id": "https://iwage.co/#organization",
+    "@type": "Organization",
+    "name": "Iwagé",
+    "url": "https://iwage.co"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Ibagué",
+    "addressRegion": "Tolima",
+    "addressCountry": "CO"
+  }
+};
+
+---
+
+<!doctype html>
+<html lang="es" data-brand={brandConfig.slug}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL.href} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:site_name" content="Iwagé" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Theme init (no flash) -->
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem('iwage-theme');
+        var dark = stored
+          ? stored === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <BrandNavbar brand={brandConfig} />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <BrandFooter brand={brandConfig} />
+    <ChatWidget />
+  </body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "kind": "singleType",
+  "collectionName": "cafe_configs",
+  "info": { "singularName": "cafe-config", "pluralName": "cafe-configs", "displayName": "Café Config" },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "titulo": { "type": "string" },
+    "descripcion": { "type": "text" },
+    "horario": { "type": "text" },
+    "direccion": { "type": "string" },
+    "telefono": { "type": "string" },
+    "whatsapp": { "type": "string" },
+    "instagram": { "type": "string" },
+    "email": { "type": "email" },
+    "b2b_titulo": { "type": "string" },
+    "b2b_descripcion": { "type": "text" },
+    "b2b_whatsapp": { "type": "string" },
+    "historia": { "type": "richtext" },
+    "imagen_hero": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "mapa_url": { "type": "string" }
+  }
+}

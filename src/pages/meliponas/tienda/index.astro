@@ -1,0 +1,91 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import TabGroup from '@/components/TabGroup.astro';
+import ProductCard from '@/components/ProductCard.astro';
+import CartDrawer from '@/components/CartDrawer.astro';
+import { SEO } from '@/config/site';
+
+const tabs = [
+  { id: 'miel', label: 'Miel' },
+  { id: 'cajas', label: 'Cajas' },
+  { id: 'kits', label: 'Kits' },
+  { id: 'asistencia', label: 'Asistencia' },
+];
+
+const productos = {
+  miel: [
+    { name: 'Miel Angelita 250ml', description: 'Miel pura de Tetragonisca angustula. Cosecha mayo 2025, flora de guamo y café.', price: 45000, presentation: '250 ml · Lote L25-05-001', destacado: true },
+    { name: 'Miel Angelita 500ml', description: 'Presentación familiar. Misma cosecha, perfil cítrico con final floral.', price: 78000, presentation: '500 ml · Lote L25-05-001' },
+    { name: 'Miel Angelita 120ml', description: 'Presentación degustación. Ideal para regalo o primera experiencia.', price: 25000, presentation: '120 ml · Lote L25-05-001' },
+    { name: 'Miel con propóleo 250ml', description: 'Blend de miel y propóleo de Angelita. Sabor intenso, notas resinosas.', price: 52000, presentation: '250 ml · Edición limitada' },
+  ],
+  cajas: [
+    { name: 'Caja INPA Nogal Cafetero', description: 'Modelo INPA en madera de nogal cafetero. Incluye trampas de forrajeo y base.', price: 180000, presentation: 'Nogal cafetero · 30×20×15 cm', destacado: true },
+    { name: 'Caja AF Estándar', description: 'Modelo Augusto Ferreira con piso móvil y tapa de observación.', price: 165000, presentation: 'Nogal cafetero · 28×18×14 cm' },
+    { name: 'Caja INPA con atril', description: 'Caja INPA montada sobre atril de guadua. Lista para instalar.', price: 220000, presentation: 'Incluye atril · Instalación fácil' },
+  ],
+  kits: [
+    { name: 'Kit Inicio Meliponicultor', description: 'Caja INPA + atril + guía impresa + 1 visita técnica de acompañamiento.', price: 280000, presentation: 'Todo para empezar', destacado: true },
+    { name: 'Kit Educativo PRAE', description: '2 cajas + material didáctico + 3 talleres presenciales para colegio.', price: 650000, presentation: 'Para instituciones educativas' },
+    { name: 'Kit Observación', description: 'Caja con tapa acrílica + lupa + cuaderno de campo. Ideal para niños.', price: 195000, presentation: 'Tapa transparente · Seguro' },
+  ],
+  asistencia: [
+    { name: 'Asistencia Técnica Mensual', description: 'Visita mensual de revisión, diagnóstico y recomendaciones. Contrato mínimo 3 meses.', price: 120000, presentation: 'Por visita · Contrato trimestral' },
+  ],
+};
+---
+
+<BrandLayout title={SEO.tienda.title} description={SEO.tienda.description}>
+  <!-- Hero -->
+  <section class="bg-surface pt-12 pb-8">
+    <div class="max-w-6xl mx-auto px-6">
+      <SectionHeader
+        label="Tienda"
+        title="Productos del meliponario"
+        subtitle="Miel con trazabilidad por lote, cajas en nogal cafetero y kits para empezar tu meliponario."
+      />
+    </div>
+  </section>
+
+  <!-- Shipping info -->
+  <div class="max-w-6xl mx-auto px-6 mb-8">
+    <div class="bg-accent-muted rounded-xl px-5 py-3 flex items-center gap-3">
+      <i data-lucide="truck" class="w-5 h-5 text-accent shrink-0"></i>
+      <p class="text-sm text-text-secondary">
+        Envío a todo Colombia · Pago contra entrega disponible en Ibagué · Empaque refrigerado para miel
+      </p>
+    </div>
+  </div>
+
+  <!-- Products -->
+  <Section class="!pt-0">
+    <TabGroup tabs={tabs} defaultTab="miel">
+      {Object.entries(productos).map(([cat, items]) => (
+        <div data-panel={cat} class="tab-panel">
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((p, i) => (
+              <ScrollReveal delay={i * 80}>
+                <ProductCard {...p} />
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      ))}
+    </TabGroup>
+  </Section>
+
+  <!-- Cart FAB -->
+  <button
+    id="cart-fab"
+    type="button"
+    class="fixed bottom-6 left-6 z-40 w-14 h-14 bg-brand text-white rounded-full shadow-lg flex items-center justify-center hover:bg-brand-light hover:scale-105 transition-all"
+    aria-label="Ver carrito"
+  >
+    <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+  </button>
+
+  <CartDrawer />
+</BrandLayout>

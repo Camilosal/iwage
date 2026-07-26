@@ -1,0 +1,106 @@
+---
+interface MapExperiencia {
+  slug: string;
+  titulo: string;
+  categoria: string | null;
+  precio_desde: number | null;
+  dificultad: number | null;
+  latitud: number | null;
+  longitud: number | null;
+}
+
+interface Props {
+  experiencias: MapExperiencia[];
+}
+
+const { experiencias } = Astro.props;
+const withCoords = experiencias.filter((e) => e.latitud && e.longitud);
+---
+
+<div id="experiencias-map" class="w-full h-[500px] rounded-2xl overflow-hidden border border-[#EDE5D4] shadow-sm"></div>
+
+<script type="application/json" id="exp-map-data" set:html={JSON.stringify(withCoords.map((e) => ({
+  slug: e.slug,
+  titulo: e.titulo,
+  categoria: e.categoria || 'Naturaleza',
+  precio: e.precio_desde,
+  dificultad: e.dificultad,
+  lat: e.latitud,
+  lng: e.longitud,
+})))} />
+
+<script>
+
+  const mapEl = document.getElementById('experiencias-map');
+  const dataEl = document.getElementById('exp-map-data');
+
+  if (mapEl && dataEl) {
+    const exps = JSON.parse(dataEl.textContent || '[]');
+
+    if (!exps.length) {
+      mapEl.innerHTML = '<div class="flex items-center justify-center h-full bg-gray-100 text-gray-400">No hay experiencias con ubicación disponible</div>';
+    } else {
+      const CATEGORY_COLORS: Record<string, string> = {
+        'Naturaleza': '#40916C',
+        'Cultura': '#C8933E',
+        'Bienestar': '#7C3AED',
+        'Aventura': '#DC2626',
+        'Gastronomía': '#EA580C',
+      };
+
+      function initMap() {
+        const L = (window as any).L;
+        if (!L) { setTimeout(initMap, 200); return; }
+
+        const map = L.map('experiencias-map', { scrollWheelZoom: false }).setView([4.4389, -75.2322], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap',
+        }).addTo(map);
+
+        const bounds: any[] = [];
+
+        exps.forEach((exp: any) => {
+          const color = CATEGORY_COLORS[exp.categoria] || '#40916C';
+          const icon = L.divIcon({
+            className: 'exp-marker',
+            html: `<div style="background:${color};width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:12px;">🌿</span></div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 28],
+            popupAnchor: [0, -28],
+          });
+
+          const precio = exp.precio ? `$${(exp.precio / 1000).toFixed(0)}K` : 'Consultar';
+          const popup = `
+            <div style="min-width:180px;font-family:system-ui;">
+              <p style="font-weight:700;font-size:14px;margin:0 0 4px;color:#1a3009;">${exp.titulo}</p>
+              <p style="font-size:11px;color:#666;margin:0 0 4px;">${exp.categoria} · ${precio}</p>
+              <a href="/naturaleza/experiencias/${exp.slug}" style="font-size:12px;color:#40916C;font-weight:700;text-decoration:none;">Ver experiencia →</a>
+            </div>
+          `;
+
+          L.marker([exp.lat, exp.lng], { icon }).addTo(map).bindPopup(popup);
+          bounds.push([exp.lat, exp.lng]);
+        });
+
+        if (bounds.length > 0) {
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+        }
+      }
+
+      if (!(window as any).L) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        s.onload = () => initMap();
+        document.head.appendChild(s);
+      } else {
+        initMap();
+      }
+    }
+  }
+
+</script>

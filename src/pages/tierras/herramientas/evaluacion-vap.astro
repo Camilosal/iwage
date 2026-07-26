@@ -1,0 +1,549 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+export const prerender = true;
+---
+
+<BrandLayout brand="tierras" title="Evaluación VAP Interactiva · Iwagé Tierras" description="Herramienta interactiva para evaluar el Protocolo VAP (Verificación de Activos Rurales): checklist de auditoría, semáforo de riesgos y cálculo automático de sello.">
+
+  <section class="bg-[#0F120E] text-white py-12">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Herramientas de Inversión</p>
+      <h1 class="text-3xl md:text-4xl font-bold">Evaluación <span class="text-[#52B788]">VAP</span> Interactiva</h1>
+      <p class="text-white/60 mt-3 max-w-xl mx-auto">Recorre las 3 fases del protocolo de auditoría, marca el checklist y obtén el semáforo de riesgos con cálculo automático de sello.</p>
+    </div>
+  </section>
+
+  <div class="bg-[#FAFAF7] min-h-screen">
+    <div id="vap-app" class="max-w-4xl mx-auto px-4 py-10"></div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    // VAP Evaluation Engine — 100% Client-Side (No Flask/API dependency)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    const STORAGE_KEY = 'iwage-vap-evaluation';
+
+    // ── DATA: Universal Checklist (from backend verification.py) ──────────────
+    const CHECKLIST = [
+      // Phase 1: Documentación
+      { fase: 1, key: 'doc_titulo_propiedad', label: 'Título de propiedad o documento de posesión', tip: 'Escritura pública, acto administrativo (INCODER/ANT) o documento que pruebe la propiedad.', evidence: true },
+      { fase: 1, key: 'doc_certificado_libertad', label: 'Certificado de tradición y libertad (máx. 30 días)', tip: 'Revisar que no existan embargos, hipotecas vigentes o afectaciones a vivienda familiar.', evidence: true },
+      { fase: 1, key: 'doc_predial', label: 'Paz y salvo de impuesto predial vigente', tip: 'Es vital para realizar cualquier trámite de escrituración.', evidence: true },
+      { fase: 1, key: 'doc_cedula_catastral', label: 'Ficha catastral IGAC / Certificado de área', tip: 'Debe coincidir con el área del certificado de libertad.', evidence: true },
+      { fase: 1, key: 'doc_estado_juridico', label: 'Análisis de tenencia (Propiedad plena vs Posesión)', tip: 'Oro solo permite Propiedad Plena. Posesión o pro-indiviso → Plata/Bronce.', evidence: false },
+      { fase: 1, key: 'doc_restricciones_ambientales', label: 'Consulta de restricciones PBOT y ambientales', tip: 'Verificar si el predio está en zona de reserva, páramo o con restricciones de uso.', evidence: false },
+      // Phase 2: Visita & GPS
+      { fase: 2, key: 'campo_visita_realizada', label: 'Visita de campo realizada (fecha y hora)', tip: 'Es la base de la veracidad técnica de Iwagé.', evidence: false },
+      { fase: 2, key: 'campo_fotografias', label: 'Registro fotográfico georreferenciado', tip: 'Fotos del portón, linderos críticos, construcciones y fuentes de agua.', evidence: true },
+      { fase: 2, key: 'campo_gps_linderos', label: 'Georreferenciación GPS de linderos', tip: 'Fundamental para Sello Oro. Caminar los linderos con GPS.', evidence: true },
+      { fase: 2, key: 'campo_verificacion_area', label: 'Cruce de áreas: GPS vs Escritura', tip: 'Si la diferencia es mayor al 10%, marcar como alerta amarilla.', evidence: false },
+      { fase: 2, key: 'campo_fuentes_agua', label: 'Verificación de fuentes de agua y concesiones', tip: 'Identificar si tiene agua propia, concesión activa o servidumbre.', evidence: true },
+      { fase: 2, key: 'campo_acceso_vial', label: 'Evaluación de acceso vial', tip: 'Describir si entra automóvil, camioneta 4x4 o acceso peatonal/mular.', evidence: false },
+      { fase: 2, key: 'campo_colindantes', label: 'Verificación de colindantes y servidumbres', tip: 'Verificar invasiones, servidumbres no registradas o disputas.', evidence: false },
+      // Phase 3: Sello
+      { fase: 3, key: 'informe_diagnostico_juridico', label: 'Diagnóstico jurídico final del auditor', tip: 'Resumen de la solidez legal. Base para la calificación del metal.', evidence: false },
+      { fase: 3, key: 'informe_nota_transparencia', label: 'Nota de transparencia redactada', tip: 'Obligatoria para Plata y Bronce. Explicar el riesgo sin tecnicismos.', evidence: false },
+      { fase: 3, key: 'informe_sello_propuesto', label: 'Sello propuesto justificado', tip: 'Argumentar por qué se otorga el sello elegido. Control de calidad final.', evidence: false },
+    ];
+
+    const FASES = [
+      { num: 1, label: 'Documentación', desc: 'Recopilación y validación de documentos legales', icon: '📋' },
+      { num: 2, label: 'Visita & GPS', desc: 'Inspección física, fotografías y georreferenciación', icon: '🏕️' },
+      { num: 3, label: 'Veredicto', desc: 'Semáforo de riesgos, diagnóstico y emisión de sello', icon: '🏅' },
+    ];
+
+    const EJES = [
+      { id: 'titulos', label: 'Títulos y Propiedad', icon: '🔍' },
+      { id: 'linderos', label: 'Topografía y Linderos', icon: '🗺️' },
+      { id: 'aguas', label: 'Recurso Hídrico', icon: '💧' },
+      { id: 'uso_suelo', label: 'Uso de Suelo (PBOT)', icon: '🏗️' },
+    ];
+
+    const FLAG_STATES = [
+      { id: 'verde', label: 'Verificado', desc: 'Sin hallazgos', color: '#10B981', bg: 'bg-emerald-500' },
+      { id: 'amarilla', label: 'Advertencia', desc: 'Riesgo gestionable', color: '#F59E0B', bg: 'bg-amber-500' },
+      { id: 'roja', label: 'Crítico', desc: 'Bloqueo inmediato', color: '#EF4444', bg: 'bg-red-500' },
+    ];
+
+    const METALES = {
+      oro: { icon: '🥇', label: 'Sello Oro', tagline: 'Total paz mental', desc: 'Escritura saneada, sin cargas, sin restricciones. Apta para financiamiento bancario.', style: 'border-amber-400 bg-amber-50 text-amber-900' },
+      plata: { icon: '🥈', label: 'Sello Plata', tagline: 'Nudo gestionable', desc: 'Documentación sólida con nudo identificado. Ruta de saneamiento clara y presupuestada.', style: 'border-slate-300 bg-slate-50 text-slate-800' },
+      bronce: { icon: '🥉', label: 'Sello Bronce', tagline: 'Posesión informada', desc: 'Posesión histórica o nudos complejos. Venta de contado bajo consentimiento informado.', style: 'border-orange-300 bg-orange-50 text-orange-900' },
+      cuarentena: { icon: '🚫', label: 'Cuarentena', tagline: 'Bloqueo comercial', desc: 'Hallazgo crítico insalvable. La propiedad NO se comercializa hasta resolver.', style: 'border-red-300 bg-red-50 text-red-900' },
+    };
+
+    // ── STATE ─────────────────────────────────────────────────────────────────
+    let state = loadState();
+
+    function defaultState() {
+      return {
+        step: 0, // 0=info, 1=fase1, 2=fase2, 3=fase3, 4=result
+        property: { nombre: '', ubicacion: '', area: '', tipo: 'finca' },
+        checklist: {}, // key → 'completado' | 'no_aplica' | 'pendiente'
+        banderas: {}, // eje_id → 'verde' | 'amarilla' | 'roja'
+        notas: {}, // key → text
+        notaTransparencia: '',
+        conclusionAuditor: '',
+        costoSaneamiento: '',
+      };
+    }
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch(e) {}
+      return defaultState();
+    }
+
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+    }
+
+    function resetState() {
+      state = defaultState();
+      saveState();
+      render();
+    }
+
+    // ── LOGIC: Calculate Seal ─────────────────────────────────────────────────
+    function calcularSello() {
+      const flags = EJES.map(e => state.banderas[e.id] || 'verde');
+      if (flags.includes('roja')) return 'cuarentena';
+      const amarillas = flags.filter(f => f === 'amarilla').length;
+      if (amarillas === 0) return 'oro';
+      if (amarillas <= 2) return 'plata';
+      return 'bronce';
+    }
+
+    function getProgress() {
+      const total = CHECKLIST.length;
+      const done = CHECKLIST.filter(c => {
+        const s = state.checklist[c.key];
+        return s === 'completado' || s === 'no_aplica';
+      }).length;
+      return { done, total, pct: Math.round((done / total) * 100) };
+    }
+
+    function getFaseProgress(fase) {
+      const items = CHECKLIST.filter(c => c.fase === fase);
+      const done = items.filter(c => {
+        const s = state.checklist[c.key];
+        return s === 'completado' || s === 'no_aplica';
+      }).length;
+      return { done, total: items.length };
+    }
+
+    // ── RENDER ────────────────────────────────────────────────────────────────
+    function render() {
+      const app = document.getElementById('vap-app');
+      if (!app) return;
+
+      const progress = getProgress();
+      const sello = calcularSello();
+
+      app.innerHTML = `
+        <!-- Progress Bar -->
+        <div class="mb-8">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Progreso de Auditoría</span>
+            <span class="text-xs font-bold text-[#1B4332]">${progress.done}/${progress.total} ítems · ${progress.pct}%</span>
+          </div>
+          <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-[#52B788] rounded-full transition-all duration-500" style="width:${progress.pct}%"></div>
+          </div>
+        </div>
+
+        <!-- Phase Stepper -->
+        <div class="flex items-center gap-1 mb-8 overflow-x-auto pb-2">
+          <button data-step="0" class="step-btn ${state.step === 0 ? 'step-active' : ''}">📝 Info</button>
+          ${FASES.map(f => {
+            const fp = getFaseProgress(f.num);
+            const complete = fp.done === fp.total;
+            return `<button data-step="${f.num}" class="step-btn ${state.step === f.num ? 'step-active' : ''} ${complete ? 'step-complete' : ''}">${f.icon} ${f.label} <span class="step-badge">${fp.done}/${fp.total}</span></button>`;
+          }).join('')}
+          <button data-step="4" class="step-btn ${state.step === 4 ? 'step-active' : ''}">🏅 Resultado</button>
+        </div>
+
+        <!-- Content -->
+        <div class="vap-content">
+          ${state.step === 0 ? renderInfo() : ''}
+          ${state.step === 1 ? renderFase(1) : ''}
+          ${state.step === 2 ? renderFase(2) : ''}
+          ${state.step === 3 ? renderFase3() : ''}
+          ${state.step === 4 ? renderResult(sello) : ''}
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+          <button id="btn-prev" class="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors ${state.step === 0 ? 'invisible' : ''}">← Anterior</button>
+          <button id="btn-reset" class="px-4 py-2 rounded-xl text-xs font-medium text-red-500 hover:bg-red-50 transition-colors">Reiniciar</button>
+          <button id="btn-next" class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#1B4332] hover:bg-[#52B788] transition-colors ${state.step === 4 ? 'invisible' : ''}">Siguiente →</button>
+        </div>
+      `;
+
+      bindEvents();
+      saveState();
+    }
+
+    function renderInfo() {
+      const p = state.property;
+      return `
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+          <h2 class="text-xl font-bold text-[#1B4332] mb-1">Datos del Predio</h2>
+          <p class="text-sm text-gray-500 mb-6">Información básica de la propiedad a auditar.</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Nombre del predio</label>
+              <input id="inp-nombre" type="text" value="${esc(p.nombre)}" placeholder="Finca El Mirador" class="vap-input" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Ubicación</label>
+              <input id="inp-ubicacion" type="text" value="${esc(p.ubicacion)}" placeholder="Ambalá, Ibagué — Tolima" class="vap-input" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Área (hectáreas)</label>
+              <input id="inp-area" type="text" value="${esc(p.area)}" placeholder="12.5" class="vap-input" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Tipo de propiedad</label>
+              <select id="inp-tipo" class="vap-input">
+                <option value="finca" ${p.tipo==='finca'?'selected':''}>Finca productiva</option>
+                <option value="lote" ${p.tipo==='lote'?'selected':''}>Lote / Parcela</option>
+                <option value="casa" ${p.tipo==='casa'?'selected':''}>Casa campestre</option>
+                <option value="glamping" ${p.tipo==='glamping'?'selected':''}>Glamping / Turística</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-6 p-4 bg-[#52B788]/5 border border-[#52B788]/20 rounded-xl">
+            <p class="text-xs text-[#1B4332] font-medium">💡 <strong>Protocolo VAP</strong> = Verificación de Activos Rurales. 3 fases → 16 ítems de checklist → Semáforo de 4 ejes → Sello automático (Oro/Plata/Bronce/Cuarentena).</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFase(fase) {
+      const items = CHECKLIST.filter(c => c.fase === fase);
+      const meta = FASES.find(f => f.num === fase);
+      return `
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="text-3xl">${meta.icon}</span>
+            <div>
+              <h2 class="text-xl font-bold text-[#1B4332]">Fase ${fase}: ${meta.label}</h2>
+              <p class="text-sm text-gray-500">${meta.desc}</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            ${items.map(item => {
+              const status = state.checklist[item.key] || 'pendiente';
+              const nota = state.notas[item.key] || '';
+              return `
+                <div class="checklist-item ${status !== 'pendiente' ? 'checklist-done' : ''}" data-key="${item.key}">
+                  <div class="flex items-start gap-3">
+                    <div class="flex flex-col gap-1 pt-0.5">
+                      <button class="chk-btn ${status === 'completado' ? 'chk-active' : ''}" data-key="${item.key}" data-val="completado" title="Completado">✓</button>
+                      <button class="chk-btn chk-na ${status === 'no_aplica' ? 'chk-na-active' : ''}" data-key="${item.key}" data-val="no_aplica" title="No aplica">N/A</button>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2">
+                        <p class="text-sm font-medium text-gray-800 ${status !== 'pendiente' ? 'line-through opacity-60' : ''}">${item.label}</p>
+                        ${item.evidence ? '<span class="shrink-0 text-[9px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">📎 Evidencia</span>' : ''}
+                      </div>
+                      <p class="text-xs text-gray-400 mt-0.5">${item.tip}</p>
+                      <input type="text" class="nota-input" data-key="${item.key}" value="${esc(nota)}" placeholder="Observación (opcional)..." />
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFase3() {
+      const meta = FASES[2];
+      return `
+        <div class="space-y-6">
+          <!-- Checklist Fase 3 -->
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <div class="flex items-center gap-3 mb-6">
+              <span class="text-3xl">${meta.icon}</span>
+              <div>
+                <h2 class="text-xl font-bold text-[#1B4332]">Fase 3: ${meta.label}</h2>
+                <p class="text-sm text-gray-500">${meta.desc}</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              ${CHECKLIST.filter(c => c.fase === 3).map(item => {
+                const status = state.checklist[item.key] || 'pendiente';
+                const nota = state.notas[item.key] || '';
+                return `
+                  <div class="checklist-item ${status !== 'pendiente' ? 'checklist-done' : ''}" data-key="${item.key}">
+                    <div class="flex items-start gap-3">
+                      <div class="flex flex-col gap-1 pt-0.5">
+                        <button class="chk-btn ${status === 'completado' ? 'chk-active' : ''}" data-key="${item.key}" data-val="completado" title="Completado">✓</button>
+                        <button class="chk-btn chk-na ${status === 'no_aplica' ? 'chk-na-active' : ''}" data-key="${item.key}" data-val="no_aplica" title="No aplica">N/A</button>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 ${status !== 'pendiente' ? 'line-through opacity-60' : ''}">${item.label}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">${item.tip}</p>
+                        <input type="text" class="nota-input" data-key="${item.key}" value="${esc(nota)}" placeholder="Observación..." />
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Semáforo VAP -->
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <h3 class="text-lg font-bold text-[#1B4332] mb-1">Semáforo de Riesgos</h3>
+            <p class="text-sm text-gray-500 mb-5">Estado de cada eje de auditoría. El sello se calcula automáticamente.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              ${EJES.map(eje => {
+                const current = state.banderas[eje.id] || 'verde';
+                return `
+                  <div class="p-4 rounded-xl border ${current === 'verde' ? 'border-emerald-200 bg-emerald-50/50' : current === 'amarilla' ? 'border-amber-200 bg-amber-50/50' : 'border-red-200 bg-red-50/50'}">
+                    <div class="flex items-center gap-2 mb-3">
+                      <span class="text-xl">${eje.icon}</span>
+                      <span class="text-sm font-bold text-gray-800">${eje.label}</span>
+                    </div>
+                    <div class="flex gap-2">
+                      ${FLAG_STATES.map(fs => `
+                        <button class="flag-btn ${current === fs.id ? 'flag-active' : ''}" data-eje="${eje.id}" data-flag="${fs.id}" style="--flag-color:${fs.color}" title="${fs.label}: ${fs.desc}">
+                          <span class="flag-dot" style="background:${fs.color}"></span>
+                          <span class="text-[10px] font-bold">${fs.label}</span>
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Nota de Transparencia + Conclusión -->
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <h3 class="text-lg font-bold text-[#1B4332] mb-4">Informe del Auditor</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Nota de transparencia <span class="text-red-400">(obligatoria para Plata/Bronce)</span></label>
+                <textarea id="inp-nota-transparencia" rows="3" class="vap-input resize-none" placeholder="Explicar el riesgo de forma que un comprador lo entienda sin tecnicismos...">${esc(state.notaTransparencia)}</textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Conclusión del auditor</label>
+                <textarea id="inp-conclusion" rows="2" class="vap-input resize-none" placeholder="Veredicto técnico final...">${esc(state.conclusionAuditor)}</textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Costo estimado de saneamiento (COP)</label>
+                <input id="inp-costo" type="text" value="${esc(state.costoSaneamiento)}" placeholder="0 = no aplica" class="vap-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderResult(sello) {
+      const metal = METALES[sello];
+      const progress = getProgress();
+      const flags = EJES.map(e => ({ ...e, estado: state.banderas[e.id] || 'verde' }));
+      const amarillas = flags.filter(f => f.estado === 'amarilla').length;
+      const rojas = flags.filter(f => f.estado === 'roja').length;
+      const p = state.property;
+
+      return `
+        <div class="space-y-6">
+          <!-- Seal Card -->
+          <div class="rounded-2xl border-2 p-8 text-center ${metal.style} shadow-lg">
+            <span class="text-6xl block mb-3">${metal.icon}</span>
+            <h2 class="text-2xl font-bold">${metal.label}</h2>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-3">${metal.tagline}</p>
+            <p class="text-sm max-w-md mx-auto opacity-80">${metal.desc}</p>
+            ${p.nombre ? `<p class="mt-4 text-xs font-bold opacity-50 uppercase tracking-wider">Predio: ${esc(p.nombre)} ${p.area ? '· ' + esc(p.area) + ' ha' : ''}</p>` : ''}
+          </div>
+
+          <!-- Semaphore Summary -->
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4">Semáforo de Riesgos</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              ${flags.map(f => {
+                const fs = FLAG_STATES.find(s => s.id === f.estado);
+                return `
+                  <div class="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <span class="text-2xl block mb-1">${f.icon}</span>
+                    <span class="text-[10px] font-bold text-gray-600 block mb-2">${f.label}</span>
+                    <span class="inline-block w-4 h-4 rounded-full shadow-sm" style="background:${fs.color}" title="${fs.label}"></span>
+                    <span class="text-[9px] font-bold block mt-1" style="color:${fs.color}">${fs.label}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div class="mt-4 flex items-center justify-center gap-4 text-xs text-gray-500">
+              <span>🟢 ${flags.filter(f=>f.estado==='verde').length} verificados</span>
+              <span>🟡 ${amarillas} advertencias</span>
+              <span>🔴 ${rojas} críticos</span>
+            </div>
+          </div>
+
+          <!-- Checklist Summary -->
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4">Checklist (${progress.done}/${progress.total})</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              ${FASES.map(f => {
+                const fp = getFaseProgress(f.num);
+                const pct = Math.round((fp.done / fp.total) * 100);
+                return `
+                  <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span>${f.icon}</span>
+                      <span class="text-xs font-bold text-gray-700">${f.label}</span>
+                    </div>
+                    <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden mb-1">
+                      <div class="h-full rounded-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-400'}" style="width:${pct}%"></div>
+                    </div>
+                    <span class="text-[10px] text-gray-500">${fp.done}/${fp.total} completados</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          ${state.notaTransparencia ? `
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-2">Nota de Transparencia</h3>
+            <p class="text-sm text-gray-700 italic border-l-3 border-[#52B788] pl-4">${esc(state.notaTransparencia)}</p>
+          </div>` : ''}
+
+          ${state.conclusionAuditor ? `
+          <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-2">Conclusión del Auditor</h3>
+            <p class="text-sm text-gray-700">${esc(state.conclusionAuditor)}</p>
+          </div>` : ''}
+
+          <!-- Rules explanation -->
+          <div class="bg-[#1B4332] rounded-2xl p-6 text-white">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-[#52B788] mb-3">Reglas de Cálculo del Sello</h3>
+            <ul class="space-y-2 text-xs text-white/70">
+              <li>🥇 <strong class="text-white">Oro</strong> — 4 ejes en verde (0 advertencias)</li>
+              <li>🥈 <strong class="text-white">Plata</strong> — Máximo 2 ejes en amarillo, sin rojos</li>
+              <li>🥉 <strong class="text-white">Bronce</strong> — 3+ ejes en amarillo, sin rojos</li>
+              <li>🚫 <strong class="text-white">Cuarentena</strong> — Cualquier eje en rojo (bloqueo total)</li>
+            </ul>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button id="btn-print" class="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-[#1B4332] hover:bg-[#52B788] transition-colors">🖨️ Imprimir Reporte</button>
+            <button id="btn-reset-final" class="flex-1 py-3 rounded-xl text-sm font-bold text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors">Nueva Evaluación</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // ── EVENTS ────────────────────────────────────────────────────────────────
+    function bindEvents() {
+      // Step navigation
+      document.querySelectorAll('.step-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.step = parseInt(btn.dataset.step); render(); });
+      });
+
+      const prev = document.getElementById('btn-prev');
+      const next = document.getElementById('btn-next');
+      const reset = document.getElementById('btn-reset');
+
+      if (prev) prev.addEventListener('click', () => { if (state.step > 0) { state.step--; render(); } });
+      if (next) next.addEventListener('click', () => { if (state.step < 4) { state.step++; render(); } });
+      if (reset) reset.addEventListener('click', () => { if (confirm('¿Reiniciar toda la evaluación?')) resetState(); });
+
+      // Checklist buttons
+      document.querySelectorAll('.chk-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.key;
+          const val = btn.dataset.val;
+          const current = state.checklist[key];
+          state.checklist[key] = (current === val) ? 'pendiente' : val;
+          render();
+        });
+      });
+
+      // Notes
+      document.querySelectorAll('.nota-input').forEach(inp => {
+        inp.addEventListener('change', () => { state.notas[inp.dataset.key] = inp.value; saveState(); });
+      });
+
+      // Flags
+      document.querySelectorAll('.flag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.banderas[btn.dataset.eje] = btn.dataset.flag;
+          render();
+        });
+      });
+
+      // Property info
+      const nombre = document.getElementById('inp-nombre');
+      const ubicacion = document.getElementById('inp-ubicacion');
+      const area = document.getElementById('inp-area');
+      const tipo = document.getElementById('inp-tipo');
+      if (nombre) nombre.addEventListener('change', () => { state.property.nombre = nombre.value; saveState(); });
+      if (ubicacion) ubicacion.addEventListener('change', () => { state.property.ubicacion = ubicacion.value; saveState(); });
+      if (area) area.addEventListener('change', () => { state.property.area = area.value; saveState(); });
+      if (tipo) tipo.addEventListener('change', () => { state.property.tipo = tipo.value; saveState(); });
+
+      // Fase 3 textareas
+      const notaT = document.getElementById('inp-nota-transparencia');
+      const concl = document.getElementById('inp-conclusion');
+      const costo = document.getElementById('inp-costo');
+      if (notaT) notaT.addEventListener('change', () => { state.notaTransparencia = notaT.value; saveState(); });
+      if (concl) concl.addEventListener('change', () => { state.conclusionAuditor = concl.value; saveState(); });
+      if (costo) costo.addEventListener('change', () => { state.costoSaneamiento = costo.value; saveState(); });
+
+      // Result actions
+      const printBtn = document.getElementById('btn-print');
+      const resetFinal = document.getElementById('btn-reset-final');
+      if (printBtn) printBtn.addEventListener('click', () => window.print());
+      if (resetFinal) resetFinal.addEventListener('click', () => { if (confirm('¿Iniciar una nueva evaluación?')) resetState(); });
+    }
+
+    function esc(str) {
+      if (!str) return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── INIT ──────────────────────────────────────────────────────────────────
+    render();
+  </script>
+
+  <style>
+    .step-btn { padding: 0.5rem 0.75rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; color: #6b7280; border: 1px solid #e5e7eb; background: #fff; white-space: nowrap; transition: all 0.2s; cursor: pointer; }
+    .step-btn:hover { background: #f9fafb; }
+    .step-active { background: #1B4332; color: #fff; border-color: #1B4332; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+    .step-complete { border-color: #6ee7b7; color: #047857; }
+    .step-badge { margin-left: 0.25rem; font-size: 9px; opacity: 0.6; }
+    .vap-input { width: 100%; padding: 0.625rem 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; font-size: 0.875rem; color: #1f2937; background: #fff; transition: all 0.2s; outline: none; }
+    .vap-input:focus { border-color: #52B788; box-shadow: 0 0 0 3px rgb(82 183 136 / 0.15); }
+    .checklist-item { padding: 1rem; border-radius: 0.75rem; border: 1px solid #f3f4f6; background: rgb(249 250 251 / 0.5); transition: all 0.2s; }
+    .checklist-done { background: rgb(236 253 245 / 0.5); border-color: #d1fae5; }
+    .chk-btn { width: 1.75rem; height: 1.75rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; background: #fff; font-size: 0.75rem; font-weight: 700; color: #9ca3af; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+    .chk-btn:hover { border-color: #34d399; color: #059669; }
+    .chk-active { background: #10b981; border-color: #10b981; color: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.1); }
+    .chk-na { font-size: 9px; }
+    .chk-na-active { background: #9ca3af; border-color: #9ca3af; color: #fff; }
+    .nota-input { margin-top: 0.5rem; width: 100%; padding: 0.375rem 0.75rem; border-radius: 0.5rem; border: 1px solid #f3f4f6; font-size: 0.75rem; color: #4b5563; background: rgb(255 255 255 / 0.8); outline: none; transition: all 0.2s; }
+    .nota-input:focus { box-shadow: 0 0 0 2px rgb(82 183 136 / 0.15); }
+    .flag-btn { display: flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.625rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; background: #fff; color: #6b7280; cursor: pointer; transition: all 0.2s; }
+    .flag-btn:hover { box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); }
+    .flag-active { border-color: var(--flag-color); color: var(--flag-color); font-weight: 700; box-shadow: 0 1px 2px rgb(0 0 0 / 0.1); }
+    .flag-dot { width: 0.625rem; height: 0.625rem; border-radius: 9999px; opacity: 0.4; }
+    .flag-active .flag-dot { opacity: 1; box-shadow: 0 1px 2px rgb(0 0 0 / 0.1); }
+
+    @media print {
+      header, footer, .step-btn, #btn-prev, #btn-next, #btn-reset, #btn-print, #btn-reset-final { display: none !important; }
+      .vap-content { break-inside: avoid; }
+    }
+  </style>
+</BrandLayout>

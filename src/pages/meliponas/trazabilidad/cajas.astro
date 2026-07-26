@@ -1,0 +1,140 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { SEO, SITE } from '@/config/site';
+
+const pilares = [
+  { numero: 1, titulo: 'Identidad única', desc: 'Cada caja INPA/AF lleva un ID grabado y QR vinculado a su historial.', icono: 'qr-code' },
+  { numero: 2, titulo: 'Sensores básicos', desc: 'Temperatura y humedad interior monitoreadas con nodos IoT de bajo consumo.', icono: 'thermometer' },
+  { numero: 3, titulo: 'Bitácora de colonia', desc: 'Registro de postura, población y sanidad en cada inspección programada.', icono: 'notebook-pen' },
+  { numero: 4, titulo: 'Alertas tempranas', desc: 'Notificación cuando los sensores detectan anomalías térmicas o de humedad.', icono: 'bell-ring' },
+  { numero: 5, titulo: 'Historial transferible', desc: 'El expediente completo de la caja se entrega con la venta o adopción.', icono: 'file-check' },
+];
+
+const iotFeatures = [
+  { titulo: 'Nodo sensor LoRa', desc: 'Temperatura + humedad interior, batería de larga duración, sin WiFi.', icono: 'radio-tower' },
+  { titulo: 'Dashboard por caja', desc: 'Curvas históricas y estado actual accesibles por QR.', icono: 'line-chart' },
+  { titulo: 'Umbral de alerta', desc: 'Rango óptimo 24–30°C. Fuera de rango, se notifica al cuidador.', icono: 'alert-triangle' },
+  { titulo: 'Cero mantenimiento', desc: 'Sellado contra humedad y abejas. Lectura pasiva, sin intervención.', icono: 'shield' },
+];
+---
+
+<BrandLayout title={SEO.trazabilidadCajas.title} description={SEO.trazabilidadCajas.description}>
+  <!-- Hero -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Trazabilidad · Estándar 02</p>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
+        Cajas con identidad<br />digital
+      </h1>
+      <p class="text-lg text-dark-text/60 leading-relaxed max-w-2xl mx-auto">
+        Cada caja INPA y AF en Nogal Cafetero lleva un sistema IoT básico que registra la vida de la colonia. La trazabilidad no se pierde: se hereda.
+      </p>
+    </div>
+  </section>
+
+  <!-- Pilares -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader
+        label="Protocolo"
+        title="5 pilares del estándar de cajas"
+        subtitle="Hardware simple, datos confiables, historial completo."
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      {pilares.map((p, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-5 shadow-sm text-center h-full">
+            <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-3">
+              <i data-lucide={p.icono} class="w-5 h-5"></i>
+            </div>
+            <p class="font-mono text-xs text-accent mb-1">{String(p.numero).padStart(2, '0')}</p>
+            <h3 class="text-sm font-semibold text-text-primary mb-2">{p.titulo}</h3>
+            <p class="text-xs text-text-secondary leading-relaxed">{p.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- IoT features -->
+  <Section bg="sunken">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <ScrollReveal>
+        <SectionHeader
+          label="Sistema IoT básico"
+          title="Monitoreo sin fricción"
+          subtitle="Tecnología de bajo costo y bajo consumo pensada para el campo, no para el laboratorio."
+        />
+        <div class="space-y-4">
+          {iotFeatures.map((f) => (
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-lg bg-brand-muted flex items-center justify-center text-brand shrink-0">
+                <i data-lucide={f.icono} class="w-4 h-4"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-text-primary">{f.titulo}</p>
+                <p class="text-xs text-text-secondary">{f.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollReveal>
+      <ScrollReveal delay={200}>
+        <div class="bg-brand-muted rounded-2xl p-8">
+          <h3 class="text-lg font-semibold text-brand mb-4">Caja INPA · ID CA-25-014</h3>
+          <dl class="space-y-3">
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Temperatura interior</dt><dd class="font-medium text-text-primary">27.3°C</dd></div>
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Humedad relativa</dt><dd class="font-medium text-text-primary">68%</dd></div>
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Última inspección</dt><dd class="font-medium text-text-primary">12 días</dd></div>
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Estado colonia</dt><dd class="font-medium text-brand">● Reina activa</dd></div>
+            <div class="flex justify-between text-sm"><dt class="text-text-secondary">Batería nodo</dt><dd class="font-medium text-text-primary">94%</dd></div>
+          </dl>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Transferable history -->
+  <Section>
+    <ScrollReveal>
+      <div class="max-w-3xl mx-auto text-center">
+        <div class="w-14 h-14 rounded-2xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-5">
+          <i data-lucide="file-check" class="w-7 h-7"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-text-primary mb-4">El historial viaja con la caja</h2>
+        <p class="text-sm text-text-secondary leading-relaxed max-w-xl mx-auto mb-6">
+          Cuando una caja se vende o se adopta, su expediente completo —bitácora de colonia, lecturas de sensores e inspecciones— se transfiere al nuevo cuidador. Quien recibe una caja Iwagé recibe también su historia.
+        </p>
+        <a href="/meliponas/tienda" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 font-medium text-sm hover:bg-brand-light transition-all">
+          Ver cajas disponibles
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </ScrollReveal>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold text-dark-text mb-4">¿Quieres una caja con historial?</h2>
+        <p class="text-dark-text/60 mb-8">Cada caja sale del taller con su ID, su QR y su nodo sensor instalado.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/meliponas/tienda" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            Ir a la tienda
+          </a>
+          <a href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}`} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
+            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            WhatsApp
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

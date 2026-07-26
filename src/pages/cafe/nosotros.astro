@@ -1,0 +1,99 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { getCafeConfig } from '@/lib/cafe';
+
+const config = await getCafeConfig();
+---
+
+<BrandLayout brand="cafe" title="Nosotros · Café Iwagé" description="La historia del Café Iwagé: un café comunitario en el corredor Ambalá, Ibagué. Ingredientes nombrados, cadena corta y territorio en cada taza.">
+  <!-- Header -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-12 md:py-16 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Café Iwagé</p>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Nosotros</h1>
+      <p class="mt-4 text-dark-text/60 max-w-xl mx-auto">
+        Un café que nació del meliponario y creció hacia el territorio.
+      </p>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <Section>
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <div class="prose prose-lg text-text-secondary leading-relaxed space-y-6">
+          <p>
+            El Café Iwagé no empezó como café. Empezó con abejas. Cuando instalamos el meliponario
+            en el corredor Ambalá, descubrimos que los vecinos cultivaban café extraordinario que
+            nadie conocía. Café de 1,400 metros, secado al sol, tostado en pequeñas cantidades.
+          </p>
+          <p>
+            La pregunta fue obvia: ¿por qué ese café no tenía nombre? ¿Por qué se vendía como
+            genérico cuando tenía más historia que cualquier marca comercial?
+          </p>
+          <p>
+            Así nació el café comunitario. No como negocio, sino como extensión natural de lo que
+            ya hacíamos: poner nombre a lo que el territorio produce. Cada taza que servimos tiene
+            un proveedor con nombre, una distancia medida y una historia que contar.
+          </p>
+          <p>
+            La miel de Angelita entró al menú porque estaba ahí. Un cliente pidió café con miel,
+            probamos la combinación y no pudimos separarlas. Hoy es nuestro signature: espresso
+            doble con miel cruda de <em>Tetragonisca angustula</em>. Sin azúcar. Sin necesidad.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Values -->
+  <Section bg="sunken">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-bold text-text-primary mb-8 text-center font-display">Lo que nos define</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <ScrollReveal>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 text-center">
+            <div class="text-2xl mb-3">📍</div>
+            <h3 class="font-semibold text-text-primary mb-2">Cadena corta</h3>
+            <p class="text-sm text-text-secondary">Menos de 4 km entre el ingrediente y la taza. Conocemos cada finca.</p>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal delay={100}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 text-center">
+            <div class="text-2xl mb-3">🐝</div>
+            <h3 class="font-semibold text-text-primary mb-2">Del meliponario</h3>
+            <p class="text-sm text-text-secondary">La miel de Angelita no es un ingrediente más. Es nuestro origen.</p>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal delay={200}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 text-center">
+            <div class="text-2xl mb-3">✍️</div>
+            <h3 class="font-semibold text-text-primary mb-2">Nombre propio</h3>
+            <p class="text-sm text-text-secondary">Nada genérico. Cada producto, cada proveedor, cada taza tiene identidad.</p>
+          </div>
+        </ScrollReveal>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Location -->
+  <Section class="!py-16">
+    <div class="max-w-2xl mx-auto text-center">
+      <h2 class="text-2xl font-bold text-text-primary mb-4 font-display">Visítanos</h2>
+      <p class="text-text-secondary mb-4">
+        {config?.direccion ?? 'Corredor Ambalá, Ibagué, Tolima'}
+      </p>
+      {config?.horario && (
+        <p class="text-sm text-text-muted mb-6 whitespace-pre-line">{config.horario}</p>
+      )}
+      {!config?.horario && (
+        <p class="text-sm text-text-muted mb-6">Lunes a Sábado · 7:00 am – 5:00 pm</p>
+      )}
+      <a href="/cafe/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+        Escríbenos
+      </a>
+    </div>
+  </Section>
+</BrandLayout>

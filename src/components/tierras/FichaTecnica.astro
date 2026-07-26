@@ -1,0 +1,80 @@
+---
+interface FieldItem {
+  label: string;
+  value: string | null | undefined;
+  tip?: string;
+  highlight?: boolean;
+}
+
+interface Props {
+  sections: Array<{
+    id: string;
+    title: string;
+    icon: string;
+    items: FieldItem[];
+  }>;
+}
+
+const { sections } = Astro.props;
+const validSections = sections.filter(s => s.items.filter(i => i.value).length > 0);
+---
+
+<div class="bg-white rounded-2xl border border-gray-100 overflow-hidden" data-ficha-tecnica>
+  <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+    <span class="text-lg">📐</span>
+    <h2 class="text-lg font-bold text-[#1B4332]">Ficha Técnica</h2>
+    <span class="ml-auto text-[10px] font-mono text-gray-300 uppercase tracking-wider">Verificado en campo</span>
+  </div>
+
+  <div class="divide-y divide-gray-50">
+    {validSections.map((section, idx) => (
+      <div class="ficha-section">
+        <button
+          class="ficha-header w-full flex items-center gap-3 px-6 py-4 text-left hover:bg-gray-50/50 transition-colors"
+          data-section={section.id}
+          aria-expanded={idx === 0 ? 'true' : 'false'}
+        >
+          <span class="text-base">{section.icon}</span>
+          <span class="font-semibold text-sm text-[#1B4332]">{section.title}</span>
+          <span class="ml-auto text-[10px] text-gray-300 font-mono">{section.items.filter(i => i.value).length} datos</span>
+          <svg class="w-4 h-4 text-gray-300 transition-transform ficha-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class:list={['ficha-body px-6', idx === 0 ? 'ficha-open' : '']}>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+            {section.items.filter(i => i.value).map((item) => (
+              <div class="flex items-start justify-between py-2.5 border-b border-gray-50 group/item">
+                <span class="text-sm text-gray-500 flex items-center gap-1.5">
+                  {item.label}
+                  {item.tip && (
+                    <span class="relative cursor-help inline-flex">
+                      <svg class="w-3.5 h-3.5 text-gray-300 group-hover/item:text-[#52B788] transition-colors" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                      <span class="hidden group-hover/item:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-[#1B4332] text-white text-xs rounded-xl shadow-xl z-20 leading-relaxed">{item.tip}</span>
+                    </span>
+                  )}
+                </span>
+                <span class:list={['text-sm font-medium text-right', item.highlight ? 'text-[#52B788]' : 'text-[#1B4332]']}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .ficha-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .ficha-body.ficha-open { max-height: 900px; padding-bottom: 1rem; }
+  .ficha-header[aria-expanded="true"] .ficha-chevron { transform: rotate(180deg); }
+</style>
+
+<script>
+  document.querySelectorAll('[data-ficha-tecnica] .ficha-header').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const body = btn.nextElementSibling as HTMLElement;
+      const isOpen = body.classList.contains('ficha-open');
+      body.classList.toggle('ficha-open');
+      btn.setAttribute('aria-expanded', String(!isOpen));
+    });
+  });
+</script>

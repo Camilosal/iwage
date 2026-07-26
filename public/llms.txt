@@ -1,0 +1,54 @@
+# Iwagé — Ecosistema de Desarrollo Rural
+
+> Iwagé es un ecosistema de desarrollo rural en el corredor Ambalá, Ibagué, Tolima, Colombia.
+> Cinco líneas de acción conectadas por un mismo territorio: meliponicultura, café de origen,
+> inmobiliaria rural, turismo regenerativo y property management.
+
+## Estructura del sitio
+
+- `/` — Hub del ecosistema (overview de las 5 marcas)
+- `/meliponas/` — Meliponario & Biotecnología Nativa (miel de Angelita, cajas INPA/AF, polinización)
+- `/cafe/` — Café de Origen (café especial del Tolima, trazabilidad, perfiles de taza)
+- `/tierras/` — Inmobiliaria Rural (propiedades, fincas, lotes, proyectos de tierra)
+- `/naturaleza/` — Turismo Regenerativo (experiencias, anfitriones, paquetes, escalafón)
+- `/gestion/` — Property Management (renta corta, finca productiva, segunda residencia)
+- `/blog/` — Bitácora unificada (guías, territorio, técnica)
+
+## Marcas y verticales
+
+### Iwagé Meliponario (`/meliponas/`)
+Miel de Tetragonisca angustula (abeja Angelita) del corredor Ambalá.
+Cajas tecnificadas INPA y AF en nogal cafetero. Polinización gestionada.
+Asistencia técnica en meliponicultura.
+
+### Iwagé Café (`/cafe/`)
+Café especial de origen Tolima. Trazabilidad por finca y lote.
+Perfiles de taza, métodos de beneficio, venta directa.
+
+### Iwagé Tierras (`/tierras/`)
+Inmobiliaria rural especializada en el Tolima. Fincas productivas,
+lotes campestres, proyectos de desarrollo territorial.
+
+### Iwagé Naturaleza (`/naturaleza/`)
+Turismo regenerativo con anfitriones locales. Experiencias sensoriales,
+sistema de escalafón (5 niveles), dificultad progresiva (7 niveles).
+Paquetes y programas de inmersión.
+
+### Iwagé Gestión (`/gestion/`)
+Property management rural: administración de segunda residencia,
+operación de renta corta (Airbnb), gestión de finca productiva,
+desarrollo de operación turística, modelo de alianzas.
+
+## Datos de contacto
+
+- Ubicación: Corredor Ambalá, Ibagué, Tolima, Colombia
+- WhatsApp: +57 300 123 4567
+- Instagram: @iwage.meliponario
+
+## Notas técnicas
+
+- Sitio construido con Astro 7 (SSR) + Tailwind CSS v4
+- CMS: Strapi v5 (headless)
+- Cache: Redis + stale-while-revalidate
+- Cada marca tiene su propia paleta de colores y navegación
+- JSON-LD: Organization con subOrganization por marca

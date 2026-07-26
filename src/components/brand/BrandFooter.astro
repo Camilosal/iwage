@@ -1,0 +1,138 @@
+---
+import type { BrandConfig } from '@/config/brands/types';
+import { brandList } from '@/config/brands';
+
+interface Props {
+  brand: BrandConfig;
+}
+
+const { brand } = Astro.props;
+const otherBrands = brandList.filter((b) => b.slug !== brand.slug);
+const year = new Date().getFullYear();
+
+// Separate nav into: primary links (top-level non-submenu) and submenu groups
+const primaryLinks = brand.nav.filter((item) => !item.children);
+const submenuGroups = brand.nav.filter((item) => item.children);
+---
+
+<footer class="bg-dark-bg text-dark-text">
+  <div class="mx-auto max-w-7xl px-6 py-16">
+    <div class="grid gap-12 md:grid-cols-4">
+      <!-- Brand info -->
+      <div class="md:col-span-1">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-3xl">{brand.icon}</span>
+          <div>
+            <span class="block text-xl font-bold tracking-wide">{brand.name}</span>
+            <span class="block font-mono text-[10px] uppercase tracking-widest text-dark-text/50">
+              {brand.tagline}
+            </span>
+          </div>
+        </div>
+        <p class="text-sm text-dark-text/60 leading-relaxed max-w-sm">
+          {brand.seo.defaultDescription}
+        </p>
+        {brand.instagram && (
+          <p class="mt-4 text-sm text-dark-text/40">
+            Instagram: <span class="text-accent">{brand.instagram}</span>
+          </p>
+        )}
+      </div>
+
+      <!-- Primary navigation -->
+      <div>
+        <h4 class="font-mono text-xs font-bold uppercase tracking-wider mb-4 text-dark-text/80">
+          Navegación
+        </h4>
+        <ul class="space-y-2">
+          {primaryLinks.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                target={item.external ? '_blank' : undefined}
+                rel={item.external ? 'noopener noreferrer' : undefined}
+                class="inline-flex items-center gap-1 text-sm text-dark-text/60 hover:text-accent transition-colors"
+              >
+                {item.label}
+                {item.external && <span class="text-[10px] opacity-60">↗</span>}
+              </a>
+            </li>
+          ))}
+          {submenuGroups.map((group) => (
+            <li>
+              <a
+                href={group.href}
+                target={group.external ? '_blank' : undefined}
+                rel={group.external ? 'noopener noreferrer' : undefined}
+                class="inline-flex items-center gap-1 text-sm text-dark-text/60 hover:text-accent transition-colors"
+              >
+                {group.label}
+                {group.external && <span class="text-[10px] opacity-60">↗</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Submenu items (Comunidad / Herramientas) -->
+      <div>
+        {submenuGroups.map((group) => (
+          <div class="mb-6 last:mb-0">
+            <h4 class="font-mono text-xs font-bold uppercase tracking-wider mb-4 text-dark-text/80">
+              {group.label}
+            </h4>
+            <ul class="space-y-2">
+              {group.children!.map((child) => (
+                <li>
+                  <a
+                    href={child.href}
+                    target={child.external ? '_blank' : undefined}
+                    rel={child.external ? 'noopener noreferrer' : undefined}
+                    class="inline-flex items-center gap-1 text-sm text-dark-text/60 hover:text-accent transition-colors"
+                  >
+                    {child.label}
+                    {child.external && <span class="text-[10px] opacity-60">↗</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      <!-- Ecosystem links -->
+      <div>
+        <h4 class="font-mono text-xs font-bold uppercase tracking-wider mb-4 text-dark-text/80">
+          Ecosistema Iwagé
+        </h4>
+        <ul class="space-y-2">
+          {otherBrands.map((b) => (
+            <li>
+              <a
+                href={`/${b.slug}/`}
+                class="text-sm text-dark-text/60 hover:text-accent transition-colors"
+              >
+                {b.icon} {b.name}
+              </a>
+            </li>
+          ))}
+          <li>
+            <a href="/" class="text-sm text-dark-text/60 hover:text-accent transition-colors">
+              🌐 Ver todo el ecosistema
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="mt-12 border-t border-dark-text/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+      <p class="text-xs text-dark-text/40">
+        © {year} {brand.name} · Parte del ecosistema Iwagé · Corredor Ambalá, Ibagué, Tolima
+      </p>
+      <p class="text-xs text-dark-text/30">
+        Tierra de labranza 🌱
+      </p>
+    </div>
+  </div>
+</footer>

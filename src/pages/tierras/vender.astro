@@ -1,0 +1,81 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+export const prerender = true;
+---
+
+<BrandLayout brand="tierras" title="Vender mi Propiedad · Iwagé Tierras" description="Radicar tu predio con Iwagé: auditoría VAP gratuita, producción audiovisual con drone y tour 360°, acompañamiento legal hasta el cierre.">
+
+  <section class="bg-[#0F120E] text-white py-14 md:py-20">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">Vende con Transparencia</p>
+      <h1 class="text-3xl md:text-5xl font-bold mb-4">Radicar mi Predio</h1>
+      <p class="text-white/70 text-lg max-w-2xl mx-auto">
+        Si tienes tierra en el Tolima y quieres venderla con precio justo y sin fricción, Iwagé la audita, la produce y la comercializa en exclusividad.
+      </p>
+    </div>
+  </section>
+
+  <!-- Process -->
+  <Section class="bg-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-bold text-[#1B4332] text-center mb-10">¿Cómo funciona?</h2>
+      <div class="space-y-6">
+        {[
+          { num: '01', title: 'Radicación', desc: 'Nos envías la información básica: ubicación, área, documentos que tengas. Sin compromiso.' },
+          { num: '02', title: 'Auditoría VAP', desc: 'Nuestro equipo técnico verifica títulos, linderos GPS, agua y normativa. Sin costo para el propietario.' },
+          { num: '03', title: 'Producción Audiovisual', desc: 'Fotografía con drone, tour 360°, video y ficha técnica profesional. Tu propiedad se ve como merece.' },
+          { num: '04', title: 'Comercialización', desc: 'Publicación en catálogo auditado, difusión segmentada por perfil de comprador y acompañamiento al cierre.' },
+        ].map((step) => (
+          <div class="flex items-start gap-6 bg-[#FAFAF7] rounded-2xl p-6 border border-gray-100">
+            <span class="text-3xl font-bold text-[#52B788]/30">{step.num}</span>
+            <div>
+              <h3 class="font-bold text-[#1B4332] mb-1">{step.title}</h3>
+              <p class="text-sm text-gray-500">{step.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </Section>
+
+  <!-- Comisiones -->
+  <Section class="bg-[#FAFAF7]">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl font-bold text-[#1B4332] text-center mb-8">Comisiones</h2>
+      <div class="bg-white rounded-2xl p-6 border border-gray-100">
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between py-3 border-b border-gray-50">
+            <span class="text-gray-500">Venta con exclusividad</span>
+            <span class="font-bold text-[#1B4332]">8%</span>
+          </div>
+          <div class="flex justify-between py-3 border-b border-gray-50">
+            <span class="text-gray-500">Venta compleja (sucesiones, etc.)</span>
+            <span class="font-bold text-[#1B4332]">10%</span>
+          </div>
+          <div class="flex justify-between py-3 border-b border-gray-50">
+            <span class="text-gray-500">Arriendo</span>
+            <span class="font-bold text-[#1B4332]">1 mes</span>
+          </div>
+          <div class="flex justify-between py-3">
+            <span class="text-gray-500">Sin exclusividad</span>
+            <span class="font-bold text-[#1B4332]">5%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <section class="py-16 bg-white">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-bold text-[#1B4332] mb-4">¿Tienes tierra para vender?</h2>
+      <p class="text-gray-500 mb-8">Escríbenos por WhatsApp con la ubicación y documentos básicos. Te respondemos en menos de 24 horas.</p>
+      <a href="https://wa.me/573001234567?text=Hola%2C%20quiero%20radicar%20mi%20predio%20para%20venta.%20%C2%BFC%C3%B3mo%20empiezo%3F"
+        target="_blank" rel="noopener"
+        class="inline-block bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg">
+        💬 Radicar por WhatsApp
+      </a>
+    </div>
+  </section>
+</BrandLayout>

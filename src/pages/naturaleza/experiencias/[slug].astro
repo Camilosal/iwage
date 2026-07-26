@@ -1,0 +1,667 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import { getExperienciaBySlug, getExperiencias, experienciaImagen, experienciaGaleria, anfitrionFoto, formatPrecioCOP, dificultadInfo, nivelInfo } from '@/lib/naturaleza';
+import { strapiImage } from '@/lib/strapi';
+import { getBrand } from '@/config/brands';
+
+const { slug } = Astro.params;
+const exp = await getExperienciaBySlug(slug!);
+
+if (!exp) {
+  return Astro.redirect('/naturaleza/experiencias');
+}
+
+const diff = dificultadInfo(exp.nivel_dificultad);
+const heroImg = experienciaImagen(exp);
+const galeriaItems = experienciaGaleria(exp);
+const safety = exp.safety_content || { title: 'Tranquilidad total en la montaña', description: 'Guías locales certificados, póliza de asistencia y rutas exploradas previamente.', features: ['Seguro contra accidentes', 'Guías certificados', 'Rutas exploradas previamente'] };
+
+// Primary host (first linked anfitrion)
+const primaryHost = exp.anfitriones?.[0] || null;
+const hostJunction = exp.anfitriones_data?.[0] || null;
+
+// Reviews come from the primary host
+const resenas = primaryHost?.resenas || [];
+
+// WhatsApp from brand config
+const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
+const waReservar = `https://wa.me/${waPhone}?text=${encodeURIComponent(`Hola, quiero reservar: ${exp.titulo}`)}`;
+
+// Related experiences (same category, exclude current)
+const { data: relatedExps } = await getExperiencias({ categoria: exp.categoria, pageSize: 4 });
+const related = relatedExps.filter((r) => r.slug !== exp.slug).slice(0, 3);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TouristTrip',
+  name: exp.titulo,
+  description: exp.resumen,
+  image: heroImg,
+  touristType: exp.categoria,
+  location: exp.ubicacion ? { '@type': 'Place', name: exp.ubicacion } : undefined,
+  offers: exp.precio_desde ? { '@type': 'Offer', price: exp.precio_desde, priceCurrency: 'COP' } : undefined,
+};
+---
+
+<BrandLayout brand="naturaleza" title={exp.seo_titulo || `${exp.titulo} · Iwagé Naturaleza`} description={exp.seo_descripcion || exp.resumen || ''}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- Hero -->
+  <section class="relative min-h-[60vh] flex items-end overflow-hidden bg-[#0e1a08]">
+    <img src={heroImg} alt={exp.titulo} class="absolute inset-0 w-full h-full object-cover opacity-50" loading="eager" />
+    <div class="absolute inset-0 bg-gradient-to-t from-[#0e1a08] via-transparent to-[#0e1a08]/30"></div>
+    <div class="relative z-10 w-full max-w-6xl mx-auto px-4 pb-12">
+      <div class="flex flex-wrap items-center gap-3 mb-4">
+        <span class="px-3 py-1 rounded-full bg-[#4a7c23]/90 text-white text-[10px] font-bold uppercase tracking-wider">{exp.categoria}</span>
+        <span class="px-3 py-1 rounded-full bg-white/10 text-white/80 text-[10px] font-medium">{diff.label}</span>
+        {exp.tipo_propiedad === 'iwage-managed' && <span class="px-3 py-1 rounded-full bg-[#d4920a]/90 text-white text-[10px] font-bold uppercase">Iwagé Gestionada</span>}
+      </div>
+      <h1 class="text-4xl lg:text-6xl font-light text-white mb-4">{exp.titulo}</h1>
+      <p class="text-lg text-white/70 max-w-2xl">{exp.resumen}</p>
+
+      <!-- Quick Facts -->
+      <div class="flex flex-wrap gap-6 mt-8 text-sm text-white/80">
+        {exp.duracion && <span>⏱ {exp.duracion}</span>}
+        {exp.ubicacion && <span>📍 {exp.ubicacion}</span>}
+        {exp.tiempo_desde_ciudad && <span>🚗 {exp.tiempo_desde_ciudad} desde {exp.ciudad_referencia || 'Ibagué'}</span>}
+        <span>👥 {exp.cupo_maximo_desc || '6-8 personas'}</span>
+        {exp.precio_desde && <span class="font-bold text-[#d4920a]">{formatPrecioCOP(exp.precio_desde)}</span>}
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-6xl mx-auto px-4 py-12 grid lg:grid-cols-[1fr_340px] gap-12">
+    <!-- Main Content -->
+    <div class="space-y-12">
+      <!-- Difficulty -->
+      <section class="p-6 rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-[#2d5016] mb-3">Nivel de dificultad</h2>
+        <div class="flex items-center gap-4">
+          <div class="flex gap-1">
+            {Array.from({ length: 7 }, (_, i) => (
+              <div class:list={['w-6 h-2 rounded-full', i < exp.nivel_dificultad ? 'bg-[#4a7c23]' : 'bg-gray-200']}></div>
+            ))}
+          </div>
+          <div>
+            <span class="font-semibold text-[#1a3009]">{diff.label}</span>
+            <p class="text-xs text-gray-500">{diff.desc}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sensory Itinerary -->
+      {exp.itinerario_sensorial && exp.itinerario_sensorial.length > 0 && (
+        <section>
+          <h2 class="text-2xl font-light text-[#1a3009] mb-6">Itinerario sensorial</h2>
+          <div class="space-y-4">
+            {exp.itinerario_sensorial.map((item, i) => (
+              <div class="flex gap-4 p-4 rounded-xl bg-white border border-gray-100">
+                <div class="w-10 h-10 rounded-full bg-[#f8faf5] flex items-center justify-center text-lg shrink-0">
+                  {item.iconName || '🌿'}
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    {item.time && <span class="text-[10px] font-bold text-[#d4920a] uppercase">{item.time}</span>}
+                    <h3 class="font-semibold text-[#1a3009]">{item.title}</h3>
+                  </div>
+                  {item.sense && <span class="text-[10px] text-[#4a7c23] font-medium uppercase">{item.sense}</span>}
+                  {item.desc && <p class="text-sm text-gray-600 mt-1">{item.desc}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Highlights -->
+      {exp.highlights && exp.highlights.length > 0 && (
+        <section>
+          <h2 class="text-2xl font-light text-[#1a3009] mb-6">Lo que vivirás</h2>
+          <ul class="grid sm:grid-cols-2 gap-3">
+            {exp.highlights.map((h) => (
+              <li class="flex items-start gap-3 text-sm text-gray-700">
+                <span class="text-[#4a7c23] mt-0.5">✦</span>
+                {h}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <!-- Host Manifesto -->
+      {(hostJunction?.manifiesto_ruta || primaryHost?.manifiesto) && (
+        <section class="py-8">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-[1px] bg-[#d4920a]"></span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">El sentir de tu anfitrión</span>
+          </div>
+          <span class="text-4xl text-[#d4920a]/30 leading-none">“</span>
+          <p class="text-xl lg:text-2xl font-light text-[#1a3009] leading-relaxed italic -mt-4">
+            {hostJunction?.manifiesto_ruta || primaryHost?.manifiesto}
+          </p>
+        </section>
+      )}
+
+      <!-- Includes / Excludes -->
+      {(exp.includes || exp.excludes) && (
+        <section class="grid sm:grid-cols-2 gap-6">
+          {exp.includes && exp.includes.length > 0 && (
+            <div class="p-5 rounded-xl bg-[#f8faf5]">
+              <h3 class="text-sm font-bold text-[#2d5016] mb-3">✓ Incluye</h3>
+              <ul class="space-y-2">
+                {exp.includes.map((item) => <li class="text-sm text-gray-700 flex gap-2"><span class="text-green-600">✓</span>{item}</li>)}
+              </ul>
+            </div>
+          )}
+          {exp.excludes && exp.excludes.length > 0 && (
+            <div class="p-5 rounded-xl bg-red-50/50">
+              <h3 class="text-sm font-bold text-red-700 mb-3">✗ No incluye</h3>
+              <ul class="space-y-2">
+                {exp.excludes.map((item) => <li class="text-sm text-gray-700 flex gap-2"><span class="text-red-400">✗</span>{item}</li>)}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
+      <!-- How to Get There -->
+      {(exp.tiempo_desde_ciudad || exp.estado_via || exp.ofrece_transporte) && (
+        <section class="p-6 rounded-2xl bg-white border border-gray-100">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-xl">🚗</span>
+            <h2 class="text-lg font-semibold text-[#1a3009]">Cómo llegar</h2>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-4 mb-4">
+            {exp.tiempo_desde_ciudad && (
+              <div class="text-center p-3 rounded-xl bg-[#f8faf5]">
+                <p class="text-lg font-bold text-[#2d5016]">{exp.tiempo_desde_ciudad}</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Desde {exp.ciudad_referencia || 'Ibagué'}</p>
+              </div>
+            )}
+            {exp.estado_via && (
+              <div class="text-center p-3 rounded-xl bg-[#f8faf5]">
+                <p class="text-lg font-bold text-[#2d5016] capitalize">{exp.estado_via}</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Estado de la vía</p>
+              </div>
+            )}
+            {exp.ofrece_transporte && (
+              <div class="text-center p-3 rounded-xl bg-[#f8faf5]">
+                <p class="text-lg font-bold text-green-600">✓ Incluido</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Transporte</p>
+              </div>
+            )}
+          </div>
+          {exp.distancia_km && (
+            <p class="text-sm text-gray-600">📏 A {exp.distancia_km} de {exp.ciudad_referencia || 'Ibagué'}</p>
+          )}
+        </section>
+      )}
+
+      <!-- Gallery -->
+      {galeriaItems.length > 0 && (
+        <section>
+          <h2 class="text-2xl font-light text-[#1a3009] mb-6">Galería</h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {galeriaItems.map((item, i) => (
+              item.tipo === 'video' ? (
+                <a href={item.url} target="_blank" rel="noopener" class="relative block w-full h-40 rounded-xl overflow-hidden group">
+                  <div class="w-full h-full bg-[#0e1a08] flex items-center justify-center">
+                    <span class="text-3xl group-hover:scale-110 transition-transform">▶️</span>
+                  </div>
+                  <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.titulo || 'Video'}</span>
+                </a>
+              ) : item.tipo === '360' ? (
+                <a href={item.url} target="_blank" rel="noopener" class="relative block w-full h-40 rounded-xl overflow-hidden group">
+                  <div class="w-full h-full bg-[#1a3009] flex items-center justify-center">
+                    <span class="text-3xl group-hover:scale-110 transition-transform">🔄</span>
+                  </div>
+                  <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.titulo || 'Tour 360°'}</span>
+                </a>
+              ) : (
+                <img src={item.url} alt={item.titulo || `${exp.titulo} - foto ${i + 1}`} class="w-full h-40 object-cover rounded-xl" loading="lazy" />
+              )
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Requirements / What to bring -->
+      {exp.requirements && exp.requirements.length > 0 && (
+        <section class="p-6 rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10">
+          <h2 class="text-lg font-semibold text-[#1a3009] mb-3">🎒 Qué llevar</h2>
+          <ul class="grid sm:grid-cols-2 gap-2">
+            {exp.requirements.map((req) => (
+              <li class="flex items-start gap-2 text-sm text-gray-700">
+                <span class="text-[#4a7c23] mt-0.5">•</span> {req}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <!-- Optional Addons -->
+      {exp.optional_addons && exp.optional_addons.length > 0 && (
+        <section class="p-6 rounded-2xl bg-white border border-gray-100">
+          <h2 class="text-lg font-semibold text-[#1a3009] mb-3">✨ Complementa tu experiencia</h2>
+          <div class="space-y-2">
+            {exp.optional_addons.map((addon) => (
+              <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                <span class="text-sm text-gray-700">{addon.nombre}</span>
+                {addon.precio && <span class="text-sm font-bold text-[#2d5016]">+{formatPrecioCOP(addon.precio)}</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Safety -->
+      <section class="p-6 rounded-2xl bg-[#2d5016]/5 border border-[#2d5016]/10">
+        <h2 class="text-lg font-semibold text-[#1a3009] mb-2">{safety.title}</h2>
+        <p class="text-sm text-gray-600 mb-4">{safety.description}</p>
+        {safety.features && (
+          <div class="flex flex-wrap gap-2">
+            {safety.features.map((f) => (
+              <span class="px-3 py-1 rounded-full bg-white text-xs text-[#2d5016] font-medium border border-[#2d5016]/10">{f}</span>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <!-- Impact Initiatives -->
+      {exp.iniciativas_impacto && exp.iniciativas_impacto.length > 0 && (
+        <section>
+          <h2 class="text-2xl font-light text-[#1a3009] mb-6">Impacto regenerativo</h2>
+          <div class="grid sm:grid-cols-2 gap-4">
+            {exp.iniciativas_impacto.map((ini) => (
+              <div class="p-4 rounded-xl bg-white border border-gray-100">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-lg">{ini.icono || '🌱'}</span>
+                  <h3 class="font-semibold text-sm text-[#1a3009]">{ini.titulo}</h3>
+                </div>
+                {ini.descripcion && <p class="text-xs text-gray-600">{ini.descripcion}</p>}
+                {ini.metrica && <span class="inline-block mt-2 text-[10px] font-bold text-[#4a7c23] bg-[#f8faf5] px-2 py-0.5 rounded">{ini.metrica}</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- FAQs -->
+      {exp.faqs && exp.faqs.length > 0 && (
+        <section>
+          <h2 class="text-2xl font-light text-[#1a3009] mb-6">Preguntas frecuentes</h2>
+          <div class="space-y-3">
+            {exp.faqs.map((faq) => (
+              <details class="group p-4 rounded-xl bg-white border border-gray-100">
+                <summary class="cursor-pointer font-medium text-sm text-[#1a3009] group-open:text-[#4a7c23]">{faq.pregunta}</summary>
+                <p class="mt-2 text-sm text-gray-600">{faq.respuesta}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Guestbook / Testimonials -->
+      {resenas.length > 0 && (
+        <section>
+          <h2 class="text-2xl font-light text-[#1a3009] mb-6">Lo que dicen nuestros visitantes</h2>
+          <div class="grid sm:grid-cols-2 gap-4">
+            {resenas.slice(0, 4).map((resena) => (
+              <div class="p-5 rounded-xl bg-white border border-gray-100">
+                <div class="flex items-center gap-1 mb-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span class={`text-xs ${i < (resena.rating || 5) ? 'text-[#d4920a]' : 'text-gray-300'}`}>★</span>
+                  ))}
+                </div>
+                <p class="text-sm text-gray-700 italic leading-relaxed mb-3">“{resena.text}”</p>
+                <p class="text-xs font-bold text-[#2d5016]">{resena.author}</p>
+                {resena.date && <p class="text-[10px] text-gray-400">{new Date(resena.date).toLocaleDateString('es-CO', { month: 'short', year: 'numeric' })}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Meet The Host -->
+      {primaryHost && (
+        <section class="p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+          <div class="flex items-center gap-2 mb-6">
+            <span class="w-6 h-[1px] bg-[#d4920a]"></span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Anfitrión del territorio</span>
+          </div>
+          <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Host Card -->
+            <div class="w-full lg:w-1/3 flex flex-col items-center text-center">
+              <div class="relative w-32 h-32 mb-4">
+                <img src={anfitrionFoto(primaryHost)} alt={primaryHost.nombre} class="w-full h-full object-cover rounded-full border-4 border-white shadow-xl" />
+                <div class="absolute -bottom-1 right-2 w-8 h-8 rounded-full bg-[#4a7c23] border-2 border-white shadow flex items-center justify-center text-sm">
+                  {nivelInfo(primaryHost.nivel_escalafon).icono}
+                </div>
+              </div>
+              <h3 class="text-xl font-semibold text-[#1a3009]">{primaryHost.nombre}</h3>
+              <div class="flex items-center gap-2 mt-1 px-3 py-1 rounded-full bg-[#f8faf5] border border-[#4a7c23]/10">
+                <span class="text-[10px] font-bold uppercase text-[#1a3009]">{nivelInfo(primaryHost.nivel_escalafon).nombre}</span>
+                <span class="w-1 h-1 rounded-full bg-[#d4920a]"></span>
+                <span class="text-[10px] font-bold text-[#d4920a]">Nivel {primaryHost.nivel_escalafon}</span>
+              </div>
+              {primaryHost.especialidad && <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mt-3">{primaryHost.especialidad}</p>}
+
+              <!-- Impact Stats -->
+              <div class="w-full mt-4 bg-[#f8faf5] rounded-xl p-4 border border-[#4a7c23]/10">
+                {(primaryHost.numero_resenas > 0) && (
+                  <div class="flex justify-between items-center pb-2 border-b border-[#4a7c23]/5">
+                    <span class="text-xs text-gray-600">⭐ Reseñas</span>
+                    <span class="text-xs font-bold text-[#1a3009]">{primaryHost.numero_resenas}</span>
+                  </div>
+                )}
+                {(primaryHost.impacto_hectareas || primaryHost.impacto_familias) && (
+                  <div class="pt-2">
+                    <span class="text-[10px] font-bold text-[#4a7c23] uppercase tracking-wider">🌱 Huella de impacto</span>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                      {primaryHost.impacto_hectareas && (
+                        <div>
+                          <p class="text-base font-bold text-[#1a3009]">{primaryHost.impacto_hectareas} <span class="text-xs font-normal text-[#4a7c23]">ha</span></p>
+                          <p class="text-[10px] text-gray-500">protegidas</p>
+                        </div>
+                      )}
+                      {primaryHost.impacto_familias && (
+                        <div>
+                          <p class="text-base font-bold text-[#1a3009]">{primaryHost.impacto_familias}</p>
+                          <p class="text-[10px] text-gray-500">familias</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <!-- Host Details -->
+            <div class="w-full lg:w-2/3 flex flex-col justify-center lg:border-l lg:border-gray-100 lg:pl-8">
+              {hostJunction?.enfoque_de_ruta && (
+                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-2">{hostJunction.enfoque_de_ruta}</p>
+              )}
+              {primaryHost.insignia_titulo && (
+                <h4 class="text-lg font-semibold text-[#1a3009] mb-2">{primaryHost.insignia_titulo}</h4>
+              )}
+              {primaryHost.historia_personal && (
+                <p class="text-sm text-gray-600 leading-relaxed mb-4">{primaryHost.historia_personal}</p>
+              )}
+
+              <div class="grid md:grid-cols-2 gap-4 my-4">
+                {(hostJunction?.superpoder_en_esta_ruta || primaryHost.especialidad) && (
+                  <div class="p-4 rounded-xl bg-[#f8faf5] border border-[#4a7c23]/10">
+                    <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#1a3009] mb-1">⭐ Su enfoque</h5>
+                    <p class="text-xs text-gray-600 leading-relaxed">{hostJunction?.superpoder_en_esta_ruta || primaryHost.especialidad}</p>
+                  </div>
+                )}
+                {(hostJunction?.momento_favorito_ruta || primaryHost.momento_favorito) && (
+                  <div class="p-4 rounded-xl bg-[#0e1a08] text-white">
+                    <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#d4920a] mb-1">💚 Momento favorito</h5>
+                    <p class="text-xs text-white/90 leading-relaxed italic">“{hostJunction?.momento_favorito_ruta || primaryHost.momento_favorito}”</p>
+                  </div>
+                )}
+              </div>
+
+              <!-- Certifications -->
+              {primaryHost.certificaciones_seguridad && primaryHost.certificaciones_seguridad.length > 0 && (
+                <div class="border-t border-gray-100 pt-4">
+                  <p class="text-[10px] text-[#d4920a] font-bold uppercase tracking-[0.2em] mb-3">Garantía de Seguridad Iwagé</p>
+                  <div class="flex flex-wrap gap-2">
+                    {primaryHost.certificaciones_seguridad.map((cert: any) => (
+                      <span class="flex items-center gap-1.5 px-3 py-1.5 bg-[#f8faf5] rounded-lg border border-[#4a7c23]/10 text-[10px] font-medium text-[#1a3009]">
+                        🛡️ {typeof cert === 'string' ? cert : cert.titulo || cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <a href={`/naturaleza/anfitriones/${primaryHost.slug}`} class="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-[#d4920a] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#1a3009] transition-colors w-fit">
+                Explorar perfil de {primaryHost.nombre.split(' ')[0]} →
+              </a>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <!-- Cross-brand Ecosystem Links -->
+      {(exp.propiedades?.length || exp.propiedades_gestion?.length || exp.proveedores?.length) ? (
+        <section class="p-6 lg:p-8 rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10">
+          <div class="flex items-center gap-2 mb-6">
+            <span class="w-6 h-[1px] bg-[#d4920a]"></span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Ecosistema Iwagé</span>
+          </div>
+          <h2 class="text-xl font-light text-[#1a3009] mb-6">Conectada con todo el territorio</h2>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Properties for sale (Tierras) */}
+            {exp.propiedades?.map((prop) => (
+              <a href={`/tierras/propiedades/${prop.slug}`} class="group p-4 rounded-xl bg-white border border-gray-100 hover:border-[#1B4332]/30 hover:shadow-md transition-all">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-lg">🏡</span>
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-[#1B4332] bg-[#1B4332]/5 px-2 py-0.5 rounded-full">En venta · Tierras</span>
+                </div>
+                <h3 class="text-sm font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors line-clamp-2">{prop.titulo}</h3>
+                {prop.ubicacion_municipio && <p class="text-[10px] text-gray-500 mt-1">📍 {prop.ubicacion_municipio}</p>}
+                {prop.precio && <p class="text-xs font-bold text-[#2d5016] mt-2">{formatPrecioCOP(prop.precio)}</p>}
+                <span class="inline-block mt-2 text-[10px] font-bold text-[#4a7c23]">Ver propiedad →</span>
+              </a>
+            ))}
+            {/* Managed properties (Gestión) */}
+            {exp.propiedades_gestion?.map((pg) => (
+              <a href={`/gestion/propiedades/${pg.slug}`} class="group p-4 rounded-xl bg-white border border-gray-100 hover:border-[#2d5a8f]/30 hover:shadow-md transition-all">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-lg">🔑</span>
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-[#2d5a8f] bg-[#2d5a8f]/5 px-2 py-0.5 rounded-full">Gestionada · Gestión</span>
+                </div>
+                <h3 class="text-sm font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors line-clamp-2">{pg.titulo}</h3>
+                {pg.ubicacion_municipio && <p class="text-[10px] text-gray-500 mt-1">📍 {pg.ubicacion_municipio}</p>}
+                {pg.tipo_gestion && <p class="text-[10px] text-gray-400 mt-1 capitalize">{pg.tipo_gestion.replace(/_/g, ' ')}</p>}
+                <span class="inline-block mt-2 text-[10px] font-bold text-[#2d5a8f]">Ver gestión →</span>
+              </a>
+            ))}
+            {/* Café suppliers */}
+            {exp.proveedores?.map((prov) => (
+              <a href={`/cafe/proveedores#${prov.slug}`} class="group p-4 rounded-xl bg-white border border-gray-100 hover:border-[#6F4E37]/30 hover:shadow-md transition-all">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-lg">☕</span>
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-[#6F4E37] bg-[#6F4E37]/5 px-2 py-0.5 rounded-full">Proveedor · Café</span>
+                </div>
+                <h3 class="text-sm font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors">{prov.nombre}</h3>
+                {prov.producto && <p class="text-[10px] text-gray-500 mt-1">{prov.producto}</p>}
+                {prov.ubicacion && <p class="text-[10px] text-gray-400 mt-0.5">📍 {prov.ubicacion}</p>}
+                <span class="inline-block mt-2 text-[10px] font-bold text-[#6F4E37]">Conocer proveedor →</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <!-- Territory Opportunity + Final CTA -->
+      <section class="p-8 rounded-2xl bg-[#0e1a08] text-center text-white">
+        <h2 class="text-2xl lg:text-3xl font-light mb-3">Este territorio te espera</h2>
+        <p class="text-sm text-white/60 max-w-md mx-auto mb-6">
+          Cada visita a "{exp.titulo}" contribuye a la restauración del bosque andino y al bienestar de las comunidades locales.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a
+            href={waReservar}
+            target="_blank" rel="noopener"
+            class="px-8 py-3 rounded-xl bg-[#d4920a] text-[#0e1a08] text-sm font-bold hover:bg-[#e5a50b] transition-colors"
+          >
+            💬 Reservar ahora
+          </a>
+          <a href="/naturaleza/experiencias" class="px-8 py-3 rounded-xl border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors">
+            Ver más experiencias
+          </a>
+        </div>
+      </section>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="space-y-6">
+      <!-- Booking Card -->
+      <div class="sticky top-24 p-6 rounded-2xl bg-white shadow-lg border border-gray-100">
+        <div class="text-center mb-4">
+          <span class="text-3xl font-bold text-[#2d5016]">{formatPrecioCOP(exp.precio_desde)}</span>
+          <p class="text-xs text-gray-500 mt-1">por persona</p>
+        </div>
+        <div class="space-y-2 text-xs text-gray-600 mb-6">
+          <div class="flex justify-between"><span>Duración</span><span class="font-medium">{exp.duracion || '4-5 horas'}</span></div>
+          <div class="flex justify-between"><span>Grupo máx.</span><span class="font-medium">{exp.cupo_maximo_desc || '6-8'}</span></div>
+          <div class="flex justify-between"><span>Dificultad</span><span class="font-medium">{diff.label}</span></div>
+          {exp.ofrece_transporte && <div class="flex justify-between"><span>Transporte</span><span class="font-medium text-green-600">Incluido</span></div>}
+        </div>
+        <a
+          href={waReservar}
+          target="_blank"
+          rel="noopener"
+          class="block w-full py-3 rounded-xl bg-[#2d5016] text-white text-center text-sm font-bold uppercase tracking-wider hover:bg-[#4a7c23] transition-colors"
+        >
+          Reservar por WhatsApp
+        </a>
+        {exp.porcentaje_fondo_impacto && (
+          <p class="text-[10px] text-gray-400 text-center mt-3">
+            🌱 El {exp.porcentaje_fondo_impacto}% va al fondo de restauración
+          </p>
+        )}
+      </div>
+
+      <!-- Hosts on this experience -->
+      {exp.anfitriones && exp.anfitriones.length > 0 && (
+        <div class="p-6 rounded-2xl bg-[#f8faf5] border border-gray-100">
+          <h3 class="text-sm font-bold text-[#2d5016] mb-4">Anfitriones en esta ruta</h3>
+          <div class="space-y-3">
+            {exp.anfitriones.map((host) => {
+              const nivel = nivelInfo(host.nivel_escalafon);
+              return (
+                <a href={`/naturaleza/anfitriones/${host.slug}`} class="flex items-center gap-3 group">
+                  <img src={anfitrionFoto(host)} alt={host.nombre} class="w-10 h-10 rounded-full object-cover" loading="lazy" />
+                  <div>
+                    <span class="text-sm font-medium text-[#1a3009] group-hover:text-[#4a7c23]">{host.nombre}</span>
+                    <span class="block text-[10px] text-gray-500">{nivel.icono} {nivel.nombre}</span>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <!-- Media Links -->
+      {(exp.video_url || exp.tour_360_url || exp.link_drone) && (
+        <div class="p-6 rounded-2xl bg-white border border-gray-100">
+          <h3 class="text-sm font-bold text-[#2d5016] mb-3">Explora en línea</h3>
+          <div class="space-y-2">
+            {exp.video_url && <a href={exp.video_url} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline">🎬 Ver video</a>}
+            {exp.tour_360_url && <a href={exp.tour_360_url} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline">🔄 Tour 360°</a>}
+            {exp.link_drone && <a href={exp.link_drone} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline">🚁 Vista de dron</a>}
+          </div>
+        </div>
+      )}
+    </aside>
+  </div>
+
+  <!-- Bundle Upsell -->
+  {exp.paquetes_upsell && exp.paquetes_upsell.length > 0 && (
+    <section class="max-w-6xl mx-auto px-4 pb-12">
+      <div class="flex items-center gap-2 mb-6">
+        <span class="w-6 h-[1px] bg-[#d4920a]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">¿Más tiempo en la montaña?</span>
+      </div>
+      <h2 class="text-2xl font-light text-[#1a3009] mb-6">Vive el fin de semana completo</h2>
+      <div class="space-y-6">
+        {exp.paquetes_upsell.map((bundle) => (
+          <div class="p-6 rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10">
+            <div class="flex flex-wrap items-center gap-3 text-[10px] font-bold text-[#d4920a] uppercase tracking-wider mb-2">
+              {bundle.duration && <span>📅 {bundle.duration}</span>}
+              <span>⛺ Todo armado</span>
+            </div>
+            <h3 class="text-xl font-semibold text-[#1a3009] mb-1">{bundle.title}</h3>
+            {bundle.tagline && <p class="text-sm text-gray-600 italic mb-4">{bundle.tagline}</p>}
+            {bundle.includes && bundle.includes.length > 0 && (
+              <ul class="space-y-2 mb-4">
+                {bundle.includes.map((item) => (
+                  <li class="flex gap-2 items-start text-xs text-gray-700">
+                    <span class="text-[#d4920a] mt-0.5">+</span> {item}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {bundle.price && (
+              <div class="flex items-center justify-between pt-4 border-t border-[#4a7c23]/10">
+                <div>
+                  <p class="text-[10px] text-gray-500 uppercase font-bold">Precio por persona</p>
+                  <p class="text-2xl font-bold text-[#1a3009]">{formatPrecioCOP(bundle.price)} <span class="text-xs font-normal text-gray-500">COP</span></p>
+                </div>
+                <a
+                  href={`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hola, quiero info del paquete: ${bundle.title}`)}`}
+                  target="_blank" rel="noopener"
+                  class="px-6 py-3 rounded-xl bg-[#d4920a]/10 border border-[#d4920a]/20 text-[#d4920a] text-[10px] font-bold uppercase tracking-wider hover:bg-[#d4920a] hover:text-white transition-colors"
+                >
+                  Explorar paquete
+                </a>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Related Experiences -->
+  {related.length > 0 && (
+    <section class="max-w-6xl mx-auto px-4 pb-16">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-6 h-[1px] bg-[#d4920a]"></span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">La montaña florece</span>
+          </div>
+          <h2 class="text-2xl font-light text-[#1a3009]">Otras rutas en la zona</h2>
+        </div>
+        <a href="/naturaleza/experiencias" class="text-[10px] font-bold uppercase tracking-wider text-[#d4920a] hover:text-[#1a3009] transition-colors">
+          Ver todas →
+        </a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {related.map((rel) => (
+          <a href={`/naturaleza/experiencias/${rel.slug}`} class="group block">
+            <div class="rounded-2xl border border-gray-100 overflow-hidden bg-white shadow-sm hover:shadow-md transition-all h-full flex flex-col">
+              <div class="relative h-40 overflow-hidden">
+                <img src={experienciaImagen(rel)} alt={rel.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                <span class="absolute top-3 left-3 bg-white/90 text-[#1a3009] text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">{rel.categoria}</span>
+              </div>
+              <div class="p-4 flex flex-col flex-grow">
+                {rel.ubicacion && <p class="text-[9px] font-bold uppercase tracking-wider text-[#d4920a] mb-1">📍 {rel.ubicacion}</p>}
+                <h3 class="font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors">{rel.titulo}</h3>
+                <div class="mt-auto pt-3 border-t border-gray-50 flex items-center gap-2 text-[10px] text-gray-400">
+                  {rel.tiempo_desde_ciudad && <span>⏱ {rel.tiempo_desde_ciudad}</span>}
+                  {rel.precio_desde && <span class="ml-auto font-bold text-[#2d5016]">{formatPrecioCOP(rel.precio_desde)}</span>}
+                </div>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Mobile Floating Booking Bar -->
+  <div class="fixed bottom-0 left-0 right-0 z-50 p-3 bg-white/95 backdrop-blur-md border-t border-gray-200 lg:hidden">
+    <div class="flex items-center justify-between max-w-lg mx-auto">
+      <div>
+        <span class="text-lg font-bold text-[#2d5016]">{formatPrecioCOP(exp.precio_desde)}</span>
+        <span class="text-xs text-gray-400 ml-1">/ persona</span>
+      </div>
+      <a
+        href={waReservar}
+        target="_blank" rel="noopener"
+        class="px-6 py-2.5 rounded-xl bg-[#2d5016] text-white text-sm font-bold hover:bg-[#4a7c23] transition-colors"
+      >
+        Reservar
+      </a>
+    </div>
+  </div>
+</BrandLayout>

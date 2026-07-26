@@ -1,0 +1,27 @@
+{
+  "name": "iwage-strapi",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Strapi CMS for Iwagé Meliponario",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "seed": "node scripts/seed.mjs"
+  },
+  "dependencies": {
+    "@strapi/strapi": "^5.0.0",
+    "@strapi/plugin-users-permissions": "^5.0.0",
+    "@strapi/plugin-cloud": "^5.0.0",
+    "pg": "^8.12.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
+    "styled-components": "^6.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=22.x.x",
+    "npm": ">=10.0.0"
+  }
+}

@@ -1,0 +1,207 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import StepTimeline from '@/components/StepTimeline.astro';
+import SimulatorWidget from '@/components/SimulatorWidget.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import { SEO } from '@/config/site';
+
+const aplicaciones = [
+  { icon: 'graduation-cap', title: 'PRAE Educativo', desc: 'Proyectos ambientales escolares con meliponas como eje transversal.', checks: ['Material didáctico incluido', 'Talleres presenciales'] },
+  { icon: 'tractor', title: 'Fincas Productivas', desc: 'Polinización y producción de miel integrada al sistema agroforestal.', checks: ['Diagnóstico gratuito', 'Acompañamiento técnico'] },
+  { icon: 'palmtree', title: 'Turismo de Naturaleza', desc: 'Experiencias de observación y cata de miel para visitantes.', checks: ['Sendero interpretativo', 'Guía de experiencia'] },
+  { icon: 'home', title: 'Paisajismo Residencial', desc: 'Colmenas ornamentales seguras para jardines y terrazas.', checks: ['Cajas con tapa acrílica', 'Sin riesgo de picadura'] },
+];
+
+const ecosistema = [
+  { numero: 1, titulo: 'Abejas nativas', desc: 'Tetragonisca angustula y otras especies sin aguijón adaptadas al piedemonte tolimense.' },
+  { numero: 2, titulo: 'Flora melífera', desc: 'Guamo, café, arrayán, mano de oso y 8 especies más del corredor Ambalá.' },
+  { numero: 3, titulo: 'Comunidad', desc: 'Familias campesinas, colegios y emprendedores locales vinculados al proyecto.' },
+];
+
+const etapas = [
+  { number: 1, title: 'Diagnóstico', description: 'Evaluación del espacio, flora disponible, condiciones climáticas y objetivos del proyecto.' },
+  { number: 2, title: 'Diseño', description: 'Plano de distribución, selección de especies, modelo de caja y calendario de instalación.' },
+  { number: 3, title: 'Instalación', description: 'Montaje de colmenas, atriles, señalética y flora complementaria si aplica.' },
+  { number: 4, title: 'Acompañamiento', description: 'Visitas de seguimiento, capacitación del equipo local y reportes de actividad.' },
+];
+
+const proyectos = [
+  { title: 'Meliponario I.E. Ambalá', location: 'Ibagué, Tolima', type: 'club', status: 'activo', description: 'Proyecto PRAE con 6 colmenas educativas y sendero interpretativo para 400 estudiantes.', colmenas: 6 },
+  { title: 'Finca El Carmen', location: 'Vereda El Carmen, Ibagué', type: 'finca', status: 'activo', description: 'Polinización de aguacate Hass y producción de miel con 12 colmenas.', colmenas: 12 },
+  { title: 'EcoHotel La Cumbre', location: 'Cajamarca, Tolima', type: 'turismo', status: 'activo', description: 'Experiencia de observación de meliponas + cata de miel para huéspedes.', colmenas: 4 },
+  { title: 'Colegio San Bonifacio', location: 'Ibagué, Tolima', type: 'club', status: 'en-proceso', description: 'Instalación de 4 colmenas educativas con material PRAE para primaria.', colmenas: 4 },
+  { title: 'Finca La Esperanza', location: 'Coello, Tolima', type: 'finca', status: 'activo', description: 'Polinización de café Caturra con 8 colmenas en bordes de lote.', colmenas: 8 },
+  { title: 'Jardín Residencial El Poblado', location: 'Ibagué, Tolima', type: 'empresa', status: 'en-proceso', description: 'Paisajismo con 3 colmenas ornamentales en zonas comunes del conjunto.', colmenas: 3 },
+];
+
+const filtros = ['todos', 'finca', 'club', 'turismo', 'empresa'];
+---
+
+<BrandLayout title={SEO.proyectos.title} description={SEO.proyectos.description}>
+  <!-- Hero -->
+  <section class="bg-surface">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Proyectos</p>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-text-primary leading-tight mb-6">
+        Meliponarios a la medida
+      </h1>
+      <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+        Diseñamos, instalamos y acompañamos proyectos de meliponicultura para colegios, fincas, turismo y espacios residenciales.
+      </p>
+    </div>
+  </section>
+
+  <!-- Aplicaciones -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader label="Líneas" title="Cuatro formas de empezar" align="center" />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {aplicaciones.map((a, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
+              <i data-lucide={a.icon} class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{a.title}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed mb-4">{a.desc}</p>
+            <ul class="space-y-2">
+              {a.checks.map((check) => (
+                <li class="flex items-center gap-2 text-xs text-text-muted">
+                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-brand shrink-0"></i>
+                  {check}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Ecosistema -->
+  <Section>
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <ScrollReveal>
+        <SectionHeader
+          label="Ecosistema"
+          title="Tres capas de impacto"
+          subtitle="Cada proyecto conecta abejas, flora y comunidad."
+        />
+        <div class="space-y-6">
+          {ecosistema.map((e) => (
+            <div class="flex gap-4">
+              <div class="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center font-mono text-sm shrink-0">
+                {e.numero}
+              </div>
+              <div>
+                <p class="font-semibold text-text-primary">{e.titulo}</p>
+                <p class="text-sm text-text-secondary">{e.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollReveal>
+      <ScrollReveal delay={200}>
+        <SectionHeader label="Etapas" title="Del diagnóstico al acompañamiento" />
+        <StepTimeline steps={etapas} />
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Simulator -->
+  <Section bg="sunken">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <ScrollReveal>
+        <SectionHeader
+          label="Herramienta"
+          title="Simula tu proyecto"
+          subtitle="Selecciona tu tipo de espacio y área disponible para obtener una recomendación inicial."
+        />
+      </ScrollReveal>
+      <ScrollReveal delay={150}>
+        <SimulatorWidget />
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Projects grid -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader label="Portafolio" title="Proyectos realizados" />
+    </ScrollReveal>
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-2 mb-8" id="project-filters">
+      {filtros.map((f) => (
+        <button
+          type="button"
+          class="filter-btn rounded-full px-4 py-2 text-sm font-medium transition-all"
+          data-filter={f}
+        >
+          {f === 'todos' ? 'Todos' : f.charAt(0).toUpperCase() + f.slice(1)}
+        </button>
+      ))}
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="projects-grid">
+      {proyectos.map((p, i) => (
+        <div class="project-item" data-type={p.type}>
+          <ProjectCard {...p} />
+        </div>
+      ))}
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold text-dark-text mb-4">¿Tienes un espacio en mente?</h2>
+        <p class="text-dark-text/60 mb-8">Cuéntanos tu idea y diseñamos el meliponario perfecto para tu contexto.</p>
+        <a href="/contacto" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+          Iniciar conversación
+          <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        </a>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>
+
+<style>
+  .filter-btn {
+    background: var(--color-surface-sunken);
+    color: var(--color-text-secondary);
+  }
+  .filter-btn.active {
+    background: var(--color-brand);
+    color: white;
+  }
+  .project-item.hidden-item {
+    display: none;
+  }
+</style>
+
+<script>
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const items = document.querySelectorAll('.project-item');
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+      filterBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      items.forEach((item) => {
+        if (filter === 'todos' || item.getAttribute('data-type') === filter) {
+          item.classList.remove('hidden-item');
+        } else {
+          item.classList.add('hidden-item');
+        }
+      });
+    });
+  });
+
+  // Set default active
+  filterBtns[0]?.classList.add('active');
+</script>

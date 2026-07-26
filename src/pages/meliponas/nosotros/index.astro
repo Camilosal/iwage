@@ -1,0 +1,125 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { SEO } from '@/config/site';
+
+const valores = [
+  { icon: 'leaf', title: 'Territorio', desc: 'Todo nace del piedemonte tolimense y su biodiversidad.' },
+  { icon: 'eye', title: 'Observación', desc: 'Aprendemos de las abejas antes de intervenir.' },
+  { icon: 'users', title: 'Comunidad', desc: 'Economía local sin extractivismo.' },
+  { icon: 'microscope', title: 'Rigor', desc: 'Datos, análisis y trazabilidad en cada decisión.' },
+];
+
+const timeline = [
+  { year: '2021', event: 'Primera colmena de T. angustula en el patio de la casa familiar.' },
+  { year: '2022', event: 'Diseño del modelo INPA adaptado al nogal cafetero local.' },
+  { year: '2023', event: 'Primer proyecto PRAE con colegio rural. 4 colmenas educativas.' },
+  { year: '2024', event: 'Lanzamiento de la tienda y servicio de polinización gestionada.' },
+  { year: '2025', event: '120+ colmenas activas, 6 proyectos y trazabilidad por lote con QR.' },
+];
+
+const equipo = [
+  { nombre: 'Camilo A.', rol: 'Fundador · Meliponicultor', iniciales: 'CA' },
+  { nombre: 'Valentina R.', rol: 'Bióloga · Polinización', iniciales: 'VR' },
+];
+---
+
+<BrandLayout title={SEO.nosotros.title} description={SEO.nosotros.description}>
+  <!-- Hero -->
+  <section class="bg-surface">
+    <div class="max-w-4xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Nosotros</p>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-text-primary leading-tight mb-6">
+        Del territorio Pijao<br />al mundo
+      </h1>
+      <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+        Un proyecto que nació de la observación del territorio, la identidad Pijao y el deseo de construir economía local sin extractivismo.
+      </p>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <Section bg="sunken">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <ScrollReveal>
+        <SectionHeader label="Historia" title="Cómo empezó" />
+        <div class="space-y-4 text-text-secondary leading-relaxed">
+          <p>
+            Iwagé nació en 2021 cuando una colonia de Tetragonisca angustula se instaló espontáneamente en el muro de una casa en el corredor Ambalá. En lugar de retirarla, decidimos observarla.
+          </p>
+          <p>
+            Esa observación se convirtió en estudio, el estudio en práctica, y la práctica en un proyecto productivo que hoy conecta abejas nativas, flora melífera y comunidad en un ecosistema de valor compartido.
+          </p>
+        </div>
+      </ScrollReveal>
+      <ScrollReveal delay={200}>
+        <div class="bg-brand-muted rounded-2xl p-8">
+          <p class="font-mono text-xs uppercase tracking-widest text-brand mb-4">Significado</p>
+          <p class="text-2xl font-bold text-text-primary mb-2">Iwagé</p>
+          <p class="text-text-secondary">Del Pijao: "el lugar donde las abejas hacen su casa". Un nombre que honra la identidad del territorio y la relación simbiótica con sus polinizadores nativos.</p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Values -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader label="Valores" title="Lo que nos guía" align="center" />
+    </ScrollReveal>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      {valores.map((v, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
+              <i data-lucide={v.icon} class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{v.title}</h3>
+            <p class="text-sm text-text-secondary">{v.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Timeline -->
+  <Section bg="sunken">
+    <div class="grid md:grid-cols-2 gap-12">
+      <ScrollReveal>
+        <SectionHeader label="Trayectoria" title="Nuestro camino" />
+        <div class="relative">
+          <div class="absolute left-2 top-0 bottom-0 w-px bg-border"></div>
+          <div class="space-y-8">
+            {timeline.map((t) => (
+              <div class="relative flex gap-6">
+                <div class="relative z-10 w-4 h-4 rounded-full bg-brand border-4 border-surface-sunken shrink-0 mt-1"></div>
+                <div>
+                  <p class="font-mono text-sm text-accent font-medium">{t.year}</p>
+                  <p class="text-sm text-text-secondary">{t.event}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </ScrollReveal>
+      <ScrollReveal delay={200}>
+        <SectionHeader label="Equipo" title="Quiénes somos" />
+        <div class="space-y-4">
+          {equipo.map((e) => (
+            <div class="flex items-center gap-4 bg-surface-raised rounded-xl border border-border p-4">
+              <div class="w-12 h-12 rounded-full bg-brand-muted flex items-center justify-center text-brand font-semibold">
+                {e.iniciales}
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-text-primary">{e.nombre}</p>
+                <p class="text-xs text-text-muted">{e.rol}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+</BrandLayout>

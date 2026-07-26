@@ -1,0 +1,114 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { getCafeConfig } from '@/lib/cafe';
+
+const config = await getCafeConfig();
+const whatsapp = (config?.whatsapp ?? '573001234567').replace(/\+/g, '');
+---
+
+<BrandLayout brand="cafe" title="Contacto · Café Iwagé" description="Escríbenos para visitas, suministro B2B o cualquier pregunta. Café Iwagé, corredor Ambalá, Ibagué, Tolima.">
+  <!-- Header -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-12 md:py-16 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Café Iwagé</p>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Contacto</h1>
+      <p class="mt-4 text-dark-text/60 max-w-xl mx-auto">
+        ¿Visita, suministro o simplemente quieres saber más? Escríbenos.
+      </p>
+    </div>
+  </section>
+
+  <Section>
+    <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-10">
+      <!-- Contact info -->
+      <ScrollReveal>
+        <div class="space-y-6">
+          <div>
+            <h2 class="text-lg font-semibold text-text-primary mb-3">Información</h2>
+            <ul class="space-y-3 text-sm text-text-secondary">
+              <li class="flex items-start gap-3">
+                <span class="text-accent">📍</span>
+                <span>{config?.direccion ?? 'Corredor Ambalá, Ibagué, Tolima'}</span>
+              </li>
+              {config?.horario && (
+                <li class="flex items-start gap-3">
+                  <span class="text-accent">🕐</span>
+                  <span class="whitespace-pre-line">{config.horario}</span>
+                </li>
+              )}
+              {!config?.horario && (
+                <li class="flex items-start gap-3">
+                  <span class="text-accent">🕐</span>
+                  <span>Lunes a Sábado · 7:00 am – 5:00 pm</span>
+                </li>
+              )}
+              {config?.telefono && (
+                <li class="flex items-start gap-3">
+                  <span class="text-accent">📞</span>
+                  <span>{config.telefono}</span>
+                </li>
+              )}
+              {config?.email && (
+                <li class="flex items-start gap-3">
+                  <span class="text-accent">✉️</span>
+                  <a href={`mailto:${config.email}`} class="text-brand hover:text-accent transition-colors">{config.email}</a>
+                </li>
+              )}
+              {config?.instagram && (
+                <li class="flex items-start gap-3">
+                  <span class="text-accent">📷</span>
+                  <span>{config.instagram}</span>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          <div class="pt-4 border-t border-border">
+            <h3 class="text-base font-semibold text-text-primary mb-3">Suministro B2B</h3>
+            <p class="text-sm text-text-secondary mb-4">
+              {config?.b2b_descripcion ?? 'Café de origen y miel de Angelita para restaurantes, hoteles y tiendas especializadas.'}
+            </p>
+            <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20información%20sobre%20suministro%20de%20café`} target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-5 py-2.5 text-sm font-medium hover:bg-accent-light transition-all">
+              💬 Cotizar por WhatsApp
+            </a>
+          </div>
+        </div>
+      </ScrollReveal>
+
+      <!-- Quick contact form (WhatsApp-based) -->
+      <ScrollReveal delay={100}>
+        <div class="bg-surface-raised rounded-2xl border border-border p-6 md:p-8">
+          <h2 class="text-lg font-semibold text-text-primary mb-4">Escríbenos directo</h2>
+          <p class="text-sm text-text-secondary mb-6">
+            La forma más rápida de contactarnos es por WhatsApp. Respondemos en menos de 2 horas en horario de atención.
+          </p>
+          <div class="space-y-4">
+            <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20visitar%20el%20café`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
+              <span class="text-xl">☕</span>
+              <div>
+                <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Planear una visita</p>
+                <p class="text-xs text-text-muted">Conoce el café y el meliponario</p>
+              </div>
+            </a>
+            <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20información%20sobre%20suministro%20B2B`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
+              <span class="text-xl">🏪</span>
+              <div>
+                <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Suministro para mi negocio</p>
+                <p class="text-xs text-text-muted">Café y miel al por mayor</p>
+              </div>
+            </a>
+            <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20el%20café`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
+              <span class="text-xl">❓</span>
+              <div>
+                <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Otra pregunta</p>
+                <p class="text-xs text-text-muted">Lo que necesites saber</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+</BrandLayout>

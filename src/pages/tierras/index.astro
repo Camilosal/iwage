@@ -1,0 +1,240 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { getPropiedadesDestacadas, formatPrecio, formatArea, propiedadImagen, PERFILES_COMPRADOR, SELLOS_VAP } from '@/lib/tierras';
+
+const destacadas = await getPropiedadesDestacadas(6);
+
+const DESAFIOS_RURALES = [
+  { titulo: 'Falsa Tradición', desc: 'Propiedades sin escrituras reales en Folios de Matrícula.', icon: '📜' },
+  { titulo: 'Linderos Fantasma', desc: 'Áreas reales que no coinciden con registros del IGAC.', icon: '📐' },
+  { titulo: 'Incertidumbre Hídrica', desc: 'Carencia de concesiones de agua activas.', icon: '💧' },
+  { titulo: 'Cargas y Gravámenes', desc: 'Embargos ocultos o sucesiones ilíquidas.', icon: '⚖️' },
+];
+
+const EJES_AUDITORIA = [
+  { label: 'Títulos y Propiedad', desc: 'Estudio de títulos de 20 años.', icon: '🔍' },
+  { label: 'Topografía y Linderos', desc: 'Georreferenciación GPS.', icon: '🗺️' },
+  { label: 'Recurso Hídrico', desc: 'Concesiones y fuentes.', icon: '💧' },
+  { label: 'Normativa & PBOT', desc: 'Compatibilidad territorial.', icon: '📋' },
+];
+---
+
+<BrandLayout brand="tierras" title="Iwagé Tierras · Inmobiliaria Rural con Conocimiento Territorial" description="Propiedades rurales con verificación técnica VAP en el Tolima. Fincas productivas, lotes para glamping, casas campestres. Títulos claros, agua certificada, GPS preciso.">
+
+  <!-- Hero -->
+  <section class="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-[#0F120E]">
+    <img
+      src="https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1600&q=80"
+      alt="Paisaje rural del Tolima, montañas y tierras productivas"
+      class="absolute inset-0 w-full h-full object-cover brightness-[0.7]"
+      loading="eager"
+    />
+    <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-[#0F120E]"></div>
+    <div class="relative z-10 max-w-4xl mx-auto px-6 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">Inmobiliaria Rural · Tolima, Colombia</p>
+      <h1 class="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight mb-4">
+        Vive la montaña hoy,<br/>
+        <span class="text-[#52B788] italic font-light">invierte en ella mañana</span>
+      </h1>
+      <p class="text-white/80 text-lg max-w-2xl mx-auto mb-8">
+        Propiedades auditadas con el Protocolo VAP: títulos verificados, linderos GPS, agua certificada y normativa clara. Sin sorpresas.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/tierras/propiedades" class="bg-[#52B788] text-[#0F120E] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#52B788]/90 hover:scale-105 transition-all shadow-lg">
+          🔍 Buscar Propiedades
+        </a>
+        <a href="/tierras/protocolo-vap" class="border border-[#52B788] text-[#52B788] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#52B788] hover:text-[#0F120E] transition-all">
+          🛡️ Protocolo VAP
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICs -->
+  <Section class="bg-[#FAFAF7]">
+    <div class="text-center mb-10">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Tecnología Iwagé</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-[#1B4332]">TICs para evaluación <span class="italic font-light text-[#52B788]">precisa</span></h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {[
+        { icon: '🛰️', title: 'GPS Precisión', desc: 'Georreferenciación submétrica para linderos exactos' },
+        { icon: '📷', title: 'Foto Drone', desc: 'Imágenes aéreas de alta resolución' },
+        { icon: '🔄', title: 'Tour 360°', desc: 'Recorrido virtual interactivo' },
+        { icon: '📐', title: 'Modelo 3D', desc: 'Representación digital del terreno' },
+      ].map((tic) => (
+        <ScrollReveal>
+          <div class="bg-white rounded-xl p-5 border border-gray-100 hover:border-[#52B788]/30 transition-all">
+            <span class="text-3xl block mb-2">{tic.icon}</span>
+            <h4 class="font-bold text-[#1B4332] mb-1">{tic.title}</h4>
+            <p class="text-xs text-gray-500">{tic.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Featured Properties -->
+  {destacadas.length > 0 && (
+    <Section class="bg-white">
+      <div class="text-center mb-10">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Catálogo Auditado</p>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#1B4332]">Propiedades Destacadas</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {destacadas.map((prop) => (
+          <ScrollReveal>
+            <a href={`/tierras/propiedades/${prop.slug}`} class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#52B788]/40 hover:shadow-xl transition-all">
+              <div class="relative h-52 bg-gray-100 overflow-hidden">
+                {propiedadImagen(prop) ? (
+                  <img src={propiedadImagen(prop)!} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center bg-[#1B4332]/10">
+                    <span class="text-4xl">🌄</span>
+                  </div>
+                )}
+                <div class="absolute top-3 left-3 flex gap-2">
+                  <span class="bg-[#52B788] text-[#0F120E] text-[10px] font-bold px-2 py-1 rounded-full uppercase">{prop.tipo_propiedad.replace('_', ' ')}</span>
+                  {prop.sello_vap === 'oro' && <span class="bg-yellow-400 text-black text-[10px] font-bold px-2 py-1 rounded-full">🥇 VAP Oro</span>}
+                </div>
+              </div>
+              <div class="p-5">
+                <h3 class="font-bold text-[#1B4332] group-hover:text-[#52B788] transition-colors mb-1">{prop.titulo}</h3>
+                <p class="text-xs text-gray-500 mb-3">📍 {prop.ubicacion_municipio || 'Tolima'} {prop.distancia_centro_poblado ? `· ${prop.distancia_centro_poblado} km al centro` : ''}</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-lg font-bold text-[#1B4332]">{formatPrecio(prop.precio, prop.moneda)}</span>
+                  <span class="text-xs text-gray-500">{formatArea(prop)}</span>
+                </div>
+              </div>
+            </a>
+          </ScrollReveal>
+        ))}
+      </div>
+      <div class="text-center mt-8">
+        <a href="/tierras/propiedades" class="inline-block bg-[#1B4332] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#1B4332]/90 transition-all">
+          Ver todo el catálogo →
+        </a>
+      </div>
+    </Section>
+  )}
+
+  <!-- Buyer Profiles -->
+  <Section class="bg-[#0F120E] text-white">
+    <div class="text-center mb-10">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">¿Para qué buscas tu tierra?</p>
+      <h2 class="text-2xl md:text-3xl font-bold">Perfiles de Comprador</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {PERFILES_COMPRADOR.map((perfil) => (
+        <ScrollReveal>
+          <a href={`/tierras/perfiles/${perfil.id}`} class="group block bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#52B788]/40 hover:bg-white/10 transition-all">
+            <p class="text-[10px] font-bold tracking-[0.3em] text-[#52B788] uppercase mb-2">{perfil.tag}</p>
+            <h3 class="text-xl font-bold mb-2 group-hover:text-[#52B788] transition-colors">{perfil.label}</h3>
+            <p class="text-sm text-white/60 mb-4">{perfil.subheadline.slice(0, 120)}...</p>
+            <div class="flex gap-4">
+              {perfil.metrics.map((m) => (
+                <div class="text-center">
+                  <p class="text-lg font-bold text-[#52B788]">{m.val}</p>
+                  <p class="text-[10px] text-white/40">{m.lbl}</p>
+                </div>
+              ))}
+            </div>
+          </a>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- VAP Seals -->
+  <Section class="bg-white">
+    <div class="text-center mb-10">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Niveles de certeza</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-[#1B4332]">Grados de Certeza <span class="italic font-light text-[#52B788]">VAP</span></h2>
+      <p class="text-gray-500 mt-3 max-w-lg mx-auto text-sm">
+        <strong>VAP = Verificación de Activos Rurales.</strong> Protocolo único de auditoría técnica que verifica títulos, linderos, agua y normativa.
+      </p>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      {SELLOS_VAP.map((sello) => (
+        <ScrollReveal>
+          <div class="text-center p-6 rounded-2xl border border-gray-100 hover:border-[#52B788]/40 hover:shadow-lg transition-all">
+            <span class="text-5xl block mb-3">{sello.icono}</span>
+            <h3 class="font-bold text-[#1B4332]">{sello.label}</h3>
+            <p class="text-xs font-bold uppercase text-[#52B788] tracking-wider mt-1">{sello.tagline}</p>
+            <p class="text-xs text-gray-500 mt-3">{sello.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Desafíos + Auditoría -->
+  <Section class="bg-[#0F120E] text-white">
+    <div class="text-center mb-10">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Auditoría</p>
+      <h2 class="text-2xl md:text-3xl font-bold">Estándar <span class="italic font-light text-[#52B788]">Iwagé</span></h2>
+      <p class="text-white/60 mt-3 max-w-lg mx-auto text-sm">Los 4 riesgos críticos del campo colombiano que verificamos en cada propiedad.</p>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {DESAFIOS_RURALES.map((d) => (
+        <div class="bg-white/5 p-5 rounded-xl border border-white/10">
+          <span class="text-3xl block mb-2">{d.icon}</span>
+          <h4 class="font-bold text-white mb-1">{d.titulo}</h4>
+          <p class="text-sm text-white/60">{d.desc}</p>
+        </div>
+      ))}
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {EJES_AUDITORIA.map((e) => (
+        <div class="bg-white/10 p-4 rounded-lg flex items-center gap-3">
+          <span class="text-xl">{e.icon}</span>
+          <div>
+            <h5 class="text-sm font-bold text-white">{e.label}</h5>
+            <p class="text-xs text-white/50">{e.desc}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Tools CTA -->
+  <Section class="bg-[#FAFAF7]">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      <a href="/tierras/herramientas/calculadora-notarial" class="bg-white p-6 rounded-2xl border border-gray-100 hover:border-[#52B788]/40 hover:shadow-lg transition-all flex items-center gap-5">
+        <div class="w-14 h-14 bg-[#52B788]/10 rounded-xl flex items-center justify-center shrink-0">
+          <span class="text-2xl">🧮</span>
+        </div>
+        <div>
+          <h4 class="font-bold text-[#1B4332]">Calculadora Notarial</h4>
+          <p class="text-sm text-gray-500">Estima gastos de escritura, registro y timbre antes de comprar.</p>
+        </div>
+      </a>
+      <a href="/tierras/herramientas/roi-calculator" class="bg-white p-6 rounded-2xl border border-gray-100 hover:border-[#52B788]/40 hover:shadow-lg transition-all flex items-center gap-5">
+        <div class="w-14 h-14 bg-[#C8933E]/10 rounded-xl flex items-center justify-center shrink-0">
+          <span class="text-2xl">📈</span>
+        </div>
+        <div>
+          <h4 class="font-bold text-[#1B4332]">Calculadora ROI Rural</h4>
+          <p class="text-sm text-gray-500">Compara retorno de inversión: turismo, agricultura, ganadería, valorización.</p>
+        </div>
+      </a>
+    </div>
+  </Section>
+
+  <!-- Final CTA -->
+  <section class="py-16 bg-white">
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="rounded-2xl p-10 md:p-14 text-center" style="background: linear-gradient(135deg, #1B4332 0%, #0F120E 100%)">
+        <span class="text-4xl block mb-4">🛡️</span>
+        <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">Tu próxima inversión rural merece certeza</h2>
+        <p class="text-white/70 mb-8">No invertas en lo oscuro. Explora propiedades auditadas o radica la tuya para vender con transparencia.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="/tierras/propiedades" class="bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold uppercase text-sm hover:bg-[#52B788]/90 transition-all shadow-lg">Ver Catálogo Auditado</a>
+          <a href="/tierras/vender" class="bg-[#C8933E] text-white px-10 py-4 rounded-full font-bold uppercase text-sm hover:bg-[#C8933E]/90 transition-all shadow-lg">Radicar mi Predio</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BrandLayout>

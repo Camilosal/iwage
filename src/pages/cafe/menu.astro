@@ -1,0 +1,389 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { getMenuItems, CATEGORIAS_MENU, itemImage } from '@/lib/cafe';
+import type { ItemMenu } from '@/lib/cafe';
+
+const allItems = await getMenuItems();
+
+// Group by category (only categories with items)
+const grouped = CATEGORIAS_MENU.map(cat => ({
+  ...cat,
+  items: allItems.filter(i => i.categoria === cat.slug),
+})).filter(g => g.items.length > 0);
+
+// Fallback if Strapi is empty
+const fallbackItems: ItemMenu[] = [
+  { id: 1, documentId: '1', nombre: 'Café de origen Ambalá', slug: null, descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: true, categoria: 'cafe', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 2, documentId: '2', nombre: 'Espresso doble', slug: null, descripcion: 'Doble shot, cuerpo medio', historia: 'Doble shot de nuestro blend house. Cuerpo medio, final dulce.', tags: ['Clásico'], precio: '$5.000', destacado: false, categoria: 'cafe', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 3, documentId: '3', nombre: 'Miel de Angelita con café', slug: null, descripcion: 'Dulzor natural sin azúcar', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, categoria: 'signature', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 4, documentId: '4', nombre: 'Aromática de flora nativa', slug: null, descripcion: 'Hierbas del corredor biológico', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 5, documentId: '5', nombre: 'Chocolate de cacao local', slug: null, descripcion: 'Cacao de El Espinal', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, categoria: 'acompanamiento', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 6, documentId: '6', nombre: 'Pan de yuca y miel', slug: null, descripcion: 'Horneado del día', historia: 'Almidón de yuca del Espinal con miel de Angelita. Horneado cada mañana.', tags: ['Horneado del día', 'Sin gluten'], precio: '$4.500', destacado: false, categoria: 'panaderia', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 7, documentId: '7', nombre: 'Cold brew de cosecha', slug: null, descripcion: 'Extracción en frío 18h', historia: 'Extracción en frío durante 18 horas con café de cosecha reciente. Suave, dulce, refrescante.', tags: ['Extracción 18h', 'Edición cosecha'], precio: '$8.000', destacado: false, categoria: 'frio', imagen: null, orden: 1, disponible: false, temporada: true, nota_disponibilidad: 'Disponible en cosecha de agosto' },
+];
+
+const displayGrouped = grouped.length > 0 ? grouped : [{ slug: 'cafe', label: 'Menú', icon: '☕', items: fallbackItems }];
+
+// Count available vs total
+const totalItems = allItems.length || fallbackItems.length;
+const availableCount = (allItems.length > 0 ? allItems : fallbackItems).filter(i => i.disponible).length;
+
+// Category icon lookup for modal
+const catIcons: Record<string, string> = { cafe: '☕', signature: '✨', panaderia: '🥐', infusion: '🌿', frio: '🧊', acompanamiento: '🍫' };
+const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature', panaderia: 'Panadería', infusion: 'Infusiones', frio: 'Fríos', acompanamiento: 'Acompañamientos' };
+---
+
+<BrandLayout brand="cafe" title="Menú · Café Iwagé" description="Cada producto tiene nombre, historia y proveedor. Café de origen, infusiones de flora nativa, panadería y signatures con miel de Angelita. Disponibilidad en tiempo real.">
+  <!-- Header -->
+  <section class="bg-dark-bg text-dark-text">
+    <div class="max-w-6xl mx-auto px-6 py-12 md:py-16 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Café Iwagé</p>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Menú</h1>
+      <p class="mt-4 text-dark-text/60 max-w-xl mx-auto">
+        Cada producto es un personaje con nombre, historia y proveedor. Nada genérico.
+      </p>
+      <!-- Availability summary -->
+      <div class="mt-5 inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-2 text-sm">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          {availableCount} disponibles hoy
+        </span>
+        {availableCount < totalItems && (
+          <span class="flex items-center gap-1.5 text-dark-text/50">
+            <span class="w-2 h-2 rounded-full bg-red-400"></span>
+            {totalItems - availableCount} agotados
+          </span>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- Menu grid -->
+  <Section>
+    {displayGrouped.map((group) => (
+      <div class="mb-14 last:mb-0">
+        <h2 class="text-xl font-bold text-text-primary mb-6 flex items-center gap-3">
+          <span class="text-2xl">{(group as any).icon ?? '☕'}</span>
+          {group.label}
+          <span class="text-xs font-normal text-text-muted bg-surface-sunken rounded-full px-2.5 py-0.5 ml-1">
+            {group.items.filter(i => i.disponible).length}/{group.items.length}
+          </span>
+        </h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {group.items.map((item, i) => {
+            const img = itemImage(item);
+            const agotado = !item.disponible;
+            return (
+              <ScrollReveal delay={i * 60}>
+                <article
+                  data-menu-item={JSON.stringify({
+                    nombre: item.nombre,
+                    descripcion: item.descripcion,
+                    historia: item.historia,
+                    precio: item.precio,
+                    tags: item.tags,
+                    categoria: item.categoria,
+                    disponible: item.disponible,
+                    temporada: item.temporada,
+                    nota_disponibilidad: item.nota_disponibilidad,
+                    destacado: item.destacado,
+                    imagen: img,
+                  })}
+                  class:list={[
+                    'relative rounded-2xl border h-full flex flex-col overflow-hidden transition-all duration-200 cursor-pointer group',
+                    agotado
+                      ? 'bg-surface-sunken border-border/50 opacity-70 hover:opacity-90'
+                      : item.destacado
+                        ? 'bg-surface-raised border-accent ring-1 ring-accent/20 shadow-md hover:shadow-lg'
+                        : 'bg-surface-raised border-border shadow-sm hover:shadow-md hover:border-brand/30',
+                  ]}
+                >
+                  {/* Image */}
+                  {img && (
+                    <div class="h-36 w-full overflow-hidden">
+                      <img
+                        src={img}
+                        alt={item.nombre}
+                        class:list={['w-full h-full object-cover transition-transform duration-300 group-hover:scale-105', agotado && 'grayscale']}
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+
+                  {/* Badges */}
+                  <div class="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+                    {agotado && (
+                      <span class="bg-red-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
+                        Agotado
+                      </span>
+                    )}
+                    {item.temporada && (
+                      <span class="bg-amber-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
+                        🌱 Temporada
+                      </span>
+                    )}
+                    {item.destacado && !agotado && (
+                      <span class="bg-accent/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
+                        ★ Destacado
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div class="p-5 flex flex-col flex-1">
+                    <div class="flex items-start justify-between gap-3 mb-1.5">
+                      <h3 class:list={[
+                        'text-base font-semibold leading-snug',
+                        agotado ? 'text-text-muted line-through decoration-1' : 'text-text-primary',
+                      ]}>
+                        {item.nombre}
+                      </h3>
+                      {item.precio && (
+                        <span class:list={[
+                          'text-base font-bold shrink-0',
+                          agotado ? 'text-text-muted' : 'text-brand',
+                        ]}>
+                          {item.precio}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Descripcion corta */}
+                    {item.descripcion && (
+                      <p class="text-xs text-text-muted font-medium mb-2">{item.descripcion}</p>
+                    )}
+
+                    {/* Historia truncated */}
+                    {item.historia && (
+                      <p class:list={[
+                        'text-sm italic leading-relaxed mb-3 flex-1 line-clamp-2',
+                        agotado ? 'text-text-muted/60' : 'text-text-secondary',
+                      ]}>
+                        {item.historia}
+                      </p>
+                    )}
+
+                    {/* Nota de disponibilidad */}
+                    {agotado && item.nota_disponibilidad && (
+                      <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+                        📅 {item.nota_disponibilidad}
+                      </p>
+                    )}
+
+                    {/* Tags */}
+                    {item.tags && item.tags.length > 0 && (
+                      <div class="flex flex-wrap gap-1.5 mt-auto pt-2">
+                        {item.tags.map((tag: string) => (
+                          <span class:list={[
+                            'text-xs font-medium rounded-full px-2.5 py-0.5',
+                            agotado ? 'bg-surface text-text-muted' : 'bg-brand-muted text-brand',
+                          ]}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Click hint */}
+                    <p class="text-[10px] text-text-muted/50 mt-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                      Ver detalle →
+                    </p>
+                  </div>
+                </article>
+              </ScrollReveal>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </Section>
+
+  <!-- Legend + CTA -->
+  <Section bg="sunken" class="!py-12">
+    <div class="max-w-2xl mx-auto text-center">
+      <div class="flex flex-wrap justify-center gap-4 text-xs text-text-muted mb-6">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Disponible
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span> Agotado
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> De temporada
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-accent"></span> Destacado
+        </span>
+      </div>
+      <p class="text-sm text-text-muted">
+        Precios en COP. Menú sujeto a disponibilidad de cosecha y producción diaria.
+        Los productos de temporada aparecen solo cuando hay materia prima fresca.
+      </p>
+      <p class="mt-3 text-sm">
+        ¿Ya decidiste? <a href="/cafe/pedidos" class="text-brand font-medium underline underline-offset-2 hover:text-accent transition-colors">Pide en línea</a> y recoge en tienda o recibe en casa.
+      </p>
+    </div>
+  </Section>
+
+  <!-- ═══ Detail Modal ═══ -->
+  <dialog id="menu-modal" class="fixed inset-0 z-[100] m-auto w-[calc(100%-2rem)] max-w-lg rounded-3xl border-0 p-0 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:items-center">
+    <div class="max-h-[85vh] overflow-y-auto rounded-3xl bg-white">
+      {/* Hero / Image area */}
+      <div id="modal-hero" class="relative h-44 bg-gradient-to-br from-brand/10 to-accent/10 flex items-center justify-center overflow-hidden rounded-t-3xl">
+        <img id="modal-img" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden" />
+        <span id="modal-icon" class="text-6xl opacity-30">☕</span>
+        <button id="modal-close" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm text-white flex items-center justify-center text-lg hover:bg-black/40 transition-colors" aria-label="Cerrar">✕</button>
+        {/* Status badges */}
+        <div id="modal-badges" class="absolute top-4 left-4 flex flex-wrap gap-2"></div>
+      </div>
+
+      {/* Body */}
+      <div class="p-6 md:p-8">
+        {/* Category + price row */}
+        <div class="flex items-center justify-between mb-2">
+          <span id="modal-cat" class="text-xs font-mono uppercase tracking-widest text-text-muted"></span>
+          <span id="modal-precio" class="text-2xl font-bold text-brand"></span>
+        </div>
+
+        {/* Name */}
+        <h2 id="modal-nombre" class="text-2xl font-bold text-text-primary leading-tight mb-2"></h2>
+
+        {/* Descripcion */}
+        <p id="modal-desc" class="text-sm text-text-muted font-medium mb-4"></p>
+
+        {/* Historia */}
+        <div id="modal-historia-wrap" class="mb-5">
+          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1.5">La historia</p>
+          <p id="modal-historia" class="text-sm text-text-secondary leading-relaxed italic"></p>
+        </div>
+
+        {/* Nota disponibilidad */}
+        <div id="modal-nota-wrap" class="hidden mb-5">
+          <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            📅 <span id="modal-nota"></span>
+          </p>
+        </div>
+
+        {/* Tags */}
+        <div id="modal-tags-wrap" class="mb-6">
+          <div id="modal-tags" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        {/* CTA */}
+        <div class="flex items-center gap-3 pt-4 border-t border-border">
+          <a href="/cafe/pedidos" id="modal-cta" class="flex-1 text-center bg-brand text-white font-semibold rounded-xl px-5 py-3 text-sm hover:bg-brand/90 transition-colors">
+            Pedir en línea
+          </a>
+          <a href="/cafe/proveedores" class="text-xs text-text-muted hover:text-brand transition-colors underline underline-offset-2">
+            Ver proveedores
+          </a>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</BrandLayout>
+
+<script>
+  const catIcons: Record<string, string> = { cafe: '☕', signature: '✨', panaderia: '🥐', infusion: '🌿', frio: '🧊', acompanamiento: '🍫' };
+  const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature', panaderia: 'Panadería', infusion: 'Infusiones', frio: 'Fríos', acompanamiento: 'Acompañamientos' };
+
+  const modal = document.getElementById('menu-modal') as HTMLDialogElement;
+  const closeBtn = document.getElementById('modal-close')!;
+
+  function openModal(data: any) {
+    // Hero
+    const img = document.getElementById('modal-img') as HTMLImageElement;
+    const icon = document.getElementById('modal-icon')!;
+    if (data.imagen) {
+      img.src = data.imagen;
+      img.alt = data.nombre;
+      img.classList.remove('hidden');
+      icon.classList.add('hidden');
+    } else {
+      img.classList.add('hidden');
+      icon.classList.remove('hidden');
+      icon.textContent = catIcons[data.categoria] || '☕';
+    }
+
+    // Badges
+    const badges = document.getElementById('modal-badges')!;
+    let badgeHtml = '';
+    if (!data.disponible) badgeHtml += '<span class="bg-red-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">Agotado</span>';
+    if (data.temporada) badgeHtml += '<span class="bg-amber-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">🌱 Temporada</span>';
+    if (data.destacado && data.disponible) badgeHtml += '<span class="bg-accent/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">★ Destacado</span>';
+    badges.innerHTML = badgeHtml;
+
+    // Category + price
+    document.getElementById('modal-cat')!.textContent = catLabels[data.categoria] || data.categoria;
+    document.getElementById('modal-precio')!.textContent = data.precio || '';
+
+    // Name + desc
+    document.getElementById('modal-nombre')!.textContent = data.nombre;
+    const descEl = document.getElementById('modal-desc')!;
+    descEl.textContent = data.descripcion || '';
+    descEl.classList.toggle('hidden', !data.descripcion);
+
+    // Historia
+    const histWrap = document.getElementById('modal-historia-wrap')!;
+    if (data.historia) {
+      document.getElementById('modal-historia')!.textContent = data.historia;
+      histWrap.classList.remove('hidden');
+    } else {
+      histWrap.classList.add('hidden');
+    }
+
+    // Nota disponibilidad
+    const notaWrap = document.getElementById('modal-nota-wrap')!;
+    if (!data.disponible && data.nota_disponibilidad) {
+      document.getElementById('modal-nota')!.textContent = data.nota_disponibilidad;
+      notaWrap.classList.remove('hidden');
+    } else {
+      notaWrap.classList.add('hidden');
+    }
+
+    // Tags
+    const tagsWrap = document.getElementById('modal-tags-wrap')!;
+    const tagsEl = document.getElementById('modal-tags')!;
+    if (data.tags && data.tags.length > 0) {
+      tagsEl.innerHTML = data.tags.map((t: string) =>
+        `<span class="text-xs font-medium rounded-full px-3 py-1 ${data.disponible ? 'bg-brand-muted text-brand' : 'bg-gray-100 text-gray-500'}">${t}</span>`
+      ).join('');
+      tagsWrap.classList.remove('hidden');
+    } else {
+      tagsWrap.classList.add('hidden');
+    }
+
+    // CTA state
+    const cta = document.getElementById('modal-cta') as HTMLAnchorElement;
+    if (!data.disponible) {
+      cta.textContent = 'No disponible actualmente';
+      cta.classList.add('pointer-events-none', 'opacity-50');
+    } else {
+      cta.textContent = 'Pedir en línea';
+      cta.classList.remove('pointer-events-none', 'opacity-50');
+    }
+
+    modal.showModal();
+  }
+
+  // Attach click handlers to all menu item cards
+  document.querySelectorAll('[data-menu-item]').forEach((card) => {
+    card.addEventListener('click', () => {
+      try {
+        const data = JSON.parse(card.getAttribute('data-menu-item')!);
+        openModal(data);
+      } catch (e) { /* ignore parse errors */ }
+    });
+  });
+
+  // Close handlers
+  closeBtn.addEventListener('click', () => modal.close());
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.close();
+  });
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') modal.close();
+  });
+</script>

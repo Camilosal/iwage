@@ -1,0 +1,128 @@
+---
+import { SITE } from '@/config/site';
+---
+
+<div id="cart-overlay" class="fixed inset-0 bg-black/40 z-50 hidden opacity-0 transition-opacity duration-300"></div>
+<aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-sm bg-surface-raised z-50 shadow-2xl translate-x-full transition-transform duration-300 flex flex-col">
+  <div class="flex items-center justify-between p-6 border-b border-border">
+    <h2 class="text-lg font-semibold text-text-primary">Tu pedido</h2>
+    <button id="cart-close" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:bg-surface-sunken transition-colors">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+  <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+    <p id="cart-empty" class="text-sm text-text-muted text-center py-8">Tu carrito está vacío</p>
+  </div>
+  <div class="p-6 border-t border-border space-y-4">
+    <div class="flex justify-between text-sm">
+      <span class="text-text-secondary">Total estimado</span>
+      <span id="cart-total" class="font-bold text-text-primary">$0</span>
+    </div>
+    <a
+      id="cart-whatsapp"
+      href="#"
+      target="_blank"
+      rel="noopener"
+      class="block w-full text-center bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all"
+    >
+      Pedir por WhatsApp
+    </a>
+    <p class="text-xs text-text-muted text-center">Envío a todo Colombia · Pago contra entrega</p>
+  </div>
+</aside>
+
+<script define:vars={{ whatsapp: SITE.whatsapp }}>
+  const cart = [];
+  const overlay = document.getElementById('cart-overlay');
+  const drawer = document.getElementById('cart-drawer');
+  const closeBtn = document.getElementById('cart-close');
+  const itemsEl = document.getElementById('cart-items');
+  const emptyEl = document.getElementById('cart-empty');
+  const totalEl = document.getElementById('cart-total');
+  const waBtn = document.getElementById('cart-whatsapp');
+
+  const fmt = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+
+  function openCart() {
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      overlay.classList.remove('opacity-0');
+      drawer.classList.remove('translate-x-full');
+    });
+  }
+
+  function closeCart() {
+    overlay.classList.add('opacity-0');
+    drawer.classList.add('translate-x-full');
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+  }
+
+  function render() {
+    const existing = itemsEl.querySelectorAll('.cart-item');
+    existing.forEach(el => el.remove());
+
+    if (cart.length === 0) {
+      emptyEl.classList.remove('hidden');
+    } else {
+      emptyEl.classList.add('hidden');
+      cart.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'cart-item flex items-center justify-between gap-3 p-3 bg-surface-sunken rounded-xl';
+        div.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-text-primary truncate">${item.name}</p>
+            <p class="text-xs text-text-muted">${fmt(item.price)} × ${item.qty}</p>
+          </div>
+          <button data-remove="${i}" class="text-text-muted hover:text-red-500 transition-colors shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          </button>
+        `;
+        itemsEl.appendChild(div);
+      });
+    }
+
+    const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    totalEl.textContent = fmt(total);
+
+    if (cart.length > 0) {
+      const lines = cart.map(item => `• ${item.name} ×${item.qty} — ${fmt(item.price * item.qty)}`).join('\n');
+      const msg = `¡Hola Iwagé! Quiero hacer un pedido:\n\n${lines}\n\nTotal: ${fmt(total)}`;
+      waBtn.href = `https://wa.me/${whatsapp.replace(/\+/g, '')}?text=${encodeURIComponent(msg)}`;
+    } else {
+      waBtn.href = '#';
+    }
+  }
+
+  document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.name;
+      const price = parseInt(btn.dataset.price, 10);
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ name, price, qty: 1 });
+      }
+      render();
+      openCart();
+    });
+  });
+
+  itemsEl.addEventListener('click', (e) => {
+    const removeBtn = e.target.closest('[data-remove]');
+    if (removeBtn) {
+      const idx = parseInt(removeBtn.dataset.remove, 10);
+      cart.splice(idx, 1);
+      render();
+    }
+  });
+
+  closeBtn.addEventListener('click', closeCart);
+  overlay.addEventListener('click', closeCart);
+
+  // Cart FAB button
+  const cartFab = document.getElementById('cart-fab');
+  cartFab?.addEventListener('click', openCart);
+
+  render();
+</script>

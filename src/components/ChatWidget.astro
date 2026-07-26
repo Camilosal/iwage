@@ -1,0 +1,106 @@
+---
+import { MessageCircle, X, Send } from '@lucide/astro';
+---
+
+<div id="chat-widget" class="fixed bottom-6 right-6 z-50">
+  <!-- Chat panel -->
+  <div id="chat-panel" class="hidden mb-4 w-[360px] max-w-[calc(100vw-3rem)] bg-surface-raised rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col" style="height: 480px;">
+    <!-- Header -->
+    <div class="bg-brand text-white px-5 py-4 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="text-lg">🐝</span>
+        <div>
+          <p class="font-medium text-sm">Asistente Iwagé</p>
+          <p class="text-xs text-white/60">IA · Respuesta inmediata</p>
+        </div>
+      </div>
+      <button id="chat-close" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+        <X class="w-4 h-4" />
+      </button>
+    </div>
+
+    <!-- Messages -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-surface-sunken/50">
+      <div class="flex items-start gap-2.5 max-w-[85%]">
+        <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">🐝</div>
+        <div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary leading-relaxed">
+          ¡Hola! Soy el asistente de Iwagé. ¿En qué te puedo ayudar? Puedes preguntarme sobre miel, cajas, proyectos o polinización.
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <form id="chat-form" class="p-3 border-t border-border bg-surface-raised shrink-0">
+      <div class="flex items-center gap-2">
+        <input
+          id="chat-input"
+          type="text"
+          placeholder="Escribe tu consulta..."
+          class="flex-1 text-sm px-4 py-2.5 rounded-full border border-border bg-surface focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/20 transition-colors"
+        />
+        <button type="submit" class="p-2.5 rounded-full bg-brand text-white hover:bg-brand-light transition-colors">
+          <Send class="w-4 h-4" />
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- FAB -->
+  <button
+    id="chat-fab"
+    class="w-14 h-14 rounded-full bg-brand text-white shadow-lg flex items-center justify-center hover:bg-brand-light hover:scale-105 transition-all"
+    aria-label="Abrir chat"
+  >
+    <MessageCircle class="w-6 h-6" />
+  </button>
+</div>
+
+<script>
+  const fab = document.getElementById('chat-fab');
+  const panel = document.getElementById('chat-panel');
+  const closeBtn = document.getElementById('chat-close');
+  const form = document.getElementById('chat-form') as HTMLFormElement;
+  const input = document.getElementById('chat-input') as HTMLInputElement;
+  const messages = document.getElementById('chat-messages');
+
+  fab?.addEventListener('click', () => {
+    panel?.classList.toggle('hidden');
+  });
+  closeBtn?.addEventListener('click', () => {
+    panel?.classList.add('hidden');
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'flex justify-end max-w-[85%] ml-auto';
+    userMsg.innerHTML = `<div class="bg-brand text-white px-4 py-3 rounded-2xl rounded-tr-none text-sm leading-relaxed">${text}</div>`;
+    messages?.appendChild(userMsg);
+    messages!.scrollTop = messages!.scrollHeight;
+
+    // Call API
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, context: 'concierge' }),
+      });
+      const data = await res.json();
+      const botMsg = document.createElement('div');
+      botMsg.className = 'flex items-start gap-2.5 max-w-[85%]';
+      botMsg.innerHTML = `<div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">🐝</div><div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary leading-relaxed">${data.reply || 'Disculpa, no pude procesar tu consulta.'}</div>`;
+      messages?.appendChild(botMsg);
+    } catch {
+      const errMsg = document.createElement('div');
+      errMsg.className = 'flex items-start gap-2.5 max-w-[85%]';
+      errMsg.innerHTML = `<div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">🐝</div><div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary">El asistente no está disponible en este momento. Usa el menú para navegar.</div>`;
+      messages?.appendChild(errMsg);
+    }
+    messages!.scrollTop = messages!.scrollHeight;
+  });
+</script>

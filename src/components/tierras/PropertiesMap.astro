@@ -1,0 +1,71 @@
+---
+import { formatPrecio } from '@/lib/tierras';
+
+interface Props {
+  properties: any[];
+}
+
+const { properties } = Astro.props;
+const geoProps = properties.filter(p => p.ubicacion_latitud && p.ubicacion_longitud);
+---
+
+{geoProps.length > 0 && (
+  <div class="properties-map rounded-2xl overflow-hidden border border-gray-200 h-[500px] relative">
+    <div id="leaflet-map" class="w-full h-full"></div>
+    <script type="application/json" id="map-data" set:html={JSON.stringify(geoProps.map(p => ({
+      slug: p.slug,
+      titulo: p.titulo,
+      lat: p.ubicacion_latitud,
+      lng: p.ubicacion_longitud,
+      precio: p.precio ? formatPrecio(p.precio, p.moneda) : 'Consultar',
+      tipo: p.tipo_propiedad?.replace('_', ' ') || '',
+      area: p.area_hectareas ? `${p.area_hectareas} ha` : '',
+    })))} />
+  </div>
+)}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const mapEl = document.getElementById('leaflet-map');
+    const dataEl = document.getElementById('map-data');
+    if (!mapEl || !dataEl) return;
+
+    const props = JSON.parse(dataEl.textContent || '[]');
+    if (props.length === 0) return;
+
+    const map = L.map('leaflet-map', { scrollWheelZoom: false }).setView([4.4389, -75.2322], 9);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+      maxZoom: 18,
+    }).addTo(map);
+
+    const bounds: any[] = [];
+
+    props.forEach((p: any) => {
+      const icon = L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background:#1B4332;color:white;padding:3px 8px;border-radius:8px;font-size:10px;font-weight:bold;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);border:2px solid #52B788;">${p.precio}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [30, 15],
+      });
+
+      const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
+      marker.bindPopup(`
+        <div style="min-width:180px;font-family:system-ui;">
+          <p style="font-weight:bold;font-size:13px;margin:0 0 4px;color:#1B4332;">${p.titulo}</p>
+          <p style="font-size:11px;color:#666;margin:0 0 4px;">${p.tipo} · ${p.area}</p>
+          <p style="font-size:14px;font-weight:bold;color:#52B788;margin:0 0 8px;">${p.precio}</p>
+          <a href="/tierras/propiedades/${p.slug}" style="display:block;text-align:center;background:#1B4332;color:white;padding:6px;border-radius:8px;font-size:11px;font-weight:bold;text-decoration:none;">Ver propiedad →</a>
+        </div>
+      `);
+      bounds.push([p.lat, p.lng]);
+    });
+
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+    }
+  });
+</script>

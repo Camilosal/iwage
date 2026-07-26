@@ -1,0 +1,310 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import {
+  getPropiedadGestionBySlug,
+  getAllPropiedadGestionSlugs,
+  propiedadGestionImagen,
+  formatPrecioGestion,
+  tipoGestionInfo,
+  modeloAlianzaInfo,
+} from '@/lib/gestion';
+import { strapiImage } from '@/lib/strapi';
+import { getBrand } from '@/config/brands';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const prop = await getPropiedadGestionBySlug(slug!);
+
+if (!prop) {
+  return Astro.redirect('/gestion/propiedades');
+}
+
+const tipo = tipoGestionInfo(prop.tipo_gestion);
+const modelo = modeloAlianzaInfo(prop.modelo_alianza);
+const heroImg = propiedadGestionImagen(prop);
+const galeriaImgs = (prop.galeria || []).map((g) => strapiImage(g.url)).filter(Boolean) as string[];
+const precio = formatPrecioGestion(prop);
+
+const title = prop.seo_titulo || `${prop.titulo} · Iwagé Gestión`;
+const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo} en ${prop.ubicacion_municipio || 'Tolima'}. ${tipo.label} por Iwagé Gestión.`;
+---
+
+<BrandLayout brand="gestion" title={title} description={description}>
+
+  <!-- Breadcrumb -->
+  <div class="bg-white border-b border-gray-100 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center gap-2 text-xs text-gray-400">
+      <a href="/gestion" class="hover:text-[#52B788]">Gestión</a>
+      <span>/</span>
+      <a href="/gestion/propiedades" class="hover:text-[#52B788]">Propiedades</a>
+      <span>/</span>
+      <span class="text-[#122640] font-medium">{prop.titulo}</span>
+    </div>
+  </div>
+
+  <!-- Gallery -->
+  <section class="bg-[#0c1520]">
+    <div class="max-w-6xl mx-auto px-4 py-6">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 rounded-2xl overflow-hidden h-[300px] lg:h-[420px]">
+        <!-- Main image -->
+        <div class="lg:col-span-2 relative h-full">
+          {heroImg ? (
+            <img src={heroImg} alt={prop.titulo} class="w-full h-full object-cover" loading="eager" />
+          ) : (
+            <div class="w-full h-full flex items-center justify-center bg-[#1e3a5f]/30">
+              <span class="text-6xl">{tipo.icon}</span>
+            </div>
+          )}
+          <span class="absolute top-4 left-4 text-[11px] font-bold px-3 py-1 rounded-full uppercase text-white" style={`background-color: ${tipo.color}`}>
+            {tipo.icon} {tipo.label}
+          </span>
+        </div>
+        <!-- Thumbnails -->
+        {galeriaImgs.length > 0 ? (
+          <div class="hidden lg:col-span-2 lg:grid grid-cols-2 gap-2">
+            {galeriaImgs.slice(0, 4).map((img, i) => (
+              <div class="relative h-full min-h-[130px]">
+                <img src={img} alt={`${prop.titulo} - ${i + 1}`} class="w-full h-full object-cover" loading="lazy" />
+                {i === 3 && galeriaImgs.length > 4 && (
+                  <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">+{galeriaImgs.length - 4} fotos</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div class="hidden lg:col-span-2 lg:grid grid-cols-2 gap-2">
+            <div class="col-span-2 flex items-center justify-center bg-[#1e3a5f]/20 rounded-lg">
+              <p class="text-white/40 text-sm">Fotos próximamente</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <section class="py-10 px-4 bg-[#f8f9fb]">
+    <div class="max-w-6xl mx-auto grid lg:grid-cols-3 gap-10">
+
+      <!-- Left: Details -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Header -->
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <h1 class="text-3xl lg:text-4xl font-light text-[#122640]">{prop.titulo}</h1>
+            {prop.es_destacado && <span class="bg-[#C8933E] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">★</span>}
+          </div>
+          <p class="text-gray-500 flex items-center gap-2">
+            📍 {prop.ubicacion_municipio || 'Tolima'}, Colombia
+            <span class="text-gray-300">|</span>
+            <span class="text-[#2d5a8f] font-medium">{modelo.label}</span>
+          </p>
+        </div>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {prop.numero_habitaciones && (
+            <div class="bg-white rounded-xl p-4 text-center border border-gray-100">
+              <div class="text-2xl mb-1">🛏️</div>
+              <div class="text-lg font-bold text-[#122640]">{prop.numero_habitaciones}</div>
+              <div class="text-[10px] text-gray-400 uppercase">Habitaciones</div>
+            </div>
+          )}
+          {prop.numero_banos && (
+            <div class="bg-white rounded-xl p-4 text-center border border-gray-100">
+              <div class="text-2xl mb-1">🚿</div>
+              <div class="text-lg font-bold text-[#122640]">{prop.numero_banos}</div>
+              <div class="text-[10px] text-gray-400 uppercase">Baños</div>
+            </div>
+          )}
+          {prop.capacidad_huespedes && (
+            <div class="bg-white rounded-xl p-4 text-center border border-gray-100">
+              <div class="text-2xl mb-1">👥</div>
+              <div class="text-lg font-bold text-[#122640]">{prop.capacidad_huespedes}</div>
+              <div class="text-[10px] text-gray-400 uppercase">Huéspedes</div>
+            </div>
+          )}
+          {prop.area_hectareas && (
+            <div class="bg-white rounded-xl p-4 text-center border border-gray-100">
+              <div class="text-2xl mb-1">🌿</div>
+              <div class="text-lg font-bold text-[#122640]">{prop.area_hectareas >= 1 ? `${prop.area_hectareas.toFixed(1)}` : `${(prop.area_hectareas * 10000).toFixed(0)}`}</div>
+              <div class="text-[10px] text-gray-400 uppercase">{prop.area_hectareas >= 1 ? 'Hectáreas' : 'm²'}</div>
+            </div>
+          )}
+        </div>
+
+        <!-- Highlights -->
+        {prop.highlights && prop.highlights.length > 0 && (
+          <div>
+            <h2 class="text-lg font-semibold text-[#122640] mb-4">Lo destacado</h2>
+            <div class="grid sm:grid-cols-2 gap-3">
+              {prop.highlights.map((h) => (
+                <div class="flex items-start gap-3 bg-white rounded-xl p-4 border border-gray-100">
+                  <span class="text-[#52B788] mt-0.5">✓</span>
+                  <span class="text-sm text-gray-700">{h}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Description -->
+        {prop.descripcion && (
+          <div>
+            <h2 class="text-lg font-semibold text-[#122640] mb-4">Sobre la propiedad</h2>
+            <div class="prose prose-sm max-w-none text-gray-600 leading-relaxed" set:html={prop.descripcion} />
+          </div>
+        )}
+
+        <!-- Amenities -->
+        {prop.amenidades && prop.amenidades.length > 0 && (
+          <div>
+            <h2 class="text-lg font-semibold text-[#122640] mb-4">Amenidades</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {prop.amenidades.map((a) => (
+                <div class="flex items-center gap-2 text-sm text-gray-600 bg-white rounded-lg px-3 py-2 border border-gray-100">
+                  <span class="text-[#52B788]">•</span>
+                  {a}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Cross-links: Ecosistema Iwagé -->
+        {(prop.propiedad_tierras || (prop.experiencias && prop.experiencias.length > 0) || (prop.anfitriones && prop.anfitriones.length > 0) || (prop.proveedores && prop.proveedores.length > 0)) && (
+          <div>
+            <h2 class="text-lg font-semibold text-[#122640] mb-4">Conectada al ecosistema Iwagé</h2>
+            <div class="space-y-6">
+
+              {/* Propiedad en Tierras (inmobiliaria) */}
+              {prop.propiedad_tierras && (
+                <div>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">🏡 En Inmobiliaria Tierras</h3>
+                  <a href={`/tierras/propiedades/${prop.propiedad_tierras.slug}`} class="group flex items-center gap-4 p-5 rounded-2xl bg-white border border-gray-100 hover:border-[#1B4332]/30 hover:shadow-lg transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#1B4332]/10 flex items-center justify-center text-2xl shrink-0">🏡</div>
+                    <div class="flex-1 min-w-0">
+                      <h4 class="text-sm font-bold text-[#1B4332] group-hover:text-[#52B788] transition-colors truncate">{prop.propiedad_tierras.titulo}</h4>
+                      <p class="text-xs text-gray-500">
+                        {prop.propiedad_tierras.operacion === 'venta' ? 'En venta' : 'En arriendo'}
+                        {prop.propiedad_tierras.precio ? ` · $${(prop.propiedad_tierras.precio / 1_000_000).toFixed(0)}M` : ''}
+                      </p>
+                    </div>
+                    <span class="text-xs font-bold text-[#52B788] shrink-0">Ver ficha →</span>
+                  </a>
+                </div>
+              )}
+
+              {/* Experiencias en Naturaleza */}
+              {prop.experiencias && prop.experiencias.length > 0 && (
+                <div>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">🌿 Experiencia{prop.experiencias.length > 1 ? 's' : ''} en Naturaleza</h3>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    {prop.experiencias.map((exp) => (
+                      <a href={`/naturaleza/experiencias/${exp.slug}`} class="group flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-[#2E7D32]/30 hover:shadow-lg transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-[#2E7D32]/10 flex items-center justify-center text-lg shrink-0">🌿</div>
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-sm font-bold text-[#2E7D32] group-hover:text-[#52B788] transition-colors truncate">{exp.titulo}</h4>
+                          <p class="text-[11px] text-gray-400">{exp.categoria || 'Naturaleza'}{exp.precio_desde ? ` · desde $${(exp.precio_desde / 1000).toFixed(0)}k` : ''}</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-[#52B788] shrink-0">→</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Anfitriones del territorio */}
+              {prop.anfitriones && prop.anfitriones.length > 0 && (
+                <div>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">👤 Anfitrión{prop.anfitriones.length > 1 ? 'es' : ''} que la ofrecen</h3>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    {prop.anfitriones.map((anf) => {
+                      const foto = anf.foto_perfil_url || (anf.foto_perfil?.url ? strapiImage(anf.foto_perfil.url) : null);
+                      return (
+                        <a href={`/naturaleza/anfitriones/${anf.slug}`} class="group flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-[#1e3a5f]/30 hover:shadow-lg transition-all">
+                          {foto ? (
+                            <img src={foto} alt={anf.nombre} class="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" />
+                          ) : (
+                            <div class="w-10 h-10 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-lg shrink-0">👤</div>
+                          )}
+                          <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-bold text-[#1e3a5f] group-hover:text-[#52B788] transition-colors truncate">{anf.nombre}</h4>
+                            <p class="text-[11px] text-gray-400">{anf.especialidad || 'Anfitrión del territorio'}{anf.nivel_escalafon ? ` · Nivel ${anf.nivel_escalafon}` : ''}</p>
+                          </div>
+                          <span class="text-[10px] font-bold text-[#52B788] shrink-0">Ver perfil →</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Proveedores del Café */}
+              {prop.proveedores && prop.proveedores.length > 0 && (
+                <div>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">☕ Proveedor{prop.proveedores.length > 1 ? 'es' : ''} de Café</h3>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    {prop.proveedores.map((prov) => (
+                      <a href={`/cafe/proveedores#${prov.slug}`} class="group flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-[#6D4C41]/30 hover:shadow-lg transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-[#6D4C41]/10 flex items-center justify-center text-lg shrink-0">☕</div>
+                        <div class="flex-1 min-w-0">
+                          <h4 class="text-sm font-bold text-[#6D4C41] group-hover:text-[#52B788] transition-colors truncate">{prov.nombre}</h4>
+                          <p class="text-[11px] text-gray-400">{prov.producto || 'Proveedor'}{prov.ubicacion ? ` · ${prov.ubicacion}` : ''}</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-[#52B788] shrink-0">→</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Right: Sidebar -->
+      <div class="lg:col-span-1">
+        <div class="sticky top-24 space-y-6">
+          <!-- Price card -->
+          <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <div class="text-2xl font-bold text-[#122640] mb-1">{precio}</div>
+            <p class="text-xs text-gray-400 mb-5">{tipo.label} · {modelo.label}</p>
+            <a
+              href={`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hola, me interesa la propiedad "${prop.titulo}" en gestión. ¿Podemos hablar?`)}`}
+              target="_blank"
+              rel="noopener"
+              class="block w-full text-center px-6 py-3.5 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold hover:bg-[#7fc4a2] transition-colors mb-3"
+            >
+              Consultar disponibilidad
+            </a>
+            <a
+              href="/gestion/modelo-alianzas"
+              class="block w-full text-center px-6 py-3 rounded-full border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              ¿Cómo funciona la gestión?
+            </a>
+          </div>
+
+          <!-- Model info -->
+          <div class="bg-[#1e3a5f] rounded-2xl p-6 text-white">
+            <h3 class="font-bold text-sm mb-3 text-[#52B788]">Modelo: {modelo.label}</h3>
+            <p class="text-white/70 text-sm leading-relaxed">{modelo.desc}</p>
+            <a href="/gestion/modelo-alianzas" class="inline-block mt-4 text-xs font-bold text-[#52B788] hover:text-[#7fc4a2] transition-colors">
+              Conocer todos los modelos →
+            </a>
+          </div>
+
+          <!-- Back to listing -->
+          <a href="/gestion/propiedades" class="block text-center text-sm text-gray-400 hover:text-[#52B788] transition-colors">
+            ← Volver al portafolio
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BrandLayout>

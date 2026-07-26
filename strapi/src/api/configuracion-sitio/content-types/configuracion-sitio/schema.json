@@ -1,0 +1,15 @@
+{
+  "kind": "singleType",
+  "collectionName": "configuracion_sitios",
+  "info": { "singularName": "configuracion-sitio", "pluralName": "configuracion-sitios", "displayName": "Configuración Sitio" },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "nombre": { "type": "string", "default": "Iwagé" },
+    "tagline": { "type": "string" },
+    "whatsapp_number": { "type": "string" },
+    "email": { "type": "email" },
+    "instagram": { "type": "string" },
+    "direccion": { "type": "string" },
+    "hero_text": { "type": "text" }
+  }
+}

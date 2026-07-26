@@ -1,0 +1,120 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import BitacoraSidebar from '@/components/brand/BitacoraSidebar.astro';
+import { getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
+import type { EntradaBitacora } from '@/lib/bitacora';
+
+const BRAND = 'gestion';
+const BRAND_TITLE = 'Bitácora · Iwagé Gestión';
+const BRAND_DESC = 'Property management, renta corta y operación de propiedades rurales';
+
+const { data: articulos } = await getBitacoraByMarca(BRAND as any, { pageSize: 100 });
+
+// Dynamic categories with counts (no hardcoding)
+const catMap = new Map<string, number>();
+articulos.forEach((a) => {
+  const cat = a.categoria || 'General';
+  catMap.set(cat, (catMap.get(cat) || 0) + 1);
+});
+const categories = Array.from(catMap.entries())
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) => b.count - a.count);
+
+function normalizeSearch(a: EntradaBitacora): string {
+  return ((a.titulo || '') + ' ' + (a.extracto || '') + ' ' + (a.categoria || ''))
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+---
+
+<BrandLayout brand={BRAND} title={BRAND_TITLE} description={BRAND_DESC}>
+  <!-- Header -->
+  <section class="bg-surface pt-12 pb-8">
+    <div class="max-w-7xl mx-auto px-6">
+      <span class="text-xs font-bold uppercase tracking-[0.25em] text-brand block mb-3">Bitácora</span>
+      <h1 class="text-3xl md:text-4xl font-serif text-text-primary mb-3">Conocimiento abierto</h1>
+      <p class="text-text-secondary max-w-xl">Property management, renta corta y operación eficiente de propiedades rurales.</p>
+    </div>
+  </section>
+
+  {articulos.length === 0 ? (
+    <section class="max-w-7xl mx-auto px-6 py-20 text-center">
+      <span class="text-4xl block mb-4">📝</span>
+      <p class="text-text-secondary max-w-md mx-auto">Pronto publicaremos nuevos artículos. Vuelve pronto.</p>
+    </section>
+  ) : (
+    <section class="max-w-7xl mx-auto px-6 pb-16">
+      <!-- Sidebar + Grid layout -->
+      <div class="flex gap-8 items-start">
+        <BitacoraSidebar categories={categories} totalArticles={articulos.length} />
+
+        <!-- Articles grid -->
+        <div class="flex-1 min-w-0">
+          <div id="bitacora-grid" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {articulos.map((post: EntradaBitacora) => (
+              <article
+                class="group relative"
+                data-category={post.categoria || 'General'}
+                data-search={normalizeSearch(post)}
+                data-fecha={post.fecha || ''}
+                data-lectura={String(post.tiempo_lectura || 0)}
+              >
+                <a href={`/${BRAND}/bitacora/${post.slug}`} class="block bg-surface-raised rounded-xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-brand/30 transition-all h-full">
+                  <div class="flex items-center gap-2 mb-3 flex-wrap">
+                    {post.destacado && (
+                      <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5">
+                        ★ Destacado
+                      </span>
+                    )}
+                    {post.categoria && (
+                      <span class="inline-block bg-brand-muted text-brand text-xs font-medium rounded-full px-2.5 py-0.5">
+                        {post.categoria}
+                      </span>
+                    )}
+                  </div>
+                  <h2 class="text-base font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors line-clamp-2">
+                    {post.titulo}
+                  </h2>
+                  <p class="text-sm text-text-secondary leading-relaxed mb-4 line-clamp-3">{post.extracto}</p>
+                  <div class="flex items-center gap-2 text-xs text-text-muted mt-auto">
+                    <span>{formatFecha(post.fecha)}</span>
+                    {post.tiempo_lectura && (
+                      <>
+                        <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+                        <span>{post.tiempo_lectura} min</span>
+                      </>
+                    )}
+                  </div>
+                </a>
+              </article>
+            ))}
+          </div>
+
+          <!-- Empty state (no filter matches) -->
+          <div id="no-results" class="hidden py-16 text-center">
+            <span class="text-4xl block mb-4">🔍</span>
+            <p class="font-medium text-text-primary mb-1">Sin resultados</p>
+            <p class="text-sm text-text-secondary">Ningún artículo coincide con los filtros aplicados.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Newsletter -->
+  <section class="bg-surface-sunken py-16">
+    <div class="max-w-xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-bold text-text-primary mb-3">Recibe la bitácora</h2>
+      <p class="text-text-secondary mb-6">Un correo mensual con artículos, guías y noticias de Iwagé Gestión.</p>
+      <form class="flex gap-3" onsubmit="return false;">
+        <input type="email" placeholder="tu@correo.com" required class="flex-1 rounded-full border border-border bg-surface px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
+        <button type="submit" class="bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all shrink-0">Suscribir</button>
+      </form>
+    </div>
+  </section>
+</BrandLayout>
+
+<script>
+  import '@/lib/bitacora-filters';
+</script>
