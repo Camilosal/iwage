@@ -4,14 +4,14 @@ import { MessageCircle, X, Send } from '@lucide/astro';
 
 <div id="chat-widget" class="fixed bottom-6 right-6 z-50">
   <!-- Chat panel -->
-  <div id="chat-panel" class="hidden mb-4 w-[360px] max-w-[calc(100vw-3rem)] bg-surface-raised rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col" style="height: 480px;">
+  <div id="chat-panel" class="hidden mb-4 w-[380px] max-w-[calc(100vw-2rem)] bg-surface-raised rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col" style="height: 520px;">
     <!-- Header -->
-    <div class="bg-brand text-white px-5 py-4 flex items-center justify-between shrink-0">
+    <div id="chat-header" class="bg-brand text-white px-5 py-4 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-3">
-        <span class="text-lg">🐝</span>
+        <span id="chat-icon" class="text-lg">🌱</span>
         <div>
           <p class="font-medium text-sm">Asistente Iwagé</p>
-          <p class="text-xs text-white/60">IA · Respuesta inmediata</p>
+          <p class="text-xs text-white/60">IA · Respuestas con contexto real</p>
         </div>
       </div>
       <button id="chat-close" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
@@ -21,12 +21,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
 
     <!-- Messages -->
     <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-surface-sunken/50">
-      <div class="flex items-start gap-2.5 max-w-[85%]">
-        <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">🐝</div>
-        <div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary leading-relaxed">
-          ¡Hola! Soy el asistente de Iwagé. ¿En qué te puedo ayudar? Puedes preguntarme sobre miel, cajas, proyectos o polinización.
-        </div>
-      </div>
+      <!-- Welcome message injected by JS -->
     </div>
 
     <!-- Input -->
@@ -35,10 +30,11 @@ import { MessageCircle, X, Send } from '@lucide/astro';
         <input
           id="chat-input"
           type="text"
-          placeholder="Escribe tu consulta..."
+          placeholder="Pregunta sobre propiedades, experiencias, miel..."
           class="flex-1 text-sm px-4 py-2.5 rounded-full border border-border bg-surface focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/20 transition-colors"
+          autocomplete="off"
         />
-        <button type="submit" class="p-2.5 rounded-full bg-brand text-white hover:bg-brand-light transition-colors">
+        <button type="submit" class="p-2.5 rounded-full bg-brand text-white hover:bg-brand-light transition-colors shrink-0">
           <Send class="w-4 h-4" />
         </button>
       </div>
@@ -56,51 +52,196 @@ import { MessageCircle, X, Send } from '@lucide/astro';
 </div>
 
 <script>
+  // ── Brand detection from URL ──────────────────────────────
+  const BRAND_CONFIG: Record<string, { icon: string; welcome: string; placeholder: string }> = {
+    meliponas: { icon: '🐝', welcome: '¡Hola! Soy el asistente de Iwagé Meliponas. Pregúntame sobre miel, cajas, polinización o proyectos.', placeholder: 'Pregunta sobre miel, cajas, polinización...' },
+    cafe: { icon: '☕', welcome: '¡Hola! Soy el asistente del Café Iwagé. Pregúntame sobre el menú, proveedores o nuestra historia.', placeholder: 'Pregunta sobre el menú, café, proveedores...' },
+    tierras: { icon: '🏡', welcome: '¡Hola! Soy el asistente de Iwagé Tierras. Puedo ayudarte a encontrar propiedades rurales verificadas.', placeholder: 'Busca fincas, lotes, casas campestres...' },
+    naturaleza: { icon: '🌿', welcome: '¡Hola! Soy el asistente de Iwagé Naturaleza. Descubre experiencias de turismo regenerativo.', placeholder: 'Pregunta sobre experiencias, tours, anfitriones...' },
+    gestion: { icon: '🔑', welcome: '¡Hola! Soy el asistente de Iwagé Gestión. Te ayudo con administración de propiedades.', placeholder: 'Pregunta sobre gestión, renta, administración...' },
+    general: { icon: '🌱', welcome: '¡Hola! Soy el asistente de Iwagé. Puedo ayudarte con nuestras 5 marcas: Meliponas, Café, Tierras, Naturaleza y Gestión.', placeholder: 'Pregunta sobre propiedades, experiencias, miel...' },
+  };
+
+  function detectBrandFromUrl(): string {
+    const path = window.location.pathname;
+    const segments = path.split('/').filter(Boolean);
+    if (segments.length > 0 && BRAND_CONFIG[segments[0]]) return segments[0];
+    return 'general';
+  }
+
+  const currentBrand = detectBrandFromUrl();
+  const brandCfg = BRAND_CONFIG[currentBrand] || BRAND_CONFIG.general;
+
+  // ── DOM refs ──────────────────────────────────────────────
   const fab = document.getElementById('chat-fab');
   const panel = document.getElementById('chat-panel');
   const closeBtn = document.getElementById('chat-close');
   const form = document.getElementById('chat-form') as HTMLFormElement;
   const input = document.getElementById('chat-input') as HTMLInputElement;
-  const messages = document.getElementById('chat-messages');
+  const messages = document.getElementById('chat-messages')!;
+  const iconEl = document.getElementById('chat-icon')!;
 
-  fab?.addEventListener('click', () => {
-    panel?.classList.toggle('hidden');
-  });
-  closeBtn?.addEventListener('click', () => {
-    panel?.classList.add('hidden');
-  });
+  // Apply brand theming
+  iconEl.textContent = brandCfg.icon;
+  input.placeholder = brandCfg.placeholder;
 
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = '';
+  // ── Conversation state (persisted in sessionStorage) ──────
+  interface Msg { role: 'user' | 'assistant'; content: string; links?: any[]; suggestions?: string[] }
+  let history: Msg[] = [];
 
-    // Add user message
-    const userMsg = document.createElement('div');
-    userMsg.className = 'flex justify-end max-w-[85%] ml-auto';
-    userMsg.innerHTML = `<div class="bg-brand text-white px-4 py-3 rounded-2xl rounded-tr-none text-sm leading-relaxed">${text}</div>`;
-    messages?.appendChild(userMsg);
-    messages!.scrollTop = messages!.scrollHeight;
+  try {
+    const stored = sessionStorage.getItem('iwage_chat_history');
+    if (stored) history = JSON.parse(stored);
+  } catch {}
 
-    // Call API
+  function saveHistory() {
+    try { sessionStorage.setItem('iwage_chat_history', JSON.stringify(history.slice(-20))); } catch {}
+  }
+
+  // ── Rendering helpers ─────────────────────────────────────
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function renderMarkdown(text: string): string {
+    return escapeHtml(text)
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function addUserMessage(text: string) {
+    const el = document.createElement('div');
+    el.className = 'flex justify-end max-w-[85%] ml-auto';
+    el.innerHTML = `<div class="bg-brand text-white px-4 py-3 rounded-2xl rounded-tr-none text-sm leading-relaxed">${escapeHtml(text)}</div>`;
+    messages.appendChild(el);
+    scrollBottom();
+  }
+
+  function addBotMessage(reply: string, links?: any[], suggestions?: string[]) {
+    const el = document.createElement('div');
+    el.className = 'flex items-start gap-2.5 max-w-[90%]';
+
+    let linksHtml = '';
+    if (links && links.length > 0) {
+      linksHtml = `<div class="flex flex-wrap gap-1.5 mt-2">${links.map((l: any) =>
+        `<a href="${l.url}" class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full bg-brand/10 text-brand hover:bg-brand/20 transition-colors border border-brand/20">${l.label}</a>`
+      ).join('')}</div>`;
+    }
+
+    let suggestionsHtml = '';
+    if (suggestions && suggestions.length > 0) {
+      suggestionsHtml = `<div class="flex flex-wrap gap-1.5 mt-2">${suggestions.map((s: string) =>
+        `<button class="chat-suggestion text-xs px-2.5 py-1.5 rounded-full border border-border bg-surface hover:border-brand hover:text-brand transition-colors" data-msg="${escapeHtml(s)}">${escapeHtml(s)}</button>`
+      ).join('')}</div>`;
+    }
+
+    el.innerHTML = `
+      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">${brandCfg.icon}</div>
+      <div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary leading-relaxed">
+        ${renderMarkdown(reply)}
+        ${linksHtml}
+        ${suggestionsHtml}
+      </div>`;
+
+    messages.appendChild(el);
+    scrollBottom();
+
+    // Bind suggestion buttons
+    el.querySelectorAll('.chat-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const msg = (btn as HTMLElement).dataset.msg || '';
+        if (msg) sendMessage(msg);
+      });
+    });
+  }
+
+  function showTyping() {
+    const el = document.createElement('div');
+    el.id = 'chat-typing';
+    el.className = 'flex items-start gap-2.5 max-w-[85%]';
+    el.innerHTML = `
+      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">${brandCfg.icon}</div>
+      <div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary">
+        <span class="inline-flex gap-1"><span class="animate-bounce" style="animation-delay:0ms">·</span><span class="animate-bounce" style="animation-delay:150ms">·</span><span class="animate-bounce" style="animation-delay:300ms">·</span></span>
+      </div>`;
+    messages.appendChild(el);
+    scrollBottom();
+  }
+
+  function hideTyping() {
+    document.getElementById('chat-typing')?.remove();
+  }
+
+  function scrollBottom() {
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // ── Core send logic ───────────────────────────────────────
+  async function sendMessage(text: string) {
+    if (!text.trim()) return;
+
+    addUserMessage(text);
+    history.push({ role: 'user', content: text });
+    showTyping();
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, context: 'concierge' }),
+        body: JSON.stringify({
+          message: text,
+          history: history.slice(-8),
+          brand: currentBrand,
+          page: window.location.pathname,
+        }),
       });
+
+      hideTyping();
       const data = await res.json();
-      const botMsg = document.createElement('div');
-      botMsg.className = 'flex items-start gap-2.5 max-w-[85%]';
-      botMsg.innerHTML = `<div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">🐝</div><div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary leading-relaxed">${data.reply || 'Disculpa, no pude procesar tu consulta.'}</div>`;
-      messages?.appendChild(botMsg);
+
+      if (data.error) {
+        addBotMessage(data.error);
+        return;
+      }
+
+      const reply = data.reply || 'Disculpa, no pude procesar tu consulta.';
+      addBotMessage(reply, data.links, data.suggestions);
+      history.push({ role: 'assistant', content: reply, links: data.links, suggestions: data.suggestions });
+      saveHistory();
     } catch {
-      const errMsg = document.createElement('div');
-      errMsg.className = 'flex items-start gap-2.5 max-w-[85%]';
-      errMsg.innerHTML = `<div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">🐝</div><div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary">El asistente no está disponible en este momento. Usa el menú para navegar.</div>`;
-      messages?.appendChild(errMsg);
+      hideTyping();
+      addBotMessage('El asistente no está disponible en este momento. Usa el menú para navegar o escríbenos por WhatsApp.');
     }
-    messages!.scrollTop = messages!.scrollHeight;
+  }
+
+  // ── Event listeners ───────────────────────────────────────
+  fab?.addEventListener('click', () => {
+    panel?.classList.toggle('hidden');
+    if (!panel?.classList.contains('hidden') && messages.children.length === 0) {
+      addBotMessage(brandCfg.welcome, undefined, ['¿Qué ofrece Iwagé?', 'Contactar por WhatsApp']);
+    }
+    input?.focus();
   });
+
+  closeBtn?.addEventListener('click', () => {
+    panel?.classList.add('hidden');
+  });
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    sendMessage(text);
+  });
+
+  // ── Restore history on load ───────────────────────────────
+  if (history.length > 0) {
+    for (const msg of history.slice(-10)) {
+      if (msg.role === 'user') addUserMessage(msg.content);
+      else addBotMessage(msg.content, msg.links, msg.suggestions);
+    }
+  }
 </script>

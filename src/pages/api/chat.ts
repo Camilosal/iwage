@@ -1,121 +1,150 @@
 import type { APIRoute } from 'astro';
+import { callLLM } from '@/lib/ai/provider';
+import { chatLimiter, RateLimiter } from '@/lib/ai/rate-limiter';
+import { retrieve, detectBrand } from '@/lib/rag/retriever';
+import { buildSystemPrompt, extractLinks, generateSuggestions } from '@/lib/rag/context';
+import type { ChatResponse } from '@/lib/rag/knowledge-index';
+import { SITE } from '@/config/site';
 
-// Provider-agnostic AI chat endpoint
-// Supports: openai, openrouter, gemini via AI_PROVIDER env var
-
-const SYSTEM_PROMPTS: Record<string, string> = {
-  concierge: `Eres el asistente virtual de Iwagé Meliponario, un centro de meliponicultura en Ibagué, Tolima, Colombia.
-Ayudas a visitantes con información sobre: productos de la tienda (miel de Angelita, cajas INPA/AF, kits), servicios de polinización, proyectos de meliponarios, y el café comunitario.
-Tono: cálido, knowledgeable, conciso. Responde en español. Si no sabes algo, sugiere contactar por WhatsApp.`,
-  tecnico: `Eres el asistente técnico de Iwagé Meliponario, especializado en meliponicultura de Tetragonisca angustula.
-Ayudas con: manejo de colmenas, cosecha de miel, identificación de plagas, flora melífera, y protocolos del Estándar Iwagé.
-Tono: técnico pero accesible. Responde en español. Cita fuentes cuando sea relevante.`,
-};
-
-// Simple in-memory rate limiter
-const rateLimit = new Map<string, { count: number; reset: number }>();
-const RATE_LIMIT = 10;
-const RATE_WINDOW = 60_000; // 1 minute
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimit.get(ip);
-  if (!entry || now > entry.reset) {
-    rateLimit.set(ip, { count: 1, reset: now + RATE_WINDOW });
-    return true;
-  }
-  if (entry.count >= RATE_LIMIT) return false;
-  entry.count++;
-  return true;
-}
-
-async function callOpenAI(messages: any[], apiKey: string, baseUrl: string, model: string) {
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ model, messages, max_tokens: 500, temperature: 0.7 }),
-  });
-  if (!res.ok) throw new Error(`AI provider error: ${res.status}`);
-  const data = await res.json();
-  return data.choices[0]?.message?.content || 'No pude generar una respuesta.';
-}
-
-async function callGemini(messages: any[], apiKey: string) {
-  const contents = messages
-    .filter((m: any) => m.role !== 'system')
-    .map((m: any) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
-
-  const systemMsg = messages.find((m: any) => m.role === 'system');
-  const body: any = { contents };
-  if (systemMsg) {
-    body.systemInstruction = { parts: [{ text: systemMsg.content }] };
-  }
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-  );
-  if (!res.ok) throw new Error(`Gemini error: ${res.status}`);
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No pude generar una respuesta.';
-}
-
+/**
+ * RAG-powered multi-brand chat endpoint.
+ * Pipeline: brand detection → retrieval → context assembly → LLM → structured response
+ */
 export const POST: APIRoute = async ({ request, clientAddress }) => {
-  const ip = clientAddress || request.headers.get('x-forwarded-for') || 'unknown';
+  const ip = RateLimiter.getClientIp(clientAddress, request.headers);
 
-  if (!checkRateLimit(ip)) {
-    return new Response(JSON.stringify({ error: 'Demasiadas solicitudes. Espera un momento.' }), {
-      status: 429,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  if (!chatLimiter.check(ip)) {
+    return json({ error: 'Demasiadas solicitudes. Espera un momento.' }, 429);
   }
 
   try {
-    const { message, context = 'concierge', history = [] } = await request.json();
+    const { message, history = [], brand, page } = await request.json();
 
-    if (!message || typeof message !== 'string') {
-      return new Response(JSON.stringify({ error: 'Mensaje inválido.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return json({ error: 'Mensaje inválido.' }, 400);
     }
 
-    const systemPrompt = SYSTEM_PROMPTS[context] || SYSTEM_PROMPTS.concierge;
+    const query = message.trim();
+
+    // ── Intent: Navigational shortcuts ──────────────────────
+    const navResult = handleNavigationalIntent(query);
+    if (navResult) return json(navResult);
+
+    // ── Intent: WhatsApp escalation ─────────────────────────
+    if (isWhatsAppIntent(query)) {
+      return json({
+        reply: `¡Con gusto! Puedes escribirnos directamente por WhatsApp al ${SITE.whatsapp}. Un asesor de Iwagé te atenderá en menos de 24 horas. 🌱`,
+        links: [{ label: '💬 Escribir por WhatsApp', url: `https://wa.me/${SITE.whatsapp.replace('+', '')}`, type: 'pagina' }],
+        suggestions: ['Ver propiedades disponibles', 'Conocer experiencias'],
+        brand: brand || 'general',
+      } satisfies ChatResponse);
+    }
+
+    // ── Brand Detection ─────────────────────────────────────
+    const detectedBrand = detectBrand(query, brand) || 'general';
+
+    // ── RAG Retrieval ───────────────────────────────────────
+    const results = await retrieve(query, { brand: detectedBrand, maxResults: 5 });
+
+    // ── Context Assembly ────────────────────────────────────
+    const systemPrompt = buildSystemPrompt(detectedBrand, results);
+    const links = extractLinks(results);
+    const suggestions = generateSuggestions(detectedBrand, results);
+
+    // ── LLM Call ────────────────────────────────────────────
     const messages = [
-      { role: 'system', content: systemPrompt },
-      ...history.slice(-6),
-      { role: 'user', content: message },
+      { role: 'system' as const, content: systemPrompt },
+      ...history.slice(-8).map((m: any) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content || m.text || '',
+      })),
+      { role: 'user' as const, content: query },
     ];
 
-    const provider = process.env.AI_PROVIDER || 'openai';
-    let reply: string;
-
-    if (provider === 'gemini') {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
-      reply = await callGemini(messages, apiKey);
-    } else if (provider === 'openrouter') {
-      const apiKey = process.env.OPENROUTER_API_KEY;
-      if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
-      reply = await callOpenAI(messages, apiKey, 'https://openrouter.ai/api/v1', process.env.OPENROUTER_MODEL || 'meta-llama/llama-3-8b-instruct');
-    } else {
-      const apiKey = process.env.OPENAI_API_KEY;
-      if (!apiKey) throw new Error('OPENAI_API_KEY not configured');
-      reply = await callOpenAI(messages, apiKey, process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1', process.env.OPENAI_MODEL || 'gpt-4o-mini');
-    }
-
-    return new Response(JSON.stringify({ reply }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+    const llmResult = await callLLM(messages, {
+      temperature: 0.7,
+      maxTokens: 400,
+      timeout: 20_000,
     });
+
+    const reply = llmResult.content || 'Disculpa, no pude procesar tu consulta. Intenta reformular tu pregunta.';
+
+    return json({
+      reply,
+      links,
+      suggestions,
+      brand: detectedBrand,
+    } satisfies ChatResponse);
+
   } catch (err: any) {
     console.error('[chat]', err.message);
-    return new Response(JSON.stringify({ error: 'Error del asistente. Intenta de nuevo.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return json({ error: 'Error del asistente. Intenta de nuevo.' }, 500);
   }
 };
+
+// ── Helpers ──────────────────────────────────────────────
+
+function json(data: any, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+/**
+ * Handle simple navigational intents without calling the LLM.
+ * Returns a ChatResponse if the query is purely navigational, null otherwise.
+ */
+function handleNavigationalIntent(query: string): ChatResponse | null {
+  const q = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const navPatterns: Array<{ pattern: RegExp; reply: string; links: ChatResponse['links']; brand: string }> = [
+    {
+      pattern: /donde (veo|encuentro|busco) (propiedades|fincas|lotes|tierras)/,
+      reply: 'Puedes explorar todas nuestras propiedades rurales verificadas en el catálogo de Iwagé Tierras. Cada propiedad tiene Sello VAP de verificación legal.',
+      links: [{ label: '🏡 Catálogo de Propiedades', url: '/tierras/propiedades', type: 'pagina' }],
+      brand: 'tierras',
+    },
+    {
+      pattern: /donde (veo|encuentro|busco) (experiencias|tours|actividades)/,
+      reply: 'Descubre todas nuestras experiencias de turismo regenerativo en el catálogo de Iwagé Naturaleza. Hay opciones de naturaleza, cultura, bienestar, aventura y gastronomía.',
+      links: [{ label: '🌿 Ver Experiencias', url: '/naturaleza/experiencias', type: 'pagina' }],
+      brand: 'naturaleza',
+    },
+    {
+      pattern: /donde (veo|encuentro) (el menu|la carta|que hay de comer)/,
+      reply: 'El menú del Café Iwagé incluye café de origen, infusiones, panadería artesanal y bebidas signature. Todo con ingredientes de proveedores a menos de 4km.',
+      links: [{ label: '☕ Ver Menú del Café', url: '/cafe/menu', type: 'pagina' }],
+      brand: 'cafe',
+    },
+    {
+      pattern: /donde (veo|compro|encuentro) (miel|productos|cajas)/,
+      reply: 'En la tienda de Iwagé Meliponas encontrarás miel de Angelita con trazabilidad, cajas INPA/AF en Nogal Cafetero y kits de meliponicultura.',
+      links: [{ label: '🍯 Ir a la Tienda', url: '/meliponas/tienda', type: 'pagina' }],
+      brand: 'meliponas',
+    },
+    {
+      pattern: /como (llego|contacto|hablo)/,
+      reply: `Puedes contactarnos por WhatsApp al ${SITE.whatsapp} o por email a ${SITE.email}. Estamos en el Corredor Ambalá, Ibagué, Tolima.`,
+      links: [
+        { label: '💬 WhatsApp', url: `https://wa.me/${SITE.whatsapp.replace('+', '')}`, type: 'pagina' },
+        { label: '📄 Página de Contacto', url: '/meliponas/contacto', type: 'pagina' },
+      ],
+      brand: 'general',
+    },
+  ];
+
+  for (const { pattern, reply, links, brand } of navPatterns) {
+    if (pattern.test(q)) {
+      return { reply, links, suggestions: ['Hablar con un asesor', 'Conocer el ecosistema Iwagé'], brand };
+    }
+  }
+
+  return null;
+}
+
+/** Detect if user explicitly wants WhatsApp/human contact */
+function isWhatsAppIntent(query: string): boolean {
+  const q = query.toLowerCase();
+  return /whatsapp|hablar con (alguien|humano|asesor)|contactar (persona|humano)|llamar|telefono/.test(q);
+}

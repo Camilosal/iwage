@@ -1,17 +1,20 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
-import QuickFilters from '@/components/tierras/QuickFilters.astro';
+import FilterSidebar from '@/components/tierras/FilterSidebar.astro';
 import PropertyCard from '@/components/tierras/PropertyCard.astro';
 import PropertiesMap from '@/components/tierras/PropertiesMap.astro';
-import { getPropiedades, formatPrecio, formatArea, propiedadImagen, TIPOS_PROPIEDAD, PERFILES_COMPRADOR } from '@/lib/tierras';
 import SearchAgent from '@/components/tierras/SearchAgent.astro';
+import { getPropiedades } from '@/lib/tierras';
 
 const url = new URL(Astro.request.url);
 const tipo = url.searchParams.get('tipo') || '';
 const operacion = url.searchParams.get('operacion') || '';
 const perfil = url.searchParams.get('perfil') || '';
 const municipio = url.searchParams.get('municipio') || '';
+const precioMin = url.searchParams.get('precioMin') || '';
+const precioMax = url.searchParams.get('precioMax') || '';
+const areaMin = url.searchParams.get('areaMin') || '';
 const page = parseInt(url.searchParams.get('page') || '1', 10);
 
 const { data: propiedades, total, pageSize } = await getPropiedades({
@@ -19,118 +22,109 @@ const { data: propiedades, total, pageSize } = await getPropiedades({
   operacion: operacion || undefined,
   perfil: perfil || undefined,
   municipio: municipio || undefined,
+  precioMin: precioMin ? Number(precioMin) : undefined,
+  precioMax: precioMax ? Number(precioMax) : undefined,
+  areaMin: areaMin ? Number(areaMin) : undefined,
   page,
   pageSize: 12,
 });
 
 const totalPages = Math.ceil(total / pageSize);
+
+// Build query string helper for pagination
+const qs = new URLSearchParams();
+if (tipo) qs.set('tipo', tipo);
+if (operacion) qs.set('operacion', operacion);
+if (perfil) qs.set('perfil', perfil);
+if (municipio) qs.set('municipio', municipio);
+if (precioMin) qs.set('precioMin', precioMin);
+if (precioMax) qs.set('precioMax', precioMax);
+if (areaMin) qs.set('areaMin', areaMin);
+const baseQs = qs.toString();
 ---
 
 <BrandLayout brand="tierras" title="Propiedades Rurales · Iwagé Tierras" description="Catálogo de propiedades rurales auditadas en el Tolima. Fincas, lotes, casas campestres con verificación VAP.">
 
-  <!-- Header -->
-  <section class="bg-[#0F120E] text-white py-12">
+  <!-- Header + Search (single frame) -->
+  <section class="bg-[#0F120E] text-white py-10 pb-12">
     <div class="max-w-7xl mx-auto px-6">
       <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Catálogo Auditado</p>
-      <h1 class="text-3xl md:text-4xl font-bold">Propiedades Rurales</h1>
-      <p class="text-white/60 mt-2">{total} propiedades verificadas con Protocolo VAP</p>
-    </div>
-  </section>
-
-  <!-- AI Search Agent -->
-  <section class="bg-[#FAFAF7] pt-8">
-    <div class="max-w-4xl mx-auto px-6">
-      <SearchAgent />
-    </div>
-  </section>
-
-  <!-- Quick Filters -->
-  <section class="bg-[#FAFAF7] pb-4">
-    <div class="max-w-7xl mx-auto px-6">
-      <QuickFilters currentTipo={tipo} currentOperacion={operacion} />
-    </div>
-  </section>
-
-  <!-- Filters -->
-  <section class="bg-white border-b border-gray-100 sticky top-0 z-30">
-    <form method="get" class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center gap-3">
-      <select name="tipo" class="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]">
-        <option value="">Tipo: Todos</option>
-        {TIPOS_PROPIEDAD.map((t) => (
-          <option value={t.slug} selected={tipo === t.slug}>{t.label}</option>
-        ))}
-      </select>
-      <select name="operacion" class="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]">
-        <option value="">Operación: Todas</option>
-        <option value="venta" selected={operacion === 'venta'}>Venta</option>
-        <option value="arriendo" selected={operacion === 'arriendo'}>Arriendo</option>
-      </select>
-      <select name="perfil" class="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]">
-        <option value="">Perfil: Todos</option>
-        {PERFILES_COMPRADOR.map((p) => (
-          <option value={p.id} selected={perfil === p.id}>{p.label}</option>
-        ))}
-      </select>
-      <input type="text" name="municipio" value={municipio} placeholder="Municipio..." class="text-sm border border-gray-200 rounded-lg px-3 py-2 w-40 focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]" />
-      <button type="submit" class="bg-[#1B4332] text-white text-sm font-bold px-5 py-2 rounded-lg hover:bg-[#1B4332]/90 transition-all">
-        Filtrar
-      </button>
-      {(tipo || operacion || perfil || municipio) && (
-        <a href="/tierras/propiedades" class="text-sm text-gray-400 hover:text-[#52B788] transition-colors">Limpiar ✕</a>
-      )}
-    </form>
-  </section>
-
-  <!-- Map + Grid -->
-  <section class="bg-[#FAFAF7] py-10">
-    <div class="max-w-7xl mx-auto px-6">
-      <!-- View Toggle -->
-      <div class="flex items-center justify-between mb-6">
-        <p class="text-sm text-gray-500">{total} propiedades encontradas</p>
-        <div class="flex gap-2">
-          <button id="btn-grid" class="view-toggle px-3 py-1.5 rounded-lg text-xs font-bold bg-[#1B4332] text-white">▦ Lista</button>
-          <button id="btn-map" class="view-toggle px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-600 border border-gray-200 hover:border-[#52B788]">🗺️ Mapa</button>
-        </div>
+      <h1 class="text-3xl md:text-4xl font-bold mb-1">Propiedades Rurales</h1>
+      <p class="text-white/60 text-sm mb-6">{total} propiedades verificadas con Protocolo VAP</p>
+      <div class="max-w-3xl">
+        <SearchAgent />
       </div>
+    </div>
+  </section>
 
-      <!-- Map View (hidden by default) -->
-      <div id="map-view" class="hidden mb-8">
-        <PropertiesMap properties={propiedades} />
-      </div>
+  <!-- Main content: Sidebar + Results -->
+  <section class="bg-[#FAFAF7] pt-8 pb-16">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="lg:flex lg:gap-8 items-start">
 
-      {propiedades.length === 0 ? (
-        <div class="text-center py-14">
-          <span class="text-5xl block mb-4">🌄</span>
-          <h3 class="text-xl font-bold text-[#1B4332] mb-2">No hay propiedades con estos filtros</h3>
-          <p class="text-gray-500 mb-6">Prueba ampliar la búsqueda o contáctanos para una búsqueda personalizada.</p>
-          <a href="/tierras/propiedades" class="text-[#52B788] font-bold hover:underline">Ver todas las propiedades →</a>
-        </div>
-      ) : (
-        <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {propiedades.map((prop) => (
-            <ScrollReveal>
-              <PropertyCard prop={prop} />
-            </ScrollReveal>
-          ))}
-        </div>
-      )}
+        <!-- Unified FilterSidebar (desktop: sticky sidebar, mobile: drawer) -->
+        <FilterSidebar
+          currentTipo={tipo}
+          currentOperacion={operacion}
+          currentPerfil={perfil}
+          currentMunicipio={municipio}
+          currentPrecioMin={precioMin}
+          currentPrecioMax={precioMax}
+          currentAreaMin={areaMin}
+        />
 
-      <!-- Pagination -->
-      {totalPages > 1 && (
-        <div class="flex items-center justify-center gap-2 mt-10">
-          {page > 1 && (
-            <a href={`/tierras/propiedades?page=${page - 1}${tipo ? `&tipo=${tipo}` : ''}${operacion ? `&operacion=${operacion}` : ''}${perfil ? `&perfil=${perfil}` : ''}${municipio ? `&municipio=${municipio}` : ''}`}
-              class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:border-[#52B788] transition-colors">← Anterior</a>
+        <!-- Results column -->
+        <div class="flex-1 min-w-0">
+          <!-- Toolbar -->
+          <div class="flex items-center justify-between mb-6">
+            <p class="text-sm text-gray-500">{total} propiedades encontradas</p>
+            <div class="flex gap-2">
+              <button id="btn-grid" class="view-toggle px-3 py-1.5 rounded-lg text-xs font-bold bg-[#1B4332] text-white">▦ Lista</button>
+              <button id="btn-map" class="view-toggle px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-600 border border-gray-200 hover:border-[#52B788]">🗺️ Mapa</button>
+            </div>
+          </div>
+
+          <!-- Map View (hidden by default) -->
+          <div id="map-view" class="hidden mb-8">
+            <PropertiesMap properties={propiedades} />
+          </div>
+
+          {propiedades.length === 0 ? (
+            <div class="text-center py-14">
+              <span class="text-5xl block mb-4">🌄</span>
+              <h3 class="text-xl font-bold text-[#1B4332] mb-2">No hay propiedades con estos filtros</h3>
+              <p class="text-gray-500 mb-6">Prueba ampliar la búsqueda o contáctanos para una búsqueda personalizada.</p>
+              <a href="/tierras/propiedades" class="text-[#52B788] font-bold hover:underline">Ver todas las propiedades →</a>
+            </div>
+          ) : (
+            <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {propiedades.map((prop) => (
+                <ScrollReveal>
+                  <PropertyCard prop={prop} />
+                </ScrollReveal>
+              ))}
+            </div>
           )}
-          <span class="text-sm text-gray-500 px-4">Página {page} de {totalPages}</span>
-          {page < totalPages && (
-            <a href={`/tierras/propiedades?page=${page + 1}${tipo ? `&tipo=${tipo}` : ''}${operacion ? `&operacion=${operacion}` : ''}${perfil ? `&perfil=${perfil}` : ''}${municipio ? `&municipio=${municipio}` : ''}`}
-              class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:border-[#52B788] transition-colors">Siguiente →</a>
+
+          <!-- Pagination -->
+          {totalPages > 1 && (
+            <div class="flex items-center justify-center gap-2 mt-10">
+              {page > 1 && (
+                <a href={`/tierras/propiedades?page=${page - 1}${baseQs ? `&${baseQs}` : ''}`}
+                  class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:border-[#52B788] transition-colors">← Anterior</a>
+              )}
+              <span class="text-sm text-gray-500 px-4">Página {page} de {totalPages}</span>
+              {page < totalPages && (
+                <a href={`/tierras/propiedades?page=${page + 1}${baseQs ? `&${baseQs}` : ''}`}
+                  class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:border-[#52B788] transition-colors">Siguiente →</a>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   </section>
+
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const btnGrid = document.getElementById('btn-grid');
@@ -146,6 +140,8 @@ const totalPages = Math.ceil(total / pageSize);
       btnMap.classList.remove('bg-white', 'text-gray-600');
       btnGrid.classList.remove('bg-[#1B4332]', 'text-white');
       btnGrid.classList.add('bg-white', 'text-gray-600');
+      // Fix Leaflet rendering after container becomes visible
+      setTimeout(() => (window as any).__leafletMap?.invalidateSize(), 100);
     });
 
     btnGrid.addEventListener('click', () => {

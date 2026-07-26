@@ -26,6 +26,9 @@ const heroImg = propiedadGestionImagen(prop);
 const galeriaImgs = (prop.galeria || []).map((g) => strapiImage(g.url)).filter(Boolean) as string[];
 const precio = formatPrecioGestion(prop);
 
+// WhatsApp desde la configuración de marca
+const waPhone = getBrand('gestion')?.whatsapp || '573001234567';
+
 const title = prop.seo_titulo || `${prop.titulo} · Iwagé Gestión`;
 const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo} en ${prop.ubicacion_municipio || 'Tolima'}. ${tipo.label} por Iwagé Gestión.`;
 ---

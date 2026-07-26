@@ -261,6 +261,8 @@ export interface ExperienciaFilters {
 
 // ── Data Fetchers ──────────────────────────────────────
 
+// Relaciones cross-brand del modelo "Ecosistema Iwagé" (todas existen en el schema de
+// Strapi: experiencia ↔ propiedad / propiedad-gestion / proveedor / anfitrion).
 const POPULATE_EXP = ['imagen_hero', 'galeria', 'anfitriones', 'proveedores', 'propiedades', 'propiedades_gestion'];
 const POPULATE_HOST = ['foto_perfil'];
 const POPULATE_HOST_DETAIL = ['foto_perfil', 'experiencias'];

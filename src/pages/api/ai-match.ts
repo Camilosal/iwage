@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getPropiedades } from '@/lib/tierras';
+import { callLLMJson } from '@/lib/ai/provider';
+import { matchLimiter, RateLimiter } from '@/lib/ai/rate-limiter';
 
 const SYSTEM_PROMPT = `Eres un agente inmobiliario rural experto en el Tolima, Colombia. Recibes una consulta en lenguaje natural y una lista de propiedades disponibles. Tu trabajo:
 1. Identificar los criterios implícitos del usuario (tipo de proyecto, presupuesto, ubicación, características)
@@ -20,20 +22,9 @@ Reglas:
 - match_reason: 1-2 oraciones específicas sobre por qué esa propiedad sirve
 - NO inventes propiedades que no estén en la lista`;
 
-// Rate limiter
-const rateLimit = new Map<string, { count: number; reset: number }>();
-function checkRate(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimit.get(ip);
-  if (!entry || now > entry.reset) { rateLimit.set(ip, { count: 1, reset: now + 60000 }); return true; }
-  if (entry.count >= 5) return false;
-  entry.count++;
-  return true;
-}
-
 export const POST: APIRoute = async ({ request, clientAddress }) => {
-  const ip = clientAddress || request.headers.get('x-forwarded-for') || 'unknown';
-  if (!checkRate(ip)) {
+  const ip = RateLimiter.getClientIp(clientAddress, request.headers);
+  if (!matchLimiter.check(ip)) {
     return new Response(JSON.stringify({ error: 'Demasiadas búsquedas. Espera un momento.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
   }
 
@@ -69,46 +60,14 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     }).join('\n\n');
 
     const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: `CONSULTA DEL USUARIO: "${query}"\n\nPROPIEDADES DISPONIBLES:\n${propsContext}` },
+      { role: 'system' as const, content: SYSTEM_PROMPT },
+      { role: 'user' as const, content: `CONSULTA DEL USUARIO: "${query}"\n\nPROPIEDADES DISPONIBLES:\n${propsContext}` },
     ];
 
-    // Call LLM
-    const provider = process.env.AI_PROVIDER || 'openai';
-    let content: string;
-
-    if (provider === 'gemini') {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
-      const body = {
-        contents: [{ role: 'user', parts: [{ text: messages[1].content }] }],
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        generationConfig: { temperature: 0.3, maxOutputTokens: 1000 },
-      };
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error(`Gemini error: ${res.status}`);
-      const data = await res.json();
-      content = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    } else {
-      const apiKey = provider === 'openrouter' ? process.env.OPENROUTER_API_KEY : process.env.OPENAI_API_KEY;
-      const baseUrl = provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1');
-      const model = provider === 'openrouter' ? (process.env.OPENROUTER_MODEL || 'meta-llama/llama-3-8b-instruct') : (process.env.OPENAI_MODEL || 'gpt-4o-mini');
-      if (!apiKey) throw new Error('API key not configured');
-      const res = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.3 }),
-      });
-      if (!res.ok) throw new Error(`AI error: ${res.status}`);
-      const data = await res.json();
-      content = data.choices[0]?.message?.content || '{}';
-    }
-
-    // Parse JSON from response (handle markdown code blocks)
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { matches: [], search_insights: 'No pude procesar los resultados.', user_profile: '' };
+    const result = await callLLMJson<{ matches: any[]; search_insights: string; user_profile: string }>(messages, {
+      temperature: 0.3,
+      maxTokens: 1000,
+    }).catch(() => ({ matches: [], search_insights: 'No pude procesar los resultados.', user_profile: '' }));
 
     // Enrich matches with property data
     const enriched = (result.matches || []).map((m: any) => {

@@ -10,8 +10,8 @@ const geoProps = properties.filter(p => p.ubicacion_latitud && p.ubicacion_longi
 ---
 
 {geoProps.length > 0 && (
-  <div class="properties-map rounded-2xl overflow-hidden border border-gray-200 h-[500px] relative">
-    <div id="leaflet-map" class="w-full h-full"></div>
+  <div class="properties-map rounded-2xl overflow-hidden border border-gray-200 h-[420px] md:h-[520px] w-full relative">
+    <div id="leaflet-map" class="absolute inset-0 w-full h-full"></div>
     <script type="application/json" id="map-data" set:html={JSON.stringify(geoProps.map(p => ({
       slug: p.slug,
       titulo: p.titulo,
@@ -67,5 +67,8 @@ const geoProps = properties.filter(p => p.ubicacion_latitud && p.ubicacion_longi
     if (bounds.length > 0) {
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
     }
+
+    // Expose map globally so the view toggle can call invalidateSize
+    (window as any).__leafletMap = map;
   });
 </script>

@@ -1,72 +1,44 @@
 ---
-const SUGGESTIONS = [
-  { icon: '🌾', title: 'Productor Agrícola', query: 'Finca para cultivo de café con agua propia y vía pavimentada' },
-  { icon: '🏡', title: 'Vivienda Rural', query: 'Casa rural con internet de alta velocidad y cerca de pueblo' },
-  { icon: '🏕️', title: 'Glamping / Turismo', query: 'Predio apto para glamping con mirador natural' },
-  { icon: '🐄', title: 'Ganadería', query: 'Finca ganadera con pastos y agua disponible' },
-  { icon: '💼', title: 'Inversionista', query: 'Terreno grande a buen precio con potencial de valorización' },
-  { icon: '🌐', title: 'Nómada Digital', query: 'Lugar con internet de alta velocidad y energía estable' },
-];
+/**
+ * Minimal AI search bar: icon + name + input + button.
+ * Results render below as clickable cards linking to property detail pages.
+ */
 ---
 
-<div class="bg-white rounded-2xl border border-gray-100 overflow-hidden" data-search-agent>
-  <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-    <span class="text-lg">🤖</span>
-    <div>
-      <h2 class="text-sm font-bold text-[#1B4332]">Búsqueda Inteligente</h2>
-      <p class="text-[11px] text-gray-400">Describe lo que buscas en lenguaje natural</p>
-    </div>
-    <span class="ml-auto px-2 py-0.5 rounded-full bg-[#52B788]/10 text-[#52B788] text-[9px] font-bold uppercase">IA</span>
+<div data-search-agent class="w-full">
+  <!-- Search bar -->
+  <div class="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-lg shadow-black/10">
+    <span class="text-xl shrink-0">🔍</span>
+    <span class="hidden sm:block text-sm font-bold text-[#1B4332] whitespace-nowrap shrink-0">Búsqueda Inteligente</span>
+    <input
+      type="text"
+      data-search-input
+      placeholder="Describe lo que buscas... ej: finca cafetera con agua propia"
+      class="flex-1 min-w-0 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent"
+    />
+    <button
+      data-search-btn
+      class="px-5 py-2 bg-[#1B4332] text-white rounded-xl text-sm font-bold hover:bg-[#2D6A4F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+    >
+      Buscar
+    </button>
   </div>
 
-  <div class="p-6">
-    <!-- Input -->
-    <div class="flex gap-2 mb-4">
-      <input
-        type="text"
-        data-search-input
-        placeholder="Ej: Finca con agua y buena vía para café..."
-        class="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]/40 focus:border-[#52B788] transition-all"
-      />
-      <button
-        data-search-btn
-        class="px-5 py-3 bg-[#1B4332] text-white rounded-xl text-sm font-bold hover:bg-[#1B4332]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-      >
-        Buscar
-      </button>
+  <!-- Loading -->
+  <div data-loading class="hidden mt-4 py-6 text-center">
+    <div class="inline-flex items-center gap-3 bg-white rounded-xl px-5 py-3 text-sm text-gray-500 shadow-sm">
+      <svg class="animate-spin w-4 h-4 text-[#52B788]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+      Analizando propiedades con IA...
     </div>
+  </div>
 
-    <!-- Suggestions -->
-    <div data-suggestions class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
-      {SUGGESTIONS.map(s => (
-        <button class="suggestion-btn text-left px-3 py-2.5 rounded-xl border border-gray-100 hover:border-[#52B788]/40 hover:bg-[#52B788]/5 transition-all group" data-query={s.query}>
-          <span class="text-sm">{s.icon}</span>
-          <span class="text-xs font-medium text-gray-600 group-hover:text-[#1B4332] ml-1.5">{s.title}</span>
-        </button>
-      ))}
-    </div>
+  <!-- Error -->
+  <div data-error class="hidden mt-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600"></div>
 
-    <!-- Loading -->
-    <div data-loading class="hidden py-8 text-center">
-      <div class="inline-flex items-center gap-3 text-sm text-gray-500">
-        <svg class="animate-spin w-5 h-5 text-[#52B788]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-        Analizando propiedades con IA...
-      </div>
-    </div>
-
-    <!-- Error -->
-    <div data-error class="hidden py-4 px-4 bg-red-50 rounded-xl text-sm text-red-600 mb-4"></div>
-
-    <!-- Results -->
-    <div data-results class="hidden space-y-4">
-      <!-- Profile + Insights -->
-      <div data-meta class="bg-[#52B788]/5 rounded-xl p-4 border border-[#52B788]/20">
-        <p class="text-xs font-bold text-[#52B788] uppercase mb-1">Perfil detectado: <span data-profile></span></p>
-        <p class="text-sm text-gray-600" data-insights></p>
-      </div>
-      <!-- Match cards -->
-      <div data-matches class="space-y-3"></div>
-    </div>
+  <!-- Results -->
+  <div data-results class="hidden mt-4 space-y-3">
+    <p data-insights class="text-sm text-white/70 bg-white/5 border border-white/10 rounded-xl px-4 py-3"></p>
+    <div data-matches class="space-y-3"></div>
   </div>
 </div>
 
@@ -78,9 +50,7 @@ const SUGGESTIONS = [
     const loading = agent.querySelector('[data-loading]') as HTMLElement;
     const error = agent.querySelector('[data-error]') as HTMLElement;
     const results = agent.querySelector('[data-results]') as HTMLElement;
-    const suggestions = agent.querySelector('[data-suggestions]') as HTMLElement;
     const matchesEl = agent.querySelector('[data-matches]') as HTMLElement;
-    const profileEl = agent.querySelector('[data-profile]') as HTMLElement;
     const insightsEl = agent.querySelector('[data-insights]') as HTMLElement;
 
     function formatPrecio(v: number | null): string {
@@ -90,12 +60,17 @@ const SUGGESTIONS = [
       return `$${v.toLocaleString('es-CO')}`;
     }
 
+    function escapeHtml(str: string): string {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
     async function doSearch(query: string) {
       if (!query.trim()) return;
       loading.classList.remove('hidden');
       error.classList.add('hidden');
       results.classList.add('hidden');
-      suggestions.classList.add('hidden');
       btn.disabled = true;
 
       try {
@@ -105,26 +80,40 @@ const SUGGESTIONS = [
           body: JSON.stringify({ query }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Error');
+        if (!res.ok) throw new Error(data.error || 'Error en la búsqueda');
 
-        profileEl.textContent = data.user_profile || 'Explorador';
+        const matches = data.matches || [];
+        if (matches.length === 0) {
+          insightsEl.textContent = data.search_insights || 'No encontré propiedades que coincidan. Intenta con otros términos.';
+          insightsEl.classList.remove('hidden');
+          matchesEl.innerHTML = '';
+          results.classList.remove('hidden');
+          return;
+        }
+
         insightsEl.textContent = data.search_insights || '';
+        insightsEl.classList.toggle('hidden', !data.search_insights);
 
-        matchesEl.innerHTML = (data.matches || []).map((m: any) => `
-          <a href="/tierras/propiedades/${m.slug}" class="block p-4 rounded-xl border border-gray-100 hover:border-[#52B788]/40 hover:shadow-md transition-all group">
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <h3 class="font-bold text-sm text-[#1B4332] group-hover:text-[#52B788] transition-colors">${m.titulo}</h3>
-                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold text-white ${m.match_score >= 80 ? 'bg-emerald-500' : m.match_score >= 60 ? 'bg-amber-500' : 'bg-gray-400'}">${m.match_score}%</span>
+        matchesEl.innerHTML = matches.map((m: any) => {
+          const slug = m.slug ? String(m.slug).trim() : '';
+          const href = slug ? `/tierras/propiedades/${encodeURIComponent(slug)}` : '/tierras/propiedades';
+          const score = typeof m.match_score === 'number' ? m.match_score : 0;
+          const scoreColor = score >= 80 ? 'bg-emerald-500' : score >= 60 ? 'bg-amber-500' : 'bg-gray-400';
+          return `
+            <a href="${href}" class="block bg-white p-4 rounded-xl border border-gray-100 hover:border-[#52B788]/50 hover:shadow-md transition-all group cursor-pointer">
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h3 class="font-bold text-sm text-[#1B4332] group-hover:text-[#2D6A4F] transition-colors truncate">${escapeHtml(m.titulo || 'Propiedad')}</h3>
+                    ${score > 0 ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold text-white ${scoreColor} shrink-0">${score}%</span>` : ''}
+                  </div>
+                  <p class="text-xs text-gray-500 mb-1.5">📍 ${escapeHtml(m.ubicacion_municipio || 'Tolima')}${m.area_hectareas ? ` · ${m.area_hectareas} ha` : ''} · ${formatPrecio(m.precio)}</p>
+                  ${m.match_reason ? `<p class="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">${escapeHtml(m.match_reason)}</p>` : ''}
                 </div>
-                <p class="text-xs text-gray-500 mb-2">📍 ${m.ubicacion_municipio || 'Tolima'} ${m.area_hectareas ? `· ${m.area_hectareas} ha` : ''} · ${formatPrecio(m.precio)}</p>
-                <p class="text-xs text-gray-600 bg-gray-50 rounded-lg p-2">${m.match_reason}</p>
+                <span class="text-[#52B788] text-xl opacity-40 group-hover:opacity-100 transition-opacity shrink-0">→</span>
               </div>
-              <span class="text-[#52B788] opacity-0 group-hover:opacity-100 transition-opacity text-lg">→</span>
-            </div>
-          </a>
-        `).join('');
+            </a>`;
+        }).join('');
 
         results.classList.remove('hidden');
       } catch (err: any) {
@@ -138,12 +127,5 @@ const SUGGESTIONS = [
 
     btn.addEventListener('click', () => doSearch(input.value));
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(input.value); });
-    agent.querySelectorAll('.suggestion-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        const q = b.getAttribute('data-query') || '';
-        input.value = q;
-        doSearch(q);
-      });
-    });
   }
 </script>

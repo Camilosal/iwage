@@ -1,0 +1,226 @@
+---
+import { TIPOS_PROPIEDAD, PERFILES_COMPRADOR } from '@/lib/tierras';
+
+interface Props {
+  currentTipo?: string;
+  currentOperacion?: string;
+  currentPerfil?: string;
+  currentMunicipio?: string;
+  currentPrecioMin?: string;
+  currentPrecioMax?: string;
+  currentAreaMin?: string;
+}
+
+const {
+  currentTipo = '',
+  currentOperacion = '',
+  currentPerfil = '',
+  currentMunicipio = '',
+  currentPrecioMin = '',
+  currentPrecioMax = '',
+  currentAreaMin = '',
+} = Astro.props;
+
+const activeCount = [currentTipo, currentOperacion, currentPerfil, currentMunicipio, currentPrecioMin, currentPrecioMax, currentAreaMin].filter(Boolean).length;
+
+const PRECIOS = [
+  { value: '50000000', label: '$50M' },
+  { value: '100000000', label: '$100M' },
+  { value: '200000000', label: '$200M' },
+  { value: '500000000', label: '$500M' },
+  { value: '1000000000', label: '$1.000M' },
+  { value: '2000000000', label: '$2.000M' },
+];
+
+const AREAS = [
+  { value: '1', label: '1+ ha' },
+  { value: '5', label: '5+ ha' },
+  { value: '10', label: '10+ ha' },
+  { value: '20', label: '20+ ha' },
+  { value: '50', label: '50+ ha' },
+];
+---
+
+<!-- Mobile toggle button (fixed) -->
+<button
+  id="filter-toggle"
+  class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-[#1B4332] text-white px-5 py-3 rounded-full shadow-xl shadow-[#1B4332]/30 font-bold text-sm transition-transform active:scale-95"
+>
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+  Filtros
+  {activeCount > 0 && (
+    <span class="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-[#52B788] text-[10px] font-black">{activeCount}</span>
+  )}
+</button>
+
+<!-- Overlay backdrop (mobile) -->
+<div id="filter-backdrop" class="lg:hidden fixed inset-0 bg-black/40 z-50 hidden transition-opacity"></div>
+
+<!-- Sidebar panel -->
+<aside
+  id="filter-sidebar"
+  class="fixed inset-y-0 left-0 z-50 w-[300px] max-h-screen overflow-y-auto bg-white border-r border-gray-200 shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out lg:sticky lg:top-6 lg:inset-auto lg:z-10 lg:w-64 lg:shrink-0 lg:max-h-none lg:overflow-visible lg:bg-transparent lg:border-r-0 lg:shadow-none lg:translate-x-0 lg:transition-none"
+>
+  <form method="get" action="/tierras/propiedades" class="p-5 lg:p-0 space-y-6" id="filter-form">
+
+    <!-- Header (mobile only) -->
+    <div class="flex items-center justify-between lg:hidden">
+      <h2 class="text-sm font-black text-[#1B4332] uppercase tracking-wide">Filtros</h2>
+      <button type="button" id="filter-close" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors text-lg">✕</button>
+    </div>
+
+    <!-- Tipo de propiedad -->
+    <fieldset>
+      <legend class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2.5">Tipo de propiedad</legend>
+      <div class="flex flex-wrap gap-1.5">
+        {TIPOS_PROPIEDAD.map((t) => (
+          <label class="cursor-pointer">
+            <input type="radio" name="tipo" value={t.slug} checked={currentTipo === t.slug} class="peer hidden" />
+            <span class="inline-block px-3 py-1.5 rounded-full text-xs font-bold border border-gray-200 text-gray-600 peer-checked:bg-[#1B4332] peer-checked:text-white peer-checked:border-[#1B4332] hover:border-[#52B788] transition-all">
+              {t.label}
+            </span>
+          </label>
+        ))}
+        <label class="cursor-pointer">
+          <input type="radio" name="tipo" value="" checked={!currentTipo} class="peer hidden" />
+          <span class="inline-block px-3 py-1.5 rounded-full text-xs font-bold border border-dashed border-gray-300 text-gray-400 peer-checked:bg-gray-100 peer-checked:text-gray-700 peer-checked:border-gray-400 hover:border-gray-400 transition-all">
+            Todos
+          </span>
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- Operación -->
+    <fieldset>
+      <legend class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2.5">Operación</legend>
+      <div class="flex gap-1.5">
+        <label class="cursor-pointer flex-1">
+          <input type="radio" name="operacion" value="" checked={!currentOperacion} class="peer hidden" />
+          <span class="block text-center px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 text-gray-500 peer-checked:bg-[#1B4332] peer-checked:text-white peer-checked:border-[#1B4332] hover:border-[#52B788] transition-all">
+            Todas
+          </span>
+        </label>
+        <label class="cursor-pointer flex-1">
+          <input type="radio" name="operacion" value="venta" checked={currentOperacion === 'venta'} class="peer hidden" />
+          <span class="block text-center px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 text-gray-500 peer-checked:bg-[#1B4332] peer-checked:text-white peer-checked:border-[#1B4332] hover:border-[#52B788] transition-all">
+            💰 Venta
+          </span>
+        </label>
+        <label class="cursor-pointer flex-1">
+          <input type="radio" name="operacion" value="arriendo" checked={currentOperacion === 'arriendo'} class="peer hidden" />
+          <span class="block text-center px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 text-gray-500 peer-checked:bg-[#1B4332] peer-checked:text-white peer-checked:border-[#1B4332] hover:border-[#52B788] transition-all">
+            🔑 Arriendo
+          </span>
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- Uso del predio -->
+    <fieldset>
+      <legend class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2.5">Uso del predio</legend>
+      <select name="perfil" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all">
+        <option value="">Todos los usos</option>
+        {PERFILES_COMPRADOR.map((p) => (
+          <option value={p.id} selected={currentPerfil === p.id}>{p.label}</option>
+        ))}
+      </select>
+    </fieldset>
+
+    <!-- Municipio -->
+    <fieldset>
+      <legend class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2.5">Municipio</legend>
+      <input
+        type="text"
+        name="municipio"
+        value={currentMunicipio}
+        placeholder="Ej: Ibagué, Cajamarca..."
+        class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all"
+      />
+    </fieldset>
+
+    <!-- Rango de precio -->
+    <fieldset>
+      <legend class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2.5">Precio</legend>
+      <div class="flex items-center gap-2">
+        <select name="precioMin" class="flex-1 text-xs border border-gray-200 rounded-lg px-2.5 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]">
+          <option value="">Mín</option>
+          {PRECIOS.map((p) => (
+            <option value={p.value} selected={currentPrecioMin === p.value}>{p.label}</option>
+          ))}
+        </select>
+        <span class="text-gray-300 text-xs">—</span>
+        <select name="precioMax" class="flex-1 text-xs border border-gray-200 rounded-lg px-2.5 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788]">
+          <option value="">Máx</option>
+          {PRECIOS.map((p) => (
+            <option value={p.value} selected={currentPrecioMax === p.value}>{p.label}</option>
+          ))}
+        </select>
+      </div>
+    </fieldset>
+
+    <!-- Área mínima -->
+    <fieldset>
+      <legend class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2.5">Área mínima</legend>
+      <div class="flex flex-wrap gap-1.5">
+        <label class="cursor-pointer">
+          <input type="radio" name="areaMin" value="" checked={!currentAreaMin} class="peer hidden" />
+          <span class="inline-block px-3 py-1.5 rounded-full text-xs font-bold border border-dashed border-gray-300 text-gray-400 peer-checked:bg-gray-100 peer-checked:text-gray-700 peer-checked:border-gray-400 hover:border-gray-400 transition-all">
+            Cualquier
+          </span>
+        </label>
+        {AREAS.map((a) => (
+          <label class="cursor-pointer">
+            <input type="radio" name="areaMin" value={a.value} checked={currentAreaMin === a.value} class="peer hidden" />
+            <span class="inline-block px-3 py-1.5 rounded-full text-xs font-bold border border-gray-200 text-gray-600 peer-checked:bg-[#1B4332] peer-checked:text-white peer-checked:border-[#1B4332] hover:border-[#52B788] transition-all">
+              {a.label}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-3 pt-2 border-t border-gray-100">
+      <button type="submit" class="flex-1 bg-[#1B4332] text-white text-sm font-bold px-4 py-2.5 rounded-lg hover:bg-[#1B4332]/90 transition-all">
+        Aplicar filtros
+      </button>
+      <a href="/tierras/propiedades" class="text-xs text-gray-400 hover:text-red-500 font-medium transition-colors whitespace-nowrap">
+        Limpiar ✕
+      </a>
+    </div>
+  </form>
+</aside>
+
+<script>
+  const toggle = document.getElementById('filter-toggle');
+  const sidebar = document.getElementById('filter-sidebar');
+  const backdrop = document.getElementById('filter-backdrop');
+  const closeBtn = document.getElementById('filter-close');
+
+  function openSidebar() {
+    sidebar?.classList.remove('-translate-x-full');
+    backdrop?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar?.classList.add('-translate-x-full');
+    backdrop?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  toggle?.addEventListener('click', openSidebar);
+  closeBtn?.addEventListener('click', closeSidebar);
+  backdrop?.addEventListener('click', closeSidebar);
+
+  // Auto-submit on radio/select change for instant feedback (desktop)
+  const form = document.getElementById('filter-form');
+  form?.addEventListener('change', (e) => {
+    const target = e.target as HTMLElement;
+    // Only auto-submit for radio and select changes (not text inputs)
+    if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+      // Small delay for visual feedback on pills
+      setTimeout(() => form.submit(), 150);
+    }
+  });
+</script>

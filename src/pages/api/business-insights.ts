@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getPropiedadBySlug } from '@/lib/tierras';
+import { callLLMJson } from '@/lib/ai/provider';
+import { insightsLimiter, RateLimiter } from '@/lib/ai/rate-limiter';
 
 const SYSTEM_PROMPT = `Eres un analista de inteligencia inmobiliaria rural experto en el Tolima, Colombia. Recibes los datos técnicos de una propiedad rural y generas insights estratégicos para un comprador potencial.
 
@@ -27,19 +29,9 @@ Cada insight debe tener:
 
 Sé específico y basado en datos. No seas genérico.`;
 
-const rateLimit = new Map<string, { count: number; reset: number }>();
-function checkRate(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimit.get(ip);
-  if (!entry || now > entry.reset) { rateLimit.set(ip, { count: 1, reset: now + 60000 }); return true; }
-  if (entry.count >= 3) return false;
-  entry.count++;
-  return true;
-}
-
 export const POST: APIRoute = async ({ request, clientAddress }) => {
-  const ip = clientAddress || request.headers.get('x-forwarded-for') || 'unknown';
-  if (!checkRate(ip)) {
+  const ip = RateLimiter.getClientIp(clientAddress, request.headers);
+  if (!insightsLimiter.check(ip)) {
     return new Response(JSON.stringify({ error: 'Demasiadas solicitudes. Espera un momento.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
   }
 
@@ -81,44 +73,14 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 - Sello VAP: ${prop.sello_vap || 'Sin verificar'}`;
 
     const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: `Analiza esta propiedad y genera insights estratégicos:\n\n${context}` },
+      { role: 'system' as const, content: SYSTEM_PROMPT },
+      { role: 'user' as const, content: `Analiza esta propiedad y genera insights estratégicos:\n\n${context}` },
     ];
 
-    const provider = process.env.AI_PROVIDER || 'openai';
-    let content: string;
-
-    if (provider === 'gemini') {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
-      const body = {
-        contents: [{ role: 'user', parts: [{ text: messages[1].content }] }],
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
-      };
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error(`Gemini error: ${res.status}`);
-      const data = await res.json();
-      content = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    } else {
-      const apiKey = provider === 'openrouter' ? process.env.OPENROUTER_API_KEY : process.env.OPENAI_API_KEY;
-      const baseUrl = provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1');
-      const model = provider === 'openrouter' ? (process.env.OPENROUTER_MODEL || 'meta-llama/llama-3-8b-instruct') : (process.env.OPENAI_MODEL || 'gpt-4o-mini');
-      if (!apiKey) throw new Error('API key not configured');
-      const res = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model, messages, max_tokens: 1200, temperature: 0.4 }),
-      });
-      if (!res.ok) throw new Error(`AI error: ${res.status}`);
-      const data = await res.json();
-      content = data.choices[0]?.message?.content || '{}';
-    }
-
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { insights: [] };
+    const result = await callLLMJson<{ insights: any[] }>(messages, {
+      temperature: 0.4,
+      maxTokens: 1200,
+    }).catch(() => ({ insights: [] }));
 
     return new Response(JSON.stringify({ insights: result.insights || [], cached: false }), {
       status: 200,

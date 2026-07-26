@@ -11,6 +11,12 @@ const PUBLIC_APIS = [
   'pilar-estandar',
   'cafe-config',
   'configuracion-sitio',
+  'propiedad',
+  'experiencia',
+  'anfitrion',
+  'paquete',
+  'bitacora',
+  'propiedad-gestion',
 ];
 
 export default {
