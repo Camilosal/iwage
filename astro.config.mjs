@@ -33,6 +33,18 @@ export default defineConfig({
     server: {
       host: true,
       allowedHosts: ['iwage.co', 'www.iwage.co'],
+      proxy: {
+        // Proxy /admin to Strapi in development
+        '/admin': {
+          target: process.env.STRAPI_URL || 'http://localhost:1338',
+          changeOrigin: true,
+        },
+        // Proxy /uploads to Strapi (media files)
+        '/uploads': {
+          target: process.env.STRAPI_URL || 'http://localhost:1338',
+          changeOrigin: true,
+        },
+      },
     },
   },
 });

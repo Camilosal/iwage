@@ -1,0 +1,387 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import MediaGallery from '@/components/shared/MediaGallery.astro';
+import { getCultivoBySlug, getCultivos, MESES_LABELS } from '@/lib/polinizacion';
+import { renderMarkdown } from '@/lib/render-markdown';
+
+const { slug } = Astro.params;
+const cultivo = await getCultivoBySlug(slug!);
+
+if (!cultivo) {
+  return Astro.redirect('/meliponas/polinizacion');
+}
+
+const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+const pageTitle = cultivo.meta_title ?? `Polinización de ${cultivo.nombre} · Iwagé Meliponario`;
+const pageDesc = cultivo.meta_description ?? cultivo.descripcion_corta ?? '';
+
+// Related crops
+const todosCultivos = await getCultivos();
+const relacionados = todosCultivos.filter((c) => c.slug !== cultivo.slug).slice(0, 3);
+
+// Compute total service duration
+const diasTotales = (cultivo.dias_alistamiento ?? 0) + (cultivo.dias_en_campo ?? 0) + (cultivo.dias_recuperacion ?? 0);
+---
+
+<BrandLayout title={pageTitle} description={pageDesc}>
+  <article class="max-w-5xl mx-auto px-6 py-12">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-text-muted mb-6">
+      <a href="/meliponas/polinizacion" class="hover:text-brand transition-colors">Polinización</a>
+      <span>/</span>
+      <span class="text-text-primary">{cultivo.nombre}</span>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-14 h-14 rounded-2xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
+          <i data-lucide={cultivo.icono || 'flower-2'} class="w-7 h-7"></i>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold text-text-primary tracking-tight">{cultivo.nombre}</h1>
+          {cultivo.nombre_cientifico && (
+            <p class="text-sm italic text-text-muted">{cultivo.nombre_cientifico}
+              {cultivo.familia_botanica && <span class="not-italic"> · {cultivo.familia_botanica}</span>}
+            </p>
+          )}
+        </div>
+      </div>
+      {cultivo.rendimiento && (
+        <span class="inline-block bg-accent-muted text-accent text-sm font-semibold rounded-full px-4 py-1.5">
+          {cultivo.rendimiento}
+        </span>
+      )}
+      {cultivo.fuente && (
+        <p class="text-xs text-text-muted mt-2">Fuente: {cultivo.fuente}</p>
+      )}
+    </header>
+
+    <!-- Image -->
+    {cultivo.imagen && (
+      <div class="aspect-[21/9] rounded-2xl overflow-hidden bg-surface-sunken border border-border mb-6">
+        <img src={cultivo.imagen} alt={`Polinización de ${cultivo.nombre}`} class="w-full h-full object-cover" />
+      </div>
+    )}
+
+    <!-- Galería -->
+    {cultivo.galeria && cultivo.galeria.length > 0 && (
+      <div class="mb-8">
+        <MediaGallery images={cultivo.galeria} title={`Galería · ${cultivo.nombre}`} columns={4} />
+      </div>
+    )}
+
+    <!-- Description -->
+    {cultivo.descripcion && (
+      <div class="prose prose-sm dark:prose-invert max-w-none mb-8 text-text-secondary leading-relaxed">
+        <Fragment set:html={renderMarkdown(cultivo.descripcion)} />
+      </div>
+    )}
+    {cultivo.descripcion_corta && !cultivo.descripcion && (
+      <p class="text-text-secondary leading-relaxed mb-8">{cultivo.descripcion_corta}</p>
+    )}
+
+    <!-- Main grid: Service variables + Crop characteristics -->
+    <div class="grid md:grid-cols-2 gap-8 mb-8">
+      <!-- Variables operativas del servicio -->
+      <section class="bg-surface-raised rounded-2xl border border-border p-6">
+        <h2 class="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <i data-lucide="settings-2" class="w-5 h-5 text-brand"></i>
+          Parámetros del servicio
+        </h2>
+        <dl class="space-y-3">
+          {cultivo.tarifa_por_hectarea && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Tarifa por hectárea</dt>
+              <dd class="text-sm font-semibold text-brand">{fmt.format(cultivo.tarifa_por_hectarea)}</dd>
+            </div>
+          )}
+          {cultivo.densidad_cajas_ha && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Densidad requerida</dt>
+              <dd class="text-sm font-semibold text-text-primary">{cultivo.densidad_cajas_ha} cajas/ha</dd>
+            </div>
+          )}
+          {cultivo.dias_alistamiento && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Días de alistamiento</dt>
+              <dd class="text-sm font-semibold text-text-primary">{cultivo.dias_alistamiento} días</dd>
+            </div>
+          )}
+          {cultivo.dias_en_campo && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Días en campo (polinización)</dt>
+              <dd class="text-sm font-semibold text-accent">{cultivo.dias_en_campo} días</dd>
+            </div>
+          )}
+          {cultivo.dias_recuperacion && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Días de recuperación</dt>
+              <dd class="text-sm font-semibold text-text-primary">{cultivo.dias_recuperacion} días</dd>
+            </div>
+          )}
+          {diasTotales > 0 && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm font-medium text-text-primary">Duración total del contrato</dt>
+              <dd class="text-sm font-bold text-brand">{diasTotales} días</dd>
+            </div>
+          )}
+          {cultivo.tasa_desgaste_pct && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Tasa de desgaste (estrés biológico)</dt>
+              <dd class="text-sm font-semibold text-text-primary">{cultivo.tasa_desgaste_pct}%</dd>
+            </div>
+          )}
+          {cultivo.opex_logistico && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">OPEX logístico por contrato</dt>
+              <dd class="text-sm font-semibold text-text-primary">{fmt.format(cultivo.opex_logistico)}</dd>
+            </div>
+          )}
+          {cultivo.multiplicador_distancia && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Multiplicador distancia/riesgo</dt>
+              <dd class="text-sm font-semibold text-text-primary">×{cultivo.multiplicador_distancia}</dd>
+            </div>
+          )}
+          {(cultivo.area_minima_ha || cultivo.area_maxima_ha) && (
+            <div class="flex justify-between items-center py-2">
+              <dt class="text-sm text-text-secondary">Área de servicio</dt>
+              <dd class="text-sm font-semibold text-text-primary">
+                {cultivo.area_minima_ha ?? '—'} – {cultivo.area_maxima_ha ?? '∞'} ha
+              </dd>
+            </div>
+          )}
+        </dl>
+      </section>
+
+      <!-- Características del cultivo -->
+      <section class="bg-surface-raised rounded-2xl border border-border p-6">
+        <h2 class="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <i data-lucide="leaf" class="w-5 h-5 text-brand"></i>
+          Características del cultivo
+        </h2>
+        <dl class="space-y-3">
+          {cultivo.altitud_optima_msnm && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Altitud óptima</dt>
+              <dd class="text-sm font-semibold text-text-primary">{cultivo.altitud_optima_msnm} m.s.n.m.</dd>
+            </div>
+          )}
+          {cultivo.temperatura_optima && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Temperatura óptima</dt>
+              <dd class="text-sm font-semibold text-text-primary">{cultivo.temperatura_optima}</dd>
+            </div>
+          )}
+          {cultivo.humedad_relativa && (
+            <div class="flex justify-between items-center py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary">Humedad relativa</dt>
+              <dd class="text-sm font-semibold text-text-primary">{cultivo.humedad_relativa}</dd>
+            </div>
+          )}
+          {cultivo.requerimiento_flora && (
+            <div class="py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary mb-1">Flora complementaria requerida</dt>
+              <dd class="text-sm text-text-primary">{cultivo.requerimiento_flora}</dd>
+            </div>
+          )}
+          {cultivo.rendimiento_detalle && (
+            <div class="py-2 border-b border-border/50">
+              <dt class="text-sm text-text-secondary mb-1">Detalle del rendimiento</dt>
+              <dd class="text-sm text-text-primary">{cultivo.rendimiento_detalle}</dd>
+            </div>
+          )}
+          {cultivo.compatibilidad_organica && (
+            <div class="flex items-center gap-2 py-2">
+              <i data-lucide="badge-check" class="w-4 h-4 text-green-600"></i>
+              <span class="text-sm text-green-700 dark:text-green-400 font-medium">Compatible con certificación orgánica</span>
+            </div>
+          )}
+        </dl>
+
+        <!-- Meses de floración -->
+        {cultivo.meses_floracion && cultivo.meses_floracion.length > 0 && (
+          <div class="mt-4 pt-4 border-t border-border">
+            <p class="text-sm text-text-secondary mb-2">Meses activos de floración</p>
+            <div class="flex flex-wrap gap-1.5">
+              {MESES_LABELS.map((mes, idx) => {
+                const activo = cultivo.meses_floracion!.includes(idx + 1);
+                return (
+                  <span class:list={[
+                    'w-9 h-7 flex items-center justify-center text-[10px] font-medium rounded-lg transition-colors',
+                    activo ? 'bg-brand text-white' : 'bg-surface-sunken text-text-muted',
+                  ]}>
+                    {mes}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+
+    <!-- Meliponas + Mecanismo + Ventaja vs APIS -->
+    {(cultivo.especies_meliponas || cultivo.mecanismo_polinizacion || cultivo.ventaja_vs_apis) && (
+      <section class="bg-surface-raised rounded-2xl border border-border p-6 mb-8">
+        <h2 class="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <i data-lucide="bug" class="w-5 h-5 text-brand"></i>
+          Polinización con meliponas
+        </h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          {cultivo.especies_meliponas && cultivo.especies_meliponas.length > 0 && (
+            <div>
+              <h3 class="text-sm font-semibold text-text-primary mb-2">Especies utilizadas</h3>
+              <ul class="space-y-2">
+                {cultivo.especies_meliponas.map((sp) => (
+                  <li class="text-sm text-text-secondary">
+                    <span class="font-medium text-text-primary">{sp.nombre}</span>
+                    {sp.cientifico && <span class="italic text-text-muted"> ({sp.cientifico})</span>}
+                    {sp.rol && <span class="block text-xs text-text-muted">{sp.rol}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {cultivo.mecanismo_polinizacion && (
+            <div>
+              <h3 class="text-sm font-semibold text-text-primary mb-2">Mecanismo de polinización</h3>
+              <p class="text-sm text-text-secondary leading-relaxed">{cultivo.mecanismo_polinizacion}</p>
+            </div>
+          )}
+          {cultivo.ventaja_vs_apis && (
+            <div>
+              <h3 class="text-sm font-semibold text-text-primary mb-2">Ventaja sobre Apis mellifera</h3>
+              <p class="text-sm text-text-secondary leading-relaxed">{cultivo.ventaja_vs_apis}</p>
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    <!-- Qué incluye + Qué se pide -->
+    {(cultivo.que_incluye || cultivo.que_se_pide) && (
+      <div class="grid md:grid-cols-2 gap-8 mb-8">
+        {cultivo.que_incluye && cultivo.que_incluye.length > 0 && (
+          <section class="bg-surface-raised rounded-2xl border border-border p-6">
+            <h2 class="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+              <i data-lucide="package-check" class="w-5 h-5 text-brand"></i>
+              Qué incluye el servicio
+            </h2>
+            <ul class="space-y-2">
+              {cultivo.que_incluye.map((item) => (
+                <li class="flex items-start gap-2 text-sm text-text-secondary">
+                  <i data-lucide="check" class="w-4 h-4 text-brand shrink-0 mt-0.5"></i>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {cultivo.que_se_pide && cultivo.que_se_pide.length > 0 && (
+          <section class="bg-surface-raised rounded-2xl border border-border p-6">
+            <h2 class="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+              <i data-lucide="hand-helping" class="w-5 h-5 text-accent"></i>
+              Lo que pedimos al productor
+            </h2>
+            <ul class="space-y-2">
+              {cultivo.que_se_pide.map((item) => (
+                <li class="flex items-start gap-2 text-sm text-text-secondary">
+                  <i data-lucide="alert-circle" class="w-4 h-4 text-accent shrink-0 mt-0.5"></i>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+    )}
+
+    <!-- Condiciones del servicio + Restricciones + Garantía -->
+    {(cultivo.condiciones_servicio || (cultivo.restricciones && cultivo.restricciones.length > 0) || cultivo.garantia) && (
+      <section class="bg-surface-raised rounded-2xl border border-border p-6 mb-8">
+        <h2 class="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5 text-brand"></i>
+          Condiciones del servicio
+        </h2>
+        {cultivo.condiciones_servicio && (
+          <div class="prose prose-sm dark:prose-invert max-w-none mb-4 text-text-secondary">
+            <Fragment set:html={renderMarkdown(cultivo.condiciones_servicio)} />
+          </div>
+        )}
+        {cultivo.restricciones && cultivo.restricciones.length > 0 && (
+          <div class="mb-4">
+            <h3 class="text-sm font-semibold text-red-600 dark:text-red-400 mb-2">Restricciones</h3>
+            <ul class="space-y-1">
+              {cultivo.restricciones.map((r) => (
+                <li class="flex items-start gap-2 text-sm text-text-secondary">
+                  <i data-lucide="x-circle" class="w-4 h-4 text-red-500 shrink-0 mt-0.5"></i>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {cultivo.garantia && (
+          <div class="p-4 bg-brand-muted/50 rounded-xl border border-brand/20">
+            <p class="text-sm text-text-secondary">
+              <strong class="text-brand">Garantía:</strong> {cultivo.garantia}
+            </p>
+          </div>
+        )}
+      </section>
+    )}
+
+    <!-- Caso de éxito -->
+    {cultivo.caso_exito && (
+      <section class="bg-brand-muted/30 rounded-2xl border border-brand/20 p-6 mb-8">
+        <h2 class="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+          <i data-lucide="trophy" class="w-5 h-5 text-brand"></i>
+          Caso de éxito
+        </h2>
+        {cultivo.caso_exito.metrica && (
+          <p class="text-2xl font-bold text-brand mb-2">{cultivo.caso_exito.metrica}</p>
+        )}
+        {cultivo.caso_exito.detalle && (
+          <p class="text-sm text-text-secondary mb-1">{cultivo.caso_exito.detalle}</p>
+        )}
+        {cultivo.caso_exito.ubicacion && (
+          <p class="text-xs text-text-muted flex items-center gap-1">
+            <i data-lucide="map-pin" class="w-3 h-3"></i>
+            {cultivo.caso_exito.ubicacion}
+            {cultivo.caso_exito.ano && <span> · {cultivo.caso_exito.ano}</span>}
+          </p>
+        )}
+      </section>
+    )}
+
+    <!-- CTA -->
+    <div class="text-center py-8">
+      <a href="/meliponas/polinizacion#planes" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-8 py-4 font-medium hover:bg-brand-light transition-all">
+        Solicitar polinización para {cultivo.nombre}
+        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+      </a>
+    </div>
+
+    <!-- Relacionados -->
+    {relacionados.length > 0 && (
+      <section class="mt-8 pt-8 border-t border-border">
+        <h2 class="text-lg font-semibold text-text-primary mb-4">Otros cultivos</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {relacionados.map((r) => (
+            <a href={`/meliponas/polinizacion/${r.slug}`} class="group flex items-center gap-3 p-4 bg-surface-raised rounded-xl border border-border hover:shadow-md transition-all">
+              <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
+                <i data-lucide={r.icono || 'flower-2'} class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">{r.nombre}</p>
+                {r.rendimiento && <p class="text-xs text-accent">{r.rendimiento}</p>}
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </article>
+</BrandLayout>

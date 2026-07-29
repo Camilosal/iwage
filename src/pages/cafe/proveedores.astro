@@ -135,7 +135,7 @@ const iniciales = (nombre: string) =>
                       )}
                       {tieneExperiencias && (
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-accent/10 text-accent rounded-full px-3 py-1.5">
-                          <span aria-hidden="true">🌿</span>
+                          <i data-lucide="leaf" class="w-4 h-4 text-accent" aria-hidden="true"></i>
                           {experiencias.length > 0
                             ? `${experiencias.length} experiencia${experiencias.length > 1 ? 's' : ''}`
                             : 'Ofrece experiencias'}
@@ -143,13 +143,13 @@ const iniciales = (nombre: string) =>
                       )}
                       {tienePropiedades && (
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#1a4a6b]/10 text-[#1a4a6b] rounded-full px-3 py-1.5">
-                          <span aria-hidden="true">🏡</span>
+                          <i data-lucide="home" class="w-4 h-4 text-[#1a4a6b]" aria-hidden="true"></i>
                           {propiedades.length} propiedad{propiedades.length > 1 ? 'es' : ''} en venta
                         </span>
                       )}
                       {tieneGestion && (
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#6b3fa0]/10 text-[#6b3fa0] rounded-full px-3 py-1.5">
-                          <span aria-hidden="true">🔑</span>
+                          <i data-lucide="key-round" class="w-4 h-4 text-[#6b3fa0]" aria-hidden="true"></i>
                           {propiedadesGestion.length} en gestión
                         </span>
                       )}
@@ -162,7 +162,7 @@ const iniciales = (nombre: string) =>
 
                   {/* Click hint */}
                   <p class="text-[10px] text-text-muted/50 mt-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                    Ver ficha completa →
+                    Ver ficha completa <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
                   </p>
                 </div>
               </div>
@@ -304,13 +304,13 @@ const iniciales = (nombre: string) =>
     }
     if (d.ofrece_experiencias) {
       const count = d.experiencias?.length || 0;
-      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-accent/10 text-accent rounded-full px-3 py-1.5">🌿 ${count > 0 ? count + ' experiencia' + (count > 1 ? 's' : '') : 'Ofrece experiencias'}</span>`;
+      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-accent/10 text-accent rounded-full px-3 py-1.5"><i data-lucide="leaf" class="w-4 h-4 inline"></i> ${count > 0 ? count + ' experiencia' + (count > 1 ? 's' : '') : 'Ofrece experiencias'}</span>`;
     }
     if (d.propiedades?.length > 0) {
-      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#1a4a6b]/10 text-[#1a4a6b] rounded-full px-3 py-1.5">🏡 ${d.propiedades.length} propiedad${d.propiedades.length > 1 ? 'es' : ''} en venta</span>`;
+      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#1a4a6b]/10 text-[#1a4a6b] rounded-full px-3 py-1.5"><i data-lucide="home" class="w-4 h-4 inline"></i> ${d.propiedades.length} propiedad${d.propiedades.length > 1 ? 'es' : ''} en venta</span>`;
     }
     if (d.propiedades_gestion?.length > 0) {
-      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#6b3fa0]/10 text-[#6b3fa0] rounded-full px-3 py-1.5">🔑 ${d.propiedades_gestion.length} en gestión</span>`;
+      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#6b3fa0]/10 text-[#6b3fa0] rounded-full px-3 py-1.5"><i data-lucide="key-round" class="w-4 h-4 inline"></i> ${d.propiedades_gestion.length} en gestión</span>`;
     }
     if (rolesHtml) {
       roles.innerHTML = rolesHtml;
@@ -352,7 +352,7 @@ const iniciales = (nombre: string) =>
             <span class="block text-sm font-semibold text-text-primary group-hover/anf:text-[#2d5016] transition-colors">${a.nombre}</span>
             ${a.especialidad ? `<span class="block text-xs text-text-secondary mt-0.5">${a.especialidad}</span>` : ''}
           </span>
-          <span class="ml-auto text-text-muted group-hover/anf:text-[#2d5016] transition-colors shrink-0">→</span>
+          <span class="ml-auto text-text-muted group-hover/anf:text-[#2d5016] transition-colors shrink-0"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
         </a>
       `).join('');
       anfWrap.classList.remove('hidden');
@@ -366,13 +366,13 @@ const iniciales = (nombre: string) =>
       document.getElementById('prov-exp')!.innerHTML = d.experiencias.map((e: any) => `
         <a href="${e.slug ? '/naturaleza/experiencias/' + e.slug : '/naturaleza/experiencias'}"
            class="group/exp flex items-start gap-3 rounded-xl border border-border bg-surface-sunken p-3 hover:border-accent/50 transition-colors">
-          <span class="text-lg mt-0.5">🌿</span>
+           <i data-lucide="leaf" class="w-5 h-5 mt-0.5 text-accent"></i>
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-text-primary group-hover/exp:text-accent transition-colors">${e.titulo}</span>
             ${e.resumen ? `<span class="block text-xs text-text-secondary mt-0.5 line-clamp-2">${e.resumen}</span>` : ''}
             ${e.categoria ? `<span class="inline-block text-[10px] font-mono uppercase tracking-wider text-text-muted mt-1">${e.categoria}</span>` : ''}
           </span>
-          <span class="ml-auto text-text-muted group-hover/exp:text-accent transition-colors shrink-0">→</span>
+          <span class="ml-auto text-text-muted group-hover/exp:text-accent transition-colors shrink-0"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
         </a>
       `).join('');
       expWrap.classList.remove('hidden');
@@ -391,13 +391,13 @@ const iniciales = (nombre: string) =>
         return `
         <a href="${pr.slug ? '/tierras/' + pr.slug : '/tierras'}"
            class="group/pr flex items-start gap-3 rounded-xl border border-border bg-surface-sunken p-3 hover:border-[#1a4a6b]/50 transition-colors">
-          <span class="text-lg mt-0.5">🏡</span>
+          <i data-lucide="home" class="w-5 h-5 mt-0.5 text-[#1a4a6b]"></i>
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-text-primary group-hover/pr:text-[#1a4a6b] transition-colors">${pr.titulo}</span>
             <span class="block text-xs text-text-secondary mt-0.5">${[tipo, pr.ubicacion_municipio, area, precio].filter(Boolean).join(' · ')}</span>
             ${estado ? `<span class="inline-block text-[10px] font-mono mt-1">${estado}</span>` : ''}
           </span>
-          <span class="ml-auto text-text-muted group-hover/pr:text-[#1a4a6b] transition-colors shrink-0">→</span>
+          <span class="ml-auto text-text-muted group-hover/pr:text-[#1a4a6b] transition-colors shrink-0"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
         </a>`;
       }).join('');
       propsWrap.classList.remove('hidden');
@@ -415,13 +415,13 @@ const iniciales = (nombre: string) =>
         return `
         <a href="${pg.slug ? '/gestion/' + pg.slug : '/gestion'}"
            class="group/gg flex items-start gap-3 rounded-xl border border-border bg-surface-sunken p-3 hover:border-[#6b3fa0]/50 transition-colors">
-          <span class="text-lg mt-0.5">🔑</span>
+          <i data-lucide="key-round" class="w-5 h-5 mt-0.5 text-[#6b3fa0]"></i>
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-text-primary group-hover/gg:text-[#6b3fa0] transition-colors">${pg.titulo}</span>
             <span class="block text-xs text-text-secondary mt-0.5">${[tipo, pg.ubicacion_municipio, area].filter(Boolean).join(' · ')}</span>
             ${estado ? `<span class="inline-block text-[10px] font-mono mt-1">${estado}</span>` : ''}
           </span>
-          <span class="ml-auto text-text-muted group-hover/gg:text-[#6b3fa0] transition-colors shrink-0">→</span>
+          <span class="ml-auto text-text-muted group-hover/gg:text-[#6b3fa0] transition-colors shrink-0"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
         </a>`;
       }).join('');
       gestionWrap.classList.remove('hidden');
@@ -432,8 +432,8 @@ const iniciales = (nombre: string) =>
     // Contacto
     const contWrap = document.getElementById('prov-contacto-wrap')!;
     let contHtml = '';
-    if (d.whatsapp) contHtml += `<a href="https://wa.me/${d.whatsapp.replace(/\D/g, '')}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-[#25D366] transition-colors font-medium">💬 WhatsApp</a>`;
-    if (d.instagram) contHtml += `<a href="https://instagram.com/${d.instagram.replace(/^@/, '')}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-accent transition-colors font-medium">📷 ${d.instagram.replace(/^@/, '')}</a>`;
+    if (d.whatsapp) contHtml += `<a href="https://wa.me/${d.whatsapp.replace(/\D/g, '')}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-[#25D366] transition-colors font-medium"><i data-lucide="message-circle" class="w-4 h-4 inline"></i> WhatsApp</a>`;
+    if (d.instagram) contHtml += `<a href="https://instagram.com/${d.instagram.replace(/^@/, '')}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-accent transition-colors font-medium"><i data-lucide="camera" class="w-4 h-4 inline"></i> ${d.instagram.replace(/^@/, '')}</a>`;
     if (d.telefono) contHtml += `<a href="tel:${d.telefono.replace(/\s/g, '')}" class="inline-flex items-center gap-1.5 hover:text-accent transition-colors font-medium">📞 ${d.telefono}</a>`;
     if (d.horario) contHtml += `<span class="inline-flex items-center gap-1.5">🕒 ${d.horario}</span>`;
     if (d.direccion) contHtml += `<span class="inline-flex items-center gap-1.5">📍 ${d.direccion}</span>`;

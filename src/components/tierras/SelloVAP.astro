@@ -61,7 +61,7 @@ const metal = sello ? METALES[sello] : null;
 
         <div class="flex items-center gap-4 text-[11px] text-gray-400">
           {fechaAprobacion && <span>📅 Aprobado: {new Date(fechaAprobacion).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
-          <a href="/tierras/protocolo-vap" class="hover:text-[#52B788] transition-colors font-medium">¿Qué es VAP? →</a>
+          <a href="/tierras/protocolo-vap" class="hover:text-[#52B788] transition-colors font-medium">¿Qué es VAP? <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
         </div>
       </div>
     </div>
@@ -75,7 +75,7 @@ const metal = sello ? METALES[sello] : null;
       <div>
         <h3 class="font-bold text-gray-700 text-sm">Predio sin Verificación VAP®</h3>
         <p class="text-xs text-gray-500 mt-1">Esta propiedad aún no ha pasado el protocolo de auditoría técnica y jurídica.</p>
-        <a href="/tierras/protocolo-vap" class="inline-block mt-3 text-xs font-bold text-[#52B788] hover:underline">Conocer el Protocolo VAP →</a>
+        <a href="/tierras/protocolo-vap" class="inline-block mt-3 text-xs font-bold text-[#52B788] hover:underline">Conocer el Protocolo VAP <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
       </div>
     </div>
   </div>

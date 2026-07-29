@@ -110,7 +110,7 @@
                   <p class="text-xs text-gray-500 mb-1.5">📍 ${escapeHtml(m.ubicacion_municipio || 'Tolima')}${m.area_hectareas ? ` · ${m.area_hectareas} ha` : ''} · ${formatPrecio(m.precio)}</p>
                   ${m.match_reason ? `<p class="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">${escapeHtml(m.match_reason)}</p>` : ''}
                 </div>
-                <span class="text-[#52B788] text-xl opacity-40 group-hover:opacity-100 transition-opacity shrink-0">→</span>
+                <i data-lucide="arrow-right" class="w-5 h-5 text-[#52B788] opacity-40 group-hover:opacity-100 transition-opacity shrink-0"></i>
               </div>
             </a>`;
         }).join('');

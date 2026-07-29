@@ -3,6 +3,9 @@ import '@/styles/global.css';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import ChatWidget from '@/components/ChatWidget.astro';
+import SearchOverlay from '@/components/SearchOverlay.astro';
+import UnifiedCart from '@/components/cart/UnifiedCart';
+import { GOOGLE, FACEBOOK, ANALYTICS_ENABLED } from '@/config/analytics';
 
 interface Props {
   title: string;
@@ -36,6 +39,42 @@ const { title, description } = Astro.props;
         if (dark) document.documentElement.classList.add('dark');
       })();
     </script>
+
+    <!-- Google Site Verification -->
+    <meta name="google-site-verification" content={GOOGLE.siteVerification} />
+
+    <!-- Google Tag (GA4 + Ads) — solo en producción -->
+    {ANALYTICS_ENABLED.googleTag && (
+      <script is:inline define:vars={{ gtagId: GOOGLE.tagId }}>
+        (function (w, d, s, l, i) {
+          w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          var f = d.getElementsByTagName(s)[0], j = d.createElement(s);
+          j.async = true; j.src = 'https://www.googletagmanager.com/gtag/js?id=' + i;
+          f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', gtagId);
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', gtagId, { send_page_view: true });
+      </script>
+    )}
+
+    <!-- Meta Pixel — solo en producción -->
+    {ANALYTICS_ENABLED.facebookPixel && (
+      <script is:inline define:vars={{ fbPixelId: FACEBOOK.pixelId }}>
+        !function (f, b, e, v, n, t, s) {
+          if (f.fbq) return; n = f.fbq = function () {
+            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+          };
+          if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+          n.queue = []; t = b.createElement(e); t.async = !0;
+          t.src = v; s = b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t, s)
+        }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', fbPixelId);
+        fbq('track', 'PageView');
+      </script>
+    )}
   </head>
   <body class="min-h-screen flex flex-col">
     <Navbar />
@@ -44,5 +83,51 @@ const { title, description } = Astro.props;
     </main>
     <Footer />
     <ChatWidget />
+    <SearchOverlay />
+    <UnifiedCart client:only="react" />
+
+    <script>
+      import { addItem } from '@/lib/cart-store';
+
+      // Delegación global: cualquier botón `.add-to-cart` con data-recurso-slug
+      // agrega su item al carrito unificado (funciona sin depender de React).
+      document.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest('.add-to-cart') as HTMLElement | null;
+        if (!btn || btn.hasAttribute('disabled')) return;
+        const recursoSlug = btn.dataset.recursoSlug;
+        if (!recursoSlug) return;
+        e.preventDefault();
+
+        addItem({
+          recurso_slug: recursoSlug,
+          nombre: btn.dataset.name || 'Producto',
+          precio: parseInt(btn.dataset.price || '0', 10),
+          cantidad: parseInt(btn.dataset.qty || '1', 10),
+          tipo: btn.dataset.tipo || 'producto',
+          tipo_disponibilidad: btn.dataset.tipoDisponibilidad || 'inmediato',
+          brand: btn.dataset.brand || 'meliponas',
+          origen: btn.dataset.origen || 'iwage_meliponas',
+          requiere_pago: btn.dataset.requierePago !== 'false',
+          disponibilidad_id: btn.dataset.disponibilidadId || undefined,
+          disponibilidad_label: btn.dataset.disponibilidadLabel || undefined,
+          url: btn.dataset.url || undefined,
+        });
+
+        // Feedback breve conservando el contenido original (iconos incluidos)
+        const original = btn.innerHTML;
+        btn.innerHTML = '✓ Agregado';
+        btn.classList.add('opacity-80');
+        window.setTimeout(() => {
+          btn.innerHTML = original;
+          btn.classList.remove('opacity-80');
+        }, 1200);
+      });
+    </script>
+
+    <script>
+      import { createIcons, icons } from 'lucide';
+      createIcons({ icons });
+      window.__lucideCreateIcons = () => createIcons({ icons });
+    </script>
   </body>
 </html>

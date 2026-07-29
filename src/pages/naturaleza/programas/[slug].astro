@@ -2,6 +2,8 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import { getPaqueteBySlug, getPaquetes, formatPrecioCOP, DIFICULTAD_LABELS } from '@/lib/naturaleza';
 import { strapiImage } from '@/lib/strapi';
+import { getBrand } from '@/config/brands';
+import BookingWidget from '@/components/reservas/BookingWidget';
 
 export async function getStaticPaths() {
   const paquetes = await getPaquetes();
@@ -14,6 +16,7 @@ if (!pkg) return Astro.redirect('/naturaleza/programas', 302);
 const heroUrl = pkg.imagen_hero?.url ? strapiImage(pkg.imagen_hero.url) : 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&q=70';
 const dificultad = pkg.dificultad ? DIFICULTAD_LABELS[pkg.dificultad] : null;
 const galleryUrls = (pkg.imagenes || []).map((img) => strapiImage(img.url)).filter(Boolean);
+const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
 ---
 
 <BrandLayout brand="naturaleza" title={`${pkg.seo_titulo || pkg.titulo} · Iwagé Naturaleza`} description={pkg.seo_descripcion || pkg.descripcion || `Paquete turístico ${pkg.titulo} en el Tolima.`}>
@@ -139,14 +142,29 @@ const galleryUrls = (pkg.imagenes || []).map((img) => strapiImage(img.url)).filt
             {dificultad && <p>⛰️ Dificultad: {dificultad.label}</p>}
             {pkg.categoria && <p>🏷️ {pkg.categoria}</p>}
           </div>
-          <a
-            href={`https://wa.me/573028413141?text=${encodeURIComponent(`Hola, quiero reservar el paquete: ${pkg.titulo}`)}`}
-            target="_blank"
-            rel="noopener"
-            class="block w-full text-center px-6 py-4 rounded-xl bg-[#2d5016] text-white font-bold text-sm uppercase tracking-wider hover:bg-[#4a7c23] transition-colors mb-3"
-          >
-            💬 Reservar por WhatsApp
-          </a>
+
+          <!-- Online Booking Widget -->
+          <BookingWidget
+            client:visible
+            recursoSlug={pkg.slug}
+            recursoNombre={pkg.titulo}
+            precioBase={pkg.precio_base || 0}
+            capacidadMaxima={10}
+            requierePago={true}
+            origen="iwage_naturaleza"
+          />
+
+          <!-- WhatsApp fallback -->
+          <div class="mt-3 pt-3 border-t border-[#EDE5D4]">
+            <a
+              href={`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hola, quiero reservar el paquete: ${pkg.titulo}`)}`}
+              target="_blank"
+              rel="noopener"
+              class="block w-full text-center px-6 py-3 rounded-xl border border-[#2d5016]/20 text-[#2d5016] text-xs font-bold uppercase tracking-wider hover:bg-[#2d5016]/5 transition-colors mb-3"
+            >
+              💬 Reservar por WhatsApp
+            </a>
+          </div>
           <a href="/naturaleza/programas" class="block w-full text-center px-6 py-3 rounded-xl border border-[#EDE5D4] text-sm text-gray-600 hover:bg-[#f8faf5] transition-colors">
             Ver otros programas
           </a>

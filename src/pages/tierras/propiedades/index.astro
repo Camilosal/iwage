@@ -91,10 +91,10 @@ const baseQs = qs.toString();
 
           {propiedades.length === 0 ? (
             <div class="text-center py-14">
-              <span class="text-5xl block mb-4">🌄</span>
+              <i data-lucide="mountain" class="w-10 h-10 block mb-4"></i>
               <h3 class="text-xl font-bold text-[#1B4332] mb-2">No hay propiedades con estos filtros</h3>
               <p class="text-gray-500 mb-6">Prueba ampliar la búsqueda o contáctanos para una búsqueda personalizada.</p>
-              <a href="/tierras/propiedades" class="text-[#52B788] font-bold hover:underline">Ver todas las propiedades →</a>
+              <a href="/tierras/propiedades" class="text-[#52B788] font-bold hover:underline">Ver todas las propiedades <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
             </div>
           ) : (
             <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -115,8 +115,8 @@ const baseQs = qs.toString();
               )}
               <span class="text-sm text-gray-500 px-4">Página {page} de {totalPages}</span>
               {page < totalPages && (
-                <a href={`/tierras/propiedades?page=${page + 1}${baseQs ? `&${baseQs}` : ''}`}
-                  class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:border-[#52B788] transition-colors">Siguiente →</a>
+                  <a href={`/tierras/propiedades?page=${page + 1}${baseQs ? `&${baseQs}` : ''}`}
+                    class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:border-[#52B788] transition-colors">Siguiente <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
               )}
             </div>
           )}

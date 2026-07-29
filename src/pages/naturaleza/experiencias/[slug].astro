@@ -3,6 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import { getExperienciaBySlug, getExperiencias, experienciaImagen, experienciaGaleria, anfitrionFoto, formatPrecioCOP, dificultadInfo, nivelInfo } from '@/lib/naturaleza';
 import { strapiImage } from '@/lib/strapi';
 import { getBrand } from '@/config/brands';
+import BookingWidget from '@/components/reservas/BookingWidget';
 
 const { slug } = Astro.params;
 const exp = await getExperienciaBySlug(slug!);
@@ -19,6 +20,16 @@ const safety = exp.safety_content || { title: 'Tranquilidad total en la montaña
 // Primary host (first linked anfitrion)
 const primaryHost = exp.anfitriones?.[0] || null;
 const hostJunction = exp.anfitriones_data?.[0] || null;
+
+// Anfitriones for the booking widget (with per-host personalized price from the junction)
+const widgetAnfitriones = (exp.anfitriones || []).map((host) => {
+  const j = exp.anfitriones_data?.find((d) => d.anfitrion_id === host.slug);
+  return {
+    slug: host.slug,
+    nombre: host.nombre,
+    precio_personalizado: j?.precio_personalizado ?? null,
+  };
+});
 
 // Reviews come from the primary host
 const resenas = primaryHost?.resenas || [];
@@ -322,105 +333,108 @@ const jsonLd = {
         </section>
       )}
 
-      <!-- Meet The Host -->
-      {primaryHost && (
-        <section class="p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
-          <div class="flex items-center gap-2 mb-6">
+      <!-- Elige tu anfitrión -->
+      {exp.anfitriones && exp.anfitriones.length > 0 && (
+        <section>
+          <div class="flex items-center gap-2 mb-2">
             <span class="w-6 h-[1px] bg-[#d4920a]"></span>
-            <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Anfitrión del territorio</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">La misma tierra, miradas distintas</span>
           </div>
-          <div class="flex flex-col lg:flex-row gap-8">
-            <!-- Host Card -->
-            <div class="w-full lg:w-1/3 flex flex-col items-center text-center">
-              <div class="relative w-32 h-32 mb-4">
-                <img src={anfitrionFoto(primaryHost)} alt={primaryHost.nombre} class="w-full h-full object-cover rounded-full border-4 border-white shadow-xl" />
-                <div class="absolute -bottom-1 right-2 w-8 h-8 rounded-full bg-[#4a7c23] border-2 border-white shadow flex items-center justify-center text-sm">
-                  {nivelInfo(primaryHost.nivel_escalafon).icono}
-                </div>
-              </div>
-              <h3 class="text-xl font-semibold text-[#1a3009]">{primaryHost.nombre}</h3>
-              <div class="flex items-center gap-2 mt-1 px-3 py-1 rounded-full bg-[#f8faf5] border border-[#4a7c23]/10">
-                <span class="text-[10px] font-bold uppercase text-[#1a3009]">{nivelInfo(primaryHost.nivel_escalafon).nombre}</span>
-                <span class="w-1 h-1 rounded-full bg-[#d4920a]"></span>
-                <span class="text-[10px] font-bold text-[#d4920a]">Nivel {primaryHost.nivel_escalafon}</span>
-              </div>
-              {primaryHost.especialidad && <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mt-3">{primaryHost.especialidad}</p>}
+          <h2 class="text-2xl lg:text-3xl font-light text-[#1a3009] mb-2">Elige tu anfitrión</h2>
+          <p class="text-sm text-gray-600 max-w-2xl mb-8">
+            Esta ruta puede vivirse de muchas formas: cada anfitrión le aporta su propia perspectiva, su enfoque y sus secretos del territorio. Elige con quién quieres caminar.
+          </p>
 
-              <!-- Impact Stats -->
-              <div class="w-full mt-4 bg-[#f8faf5] rounded-xl p-4 border border-[#4a7c23]/10">
-                {(primaryHost.numero_resenas > 0) && (
-                  <div class="flex justify-between items-center pb-2 border-b border-[#4a7c23]/5">
-                    <span class="text-xs text-gray-600">⭐ Reseñas</span>
-                    <span class="text-xs font-bold text-[#1a3009]">{primaryHost.numero_resenas}</span>
-                  </div>
-                )}
-                {(primaryHost.impacto_hectareas || primaryHost.impacto_familias) && (
-                  <div class="pt-2">
-                    <span class="text-[10px] font-bold text-[#4a7c23] uppercase tracking-wider">🌱 Huella de impacto</span>
-                    <div class="grid grid-cols-2 gap-2 mt-2">
-                      {primaryHost.impacto_hectareas && (
-                        <div>
-                          <p class="text-base font-bold text-[#1a3009]">{primaryHost.impacto_hectareas} <span class="text-xs font-normal text-[#4a7c23]">ha</span></p>
-                          <p class="text-[10px] text-gray-500">protegidas</p>
+          <div class="space-y-6">
+            {exp.anfitriones.map((host) => {
+              const j = exp.anfitriones_data?.find((d) => d.anfitrion_id === host.slug);
+              const nivel = nivelInfo(host.nivel_escalafon);
+              const precioHost = j?.precio_personalizado || null;
+              return (
+                <div class="p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                  <div class="flex flex-col lg:flex-row gap-8">
+                    <!-- Host identity -->
+                    <div class="w-full lg:w-1/4 flex flex-col items-center text-center">
+                      <div class="relative w-28 h-28 mb-4">
+                        <img src={anfitrionFoto(host)} alt={host.nombre} class="w-full h-full object-cover rounded-full border-4 border-white shadow-xl" loading="lazy" />
+                        <div class="absolute -bottom-1 right-1 w-8 h-8 rounded-full bg-[#4a7c23] border-2 border-white shadow flex items-center justify-center text-sm">
+                          {nivel.icono}
                         </div>
+                      </div>
+                      <h3 class="text-lg font-semibold text-[#1a3009]">{host.nombre}</h3>
+                      <div class="flex items-center gap-2 mt-1 px-3 py-1 rounded-full bg-[#f8faf5] border border-[#4a7c23]/10">
+                        <span class="text-[10px] font-bold uppercase text-[#1a3009]">{nivel.nombre}</span>
+                        <span class="w-1 h-1 rounded-full bg-[#d4920a]"></span>
+                        <span class="text-[10px] font-bold text-[#d4920a]">Nivel {host.nivel_escalafon}</span>
+                      </div>
+                      {host.especialidad && <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mt-3">{host.especialidad}</p>}
+
+                      {/* Price (personalized vs base) */}
+                      <div class="w-full mt-4 bg-[#f8faf5] rounded-xl p-4 border border-[#4a7c23]/10">
+                        {precioHost ? (
+                          <div>
+                            <p class="text-lg font-bold text-[#1a3009]">{formatPrecioCOP(precioHost)}</p>
+                            <p class="text-[10px] text-gray-500">por persona · con {host.nombre.split(' ')[0]}</p>
+                            {exp.precio_desde && precioHost !== exp.precio_desde && (
+                              <p class="text-[10px] text-gray-400 mt-1">base: {formatPrecioCOP(exp.precio_desde)}</p>
+                            )}
+                          </div>
+                        ) : exp.precio_desde ? (
+                          <div>
+                            <p class="text-lg font-bold text-[#1a3009]">{formatPrecioCOP(exp.precio_desde)}</p>
+                            <p class="text-[10px] text-gray-500">por persona</p>
+                          </div>
+                        ) : (
+                          <p class="text-xs text-gray-500">Precio a consultar</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Host perspective */}
+                    <div class="w-full lg:w-3/4 flex flex-col justify-center lg:border-l lg:border-gray-100 lg:pl-8">
+                      {j?.enfoque_de_ruta && (
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-2">{j.enfoque_de_ruta}</p>
                       )}
-                      {primaryHost.impacto_familias && (
-                        <div>
-                          <p class="text-base font-bold text-[#1a3009]">{primaryHost.impacto_familias}</p>
-                          <p class="text-[10px] text-gray-500">familias</p>
-                        </div>
+                      {host.insignia_titulo && (
+                        <h4 class="text-lg font-semibold text-[#1a3009] mb-2">{host.insignia_titulo}</h4>
                       )}
+                      {host.historia_personal && (
+                        <p class="text-sm text-gray-600 leading-relaxed mb-4">{host.historia_personal}</p>
+                      )}
+
+                      <div class="grid md:grid-cols-2 gap-4 my-4">
+                        {(j?.superpoder_en_esta_ruta || host.especialidad) && (
+                          <div class="p-4 rounded-xl bg-[#f8faf5] border border-[#4a7c23]/10">
+                            <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#1a3009] mb-1">⭐ Su enfoque en esta ruta</h5>
+                            <p class="text-xs text-gray-600 leading-relaxed">{j?.superpoder_en_esta_ruta || host.especialidad}</p>
+                          </div>
+                        )}
+                        {(j?.momento_favorito_ruta || host.momento_favorito) && (
+                          <div class="p-4 rounded-xl bg-[#0e1a08] text-white">
+                            <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#d4920a] mb-1">💚 Momento favorito</h5>
+                            <p class="text-xs text-white/90 leading-relaxed italic">“{j?.momento_favorito_ruta || host.momento_favorito}”</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div class="flex flex-wrap items-center gap-3 mt-2">
+                        <button
+                          type="button"
+                          data-preselect-anfitrion={host.slug}
+                          data-recurso={exp.slug}
+                          class="px-6 py-3 rounded-xl bg-[#d4920a] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#1a3009] transition-colors"
+                        >
+                          Reservar con {host.nombre.split(' ')[0]}
+                        </button>
+                        <a href={`/naturaleza/anfitriones/${host.slug}`} class="px-6 py-3 rounded-xl border border-[#4a7c23]/20 text-[#2d5016] text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#f8faf5] transition-colors">
+                          Ver perfil completo →
+                        </a>
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            <!-- Host Details -->
-            <div class="w-full lg:w-2/3 flex flex-col justify-center lg:border-l lg:border-gray-100 lg:pl-8">
-              {hostJunction?.enfoque_de_ruta && (
-                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-2">{hostJunction.enfoque_de_ruta}</p>
-              )}
-              {primaryHost.insignia_titulo && (
-                <h4 class="text-lg font-semibold text-[#1a3009] mb-2">{primaryHost.insignia_titulo}</h4>
-              )}
-              {primaryHost.historia_personal && (
-                <p class="text-sm text-gray-600 leading-relaxed mb-4">{primaryHost.historia_personal}</p>
-              )}
-
-              <div class="grid md:grid-cols-2 gap-4 my-4">
-                {(hostJunction?.superpoder_en_esta_ruta || primaryHost.especialidad) && (
-                  <div class="p-4 rounded-xl bg-[#f8faf5] border border-[#4a7c23]/10">
-                    <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#1a3009] mb-1">⭐ Su enfoque</h5>
-                    <p class="text-xs text-gray-600 leading-relaxed">{hostJunction?.superpoder_en_esta_ruta || primaryHost.especialidad}</p>
-                  </div>
-                )}
-                {(hostJunction?.momento_favorito_ruta || primaryHost.momento_favorito) && (
-                  <div class="p-4 rounded-xl bg-[#0e1a08] text-white">
-                    <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#d4920a] mb-1">💚 Momento favorito</h5>
-                    <p class="text-xs text-white/90 leading-relaxed italic">“{hostJunction?.momento_favorito_ruta || primaryHost.momento_favorito}”</p>
-                  </div>
-                )}
-              </div>
-
-              <!-- Certifications -->
-              {primaryHost.certificaciones_seguridad && primaryHost.certificaciones_seguridad.length > 0 && (
-                <div class="border-t border-gray-100 pt-4">
-                  <p class="text-[10px] text-[#d4920a] font-bold uppercase tracking-[0.2em] mb-3">Garantía de Seguridad Iwagé</p>
-                  <div class="flex flex-wrap gap-2">
-                    {primaryHost.certificaciones_seguridad.map((cert: any) => (
-                      <span class="flex items-center gap-1.5 px-3 py-1.5 bg-[#f8faf5] rounded-lg border border-[#4a7c23]/10 text-[10px] font-medium text-[#1a3009]">
-                        🛡️ {typeof cert === 'string' ? cert : cert.titulo || cert}
-                      </span>
-                    ))}
-                  </div>
                 </div>
-              )}
-
-              <a href={`/naturaleza/anfitriones/${primaryHost.slug}`} class="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-[#d4920a] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#1a3009] transition-colors w-fit">
-                Explorar perfil de {primaryHost.nombre.split(' ')[0]} →
-              </a>
-            </div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -432,7 +446,10 @@ const jsonLd = {
             <span class="w-6 h-[1px] bg-[#d4920a]"></span>
             <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Ecosistema Iwagé</span>
           </div>
-          <h2 class="text-xl font-light text-[#1a3009] mb-6">Conectada con todo el territorio</h2>
+          <h2 class="text-xl font-light text-[#1a3009] mb-2">Este territorio puede ser tuyo</h2>
+          <p class="text-sm text-gray-600 max-w-2xl mb-6">
+            Tu anfitrión es el embajador que te abre la puerta: te conecta con predios en venta auditados por Iwagé Tierras y con la administración de Iwagé Gestión para que la tierra que te enamoró siga viva y productiva.
+          </p>
           <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Properties for sale (Tierras) */}
             {exp.propiedades?.map((prop) => (
@@ -512,14 +529,32 @@ const jsonLd = {
           <div class="flex justify-between"><span>Dificultad</span><span class="font-medium">{diff.label}</span></div>
           {exp.ofrece_transporte && <div class="flex justify-between"><span>Transporte</span><span class="font-medium text-green-600">Incluido</span></div>}
         </div>
-        <a
-          href={waReservar}
-          target="_blank"
-          rel="noopener"
-          class="block w-full py-3 rounded-xl bg-[#2d5016] text-white text-center text-sm font-bold uppercase tracking-wider hover:bg-[#4a7c23] transition-colors"
-        >
-          Reservar por WhatsApp
-        </a>
+
+        <!-- Online Booking Widget -->
+        <div id="booking-widget">
+          <BookingWidget
+            client:visible
+            recursoSlug={exp.slug}
+            recursoNombre={exp.titulo}
+            precioBase={exp.precio_desde || 0}
+            capacidadMaxima={parseInt(exp.cupo_maximo_desc) || 8}
+            requierePago={true}
+            origen="iwage_naturaleza"
+            anfitriones={widgetAnfitriones}
+          />
+        </div>
+
+        <!-- WhatsApp fallback -->
+        <div class="mt-3 pt-3 border-t border-gray-100">
+          <a
+            href={waReservar}
+            target="_blank"
+            rel="noopener"
+            class="block w-full py-2.5 rounded-xl border border-[#2d5016]/20 text-[#2d5016] text-center text-xs font-bold uppercase tracking-wider hover:bg-[#2d5016]/5 transition-colors"
+          >
+            💬 Reservar por WhatsApp
+          </a>
+        </div>
         {exp.porcentaje_fondo_impacto && (
           <p class="text-[10px] text-gray-400 text-center mt-3">
             🌱 El {exp.porcentaje_fondo_impacto}% va al fondo de restauración
@@ -664,4 +699,22 @@ const jsonLd = {
       </a>
     </div>
   </div>
+  <!-- Pre-select anfitrión bridge (vanilla JS → React island) -->
+  <script>
+    document.querySelectorAll('[data-preselect-anfitrion]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const anfitrionSlug = btn.getAttribute('data-preselect-anfitrion');
+        const recursoSlug = btn.getAttribute('data-recurso');
+        const widget = document.getElementById('booking-widget');
+        if (widget) widget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const dispatch = () =>
+          document.dispatchEvent(
+            new CustomEvent('iwage:preselect-anfitrion', { detail: { recursoSlug, anfitrionSlug } })
+          );
+        dispatch();
+        // Retry once in case the React island has not hydrated yet.
+        setTimeout(dispatch, 700);
+      });
+    });
+  </script>
 </BrandLayout>

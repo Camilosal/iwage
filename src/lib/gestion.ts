@@ -54,6 +54,22 @@ export const MODELOS_ALIANZA = [
   { slug: 'operacion_compartida', label: 'Operación Compartida', desc: 'Cada parte opera un componente' },
 ] as const;
 
+/** Guest-facing accommodation types */
+export const TIPOS_ALOJAMIENTO = [
+  { slug: 'finca', label: 'Finca', icon: '🌾' },
+  { slug: 'casa_campestre', label: 'Casa Campestre', icon: '🏡' },
+  { slug: 'glamping', label: 'Glamping', icon: '⛺' },
+  { slug: 'apartamento', label: 'Apartamento', icon: '🏢' },
+  { slug: 'cabana', label: 'Cabaña', icon: '🛖' },
+] as const;
+
+/** Municipalities in Tolima for search filters */
+export const MUNICIPIOS_TOLIMA = [
+  'Ibagué', 'Alvarado', 'Venadillo', 'Coello', 'Lérida', 'Espinal',
+  'Chaparral', 'Honda', 'Mariquita', 'Fresno', 'Libano', 'Cajamarca',
+  'Melgar', 'Piedras', 'Valle de San Juan', 'San Luis', 'Carmen de Apicalá',
+] as const;
+
 // ── Filters ────────────────────────────────────────────
 
 export interface GestionFilters {
@@ -65,6 +81,9 @@ export interface GestionFilters {
   page?: number;
   pageSize?: number;
   sort?: string;
+  checkin?: string;
+  checkout?: string;
+  huespedes?: number;
 }
 
 // ── Data Fetchers ──────────────────────────────────────
@@ -236,4 +255,38 @@ export function tipoGestionInfo(tipo: string) {
 /** Get modelo_alianza metadata */
 export function modeloAlianzaInfo(modelo: string) {
   return MODELOS_ALIANZA.find((m) => m.slug === modelo) || MODELOS_ALIANZA[0];
+}
+
+/**
+ * Fetch bookable accommodations for guests (active + with nightly price).
+ */
+export async function getAlojamientosDisponibles(filters: GestionFilters = {}): Promise<{
+  data: PropiedadGestion[];
+  total: number;
+  page: number;
+  pageSize: number;
+}> {
+  return getPropiedadesGestion({
+    ...filters,
+    estado: 'activa',
+    sort: 'es_destacado:desc',
+  });
+}
+
+/** Get all unique experiences across managed properties */
+export async function getExperienciasGestion(): Promise<Array<{ id: number; slug: string; titulo: string; categoria?: string; precio_desde?: number }>> {
+  const { data } = await getPropiedadesGestion({ estado: 'activa', pageSize: 50 });
+  const seen = new Set<number>();
+  const experiencias: Array<{ id: number; slug: string; titulo: string; categoria?: string; precio_desde?: number }> = [];
+  for (const prop of data) {
+    if (prop.experiencias) {
+      for (const exp of prop.experiencias) {
+        if (!seen.has(exp.id)) {
+          seen.add(exp.id);
+          experiencias.push(exp);
+        }
+      }
+    }
+  }
+  return experiencias;
 }

@@ -53,7 +53,7 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
 });
 ---
 
-<BrandLayout brand="tierras" title="Perfiles de Comprador · Iwagé Tierras" description="Encuentra tu perfil de comprador de tierra rural. 5 perfiles con propiedades curadas, documentación completa y acompañamiento especializado en el Tolima.">
+<BrandLayout brand="tierras" title="Usos del Predio · Iwagé Tierras" description="Define el uso de tu próxima tierra rural: productivo, campestre, nómada, turístico o patrimonial. Propiedades curadas con la documentación exacta que necesitas en el Tolima.">
 
   <!-- Hero -->
   <section class="bg-[#0F120E] text-white py-16 md:py-24 relative overflow-hidden">
@@ -63,8 +63,8 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
     </div>
     <div class="max-w-4xl mx-auto px-6 text-center relative">
       <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">¿Para qué buscas tu tierra?</p>
-      <h1 class="text-3xl md:text-5xl font-bold leading-tight mb-4">Perfiles de Comprador</h1>
-      <p class="text-white/70 text-lg max-w-2xl mx-auto mb-8">No todas las tierras sirven para lo mismo. Identifica tu perfil y accede a propiedades curadas con la documentación exacta que necesitas.</p>
+      <h1 class="text-3xl md:text-5xl font-bold leading-tight mb-4">Usos del Predio</h1>
+      <p class="text-white/70 text-lg max-w-2xl mx-auto mb-8">No todas las tierras sirven para lo mismo. Define el uso que le darás a tu predio y accede a propiedades curadas con la documentación exacta que necesitas.</p>
       <div class="flex flex-wrap justify-center gap-3">
         {PERFILES_EXTENDED.map((p) => (
           <a href={`#perfil-${p.id}`} class="px-4 py-2 rounded-full border border-white/15 text-xs font-medium text-white/70 hover:border-[#52B788] hover:text-[#52B788] transition-all">
@@ -136,14 +136,14 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
                     alt={perfil.ext.imagenAlt}
                     class="w-full h-full object-cover"
                     loading="lazy"
-                    onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#1B4332] to-[#52B788]\'><span class=\'text-4xl mb-2\'>🌄</span><span class=\'text-white/60 text-xs\'>Imagen de referencia</span></div>'"
+                    onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#1B4332] to-[#52B788]\'><i data-lucide=\'mountain\' class=\'w-8 h-8 mb-2\'></i><span class=\'text-white/60 text-xs\'>Imagen de referencia</span></div>'"
                   />
                   <div class="absolute bottom-2 right-2 bg-black/50 text-white/80 text-[9px] px-2 py-1 rounded-full">Imagen de referencia</div>
                 </div>
 
                 <!-- Verification checks -->
                 <div class="bg-[#FAFAF7] rounded-xl p-4 border border-gray-100">
-                  <h4 class="text-xs font-bold text-[#1B4332] uppercase tracking-wide mb-3">🛡️ Verificaciones VAP incluidas</h4>
+                  <h4 class="text-xs font-bold text-[#1B4332] uppercase tracking-wide mb-3"><i data-lucide="shield" class="w-3.5 h-3.5 inline"></i> Verificaciones VAP incluidas</h4>
                   <div class="space-y-2">
                     {perfil.checks.map((check) => (
                       <div class="flex items-start gap-2">
@@ -157,12 +157,12 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
                 <!-- CTA -->
                 <div class="flex flex-col sm:flex-row gap-3">
                   <a href={`/tierras/perfiles/${perfil.id}`} class="flex-1 text-center px-5 py-3 rounded-full text-white text-sm font-bold transition-all hover:opacity-90" style={`background-color: ${perfil.ext.color}`}>
-                    {perfil.cta} →
+                    {perfil.cta} <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
                   </a>
                   <a href={`https://wa.me/573001234567?text=${encodeURIComponent(`Hola, me interesa el perfil: ${perfil.label}. ¿Qué opciones tienen?`)}`}
                     target="_blank" rel="noopener"
                     class="flex-1 text-center px-5 py-3 rounded-full border-2 border-[#1B4332]/15 text-[#1B4332] text-sm font-bold hover:border-[#52B788] hover:text-[#52B788] transition-all">
-                    💬 Asesoría directa
+                    <i data-lucide="message-circle" class="w-4 h-4 inline"></i> Asesoría directa
                   </a>
                 </div>
               </div>
@@ -206,7 +206,7 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
       <a href="https://wa.me/573001234567?text=Hola%2C%20quiero%20que%20me%20ayuden%20a%20identificar%20mi%20perfil%20de%20comprador%20de%20tierra."
         target="_blank" rel="noopener"
         class="inline-block bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg shadow-[#52B788]/20">
-        💬 Diagnóstico Gratuito
+        <i data-lucide="message-circle" class="w-4 h-4 inline"></i> Diagnóstico Gratuito
       </a>
     </div>
   </section>

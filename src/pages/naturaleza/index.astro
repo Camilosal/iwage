@@ -1,21 +1,103 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
-import { getExperienciasDestacadas, getAnfitriones, experienciaImagen, anfitrionFoto, formatPrecioCOP, dificultadInfo, nivelInfo } from '@/lib/naturaleza';
+import { getExperienciasDestacadas, getExperiencias, getAnfitriones, getPaquetes, experienciaImagen, anfitrionFoto, formatPrecioCOP, dificultadInfo, nivelInfo } from '@/lib/naturaleza';
+import { strapiImage } from '@/lib/strapi';
 
-const destacadas = await getExperienciasDestacadas(3);
-const { data: anfitriones } = await getAnfitriones(1, 3);
+// Featured experiences: flagged ones first, fallback to the most recent so the section never looks empty
+let destacadas = await getExperienciasDestacadas(3);
+if (destacadas.length === 0) {
+  const { data: recientes } = await getExperiencias({ pageSize: 3 });
+  destacadas = recientes;
+}
 
-const PUERTAS = [
-  { title: 'Vivir una experiencia', desc: 'Caminatas, retiros y días de campo.', footer: 'Desde $180.000 COP', icon: '🌿', link: '/naturaleza/experiencias' },
-  { title: 'Conocer anfitriones', desc: 'Los guardianes locales que te guiarán.', footer: 'Guías certificados', icon: '🧭', link: '/naturaleza/anfitriones' },
-  { title: 'Paquetes completos', desc: 'Itinerarios armados todo incluido.', footer: '2-5 días de duración', icon: '🗓️', link: '/naturaleza/programas' },
+// Programs & packages for the home (sorted destacado first by the API)
+const paquetes = (await getPaquetes()).slice(0, 3);
+
+const { total: totalExperiencias } = await getExperiencias({ pageSize: 1 });
+const { total: totalAnfitriones } = await getAnfitriones(1, 1);
+
+// Find an experience with 2+ anfitriones to illustrate "same land, different eyes"
+const { data: todasExp } = await getExperiencias({ pageSize: 20 });
+const expMultiHost = todasExp.find((e) => e.anfitriones && e.anfitriones.length >= 2) || null;
+const miradas = expMultiHost
+  ? (expMultiHost.anfitriones || []).map((host) => {
+      const j = expMultiHost.anfitriones_data?.find((d) => d.anfitrion_id === host.slug);
+      return { host, junction: j || null };
+    })
+  : [];
+
+// Featured hosts: exclude anfitriones already shown in "La misma tierra, mil miradas" to avoid repetition
+const { data: anfitrionesPool } = await getAnfitriones(1, 6);
+const miradasSlugs = new Set(miradas.map((m) => m.host.slug));
+const guardianes = anfitrionesPool.filter((h) => !miradasSlugs.has(h.slug)).slice(0, 3);
+
+const CAMINOS = [
+  {
+    icon: '🥾',
+    title: 'Quiero vivir el territorio',
+    desc: 'Experiencias guiadas por quienes han habitado esta tierra por generaciones. Elige tu anfitrión, reserva y déjate transformar.',
+    pasos: ['Explora el catálogo de experiencias', 'Elige la mirada de tu anfitrión', 'Reserva en línea tu fecha', 'Vive y regenera el territorio'],
+    cta: 'Explorar experiencias',
+    href: '/naturaleza/experiencias',
+    dark: false,
+  },
+  {
+    icon: 'sprout',
+    title: 'Quiero ser anfitrión o presentar mi espacio',
+    desc: 'Convierte tu tierra, tu finca o tu conocimiento en una experiencia de la red Iwagé y genera ingresos con el territorio.',
+    pasos: ['Radicación sin compromiso', 'Capacitación y auditoría del espacio', 'Producción y publicación', 'Recibe reservas y genera ingresos'],
+    cta: 'Presentar mi tierra',
+    href: '/naturaleza/se-anfitrion',
+    dark: true,
+  },
+];
+
+const CICLO_ECOSISTEMA = [
+  {
+    icon: 'leaf',
+    marca: 'Iwagé Naturaleza',
+    titulo: 'Vive el territorio',
+    desc: 'Experiencias guiadas por anfitriones locales: recorre, siente y valida la tierra con quien la habita.',
+    href: '/naturaleza/experiencias',
+    color: '#4a7c23',
+  },
+  {
+    icon: 'home',
+    marca: 'Iwagé Tierras',
+    titulo: 'Enamórate y cómprala',
+    desc: 'Tu anfitrión te conecta con predios en venta auditados. La experiencia es la puerta de entrada a tu tierra.',
+    href: '/tierras/propiedades',
+    color: '#1B4332',
+  },
+  {
+    icon: 'key-round',
+    marca: 'Iwagé Gestión',
+    titulo: 'Protégela y adminístrala',
+    desc: 'Renta corta, segunda residencia o finca productiva: operamos tu propiedad mientras no estás.',
+    href: '/gestion',
+    color: '#2d5a8f',
+  },
+  {
+    icon: '☕',
+    marca: 'Iwagé Café & Meliponas',
+    titulo: 'Hazla productiva',
+    desc: 'Café especial y polinización con meliponas para activar el potencial agropecuario de tu predio.',
+    href: '/cafe/proveedores',
+    color: '#6D4C41',
+  },
+];
+
+const OFERTA_BULLETS = [
+  { icon: '💰', title: 'Ingresos transparentes', desc: 'Sabes exactamente qué ganas por cada experiencia. Sin sorpresas ni letras pequeñas.' },
+  { icon: '🎓', title: 'Capacitación gratuita', desc: 'Primeros auxilios, interpretación ambiental y hospitalidad. Te formamos sin costo.' },
+  { icon: '✨', title: 'Visibilidad en la red', desc: 'Tu perfil y tu espacio en el directorio de Iwagé Naturaleza, ante viajeros calificados.' },
 ];
 ---
 
-<BrandLayout brand="naturaleza" title="Iwagé Naturaleza · Turismo Regenerativo · Tolima" description="Experiencias de turismo regenerativo guiadas por anfitriones locales en el corredor Ambalá, Tolima. Avistamiento, senderismo y conexión con el territorio.">
+<BrandLayout brand="naturaleza" title="Iwagé Naturaleza · Turismo Regenerativo · Tolima" description="Agencia de turismo rural en el Tolima: experiencias guiadas por anfitriones locales, cada uno con su propia mirada del territorio. Sé anfitrión o presenta tu espacio.">
 
   <!-- Hero -->
-  <section class="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-[#0e1a08]">
+  <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#0e1a08]">
     <img
       src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1600&q=80"
       alt="Niebla sobre el bosque del Tolima"
@@ -24,36 +106,83 @@ const PUERTAS = [
     />
     <div class="absolute inset-0 bg-gradient-to-b from-[#0e1a08]/60 via-transparent to-[#0e1a08]"></div>
 
-    <div class="relative z-10 text-center px-4 max-w-4xl mx-auto">
+    <div class="relative z-10 text-center px-4 max-w-4xl mx-auto py-24">
       <div class="flex items-center justify-center gap-3 mb-6">
         <div class="w-2 h-2 rounded-full bg-[#4a7c23] animate-pulse"></div>
-        <span class="text-xs font-bold tracking-[0.4em] text-[#4a7c23] uppercase">Iwagé Naturaleza</span>
+        <span class="text-xs font-bold tracking-[0.4em] text-[#4a7c23] uppercase">Agencia de Turismo Rural · Tolima</span>
       </div>
       <h1 class="text-5xl lg:text-7xl font-light text-white leading-tight mb-6">
         Donde la tierra<br/><span class="font-serif italic text-[#d4920a]">tiene historia</span>
       </h1>
-      <p class="text-xl text-white/70 leading-relaxed mb-12">
-        ¿Qué estás buscando hoy? Elige tu puerta de entrada al Tolima.
+      <p class="text-xl text-white/70 leading-relaxed mb-10 max-w-2xl mx-auto">
+        Experiencias de turismo regenerativo operadas por anfitriones locales. Un mismo territorio, mil miradas distintas.
       </p>
 
-      <!-- Three Doors -->
-      <div class="grid md:grid-cols-3 gap-6">
-        {PUERTAS.map((puerta) => (
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+        <a href="/naturaleza/experiencias" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#4a7c23]/90 hover:scale-105 transition-all shadow-lg">
+          🥾 Vive una Experiencia
+        </a>
+        <a href="/naturaleza/se-anfitrion" class="bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#d4920a]/90 hover:scale-105 transition-all shadow-lg">
+          🌱 Sé Anfitrión o Presenta tu Espacio
+        </a>
+      </div>
+
+      <!-- Trust bar -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl py-3 px-2">
+          <p class="text-2xl font-bold text-[#d4920a]">{totalExperiencias > 0 ? totalExperiencias : '10+'}</p>
+          <p class="text-[10px] uppercase tracking-wider text-white/50">Experiencias activas</p>
+        </div>
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl py-3 px-2">
+          <p class="text-2xl font-bold text-[#d4920a]">{totalAnfitriones > 0 ? totalAnfitriones : '5+'}</p>
+          <p class="text-[10px] uppercase tracking-wider text-white/50">Anfitriones locales</p>
+        </div>
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl py-3 px-2">
+          <p class="text-2xl font-bold text-[#d4920a]">6.8</p>
+          <p class="text-[10px] uppercase tracking-wider text-white/50">Hectáreas protegidas</p>
+        </div>
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl py-3 px-2">
+          <p class="text-2xl font-bold text-[#d4920a]">3.5%</p>
+          <p class="text-[10px] uppercase tracking-wider text-white/50">Fondo de impacto</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dual Paths -->
+  <section class="py-16 px-4 bg-[#f8faf5]">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Dos caminos, un mismo territorio</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-[#1a3009] mt-3">¿Qué te trae a Iwagé Naturaleza?</h2>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        {CAMINOS.map((camino) => (
           <a
-            href={puerta.link}
-            class="group relative h-64 rounded-3xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-xl hover:border-[#d4920a]/50 hover:shadow-2xl hover:shadow-[#d4920a]/10 transition-all duration-500"
+            href={camino.href}
+            class:list={[
+              'group block rounded-3xl p-8 border transition-all duration-300 h-full',
+              camino.dark
+                ? 'bg-[#1a3009] border-[#1a3009] hover:shadow-2xl hover:shadow-[#d4920a]/10'
+                : 'bg-white border-gray-100 hover:border-[#4a7c23]/40 hover:shadow-2xl',
+            ]}
           >
-            <div class="absolute inset-0 bg-gradient-to-t from-[#0e1a08] via-transparent to-transparent"></div>
-            <div class="relative z-10 p-6 h-full flex flex-col justify-end text-left">
-              <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                {puerta.icon}
-              </div>
-              <h3 class="text-xs font-black uppercase tracking-[0.2em] text-white mb-2 group-hover:text-[#d4920a] transition-colors">
-                {puerta.title}
-              </h3>
-              <p class="text-xs text-white/50 leading-relaxed mb-3">{puerta.desc}</p>
-              <span class="text-[10px] font-bold text-[#d4920a] uppercase tracking-widest">{puerta.footer}</span>
-            </div>
+            <span class="text-4xl block mb-4">{camino.icon}</span>
+            <h3 class:list={['text-xl font-semibold mb-3 transition-colors', camino.dark ? 'text-white group-hover:text-[#d4920a]' : 'text-[#1a3009] group-hover:text-[#4a7c23]']}>
+              {camino.title}
+            </h3>
+            <p class:list={['text-sm mb-6', camino.dark ? 'text-white/60' : 'text-gray-500']}>{camino.desc}</p>
+            <ol class="space-y-2 mb-6">
+              {camino.pasos.map((paso, i) => (
+                <li class:list={['flex items-center gap-3 text-sm', camino.dark ? 'text-white/70' : 'text-gray-600']}>
+                  <span class:list={['w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0', camino.dark ? 'bg-[#d4920a]/20 text-[#d4920a]' : 'bg-[#4a7c23]/10 text-[#4a7c23]']}>{i + 1}</span>
+                  {paso}
+                </li>
+              ))}
+            </ol>
+            <span class:list={['inline-block text-sm font-bold transition-transform group-hover:translate-x-1', camino.dark ? 'text-[#d4920a]' : 'text-[#4a7c23]']}>
+              {camino.cta} →
+            </span>
           </a>
         ))}
       </div>
@@ -61,7 +190,7 @@ const PUERTAS = [
   </section>
 
   <!-- Featured Experiences -->
-  <section class="py-14 px-4 bg-[#f8faf5]">
+  <section class="py-14 px-4 bg-white">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-12">
         <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Experiencias destacadas</span>
@@ -73,7 +202,7 @@ const PUERTAS = [
           {destacadas.map((exp) => {
             const diff = dificultadInfo(exp.nivel_dificultad);
             return (
-              <a href={`/naturaleza/experiencias/${exp.slug}`} class="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300">
+              <a href={`/naturaleza/experiencias/${exp.slug}`} class="group rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300">
                 <div class="relative h-52 overflow-hidden">
                   <img src={experienciaImagen(exp)} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#2d5016]/90 text-white text-[10px] font-bold uppercase tracking-wider">
@@ -108,17 +237,152 @@ const PUERTAS = [
     </div>
   </section>
 
-  <!-- Featured Hosts -->
-  <section class="py-14 px-4 bg-[#0e1a08]">
-    <div class="max-w-6xl mx-auto">
+  <!-- Programs & Packages -->
+  {paquetes.length > 0 && (
+    <section class="py-14 px-4 bg-[#f8faf5]">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-12">
+          <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Programas & paquetes</span>
+          <h2 class="text-3xl lg:text-4xl font-light text-[#1a3009] mt-3">Itinerarios <span class="font-serif italic text-[#4a7c23]">todo incluido</span></h2>
+          <p class="text-gray-600 max-w-2xl mx-auto mt-4 text-sm leading-relaxed">
+            De 2 a 5 días con hospedaje, alimentación, transporte y anfitrión local. Solo llega y camina.
+          </p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+          {paquetes.map((pkg) => {
+            const heroUrl = pkg.imagen_hero?.url ? strapiImage(pkg.imagen_hero.url) : 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=70';
+            return (
+              <a href={`/naturaleza/programas/${pkg.slug}`} class="group rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="relative h-44 overflow-hidden">
+                  <img src={heroUrl} alt={pkg.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                  {pkg.destacado && (
+                    <span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#d4920a] text-white text-[10px] font-bold uppercase tracking-wider">Destacado</span>
+                  )}
+                  <span class="absolute bottom-3 left-3 text-[10px] font-bold text-white bg-black/40 px-2 py-0.5 rounded">📅 {pkg.duracion_texto || `${pkg.duracion_dias} días`}</span>
+                </div>
+                <div class="p-5">
+                  <h3 class="text-lg font-semibold text-[#1a3009] mb-1 group-hover:text-[#4a7c23] transition-colors">{pkg.titulo}</h3>
+                  {pkg.tagline && <p class="text-sm text-gray-600 line-clamp-2 mb-4">{pkg.tagline}</p>}
+                  <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div>
+                      <span class="text-xl font-bold text-[#2d5016]">{formatPrecioCOP(pkg.precio_base)}</span>
+                      {pkg.precio_por_persona && <span class="text-[10px] text-gray-400 ml-1">/persona</span>}
+                    </div>
+                    <span class="text-xs font-bold text-[#4a7c23] group-hover:translate-x-1 transition-transform">Ver programa →</span>
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+        <div class="text-center mt-10">
+          <a href="/naturaleza/programas" class="inline-block px-8 py-3 rounded-full border-2 border-[#2d5016] text-[#2d5016] text-sm font-bold uppercase tracking-wider hover:bg-[#2d5016] hover:text-white transition-colors">
+            Ver todos los programas
+          </a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Same Land, Different Eyes (core differentiator) -->
+  <section class="py-16 px-4 bg-[#0e1a08]">
+    <div class="max-w-5xl mx-auto">
       <div class="text-center mb-12">
-        <span class="text-xs font-bold tracking-[0.3em] text-[#d4920a] uppercase">Guardianes del territorio</span>
-        <h2 class="text-3xl lg:text-4xl font-light text-white mt-3">Quienes te guían</h2>
+        <span class="text-xs font-bold tracking-[0.3em] text-[#d4920a] uppercase">El corazón de Iwagé Naturaleza</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-white mt-3">La misma tierra, <span class="font-serif italic text-[#d4920a]">mil miradas</span></h2>
+        <p class="text-white/60 max-w-2xl mx-auto mt-4 text-sm leading-relaxed">
+          Una ruta puede estar en el mismo lugar, pero cada anfitrión le da su propia perspectiva y enfoque. Elige con quién caminar y vivirás un territorio distinto.
+        </p>
       </div>
 
-      {anfitriones.length > 0 ? (
+      {expMultiHost && miradas.length >= 2 ? (
+        <div>
+          <p class="text-center text-xs text-white/40 mb-6">
+            En <a href={`/naturaleza/experiencias/${expMultiHost.slug}`} class="text-[#d4920a] font-bold hover:underline">{expMultiHost.titulo}</a>, cada anfitrión te muestra una faceta distinta:
+          </p>
+          <div class="grid md:grid-cols-2 gap-6">
+            {miradas.map(({ host, junction }) => {
+              const nivel = nivelInfo(host.nivel_escalafon);
+              return (
+                <a href={`/naturaleza/experiencias/${expMultiHost.slug}`} class="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-[#d4920a]/40 hover:bg-white/10 transition-all">
+                  <div class="flex items-center gap-4 mb-4">
+                    <img src={anfitrionFoto(host)} alt={host.nombre} class="w-14 h-14 rounded-full object-cover ring-2 ring-[#d4920a]/30" loading="lazy" />
+                    <div>
+                      <h3 class="font-semibold text-white group-hover:text-[#d4920a] transition-colors">{host.nombre}</h3>
+                      <p class="text-[10px] text-white/50">{nivel.icono} {nivel.nombre} · {host.especialidad || 'Anfitrión local'}</p>
+                    </div>
+                  </div>
+                  {junction?.enfoque_de_ruta && (
+                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-2">{junction.enfoque_de_ruta}</p>
+                  )}
+                  <p class="text-sm text-white/70 font-serif italic leading-relaxed">
+                    “{junction?.superpoder_en_esta_ruta || junction?.toque_unico || host.especialidad || 'Una mirada única del territorio'}”
+                  </p>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div class="grid md:grid-cols-3 gap-6">
+          {[
+            { icon: '🦅', enfoque: 'Mirada contemplativa', desc: 'El anfitrión que conoce cada mirador y detiene el tiempo frente al valle.' },
+            { icon: '🌾', enfoque: 'Mirada ancestral', desc: 'La guardiana que narra la historia de la tierra y sus saberes de siembra.' },
+            { icon: '🐝', enfoque: 'Mirada productiva', desc: 'El anfitrión que te muestra la finca viva: café, miel y bosque que producen.' },
+          ].map((m) => (
+            <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+              <span class="text-3xl block mb-3">{m.icon}</span>
+              <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-2">{m.enfoque}</p>
+              <p class="text-sm text-white/70 font-serif italic leading-relaxed">“{m.desc}”</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div class="text-center mt-10">
+        <a href="/naturaleza/anfitriones" class="inline-block px-8 py-3 rounded-full border border-[#d4920a] text-[#d4920a] text-sm font-bold uppercase tracking-wider hover:bg-[#d4920a] hover:text-[#0e1a08] transition-colors">
+          Conocer a los anfitriones
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ecosystem & Sales Cycle -->
+  <section class="py-16 px-4 bg-[#f8faf5]">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Ecosistema Iwagé</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-[#1a3009] mt-3">La experiencia es la <span class="font-serif italic text-[#4a7c23]">puerta de entrada</span></h2>
+        <p class="text-gray-600 max-w-2xl mx-auto mt-4 text-sm leading-relaxed">
+          Naturaleza no es una isla: es el primer paso de un ciclo que conecta el territorio con tu próxima inversión. Tu anfitrión es el embajador que te abre la puerta.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {CICLO_ECOSISTEMA.map((etapa, i) => (
+          <a href={etapa.href} class="group relative block bg-white border border-gray-100 rounded-2xl p-6 hover:border-[#4a7c23]/40 hover:shadow-xl transition-all h-full">
+            <span class="absolute top-4 right-4 text-[10px] font-mono text-gray-300">0{i + 1}</span>
+            <span class="text-3xl block mb-3">{etapa.icon}</span>
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style={`color: ${etapa.color}`}>{etapa.marca}</p>
+            <h3 class="font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors mb-2">{etapa.titulo}</h3>
+            <p class="text-xs text-gray-500">{etapa.desc}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Hosts (hidden when all hosts are already shown in "mil miradas") -->
+  {guardianes.length > 0 && (
+    <section class="py-14 px-4 bg-[#0e1a08]">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-12">
+          <span class="text-xs font-bold tracking-[0.3em] text-[#d4920a] uppercase">Guardianes del territorio</span>
+          <h2 class="text-3xl lg:text-4xl font-light text-white mt-3">Quienes te guían</h2>
+        </div>
+
         <div class="grid md:grid-cols-3 gap-8">
-          {anfitriones.map((host) => {
+          {guardianes.map((host) => {
             const nivel = nivelInfo(host.nivel_escalafon);
             return (
               <a href={`/naturaleza/anfitriones/${host.slug}`} class="group text-center p-6 rounded-2xl border border-white/10 bg-white/5 hover:border-[#d4920a]/40 transition-all duration-300">
@@ -134,28 +398,55 @@ const PUERTAS = [
             );
           })}
         </div>
-      ) : (
-        <p class="text-center text-white/50">Próximamente conocerás a nuestros anfitriones.</p>
-      )}
 
-      <div class="text-center mt-10">
-        <a href="/naturaleza/anfitriones" class="inline-block px-8 py-3 rounded-full border border-[#d4920a] text-[#d4920a] text-sm font-bold uppercase tracking-wider hover:bg-[#d4920a] hover:text-[#0e1a08] transition-colors">
-          Directorio de anfitriones
-        </a>
+        <div class="text-center mt-10">
+          <a href="/naturaleza/anfitriones" class="inline-block px-8 py-3 rounded-full border border-[#d4920a] text-[#d4920a] text-sm font-bold uppercase tracking-wider hover:bg-[#d4920a] hover:text-[#0e1a08] transition-colors">
+            Directorio de anfitriones
+          </a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Supply Band: become a host / present your space -->
+  <section class="py-16 px-4" style="background: linear-gradient(135deg, #2d1a04 0%, #1a1003 100%)">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex flex-col lg:flex-row items-center gap-10">
+        <div class="lg:w-1/2">
+          <p class="text-xs font-bold tracking-[0.3em] text-[#d4920a] uppercase mb-3">Para la comunidad local</p>
+          <h2 class="text-2xl md:text-3xl font-light text-white mb-4">Convierte tu tierra en <span class="font-serif italic text-[#d4920a]">experiencia</span></h2>
+          <p class="text-white/60 text-sm mb-6 leading-relaxed">
+            Si tienes una finca, un predio o un saber territorial, la red Iwagé lo convierte en una experiencia con reservas en línea, viajeros calificados y acompañamiento total.
+          </p>
+          <a href="/naturaleza/se-anfitrion" class="inline-block bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm hover:bg-[#d4920a]/90 transition-all shadow-lg">
+            Sé Anfitrión o Presenta mi Espacio →
+          </a>
+        </div>
+        <div class="lg:w-1/2 space-y-4">
+          {OFERTA_BULLETS.map((item) => (
+            <div class="flex items-start gap-4 bg-white/5 border border-white/10 rounded-xl p-5">
+              <span class="text-2xl shrink-0">{item.icon}</span>
+              <div>
+                <h4 class="font-bold text-white text-sm mb-1">{item.title}</h4>
+                <p class="text-xs text-white/50">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Impact Banner -->
+  <!-- Impact Banner (condensed) -->
   <section class="py-16 px-4 bg-[#f8faf5]">
     <div class="max-w-4xl mx-auto text-center">
       <h2 class="text-2xl lg:text-3xl font-light text-[#1a3009] mb-4">Cada experiencia regenera</h2>
       <p class="text-gray-600 leading-relaxed mb-8">
-        El 2% de cada experiencia va directo a nuestro fondo de restauración. Con él financiamos proyectos comunitarios de siembra nativa, protección de fuentes hídricas y formación de nuevos guardianes.
+        Un porcentaje de cada experiencia va directo a nuestro fondo de restauración: siembra nativa, protección de fuentes hídricas y formación de nuevos guardianes.
       </p>
       <div class="grid grid-cols-3 gap-6 max-w-lg mx-auto">
         <div>
-          <div class="text-3xl font-bold text-[#2d5016]">2%</div>
+          <div class="text-3xl font-bold text-[#2d5016]">3.5%</div>
           <div class="text-xs text-gray-500 mt-1">Fondo impacto</div>
         </div>
         <div>
@@ -163,12 +454,27 @@ const PUERTAS = [
           <div class="text-xs text-gray-500 mt-1">Niveles escalafón</div>
         </div>
         <div>
-          <div class="text-3xl font-bold text-[#2d5016]">7</div>
-          <div class="text-xs text-gray-500 mt-1">Rutas de dificultad</div>
+          <div class="text-3xl font-bold text-[#2d5016]">6.8</div>
+          <div class="text-xs text-gray-500 mt-1">Hectáreas protegidas</div>
         </div>
       </div>
       <div class="mt-8">
         <a href="/naturaleza/impacto" class="text-sm font-bold text-[#4a7c23] underline underline-offset-4 hover:text-[#2d5016]">Conocer nuestro impacto →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final Dual CTA -->
+  <section class="py-16 px-4 bg-[#0e1a08]">
+    <div class="max-w-3xl mx-auto">
+      <div class="rounded-3xl p-10 md:p-14 text-center border border-white/10" style="background: linear-gradient(135deg, #2d5016 0%, #0e1a08 100%)">
+        <span class="text-4xl block mb-4">🌿</span>
+        <h2 class="text-2xl md:text-3xl font-light text-white mb-4">El territorio te está esperando</h2>
+        <p class="text-white/70 mb-8">Vívelo como viajero o conviértelo en tu medio de vida como anfitrión.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="/naturaleza/experiencias" class="bg-[#4a7c23] text-white px-10 py-4 rounded-full font-bold uppercase text-sm hover:bg-[#4a7c23]/90 transition-all shadow-lg">Vive una Experiencia</a>
+          <a href="/naturaleza/se-anfitrion" class="bg-[#d4920a] text-[#0e1a08] px-10 py-4 rounded-full font-bold uppercase text-sm hover:bg-[#d4920a]/90 transition-all shadow-lg">Sé Anfitrión</a>
+        </div>
       </div>
     </div>
   </section>

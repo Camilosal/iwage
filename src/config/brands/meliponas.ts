@@ -33,7 +33,7 @@ export const meliponas: BrandConfig = {
       ],
     },
     {
-      label: 'Comunidad',
+      label: 'Recursos',
       href: '/meliponas/bitacora',
       children: [
         { label: 'Bitácora', href: '/meliponas/bitacora' },
@@ -50,5 +50,5 @@ export const meliponas: BrandConfig = {
   },
   whatsapp: '573001234567',
   instagram: '@iwage.meliponario',
-  icon: '🐝',
+  icon: 'bee',
 };

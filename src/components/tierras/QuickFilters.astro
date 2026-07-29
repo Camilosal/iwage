@@ -9,10 +9,10 @@ const { currentTipo = '', currentOperacion = '' } = Astro.props;
 const CHIPS = [
   { label: '🌾 Fincas', href: '/tierras/propiedades?tipo=finca', active: currentTipo === 'finca' },
   { label: '📐 Lotes', href: '/tierras/propiedades?tipo=lote', active: currentTipo === 'lote' },
-  { label: '🏡 Casas Campestres', href: '/tierras/propiedades?tipo=casa_campestre', active: currentTipo === 'casa_campestre' },
+  { label: '<i data-lucide="home" class="w-3 h-3 inline"></i> Casas Campestres', href: '/tierras/propiedades?tipo=casa_campestre', active: currentTipo === 'casa_campestre' },
   { label: '🏕️ Glamping', href: '/tierras/propiedades?tipo=glamping', active: currentTipo === 'glamping' },
-  { label: '💰 Venta', href: '/tierras/propiedades?operacion=venta', active: currentOperacion === 'venta' },
-  { label: '🔑 Arriendo', href: '/tierras/propiedades?operacion=arriendo', active: currentOperacion === 'arriendo' },
+  { label: '<i data-lucide="wallet" class="w-3 h-3 inline"></i> Venta', href: '/tierras/propiedades?operacion=venta', active: currentOperacion === 'venta' },
+  { label: '<i data-lucide="key-round" class="w-3 h-3 inline"></i> Arriendo', href: '/tierras/propiedades?operacion=arriendo', active: currentOperacion === 'arriendo' },
 ];
 ---
 

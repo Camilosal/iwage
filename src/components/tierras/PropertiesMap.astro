@@ -58,7 +58,7 @@ const geoProps = properties.filter(p => p.ubicacion_latitud && p.ubicacion_longi
           <p style="font-weight:bold;font-size:13px;margin:0 0 4px;color:#1B4332;">${p.titulo}</p>
           <p style="font-size:11px;color:#666;margin:0 0 4px;">${p.tipo} · ${p.area}</p>
           <p style="font-size:14px;font-weight:bold;color:#52B788;margin:0 0 8px;">${p.precio}</p>
-          <a href="/tierras/propiedades/${p.slug}" style="display:block;text-align:center;background:#1B4332;color:white;padding:6px;border-radius:8px;font-size:11px;font-weight:bold;text-decoration:none;">Ver propiedad →</a>
+          <a href="/tierras/propiedades/${p.slug}" style="display:block;text-align:center;background:#1B4332;color:white;padding:6px;border-radius:8px;font-size:11px;font-weight:bold;text-decoration:none;">Ver propiedad <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
         </div>
       `);
       bounds.push([p.lat, p.lng]);

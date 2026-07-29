@@ -62,3 +62,6 @@ export const insightsLimiter = new RateLimiter({ maxRequests: 3, windowMs: 60_00
 
 /** Storytelling: 5 req/min */
 export const storytellingLimiter = new RateLimiter({ maxRequests: 5, windowMs: 60_000 });
+
+/** Search: 30 req/min (more generous — no LLM cost) */
+export const searchLimiter = new RateLimiter({ maxRequests: 30, windowMs: 60_000 });

@@ -4,15 +4,17 @@ import { brandList } from '@/config/brands';
 interface Props {
   /** Current brand slug to highlight active */
   activeBrand?: string;
-  /** Style variant: 'pill' for legacy navbar, 'text' for brand navbar */
-  variant?: 'pill' | 'text';
+  /** Style variant: 'icon' for icon-only, 'pill' for legacy navbar, 'text' for brand navbar */
+  variant?: 'icon' | 'pill' | 'text';
 }
 
-const { activeBrand = '', variant = 'pill' } = Astro.props;
+const { activeBrand = '', variant = 'icon' } = Astro.props;
 
-const triggerClasses = variant === 'pill'
-  ? 'inline-flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-brand border border-border/60 rounded-full px-3 py-1.5 hover:border-brand/40 transition-colors'
-  : 'inline-flex items-center gap-1 text-xs text-text-muted hover:text-brand transition-colors';
+const triggerClasses = variant === 'icon'
+  ? 'p-2 rounded-lg text-text-secondary hover:text-brand hover:bg-brand-muted/50 transition-colors'
+  : variant === 'pill'
+    ? 'inline-flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-brand border border-border/60 rounded-full px-3 py-1.5 hover:border-brand/40 transition-colors'
+    : 'inline-flex items-center gap-1 text-xs text-text-muted hover:text-brand transition-colors';
 ---
 
 <div class="relative" data-ecosystem-dropdown>
@@ -20,12 +22,21 @@ const triggerClasses = variant === 'pill'
     class={triggerClasses}
     aria-expanded="false"
     aria-haspopup="true"
-    title="Explorar el ecosistema Iwagé"
+    aria-label="Explorar ecosistema Iwagé"
+    title="Explorar ecosistema Iwagé"
   >
-    🌐 Ecosistema
-    <svg class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
+    {variant === 'icon' ? (
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ) : (
+      <>
+        <i data-lucide="globe" class="w-4 h-4"></i> Ecosistema
+        <svg class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </>
+    )}
   </button>
 
   <!-- Dropdown panel -->
@@ -39,7 +50,7 @@ const triggerClasses = variant === 'pill'
         href="/"
         class="flex items-center gap-3 px-4 py-3 border-b border-border/50 hover:bg-brand-muted/30 transition-colors"
       >
-        <span class="text-lg">🌱</span>
+        <i data-lucide="sprout" class="w-6 h-6 text-accent shrink-0"></i>
         <div>
           <p class="text-sm font-semibold text-text-primary">Hub Iwagé</p>
           <p class="text-[11px] text-text-muted">Ecosistema de desarrollo rural · Tolima</p>
@@ -58,7 +69,7 @@ const triggerClasses = variant === 'pill'
                 : 'hover:bg-brand-muted/20',
             ]}
           >
-            <span class="text-lg shrink-0">{brand.icon}</span>
+            <i data-lucide={brand.icon} class="w-5 h-5 shrink-0 text-brand"></i>
             <div class="min-w-0">
               <p class:list={[
                 'text-sm font-medium truncate transition-colors',

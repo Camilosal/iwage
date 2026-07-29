@@ -2,8 +2,10 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import { getPaquetes, formatPrecioCOP } from '@/lib/naturaleza';
 import { strapiImage } from '@/lib/strapi';
+import { getBrand } from '@/config/brands';
 
 const paquetes = await getPaquetes();
+const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
 ---
 
 <BrandLayout brand="naturaleza" title="Programas y Paquetes · Iwagé Naturaleza" description="Itinerarios completos de turismo regenerativo en el Tolima. Paquetes todo incluido de 2 a 5 días con anfitriones locales.">
@@ -59,7 +61,7 @@ const paquetes = await getPaquetes();
                       {pkg.precio_por_persona && <span class="text-xs text-gray-400 ml-1">/persona</span>}
                     </div>
                     <a
-                      href={`https://wa.me/573001234567?text=${encodeURIComponent(`Hola, me interesa el paquete: ${pkg.titulo}`)}`}
+                      href={`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hola, me interesa el paquete: ${pkg.titulo}`)}`}
                       target="_blank"
                       rel="noopener"
                       class="px-5 py-2.5 rounded-full bg-[#2d5016] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#4a7c23] transition-colors"
@@ -76,7 +78,7 @@ const paquetes = await getPaquetes();
         <div class="text-center py-14">
           <p class="text-4xl mb-4">🗓️</p>
           <p class="text-gray-500">Estamos diseñando nuevos programas. ¡Vuelve pronto!</p>
-          <a href="https://wa.me/573001234567?text=Hola,%20quiero%20info%20de%20paquetes" target="_blank" rel="noopener" class="mt-4 inline-block text-sm text-[#4a7c23] underline">Consultar disponibilidad</a>
+          <a href={`https://wa.me/${waPhone}?text=Hola,%20quiero%20info%20de%20paquetes`} target="_blank" rel="noopener" class="mt-4 inline-block text-sm text-[#4a7c23] underline">Consultar disponibilidad</a>
         </div>
       )}
     </div>

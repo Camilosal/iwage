@@ -1,17 +1,47 @@
 {
   "kind": "collectionType",
   "collectionName": "productos",
-  "info": { "singularName": "producto", "pluralName": "productos", "displayName": "Producto" },
+  "info": {
+    "singularName": "producto",
+    "pluralName": "productos",
+    "displayName": "Producto",
+    "description": "Catálogo central de productos para tienda en línea y local (meliponario)"
+  },
   "options": { "draftAndPublish": true },
   "attributes": {
     "nombre": { "type": "string", "required": true },
     "slug": { "type": "uid", "targetField": "nombre" },
-    "descripcion": { "type": "text" },
+    "descripcion": { "type": "richtext" },
+    "descripcion_corta": { "type": "text", "maxLength": 200 },
+    "sku": { "type": "string", "unique": true },
     "precio": { "type": "integer", "required": true },
+    "precio_comparativo": { "type": "integer" },
     "presentacion": { "type": "string" },
-    "categoria": { "type": "enumeration", "enum": ["miel", "caja", "kit", "asistencia"], "required": true },
+    "categoria": {
+      "type": "enumeration",
+      "enum": ["miel", "caja", "kit", "asistencia", "accesorio", "propoleo", "ceras"],
+      "required": true
+    },
     "imagen": { "type": "string" },
+    "galeria": { "type": "json" },
     "stock_disponible": { "type": "boolean", "default": true },
-    "destacado": { "type": "boolean", "default": false }
+    "stock_cantidad": { "type": "integer" },
+    "destacado": { "type": "boolean", "default": false },
+    "canal_venta": {
+      "type": "enumeration",
+      "enum": ["online", "local", "ambos"],
+      "default": "ambos",
+      "required": true
+    },
+    "peso_gramos": { "type": "integer" },
+    "dimensiones": { "type": "string" },
+    "variantes": { "type": "json" },
+    "tags": { "type": "json" },
+    "orden": { "type": "integer", "default": 0 },
+    "envio_gratis": { "type": "boolean", "default": false },
+    "tiempo_entrega": { "type": "string" },
+    "orden_minima": { "type": "integer", "default": 1 },
+    "meta_title": { "type": "string", "maxLength": 70 },
+    "meta_description": { "type": "text", "maxLength": 160 }
   }
 }

@@ -87,8 +87,32 @@ function isActive(href: string): boolean {
       )}
     </div>
 
-    <!-- CTA + Theme + Mobile toggle -->
-    <div class="flex items-center gap-3">
+    <!-- Icon actions + Mobile toggle -->
+    <div class="flex items-center gap-1">
+      <!-- Search -->
+      <button
+        data-search-trigger
+        class="p-2 rounded-lg text-text-secondary hover:text-brand hover:bg-brand-muted/50 transition-colors"
+        aria-label="Buscar en el sitio"
+        title="Buscar en el sitio"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </button>
+      <!-- Contact -->
+      <a
+        href={`/${brand.slug}/contacto`}
+        class="p-2 rounded-lg text-text-secondary hover:text-brand hover:bg-brand-muted/50 transition-colors"
+        aria-label="Contactar"
+        title="Contactar"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      </a>
+      <!-- Ecosystem -->
+      <EcosystemDropdown activeBrand={brand.slug} variant="icon" />
       <!-- Theme toggle -->
       <button
         id="theme-toggle"
@@ -99,23 +123,14 @@ function isActive(href: string): boolean {
         <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.66 7.66l-.71-.71M4.05 4.05l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
         <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
       </button>
-      <a
-        href={`/${brand.slug}/contacto`}
-        class="hidden sm:inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-light transition-colors"
-      >
-        Contacto
-      </a>
-      <!-- Ecosystem selector -->
-      <div class="hidden md:block">
-        <EcosystemDropdown activeBrand={brand.slug} variant="text" />
-      </div>
       <!-- Mobile menu button -->
       <button
         id="mobile-menu-btn"
-        class="lg:hidden p-2 text-text-secondary hover:text-brand"
-        aria-label="Abrir menú"
+        class="lg:hidden p-2 rounded-lg text-text-secondary hover:text-brand hover:bg-brand-muted/50 transition-colors"
+        aria-label="Abrir menú de navegación"
+        title="Menú de navegación"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
@@ -178,12 +193,12 @@ function isActive(href: string): boolean {
       <div class="pt-3 mt-2 border-t border-border/50">
         <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2 px-3">Ecosistema Iwagé</p>
         <div class="grid grid-cols-1 gap-1">
-          <a href="/" class="flex items-center gap-2 px-3 py-1.5 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/30 transition-colors">🌱 Hub</a>
-          <a href="/meliponas/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'meliponas' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}>🐝 Meliponario</a>
-          <a href="/cafe/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'cafe' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}>☕ Café</a>
-          <a href="/tierras/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'tierras' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}>🌄 Tierras</a>
-          <a href="/naturaleza/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'naturaleza' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}>🌿 Naturaleza</a>
-          <a href="/gestion/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'gestion' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}>🏗️ Gestión</a>
+          <a href="/" class="flex items-center gap-2 px-3 py-1.5 text-sm text-text-secondary hover:text-brand rounded-lg hover:bg-brand-muted/30 transition-colors"><i data-lucide="sprout" class="w-4 h-4"></i> Hub</a>
+          <a href="/meliponas/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'meliponas' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}><i data-lucide="bee" class="w-4 h-4"></i> Meliponario</a>
+          <a href="/cafe/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'cafe' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}><i data-lucide="coffee" class="w-4 h-4"></i> Café</a>
+          <a href="/tierras/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'tierras' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}><i data-lucide="mountain" class="w-4 h-4"></i> Tierras</a>
+          <a href="/naturaleza/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'naturaleza' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}><i data-lucide="leaf" class="w-4 h-4"></i> Naturaleza</a>
+          <a href="/gestion/" class:list={['flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors', brand.slug === 'gestion' ? 'text-brand bg-brand-muted/30' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/30']}><i data-lucide="building-2" class="w-4 h-4"></i> Gestión</a>
         </div>
       </div>
     </div>

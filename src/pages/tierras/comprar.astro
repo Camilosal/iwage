@@ -1,0 +1,182 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { getBrand } from '@/config/brands';
+
+export const prerender = true;
+
+const waPhone = getBrand('tierras')?.whatsapp || '573001234567';
+
+const PASOS_COMPRA = [
+  {
+    num: '01',
+    icon: '🎯',
+    title: 'Define tu uso del predio',
+    desc: '¿Producción agropecuaria? ¿Casa campestre? ¿Turismo? ¿Inversión patrimonial? Cada uso exige condiciones distintas de suelo, agua y normativa. Nuestros perfiles te ayudan a clarificar.',
+    link: { href: '/tierras/perfiles', label: 'Explorar usos del predio' },
+  },
+  {
+    num: '02',
+    icon: '🔍',
+    title: 'Explora el catálogo auditado',
+    desc: 'Filtra por tipo, municipio, precio y área. Usa la Búsqueda Inteligente para describir lo que necesitas en lenguaje natural y dejar que la IA encuentre tu match.',
+    link: { href: '/tierras/propiedades', label: 'Ver catálogo' },
+  },
+  {
+    num: '03',
+    icon: '🥾',
+    title: 'Vive la propiedad antes de decidir',
+    desc: 'Agenda una visita guiada o participa en una experiencia de Iwagé Naturaleza en el predio: recorre los linderos, conoce el agua, siente el territorio con quien lo habita.',
+    link: { href: '/naturaleza/experiencias', label: 'Experiencias en el territorio' },
+  },
+  {
+    num: '04',
+    icon: '🛡️',
+    title: 'Verifica con el Protocolo VAP',
+    desc: 'Cada propiedad publicada ya pasó por auditoría: títulos de 20 años, linderos GPS, concesiones de agua y compatibilidad PBOT. Revisa el sello y el reporte de banderas.',
+    link: { href: '/tierras/protocolo-vap', label: 'Conocer el protocolo' },
+  },
+  {
+    num: '05',
+    icon: '✍️',
+    title: 'Cierra con acompañamiento legal',
+    desc: 'Estimación de gastos notariales, revisión de promesa de compraventa, verificación de paz y salvos y acompañamiento hasta la escrituración. Presencial o 100% remoto.',
+    link: { href: '/tierras/herramientas/calculadora-notarial', label: 'Calcular gastos de cierre' },
+  },
+];
+
+const COMPARATIVA = [
+  { criterio: 'Comisión', iwage: '3–5%', tradicional: '6–10%' },
+  { criterio: 'Certeza legal', iwage: 'Auditoría VAP de 4 ejes publicada', tradicional: 'Depende de la buena fe del vendedor' },
+  { criterio: 'Tecnología', iwage: 'Drone, tour 360°, GPS submétrico, IA', tradicional: 'Fotos de celular y coordenadas aproximadas' },
+  { criterio: 'Agua verificada', iwage: 'Concesiones ante Cortolima confirmadas', tradicional: 'Rara vez se verifica' },
+  { criterio: 'Compra remota', iwage: 'Recorridos virtuales + cierre digital', tradicional: 'Presencial obligatoria' },
+  { criterio: 'Post-compra', iwage: 'Gestión, administración y puesta productiva', tradicional: 'Ninguna' },
+];
+
+const FAQS = [
+  {
+    q: '¿Cómo funciona la reserva o arras?',
+    a: 'Una vez eliges propiedad, se firma una promesa de compraventa con arras del 10% que aseguran el precio por 30 días. Si la auditoría legal posterior revela problemas, las arras se devuelven íntegramente.',
+  },
+  {
+    q: '¿Puedo comprar desde el exterior o desde otra ciudad?',
+    a: 'Sí. Ofrecemos recorridos virtuales 360°, videollamadas en el predio, poder notarial para terceros y cierre con firmas digitales. Varios de nuestros compradores viven fuera de Colombia.',
+  },
+  {
+    q: '¿Ofrecen financiación?',
+    a: 'No somos entidad financiera, pero te conectamos con bancos con línea agropecuaria (Finagro), cooperativas locales y en algunos casos negociamos financiación directa con el propietario.',
+  },
+  {
+    q: '¿Qué pasa si la propiedad tiene problemas de títulos?',
+    a: 'No se publica. El Protocolo VAP filtra propiedades con falsa tradición, sucesiones ilíquidas o embargos antes de que lleguen al catálogo. Si compras con nosotros, solo verás predios con cadena de tradición limpia.',
+  },
+  {
+    q: '¿Cuánto tarda el proceso de compra?',
+    a: 'Desde la visita hasta la escrituración: típicamente 4–8 semanas. El estudio de títulos toma 2 semanas y la notaría 1–2 más. Con financiación bancaria, agrega 3–4 semanas.',
+  },
+  {
+    q: '¿Qué incluye el acompañamiento post-compra?',
+    a: 'Acceso al ecosistema Iwagé: administración de la propiedad (Gestión), experiencias turísticas (Naturaleza), proveedores de café especial y servicios de polinización (Meliponas). Tu tierra no queda sola después de la firma.',
+  },
+];
+---
+
+<BrandLayout brand="tierras" title="Guía de Compra · Iwagé Tierras" description="Cómo comprar tierra rural en el Tolima sin riesgos: proceso de 5 pasos, verificación VAP, acompañamiento legal y compra remota.">
+
+  <!-- Hero -->
+  <section class="bg-[#0F120E] text-white py-14 md:py-20">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">Para Compradores</p>
+      <h1 class="text-3xl md:text-5xl font-bold mb-4">Compra tierra rural <span class="text-[#52B788]">sin riesgos</span></h1>
+      <p class="text-white/70 text-lg max-w-2xl mx-auto">
+        El campo colombiano tiene riesgos reales: falsa tradición, linderos fantasma, agua sin concesión. Nuestro proceso de compra los elimina uno por uno.
+      </p>
+    </div>
+  </section>
+
+  <!-- 5 Steps -->
+  <Section class="bg-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-bold text-[#1B4332] text-center mb-10">El proceso paso a paso</h2>
+      <div class="space-y-6">
+        {PASOS_COMPRA.map((paso) => (
+          <ScrollReveal>
+            <div class="flex items-start gap-6 bg-[#FAFAF7] rounded-2xl p-6 border border-gray-100">
+              <div class="shrink-0 w-14 h-14 rounded-xl bg-[#1B4332] flex items-center justify-center">
+                <span class="text-2xl">{paso.icon}</span>
+              </div>
+              <div>
+                <p class="text-[10px] font-mono text-[#52B788] font-bold mb-1">PASO {paso.num}</p>
+                <h3 class="font-bold text-[#1B4332] mb-2">{paso.title}</h3>
+                <p class="text-sm text-gray-500 mb-3">{paso.desc}</p>
+                <a href={paso.link.href} class="text-sm font-bold text-[#52B788] hover:underline">{paso.link.label} <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+              </div>
+            </div>
+          </ScrollReveal>
+        ))}
+      </div>
+    </div>
+  </Section>
+
+  <!-- Comparison Table -->
+  <Section class="bg-[#FAFAF7]">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl font-bold text-[#1B4332] mb-3">¿Por qué comprar con Iwagé?</h2>
+        <p class="text-gray-500 text-sm max-w-lg mx-auto">Comparación honesta frente al modelo tradicional de compraventa rural en Colombia.</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div class="grid grid-cols-3 bg-[#1B4332] text-white text-xs font-bold uppercase tracking-wider">
+          <div class="p-4">Criterio</div>
+          <div class="p-4 text-[#52B788]">Iwagé Tierras</div>
+          <div class="p-4 text-white/60">Tradicional</div>
+        </div>
+        {COMPARATIVA.map((fila, i) => (
+          <div class={`grid grid-cols-3 text-sm ${i % 2 === 0 ? 'bg-white' : 'bg-[#FAFAF7]'}`}>
+            <div class="p-4 font-bold text-[#1B4332]">{fila.criterio}</div>
+            <div class="p-4 text-gray-700">{fila.iwage}</div>
+            <div class="p-4 text-gray-400">{fila.tradicional}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </Section>
+
+  <!-- FAQ -->
+  <Section class="bg-white">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl font-bold text-[#1B4332] text-center mb-10">Preguntas frecuentes</h2>
+      <div class="space-y-4">
+        {FAQS.map((faq) => (
+          <details class="group bg-[#FAFAF7] rounded-xl border border-gray-100 overflow-hidden">
+            <summary class="flex items-center justify-between gap-4 p-5 cursor-pointer list-none">
+              <span class="font-bold text-sm text-[#1B4332]">{faq.q}</span>
+              <span class="text-[#52B788] text-lg group-open:rotate-45 transition-transform shrink-0">+</span>
+            </summary>
+            <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">{faq.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <section class="py-16 bg-[#0F120E]">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-bold text-white mb-4">¿Listo para encontrar tu tierra?</h2>
+      <p class="text-white/60 mb-8">Explora el catálogo auditado o habla directamente con un asesor territorial.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/tierras/propiedades" class="bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg">
+          Ver Catálogo Auditado
+        </a>
+        <a href={`https://wa.me/${waPhone}?text=${encodeURIComponent('Hola, quiero asesoría para comprar tierra rural en el Tolima.')}`}
+          target="_blank" rel="noopener"
+          class="border border-[#52B788] text-[#52B788] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788] hover:text-[#0F120E] transition-all">
+          <i data-lucide="message-circle" class="w-4 h-4 inline"></i> Hablar con un Asesor
+        </a>
+      </div>
+    </div>
+  </section>
+</BrandLayout>

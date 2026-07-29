@@ -113,7 +113,7 @@ export interface AnfitrionJunction {
   precio_personalizado?: number;
   superpoder_en_esta_ruta?: string;
   toque_unico?: string;
-  url_qloapps?: string;
+  url_reservas?: string;
   lema_seccion?: string;
   manifiesto_ruta?: string;
   momento_favorito_ruta?: string;
@@ -396,6 +396,34 @@ export async function getPaqueteBySlug(slug: string): Promise<Paquete | null> {
     return res.data?.[0] || null;
   } catch {
     return null;
+  }
+}
+
+// ── Iniciativas de Impacto (página Impacto · gestionables en Strapi) ──
+export interface Iniciativa {
+  id: number;
+  documentId: string;
+  titulo: string;
+  descripcion: string | null;
+  icono: string | null;
+  estado: string | null;
+  metrica: string | null;
+  progreso: number | null;
+  orden: number | null;
+  activo: boolean;
+}
+
+export async function getIniciativas(): Promise<Iniciativa[]> {
+  try {
+    const res = await strapiFetch<Iniciativa>('iniciativas', {
+      ttl: CACHE_TTL.list,
+      filters: { activo: { $eq: true } },
+      sort: 'orden:asc',
+      pagination: { pageSize: 50 },
+    });
+    return res.data || [];
+  } catch {
+    return [];
   }
 }
 

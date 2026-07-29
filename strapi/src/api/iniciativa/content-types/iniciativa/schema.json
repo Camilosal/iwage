@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "iniciativas",
+  "info": {
+    "singularName": "iniciativa",
+    "pluralName": "iniciativas",
+    "displayName": "Iniciativa de Impacto",
+    "description": "Iniciativas de temporada financiadas por el fondo de restauración (página de Impacto · Naturaleza)"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "titulo": { "type": "string", "required": true },
+    "descripcion": { "type": "text" },
+    "icono": { "type": "string", "default": "🌱" },
+    "estado": { "type": "string", "default": "En curso" },
+    "metrica": { "type": "string" },
+    "progreso": { "type": "integer", "min": 0, "max": 100, "default": 0 },
+    "orden": { "type": "integer", "default": 0 },
+    "activo": { "type": "boolean", "default": true }
+  }
+}

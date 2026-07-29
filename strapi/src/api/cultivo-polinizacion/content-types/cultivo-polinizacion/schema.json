@@ -1,14 +1,62 @@
 {
   "kind": "collectionType",
   "collectionName": "cultivo_polinizacions",
-  "info": { "singularName": "cultivo-polinizacion", "pluralName": "cultivo-polinizaciones", "displayName": "Cultivo Polinización" },
-  "options": { "draftAndPublish": false },
+  "info": {
+    "singularName": "cultivo-polinizacion",
+    "pluralName": "cultivo-polinizaciones",
+    "displayName": "Cultivo Polinización",
+    "description": "Ficha integral de cada cultivo para el servicio de polinización asistida con meliponas"
+  },
+  "options": { "draftAndPublish": true },
   "attributes": {
     "nombre": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "nombre" },
     "nombre_cientifico": { "type": "string" },
+    "familia_botanica": { "type": "string" },
+    "icono": { "type": "string" },
+    "imagen": { "type": "string" },
+    "galeria": { "type": "json" },
+
+    "descripcion": { "type": "richtext" },
+    "descripcion_corta": { "type": "text", "maxLength": 250 },
+
     "rendimiento": { "type": "string" },
+    "rendimiento_detalle": { "type": "text" },
     "fuente": { "type": "string" },
-    "descripcion": { "type": "text" },
-    "icono": { "type": "string" }
+
+    "especies_meliponas": { "type": "json" },
+    "mecanismo_polinizacion": { "type": "text" },
+    "ventaja_vs_apis": { "type": "text" },
+    "compatibilidad_organica": { "type": "boolean", "default": true },
+
+    "tarifa_por_hectarea": { "type": "integer" },
+    "densidad_cajas_ha": { "type": "decimal" },
+    "dias_alistamiento": { "type": "integer" },
+    "dias_en_campo": { "type": "integer" },
+    "dias_recuperacion": { "type": "integer" },
+    "tasa_desgaste_pct": { "type": "decimal" },
+    "opex_logistico": { "type": "integer" },
+    "multiplicador_distancia": { "type": "decimal" },
+    "area_minima_ha": { "type": "decimal" },
+    "area_maxima_ha": { "type": "decimal" },
+
+    "meses_floracion": { "type": "json" },
+    "altitud_optima_msnm": { "type": "string" },
+    "temperatura_optima": { "type": "string" },
+    "humedad_relativa": { "type": "string" },
+    "requerimiento_flora": { "type": "text" },
+
+    "que_incluye": { "type": "json" },
+    "que_se_pide": { "type": "json" },
+    "condiciones_servicio": { "type": "richtext" },
+    "restricciones": { "type": "json" },
+    "garantia": { "type": "text" },
+
+    "caso_exito": { "type": "json" },
+    "destacado": { "type": "boolean", "default": false },
+    "activo": { "type": "boolean", "default": true },
+
+    "meta_title": { "type": "string" },
+    "meta_description": { "type": "text" }
   }
 }

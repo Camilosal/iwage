@@ -1,0 +1,310 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import MediaGallery from '@/components/shared/MediaGallery.astro';
+import { getProductoBySlug, getProductos, CATEGORIAS } from '@/lib/tienda';
+import { renderMarkdown } from '@/lib/render-markdown';
+import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
+import { SITE } from '@/config/site';
+
+const { slug } = Astro.params;
+const producto = await getProductoBySlug(slug!);
+
+if (!producto) {
+  return Astro.redirect('/meliponas/tienda');
+}
+
+const catalogo = await getCatalogo();
+const rec = resolveRecurso(catalogo, producto.slug, producto.nombre);
+
+// Related products from same category
+const todosProductos = await getProductos({ categoria: producto.categoria });
+const relacionados = todosProductos.filter((p) => p.slug !== producto.slug).slice(0, 3);
+
+const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+const categoriaLabel = CATEGORIAS.find((c) => c.id === producto.categoria)?.label ?? producto.categoria;
+const descuento = producto.precio_comparativo ? Math.round((1 - producto.precio / producto.precio_comparativo) * 100) : null;
+
+// SEO
+const pageTitle = producto.meta_title ?? `${producto.nombre} · Tienda Iwagé Meliponario`;
+const pageDesc = producto.meta_description ?? producto.descripcion_corta ?? producto.descripcion?.slice(0, 160) ?? '';
+
+// Structured data for product
+const productJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": producto.nombre,
+  "description": producto.descripcion_corta ?? producto.descripcion,
+  "sku": producto.sku,
+  "brand": { "@type": "Brand", "name": "Iwagé Meliponario" },
+  "offers": {
+    "@type": "Offer",
+    "price": producto.precio,
+    "priceCurrency": "COP",
+    "availability": producto.stock_disponible ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    "url": `https://iwage.co/meliponas/tienda/${producto.slug}`,
+  },
+};
+---
+
+<BrandLayout title={pageTitle} description={pageDesc}>
+  <script type="application/ld+json" set:html={JSON.stringify(productJsonLd)} />
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-text-muted mb-8" aria-label="Breadcrumb">
+      <a href="/meliponas/tienda" class="hover:text-brand transition-colors">Tienda</a>
+      <span>/</span>
+      <a href="/meliponas/tienda" class="hover:text-brand transition-colors">{categoriaLabel}</a>
+      <span>/</span>
+      <span class="text-text-primary font-medium">{producto.nombre}</span>
+    </nav>
+
+    <!-- Product main -->
+    <div class="grid lg:grid-cols-2 gap-10 lg:gap-14">
+      <!-- Image -->
+      <div class="space-y-4">
+        <div class="aspect-square rounded-2xl overflow-hidden bg-surface-sunken border border-border relative">
+          {producto.imagen ? (
+            <img src={producto.imagen} alt={producto.nombre} class="w-full h-full object-cover" />
+          ) : (
+            <div class="w-full h-full flex items-center justify-center text-text-muted">
+              <i data-lucide="package" class="w-24 h-24"></i>
+            </div>
+          )}
+          {producto.destacado && (
+            <span class="absolute top-4 left-4 bg-accent text-white text-sm font-medium rounded-full px-4 py-1.5">Destacado</span>
+          )}
+          {descuento && (
+            <span class="absolute top-4 right-4 bg-red-500 text-white text-sm font-bold rounded-full px-3 py-1.5">-{descuento}%</span>
+          )}
+        </div>
+        {producto.galeria && producto.galeria.length > 0 && (
+          <div class="mt-4">
+            <MediaGallery images={producto.galeria} title={producto.nombre} columns={4} />
+          </div>
+        )}
+      </div>
+
+      <!-- Info & Order -->
+      <div class="flex flex-col">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-xs font-medium uppercase tracking-wide text-brand bg-brand/10 rounded-full px-3 py-1">{categoriaLabel}</span>
+          {producto.sku && <span class="text-xs text-text-muted">SKU: {producto.sku}</span>}
+        </div>
+
+        <h1 class="text-3xl font-bold text-text-primary mb-3">{producto.nombre}</h1>
+
+        {producto.presentacion && (
+          <p class="text-sm text-text-muted mb-4">{producto.presentacion}</p>
+        )}
+
+        <!-- Price -->
+        <div class="flex items-baseline gap-3 mb-6">
+          <span class="text-3xl font-bold text-brand">{fmt.format(producto.precio)}</span>
+          {producto.precio_comparativo && (
+            <span class="text-lg text-text-muted line-through">{fmt.format(producto.precio_comparativo)}</span>
+          )}
+        </div>
+
+        <!-- Stock status -->
+        <div class="mb-6">
+          {producto.stock_disponible ? (
+            <p class="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              Disponible
+              {producto.stock_cantidad && <span class="text-text-muted">({producto.stock_cantidad} unidades)</span>}
+            </p>
+          ) : (
+            <p class="flex items-center gap-2 text-sm text-red-500">
+              <i data-lucide="x-circle" class="w-4 h-4"></i> Agotado temporalmente
+            </p>
+          )}
+        </div>
+
+        <!-- Description -->
+        {producto.descripcion && (
+          <div class="prose prose-sm dark:prose-invert max-w-none mb-6 text-text-secondary leading-relaxed">
+            <Fragment set:html={renderMarkdown(producto.descripcion)} />
+          </div>
+        )}
+
+        <!-- Delivery info -->
+        <div class="space-y-2 mb-8 text-sm text-text-secondary">
+          {producto.tiempo_entrega && (
+            <p class="flex items-center gap-2">
+              <i data-lucide="clock" class="w-4 h-4 text-text-muted"></i>
+              Entrega: {producto.tiempo_entrega}
+            </p>
+          )}
+          {producto.envio_gratis && (
+            <p class="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <i data-lucide="truck" class="w-4 h-4"></i> Envío gratis a todo Colombia
+            </p>
+          )}
+          {producto.peso_gramos && (
+            <p class="flex items-center gap-2">
+              <i data-lucide="weight" class="w-4 h-4 text-text-muted"></i>
+              Peso: {producto.peso_gramos >= 1000 ? `${(producto.peso_gramos / 1000).toFixed(1)} kg` : `${producto.peso_gramos} g`}
+            </p>
+          )}
+          {producto.dimensiones && (
+            <p class="flex items-center gap-2">
+              <i data-lucide="ruler" class="w-4 h-4 text-text-muted"></i>
+              Dimensiones: {producto.dimensiones}
+            </p>
+          )}
+        </div>
+
+        <!-- Order section -->
+        <div class="border-t border-border pt-6 mt-auto">
+          <h3 class="text-sm font-semibold text-text-primary mb-4 uppercase tracking-wide">Hacer pedido</h3>
+
+          {producto.stock_disponible ? (
+            <div class="space-y-4">
+              <!-- Quantity selector -->
+              <div class="flex items-center gap-4">
+                <label class="text-sm text-text-secondary">Cantidad:</label>
+                <div class="flex items-center border border-border rounded-full overflow-hidden">
+                  <button id="qty-minus" type="button" class="w-10 h-10 flex items-center justify-center text-text-muted hover:bg-surface-sunken transition-colors" aria-label="Reducir cantidad">
+                    <i data-lucide="minus" class="w-4 h-4"></i>
+                  </button>
+                  <span id="qty-value" class="w-12 text-center text-sm font-semibold text-text-primary">{producto.orden_minima}</span>
+                  <button id="qty-plus" type="button" class="w-10 h-10 flex items-center justify-center text-text-muted hover:bg-surface-sunken transition-colors" aria-label="Aumentar cantidad">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                <span id="qty-total" class="text-lg font-bold text-brand">{fmt.format(producto.precio * producto.orden_minima)}</span>
+              </div>
+
+              {producto.orden_minima > 1 && (
+                <p class="text-xs text-text-muted">Mínimo: {producto.orden_minima} unidades por pedido</p>
+              )}
+
+              <!-- Action buttons -->
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button
+                  id="btn-add-cart"
+                  type="button"
+                  class="add-to-cart flex-1 bg-brand text-white font-medium rounded-full px-6 py-3.5 hover:bg-brand-light hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
+                  data-name={producto.nombre}
+                  data-price={producto.precio}
+                  data-slug={producto.slug}
+                  data-recurso-slug={rec?.slug ?? `meliponas-${producto.slug}`}
+                  data-tipo={rec?.tipo ?? 'producto'}
+                  data-tipo-disponibilidad={rec?.tipo_disponibilidad ?? 'inmediato'}
+                  data-requiere-pago={String(rec?.requiere_pago ?? true)}
+                  data-origen={rec?.origen ?? 'iwage_meliponas'}
+                  data-brand="meliponas"
+                >
+                  <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                  Agregar al carrito
+                </button>
+                <a
+                  id="btn-whatsapp"
+                  href="#"
+                  target="_blank"
+                  rel="noopener"
+                  class="flex-1 border-2 border-green-500 text-green-600 dark:text-green-400 font-medium rounded-full px-6 py-3.5 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                >
+                  <i data-lucide="message-circle" class="w-5 h-5"></i>
+                  Pedir por WhatsApp
+                </a>
+              </div>
+
+              <p class="text-xs text-text-muted text-center">
+                Pago contra entrega en Ibagué · Transferencia · Envío a todo Colombia
+              </p>
+            </div>
+          ) : (
+            <div class="bg-surface-sunken rounded-xl p-5 text-center">
+              <p class="text-sm text-text-secondary mb-3">Este producto está agotado temporalmente.</p>
+              <a
+                href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}?text=${encodeURIComponent(`¡Hola Iwagé! ¿Cuándo estará disponible nuevamente "${producto.nombre}"?`)}`}
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 hover:underline"
+              >
+                <i data-lucide="bell" class="w-4 h-4"></i>
+                Avísame cuando esté disponible
+              </a>
+            </div>
+          )}
+        </div>
+
+        <!-- Tags -->
+        {producto.tags && producto.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mt-6">
+            {producto.tags.map((tag) => (
+              <span class="text-xs bg-surface-sunken text-text-muted rounded-full px-3 py-1">#{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Related products -->
+    {relacionados.length > 0 && (
+      <section class="mt-16 pt-10 border-t border-border">
+        <h2 class="text-xl font-bold text-text-primary mb-6">También en {categoriaLabel}</h2>
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
+          {relacionados.map((p) => (
+            <a href={`/meliponas/tienda/${p.slug}`} class="group bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+              <div class="aspect-video overflow-hidden bg-surface-sunken">
+                {p.imagen ? (
+                  <img src={p.imagen} alt={p.nombre} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center text-text-muted">
+                    <i data-lucide="package" class="w-8 h-8"></i>
+                  </div>
+                )}
+              </div>
+              <div class="p-4">
+                <h3 class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors line-clamp-1">{p.nombre}</h3>
+                <p class="text-sm font-bold text-brand mt-1">{fmt.format(p.precio)}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+
+  <!-- Quantity & WhatsApp logic -->
+  <script define:vars={{ precio: producto.precio, nombre: producto.nombre, ordenMinima: producto.orden_minima, whatsapp: SITE.whatsapp }}>
+    const qtyValue = document.getElementById('qty-value');
+    const qtyTotal = document.getElementById('qty-total');
+    const qtyMinus = document.getElementById('qty-minus');
+    const qtyPlus = document.getElementById('qty-plus');
+    const waBtn = document.getElementById('btn-whatsapp');
+    const addBtn = document.getElementById('btn-add-cart');
+
+    let qty = ordenMinima;
+    const fmtPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+
+    function updateQty() {
+      qtyValue.textContent = qty;
+      qtyTotal.textContent = fmtPrice(precio * qty);
+      // Update WhatsApp link
+      const msg = `¡Hola Iwagé! Quiero pedir:\n\n• ${nombre} ×${qty} — ${fmtPrice(precio * qty)}\n\n¿Cómo coordinamos la entrega?`;
+      waBtn.href = `https://wa.me/${whatsapp.replace(/\+/g, '')}?text=${encodeURIComponent(msg)}`;
+      // Update add-to-cart data
+      addBtn.dataset.qty = qty;
+    }
+
+    qtyMinus?.addEventListener('click', () => {
+      if (qty > ordenMinima) { qty--; updateQty(); }
+    });
+
+    qtyPlus?.addEventListener('click', () => {
+      qty++;
+      updateQty();
+    });
+
+    // Override add-to-cart to respect quantity
+    addBtn?.addEventListener('click', () => {
+      addBtn.dataset.qty = qty;
+    });
+
+    updateQty();
+  </script>
+</BrandLayout>

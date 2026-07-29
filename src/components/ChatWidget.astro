@@ -8,7 +8,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
     <!-- Header -->
     <div id="chat-header" class="bg-brand text-white px-5 py-4 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-3">
-        <span id="chat-icon" class="text-lg">🌱</span>
+        <i id="chat-icon" data-lucide="sprout" class="w-5 h-5 text-white"></i>
         <div>
           <p class="font-medium text-sm">Asistente Iwagé</p>
           <p class="text-xs text-white/60">IA · Respuestas con contexto real</p>
@@ -54,12 +54,12 @@ import { MessageCircle, X, Send } from '@lucide/astro';
 <script>
   // ── Brand detection from URL ──────────────────────────────
   const BRAND_CONFIG: Record<string, { icon: string; welcome: string; placeholder: string }> = {
-    meliponas: { icon: '🐝', welcome: '¡Hola! Soy el asistente de Iwagé Meliponas. Pregúntame sobre miel, cajas, polinización o proyectos.', placeholder: 'Pregunta sobre miel, cajas, polinización...' },
-    cafe: { icon: '☕', welcome: '¡Hola! Soy el asistente del Café Iwagé. Pregúntame sobre el menú, proveedores o nuestra historia.', placeholder: 'Pregunta sobre el menú, café, proveedores...' },
-    tierras: { icon: '🏡', welcome: '¡Hola! Soy el asistente de Iwagé Tierras. Puedo ayudarte a encontrar propiedades rurales verificadas.', placeholder: 'Busca fincas, lotes, casas campestres...' },
-    naturaleza: { icon: '🌿', welcome: '¡Hola! Soy el asistente de Iwagé Naturaleza. Descubre experiencias de turismo regenerativo.', placeholder: 'Pregunta sobre experiencias, tours, anfitriones...' },
-    gestion: { icon: '🔑', welcome: '¡Hola! Soy el asistente de Iwagé Gestión. Te ayudo con administración de propiedades.', placeholder: 'Pregunta sobre gestión, renta, administración...' },
-    general: { icon: '🌱', welcome: '¡Hola! Soy el asistente de Iwagé. Puedo ayudarte con nuestras 5 marcas: Meliponas, Café, Tierras, Naturaleza y Gestión.', placeholder: 'Pregunta sobre propiedades, experiencias, miel...' },
+    meliponas: { icon: 'bee', welcome: '¡Hola! Soy el asistente de Iwagé Meliponas. Pregúntame sobre miel, cajas, polinización o proyectos.', placeholder: 'Pregunta sobre miel, cajas, polinización...' },
+    cafe: { icon: 'coffee', welcome: '¡Hola! Soy el asistente del Café Iwagé. Pregúntame sobre el menú, proveedores o nuestra historia.', placeholder: 'Pregunta sobre el menú, café, proveedores...' },
+    tierras: { icon: 'mountain', welcome: '¡Hola! Soy el asistente de Iwagé Tierras. Puedo ayudarte a encontrar propiedades rurales verificadas.', placeholder: 'Busca fincas, lotes, casas campestres...' },
+    naturaleza: { icon: 'leaf', welcome: '¡Hola! Soy el asistente de Iwagé Naturaleza. Descubre experiencias de turismo regenerativo.', placeholder: 'Pregunta sobre experiencias, tours, anfitriones...' },
+    gestion: { icon: 'building-2', welcome: '¡Hola! Soy el asistente de Iwagé Gestión. Te ayudo con administración de propiedades.', placeholder: 'Pregunta sobre gestión, renta, administración...' },
+    general: { icon: 'sprout', welcome: '¡Hola! Soy el asistente de Iwagé. Puedo ayudarte con nuestras 5 marcas: Meliponas, Café, Tierras, Naturaleza y Gestión.', placeholder: 'Pregunta sobre propiedades, experiencias, miel...' },
   };
 
   function detectBrandFromUrl(): string {
@@ -82,7 +82,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
   const iconEl = document.getElementById('chat-icon')!;
 
   // Apply brand theming
-  iconEl.textContent = brandCfg.icon;
+  iconEl.outerHTML = `<i id="chat-icon" data-lucide="${brandCfg.icon}" class="w-5 h-5 text-white"></i>`;
   input.placeholder = brandCfg.placeholder;
 
   // ── Conversation state (persisted in sessionStorage) ──────
@@ -138,7 +138,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
     }
 
     el.innerHTML = `
-      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">${brandCfg.icon}</div>
+      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0"><i data-lucide="${brandCfg.icon}" class="w-4 h-4 text-white"></i></div>
       <div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary leading-relaxed">
         ${renderMarkdown(reply)}
         ${linksHtml}
@@ -155,6 +155,8 @@ import { MessageCircle, X, Send } from '@lucide/astro';
         if (msg) sendMessage(msg);
       });
     });
+
+    window.__lucideCreateIcons?.();
   }
 
   function showTyping() {
@@ -162,7 +164,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
     el.id = 'chat-typing';
     el.className = 'flex items-start gap-2.5 max-w-[85%]';
     el.innerHTML = `
-      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs shrink-0">${brandCfg.icon}</div>
+      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0"><i data-lucide="${brandCfg.icon}" class="w-4 h-4 text-white"></i></div>
       <div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary">
         <span class="inline-flex gap-1"><span class="animate-bounce" style="animation-delay:0ms">·</span><span class="animate-bounce" style="animation-delay:150ms">·</span><span class="animate-bounce" style="animation-delay:300ms">·</span></span>
       </div>`;

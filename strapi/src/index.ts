@@ -17,6 +17,7 @@ const PUBLIC_APIS = [
   'paquete',
   'bitacora',
   'propiedad-gestion',
+  'iniciativa',
 ];
 
 export default {

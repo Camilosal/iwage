@@ -18,14 +18,21 @@ export const tierras: BrandConfig = {
     mono: "'JetBrains Mono', ui-monospace, monospace",
   },
   nav: [
-    { label: 'Propiedades', href: '/tierras/propiedades' },
+    {
+      label: 'Comprar',
+      href: '/tierras/propiedades',
+      children: [
+        { label: 'Catálogo de Propiedades', href: '/tierras/propiedades' },
+        { label: 'Usos del Predio', href: '/tierras/perfiles' },
+        { label: 'Guía de Compra', href: '/tierras/comprar' },
+      ],
+    },
     { label: 'Vender', href: '/tierras/vender' },
     { label: 'Protocolo VAP', href: '/tierras/protocolo-vap' },
     {
       label: 'Herramientas',
       href: '/tierras/lab',
       children: [
-        { label: 'Perfiles de Comprador', href: '/tierras/perfiles' },
         { label: 'Iwagé Lab', href: '/tierras/lab' },
         { label: 'Calculadora Notarial', href: '/tierras/herramientas/calculadora-notarial' },
         { label: 'ROI Calculator', href: '/tierras/herramientas/roi-calculator' },
@@ -33,7 +40,7 @@ export const tierras: BrandConfig = {
       ],
     },
     {
-      label: 'Comunidad',
+      label: 'Recursos',
       href: '/tierras/bitacora',
       children: [
         { label: 'Bitácora', href: '/tierras/bitacora' },
@@ -50,5 +57,5 @@ export const tierras: BrandConfig = {
   },
   whatsapp: '573001234567',
   instagram: '@iwage.tierras',
-  icon: '🌄',
+  icon: 'mountain',
 };

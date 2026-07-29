@@ -12,6 +12,8 @@
     "fenolicos": { "type": "integer" },
     "origen_meliponario": { "type": "string" },
     "origen_altitud": { "type": "string" },
-    "perfil_cata": { "type": "text" }
+    "perfil_cata": { "type": "text" },
+    "galeria": { "type": "json" },
+    "imagen": { "type": "string" }
   }
 }

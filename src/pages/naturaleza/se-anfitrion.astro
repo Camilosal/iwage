@@ -1,0 +1,332 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import { getBrand } from '@/config/brands';
+
+const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
+
+const CAMINOS = [
+  {
+    icon: '🧭',
+    tipo: 'ser_anfitrion',
+    title: 'Quiero ser anfitrión',
+    desc: 'Guía experiencias en el territorio, únete a la red Iwagé y crece con el escalafón. Tu conocimiento del lugar es tu mayor activo.',
+    puntos: [
+      'Guía rutas y experiencias que ya existen en la red',
+      'Capacitación gratuita en primeros auxilios e interpretación ambiental',
+      'Escalafón público: mientras mejor anfitrión, más visibilidad',
+      'Ingresos transparentes por cada reserva que operes',
+    ],
+    cta: 'Postularme como anfitrión',
+    dark: false,
+  },
+  {
+    icon: '🏡',
+    tipo: 'presentar_espacio',
+    title: 'Quiero presentar mi espacio',
+    desc: 'Tu finca, predio o lugar puede convertirse en escenario de experiencias de la red Iwagé. Nosotros lo auditamos, lo producimos y lo conectamos con viajeros.',
+    puntos: [
+      'Auditamos y certificamos tu espacio sin costo',
+      'Producimos la experiencia: ruta, relato, fotos y precios',
+      'Tu predio entra al catálogo con reservas en línea',
+      'Genera ingresos sin operar tú mismo cada visita',
+    ],
+    cta: 'Presentar mi espacio',
+    dark: true,
+  },
+];
+
+const BENEFICIOS = [
+  { icon: '💰', title: 'Ingresos transparentes', desc: 'Sabes exactamente qué ganas por cada experiencia. Cuentas claras, sin sorpresas.' },
+  { icon: '🎓', title: 'Capacitación gratuita', desc: 'Primeros auxilios, interpretación ambiental, hospitalidad y bilingüismo. Te formamos sin costo.' },
+  { icon: '✨', title: 'Visibilidad en la red', desc: 'Tu perfil y tu espacio publicados ante viajeros calificados de todo el ecosistema Iwagé.' },
+  { icon: '👥', title: 'Comunidad activa', desc: 'Foro de anfitriones, reuniones mensuales y una red que se cuida entre sí.' },
+  { icon: '🛡️', title: 'Seguro básico', desc: 'Cobertura de asistencia médica para incidentes durante las experiencias.' },
+  { icon: '🌱', title: 'Regeneración', desc: 'Parte de cada reserva va a un fondo que restaura el territorio que compartes.' },
+];
+
+const PASOS = [
+  { icon: '📝', title: 'Radicación', desc: 'Cuéntanos quién eres o preséntanos tu espacio. Sin compromiso y sin costo.' },
+  { icon: '🔍', title: 'Auditoría & capacitación', desc: 'Visitamos tu espacio, certificamos seguridad y te formamos en hospitalidad.' },
+  { icon: '🎬', title: 'Producción', desc: 'Construimos juntos la experiencia: ruta, relato, fotografía y precios justos.' },
+  { icon: '📅', title: 'Publica y recibe reservas', desc: 'Tu experiencia entra al catálogo con reservas en línea y pagos seguros.' },
+];
+
+const FAQS = [
+  { q: '¿Necesito ser guía certificado para ser anfitrión?', a: 'No. Nosotros te capacitamos gratuitamente en interpretación ambiental, primeros auxilios y hospitalidad. Lo que valoramos es tu conocimiento real del territorio y tu vocación de compartirlo.' },
+  { q: '¿Qué espacios califican para presentar?', a: 'Fincas, predios rurales, reservas naturales, cafetales, miradores y lugares con valor natural, cultural o productivo. No necesitas infraestructura turística previa: la experiencia se diseña alrededor de lo que tu espacio ya es.' },
+  { q: '¿Cómo se fijan los precios?', a: 'Los construimos contigo según la duración, el grupo, los servicios incluidos y el valor del territorio. Puedes tener un precio personalizado por anfitrión y ajustarlo con el tiempo. Siempre sabrás exactamente cuánto recibes.' },
+  { q: '¿Qué gano al unirme a la red?', a: 'Ingresos por reservas en línea, visibilidad ante viajeros calificados, formación continua, seguro básico y una comunidad de anfitriones. Además, tu espacio se conecta con todo el ecosistema Iwagé (Tierras, Gestión, Café).' },
+  { q: '¿Hay exclusividad o permanencia obligatoria?', a: 'No. Puedes operar con otras plataformas y salir de la red cuando quieras. Creemos que la mejor forma de retenerte es que te vaya bien con nosotros.' },
+  { q: '¿Quién opera las visitas si presento mi espacio pero no quiero guiar?', a: 'Puedes presentar solo el espacio: un anfitrión certificado de la red opera la experiencia y tú recibes ingresos por el uso del lugar. También puedes formarte y operarla tú mismo.' },
+];
+---
+
+<BrandLayout brand="naturaleza" title="Sé Anfitrión o Presenta tu Espacio · Iwagé Naturaleza" description="Convierte tu tierra, finca o conocimiento en una experiencia de la red Iwagé. Radicación sin compromiso, capacitación gratuita y reservas en línea.">
+
+  <!-- Hero -->
+  <section class="relative min-h-[70vh] flex items-center overflow-hidden bg-[#0e1a08]">
+    <img
+      src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
+      alt="Campesino en el territorio del Tolima"
+      class="absolute inset-0 w-full h-full object-cover opacity-30"
+      loading="eager"
+    />
+    <div class="absolute inset-0 bg-gradient-to-b from-[#0e1a08]/70 via-transparent to-[#0e1a08]"></div>
+    <div class="relative z-10 max-w-4xl mx-auto px-6 py-24 text-center">
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <div class="w-2 h-2 rounded-full bg-[#d4920a] animate-pulse"></div>
+        <span class="text-xs font-bold tracking-[0.4em] text-[#d4920a] uppercase">Para la comunidad local</span>
+      </div>
+      <h1 class="text-4xl lg:text-6xl font-light text-white leading-tight mb-6">
+        Convierte tu tierra en<br/><span class="font-serif italic text-[#d4920a]">experiencia</span>
+      </h1>
+      <p class="text-lg lg:text-xl text-white/70 leading-relaxed mb-10 max-w-2xl mx-auto">
+        El territorio te necesita como anfitrión. Si tienes una finca, un predio o un saber territorial, la red Iwagé lo convierte en ingresos, visibilidad y regeneración.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button type="button" data-goto-tipo="ser_anfitrion" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#4a7c23]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
+          🧭 Quiero ser anfitrión
+        </button>
+        <button type="button" data-goto-tipo="presentar_espacio" class="bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#d4920a]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
+          🏡 Quiero presentar mi espacio
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Two Paths -->
+  <section class="py-16 px-4 bg-[#f8faf5]">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Dos formas de unirte</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-[#1a3009] mt-3">Elige tu camino</h2>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        {CAMINOS.map((camino) => (
+          <div
+            class:list={[
+              'rounded-3xl p-8 border transition-all duration-300 h-full flex flex-col',
+              camino.dark
+                ? 'bg-[#1a3009] border-[#1a3009] shadow-2xl shadow-[#d4920a]/10'
+                : 'bg-white border-gray-100 shadow-sm',
+            ]}
+          >
+            <span class="text-4xl block mb-4">{camino.icon}</span>
+            <h3 class:list={['text-xl font-semibold mb-3', camino.dark ? 'text-white' : 'text-[#1a3009]']}>{camino.title}</h3>
+            <p class:list={['text-sm mb-6', camino.dark ? 'text-white/60' : 'text-gray-500']}>{camino.desc}</p>
+            <ul class="space-y-2 mb-8">
+              {camino.puntos.map((punto) => (
+                <li class:list={['flex items-start gap-3 text-sm', camino.dark ? 'text-white/70' : 'text-gray-600']}>
+                  <span class:list={['mt-0.5 shrink-0', camino.dark ? 'text-[#d4920a]' : 'text-[#4a7c23]']}>✓</span>
+                  {punto}
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              data-goto-tipo={camino.tipo}
+              class:list={[
+                'mt-auto inline-block w-full text-center px-6 py-3.5 rounded-full font-bold text-sm transition-all cursor-pointer',
+                camino.dark
+                  ? 'bg-[#d4920a] text-[#0e1a08] hover:bg-[#d4920a]/90'
+                  : 'bg-[#2d5016] text-white hover:bg-[#4a7c23]',
+              ]}
+            >
+              {camino.cta} →
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Por qué unirte</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-[#1a3009] mt-3">Lo que recibes al entrar a la red</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {BENEFICIOS.map((bene) => (
+          <div class="bg-[#f8faf5] rounded-2xl border border-[#4a7c23]/10 p-6 flex items-start gap-4 hover:border-[#4a7c23]/30 transition-colors">
+            <span class="text-2xl shrink-0">{bene.icon}</span>
+            <div>
+              <h3 class="font-semibold text-[#1a3009] mb-1">{bene.title}</h3>
+              <p class="text-xs text-gray-600 leading-relaxed">{bene.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="py-16 px-4 bg-[#0e1a08]">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#d4920a] uppercase">Cómo funciona</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-white mt-3">De la radicación a tu primera reserva</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {PASOS.map((paso, i) => (
+          <div class="relative bg-white/5 border border-white/10 rounded-2xl p-6">
+            <span class="absolute top-4 right-4 text-3xl font-mono text-white/10">0{i + 1}</span>
+            <span class="text-3xl block mb-3">{paso.icon}</span>
+            <h3 class="font-semibold text-white mb-2">{paso.title}</h3>
+            <p class="text-xs text-white/60 leading-relaxed">{paso.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Radicación Form -->
+  <section id="radicacion" class="py-16 px-4 bg-[#f8faf5]">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-10">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Radicación sin compromiso</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-[#1a3009] mt-3">Cuéntanos sobre ti o tu espacio</h2>
+        <p class="text-gray-600 mt-4 text-sm">Llena el formulario y nuestro equipo te contactará para una visita. No tiene costo ni compromiso.</p>
+      </div>
+
+      <form id="radicacion-form" class="bg-white rounded-3xl border border-gray-100 shadow-lg p-8 space-y-5">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">Nombre completo *</label>
+            <input type="text" id="nombre" name="nombre" required class="w-full rounded-xl border border-gray-200 bg-[#f8faf5] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a7c23]/20 focus:border-[#4a7c23]" placeholder="Tu nombre" />
+          </div>
+          <div>
+            <label for="whatsapp" class="block text-sm font-medium text-gray-700 mb-2">WhatsApp *</label>
+            <input type="tel" id="whatsapp" name="whatsapp" required class="w-full rounded-xl border border-gray-200 bg-[#f8faf5] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a7c23]/20 focus:border-[#4a7c23]" placeholder="300 000 0000" />
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="municipio" class="block text-sm font-medium text-gray-700 mb-2">Municipio / Vereda</label>
+            <input type="text" id="municipio" name="municipio" class="w-full rounded-xl border border-gray-200 bg-[#f8faf5] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a7c23]/20 focus:border-[#4a7c23]" placeholder="Ej: Ibagué, vereda El Rancho" />
+          </div>
+          <div>
+            <label for="tipo_proyecto" class="block text-sm font-medium text-gray-700 mb-2">¿Qué quieres hacer? *</label>
+            <select id="tipo_proyecto" name="tipo_proyecto" required class="w-full rounded-xl border border-gray-200 bg-[#f8faf5] px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#4a7c23]/20 focus:border-[#4a7c23]">
+              <option value="">Selecciona una opción</option>
+              <option value="ser_anfitrion">🧭 Quiero ser anfitrión</option>
+              <option value="presentar_espacio">🏡 Quiero presentar mi espacio</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="mensaje" class="block text-sm font-medium text-gray-700 mb-2">Cuéntanos más</label>
+          <textarea id="mensaje" name="mensaje" rows="5" class="w-full rounded-xl border border-gray-200 bg-[#f8faf5] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a7c23]/20 focus:border-[#4a7c23] resize-none" placeholder="Describe tu experiencia como guía, o tu espacio: área, ubicación, qué lo hace especial, qué servicios tiene..."></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-[#2d5016] text-white rounded-full px-6 py-4 font-bold text-sm uppercase tracking-wider hover:bg-[#4a7c23] transition-colors">
+          Enviar radicación
+        </button>
+        <p id="radicacion-status" class="text-sm text-center hidden"></p>
+
+        <div class="pt-2 border-t border-gray-100 text-center">
+          <p class="text-xs text-gray-500 mb-3">¿Prefieres hablar directamente?</p>
+          <a
+            href={`https://wa.me/${waPhone}?text=${encodeURIComponent('Hola, quiero ser anfitrión o presentar mi espacio en Iwagé Naturaleza')}`}
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#4a7c23]/30 text-[#2d5016] text-sm font-bold hover:bg-[#f8faf5] transition-colors"
+          >
+            💬 Escríbenos por WhatsApp
+          </a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-10">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Preguntas frecuentes</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-[#1a3009] mt-3">Resolvemos tus dudas</h2>
+      </div>
+      <div class="space-y-3">
+        {FAQS.map((faq) => (
+          <details class="group p-5 rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10">
+            <summary class="cursor-pointer font-semibold text-sm text-[#1a3009] group-open:text-[#4a7c23] list-none flex items-center justify-between gap-4">
+              {faq.q}
+              <span class="text-[#d4920a] group-open:rotate-45 transition-transform shrink-0">+</span>
+            </summary>
+            <p class="mt-3 text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Already a host? -->
+  <section class="py-16 px-4 bg-[#0e1a08]">
+    <div class="max-w-3xl mx-auto text-center">
+      <span class="text-4xl block mb-4">🌿</span>
+      <h2 class="text-2xl lg:text-3xl font-light text-white mb-4">¿Ya eres anfitrión activo?</h2>
+      <p class="text-white/60 mb-8 max-w-xl mx-auto">Encuentra guías, recursos, formación y comunidad en tu hub de anfitriones.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/naturaleza/anfitriones/hub" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#4a7c23]/90 transition-all shadow-lg">
+          Ir al Hub de Anfitriones
+        </a>
+        <a href="/naturaleza/escalafon" class="border border-[#d4920a] text-[#d4920a] px-8 py-4 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#d4920a] hover:text-[#0e1a08] transition-all">
+          Ver escalafón
+        </a>
+      </div>
+    </div>
+  </section>
+</BrandLayout>
+
+<script>
+  // Pre-select the tipo and scroll to the radicación form.
+  document.querySelectorAll('[data-goto-tipo]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tipo = btn.getAttribute('data-goto-tipo');
+      const select = document.getElementById('tipo_proyecto') as HTMLSelectElement | null;
+      if (select && tipo) select.value = tipo;
+      const form = document.getElementById('radicacion');
+      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Radicación form submission → /api/contacto
+  const form = document.getElementById('radicacion-form') as HTMLFormElement;
+  const status = document.getElementById('radicacion-status') as HTMLElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const data = new FormData(form);
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(data)),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        status.textContent = '¡Radicación recibida! Nuestro equipo te contactará para coordinar una visita.';
+        status.className = 'text-sm text-center text-[#4a7c23]';
+        form.reset();
+      } else {
+        status.textContent = result.error || 'Error al enviar. Intenta de nuevo.';
+        status.className = 'text-sm text-center text-red-500';
+      }
+    } catch {
+      status.textContent = 'Error de conexión. Intenta de nuevo.';
+      status.className = 'text-sm text-center text-red-500';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Enviar radicación';
+      status.classList.remove('hidden');
+    }
+  });
+</script>

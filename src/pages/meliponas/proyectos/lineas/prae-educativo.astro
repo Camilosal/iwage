@@ -1,0 +1,243 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import StepTimeline from '@/components/StepTimeline.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import { getProyectos, TIPO_LABELS } from '@/lib/proyectos';
+
+const proyectosRelacionados = (await getProyectos({ tipo: 'club' })).slice(0, 3);
+
+const beneficios = [
+  { icon: 'book-open', title: 'Currículo vivo', desc: 'Las colmenas se convierten en laboratorio de ciencias naturales, ética ambiental y pensamiento sistémico para todas las áreas.' },
+  { icon: 'shield-check', title: 'Seguridad total', desc: 'Meliponas sin aguijón (Tetragonisca angustula): cero riesgo de picadura. Aptas para niños desde preescolar.' },
+  { icon: 'file-text', title: 'Alineación PRAE', desc: 'Documentación lista para el Proyecto Ambiental Escolar: diagnóstico, plan de acción y evidencias de impacto.' },
+  { icon: 'users', title: 'Comunidad educativa', desc: 'Talleres para estudiantes, docentes y familias. Club de meliponicultores juveniles como semillero.' },
+  { icon: 'monitor-smartphone', title: 'Tecnología IoT', desc: 'Sensores de temperatura y humedad con datos en línea para proyectos de tecnología e informática.' },
+  { icon: 'feather', title: 'Componente ancestral', desc: 'Vinculación con sabedores locales: la relación de los pueblos Pijao con las abejas nativas del territorio.' },
+];
+
+const pasos = [
+  { number: 1, title: 'Diagnóstico institucional', description: 'Visita al colegio, evaluación del espacio verde disponible, revisión del PRAE actual y definición de objetivos pedagógicos.' },
+  { number: 2, title: 'Diseño pedagógico', description: 'Plan de integración curricular por niveles, selección de colmenas (INPA con atril para observación) y calendario de talleres.' },
+  { number: 3, title: 'Instalación segura', description: 'Montaje de colmenas en zona protegida, señalética educativa, sendero interpretativo y protocolo de seguridad escolar.' },
+  { number: 4, title: 'Talleres y acompañamiento', description: 'Talleres presenciales por grado, material didáctico impreso y digital, club juvenil y reportes semestrales de impacto.' },
+];
+
+const incluye = [
+  'Diagnóstico y diseño del meliponario escolar',
+  'Colmenas INPA con atril y tapa acrílica de observación',
+  'Material didáctico por nivel (preescolar a media)',
+  'Talleres presenciales para estudiantes y docentes',
+  'Señalética educativa y sendero interpretativo',
+  'Acompañamiento técnico durante 6 meses',
+  'Reporte de impacto para evidencias PRAE',
+  'Opcional: monitoreo IoT con datos en línea',
+];
+
+const faqs = [
+  { q: '¿Las abejas sin aguijón son seguras para niños?', a: 'Sí. Tetragonisca angustula (Angelita) no posee aguijón funcional. Es la especie recomendada mundialmente para entornos escolares. Instalamos además protocolos de seguridad y las colmenas van en atriles a altura controlada.' },
+  { q: '¿Cómo se integra con el PRAE existente?', a: 'Realizamos un diagnóstico del PRAE actual y diseñamos las actividades para aportar evidencias concretas a sus componentes: diagnóstico ambiental, plan de acción, seguimiento y evaluación.' },
+  { q: '¿Qué espacio se necesita?', a: 'Desde 20 m² de zona verde con sombra parcial. Las colmenas educativas requieren menos espacio que un apiario tradicional y se adaptan a patios arborizados.' },
+  { q: '¿Los docentes reciben capacitación?', a: 'Sí. Incluimos taller de formación docente y guías de aula para que el proyecto continúe con autonomía después del acompañamiento.' },
+  { q: '¿Cuánto cuesta un proyecto PRAE?', a: 'Depende del número de colmenas y talleres. Proyectos desde 4 colmenas con material didáctico inician alrededor de $1.200.000 COP. Ofrecemos opciones de convenio y fases progresivas.' },
+];
+---
+
+<BrandLayout
+  title="PRAE Educativo con Meliponas · Iwagé Meliponario"
+  description="Proyectos ambientales escolares (PRAE) con colmenas de abejas sin aguijón como eje transversal. Material didáctico, talleres y acompañamiento en Ibagué y el Tolima."
+>
+  <!-- Hero -->
+  <section class="bg-surface-sunken">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24">
+      <nav class="flex items-center gap-2 text-sm text-text-muted mb-8" aria-label="Breadcrumb">
+        <a href="/meliponas/proyectos" class="hover:text-brand transition-colors">Proyectos</a>
+        <span>/</span>
+        <span class="text-text-primary font-medium">PRAE Educativo</span>
+      </nav>
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <ScrollReveal>
+          <div class="w-16 h-16 rounded-2xl bg-brand-muted flex items-center justify-center text-brand mb-6">
+            <i data-lucide="graduation-cap" class="w-8 h-8"></i>
+          </div>
+          <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Línea · Educación ambiental</p>
+          <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-text-primary leading-tight mb-6">
+            PRAE Educativo
+          </h1>
+          <p class="text-lg text-text-secondary leading-relaxed mb-6">
+            Convierte tu colegio en un laboratorio vivo de biodiversidad. Colmenas de abejas sin aguijón como eje transversal del Proyecto Ambiental Escolar: ciencias, tecnología, ética y territorio en una sola experiencia.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 font-medium hover:bg-brand-light transition-all">
+              Solicitar diagnóstico
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+            <a href="#como-funciona" class="inline-flex items-center gap-2 border border-border text-text-primary rounded-full px-7 py-3.5 font-medium hover:border-brand hover:text-brand transition-all">
+              Cómo funciona
+            </a>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal delay={150}>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">650+</p>
+              <p class="text-xs text-text-muted mt-1">Estudiantes impactados</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">10</p>
+              <p class="text-xs text-text-muted mt-1">Colmenas educativas</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">2</p>
+              <p class="text-xs text-text-muted mt-1">Instituciones activas</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">0</p>
+              <p class="text-xs text-text-muted mt-1">Riesgos de picadura</p>
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    </div>
+  </section>
+
+  <!-- Para quién -->
+  <Section>
+    <div class="grid md:grid-cols-3 gap-6">
+      {[
+        { icon: 'school', title: 'Colegios e instituciones educativas', desc: 'Que buscan fortalecer su PRAE con un proyecto tangible, medible y seguro para toda la comunidad.' },
+        { icon: 'sprout', title: 'Secretarías de educación y ambiente', desc: 'Que quieren replicar modelos de educación ambiental con impacto real en el territorio.' },
+        { icon: 'heart-handshake', title: 'Fundaciones y ONG', desc: 'Que financian proyectos educativos con componente ambiental y necesitan un operador técnico local.' },
+      ].map((item, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="flex gap-4 p-6 bg-surface-raised border border-border rounded-2xl h-full">
+            <div class="w-11 h-11 rounded-xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
+              <i data-lucide={item.icon} class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-text-primary mb-1">{item.title}</h3>
+              <p class="text-sm text-text-secondary leading-relaxed">{item.desc}</p>
+            </div>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Beneficios -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader label="Beneficios" title="¿Por qué meliponas en tu colegio?" align="center" />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {beneficios.map((b, i) => (
+        <ScrollReveal delay={i * 60}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
+              <i data-lucide={b.icon} class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{b.title}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed">{b.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Cómo funciona -->
+  <Section id="como-funciona">
+    <div class="grid lg:grid-cols-2 gap-12 items-start">
+      <ScrollReveal>
+        <SectionHeader
+          label="Metodología"
+          title="Del diagnóstico al club juvenil"
+          subtitle="Un proceso de 4 etapas diseñado para que el proyecto sea sostenible en el tiempo, con autonomía docente y evidencias para el PRAE."
+        />
+        <StepTimeline steps={pasos} />
+      </ScrollReveal>
+      <ScrollReveal delay={150}>
+        <div class="bg-surface-raised border border-border rounded-2xl p-6">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
+            <i data-lucide="package-check" class="w-4 h-4"></i> Qué incluye
+          </h2>
+          <ul class="space-y-3">
+            {incluye.map((item) => (
+              <li class="flex items-start gap-3 text-sm text-text-secondary">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-brand shrink-0 mt-0.5"></i>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Proyectos relacionados -->
+  {proyectosRelacionados.length > 0 && (
+    <Section bg="sunken">
+      <ScrollReveal>
+        <SectionHeader label="Casos reales" title="Proyectos educativos activos" />
+      </ScrollReveal>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {proyectosRelacionados.map((p, i) => (
+          <ScrollReveal delay={i * 80}>
+            <ProjectCard
+              title={p.nombre}
+              location={p.ubicacion ?? `${p.municipio ?? ''}, Tolima`}
+              type={TIPO_LABELS[p.tipo] ?? p.tipo}
+              status={p.estado}
+              description={p.descripcion_corta ?? p.descripcion ?? ''}
+              colmenas={p.colmenas ?? undefined}
+              image={p.imagen ?? undefined}
+              slug={p.slug}
+              iot={p.iot_activo}
+              trazabilidad={p.trazabilidad_qr}
+            />
+          </ScrollReveal>
+        ))}
+      </div>
+    </Section>
+  )}
+
+  <!-- FAQ -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader label="Preguntas frecuentes" title="Resolvemos tus dudas" align="center" />
+    </ScrollReveal>
+    <div class="max-w-3xl mx-auto space-y-4">
+      {faqs.map((faq, i) => (
+        <ScrollReveal delay={i * 50}>
+          <details class="group bg-surface-raised border border-border rounded-2xl overflow-hidden">
+            <summary class="flex items-center justify-between gap-4 p-5 cursor-pointer list-none">
+              <span class="font-medium text-text-primary">{faq.q}</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-text-muted shrink-0 group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="px-5 pb-5 text-sm text-text-secondary leading-relaxed">{faq.a}</p>
+          </details>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold text-dark-text mb-4">¿Tu colegio quiere un meliponario?</h2>
+        <p class="text-dark-text/60 mb-8">Agenda un diagnóstico gratuito. Evaluamos el espacio, el PRAE actual y te presentamos una propuesta pedagógica a la medida.</p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+            Solicitar propuesta
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </a>
+          <a href="/meliponas/proyectos" class="inline-flex items-center gap-2 border border-dark-text/30 text-dark-text rounded-full px-8 py-4 font-medium hover:border-dark-text/60 transition-all">
+            Ver todos los proyectos
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

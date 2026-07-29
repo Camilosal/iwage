@@ -84,6 +84,7 @@ function formatMetadata(chunk: KnowledgeChunk): string {
 
 /**
  * Extract actionable links from retrieval results.
+ * Includes cross-brand related links when available.
  */
 export function extractLinks(results: RetrievalResult[]): ChatLink[] {
   const seen = new Set<string>();
@@ -98,9 +99,23 @@ export function extractLinks(results: RetrievalResult[]): ChatLink[] {
       url: chunk.url,
       type: chunk.type,
     });
+
+    // Include cross-brand related links (Phase 5.2)
+    if (chunk.related) {
+      for (const rel of chunk.related.slice(0, 2)) {
+        if (seen.has(rel.url)) continue;
+        seen.add(rel.url);
+        const icons: Record<string, string> = { propiedad: '🏡', experiencia: '🌿', anfitrion: '👤', proveedor: '🧑‍🌾', propiedad_gestion: '🔑' };
+        links.push({
+          label: `${icons[rel.type] || '🔗'} ${rel.title}`,
+          url: rel.url,
+          type: rel.type,
+        });
+      }
+    }
   }
 
-  return links.slice(0, 4); // max 4 links per response
+  return links.slice(0, 5); // max 5 links per response
 }
 
 function buildLinkLabel(chunk: KnowledgeChunk): string {

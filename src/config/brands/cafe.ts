@@ -20,7 +20,6 @@ export const cafe: BrandConfig = {
   },
   nav: [
     { label: 'Menú', href: '/cafe/menu' },
-    { label: 'Pedir Online', href: '/cafe/pedidos' },
     { label: 'Recetas', href: '/cafe/recetas' },
     { label: 'Proveedores', href: '/cafe/proveedores' },
     {
@@ -41,5 +40,5 @@ export const cafe: BrandConfig = {
   },
   whatsapp: '573001234567',
   instagram: '@cafe.iwage',
-  icon: '☕',
+  icon: 'coffee',
 };

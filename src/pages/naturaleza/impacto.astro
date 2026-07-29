@@ -1,6 +1,6 @@
 ---
-export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import { getIniciativas } from '@/lib/naturaleza';
 
 const ESG = [
   {
@@ -46,11 +46,18 @@ const METRICS = [
   { icon: '🔍', value: '100%', label: 'Transparencia' },
 ];
 
-const INITIATIVES = [
-  { icon: '🌱', title: 'Fondo de Semillas Nativas', desc: 'Recolección y propagación de especies clave para restaurar el Corredor del Combeima.', status: 'En curso', metric: '1.200 plántulas', progress: 75 },
-  { icon: '👥', title: 'Escuela de Guías Locales', desc: 'Programa de capacitación en bilingüismo y primeros auxilios para jóvenes rurales.', status: 'Activo', metric: '12 becados', progress: 60 },
-  { icon: '🌲', title: 'Vivero de Alta Montaña', desc: 'Infraestructura para la producción masiva de frailejones en el Páramo de Anaime.', status: 'Construcción', metric: '60% avance', progress: 60 },
+// Iniciativas de temporada: gestionables desde el CMS (Strapi → Iniciativas de Impacto).
+// Si el CMS no devuelve datos (ej. sin sembrar), se muestran unas por defecto para que la sección nunca quede vacía.
+const INICIATIVAS_FALLBACK = [
+  { icono: '🌱', titulo: 'Fondo de Semillas Nativas', descripcion: 'Recolección y propagación de especies clave para restaurar el Corredor del Combeima.', estado: 'En curso', metrica: '1.200 plántulas', progreso: 75 },
+  { icono: '👥', titulo: 'Escuela de Guías Locales', descripcion: 'Programa de capacitación en bilingüismo y primeros auxilios para jóvenes rurales.', estado: 'Activo', metrica: '12 becados', progreso: 60 },
+  { icono: '🌲', titulo: 'Vivero de Alta Montaña', descripcion: 'Infraestructura para la producción masiva de frailejones en el Páramo de Anaime.', estado: 'Construcción', metrica: '60% avance', progreso: 60 },
 ];
+
+const iniciativasCMS = await getIniciativas();
+const iniciativas = iniciativasCMS.length > 0
+  ? iniciativasCMS.map((i) => ({ icono: i.icono || '🌱', titulo: i.titulo, descripcion: i.descripcion || '', estado: i.estado || 'En curso', metrica: i.metrica || '', progreso: i.progreso ?? 0 }))
+  : INICIATIVAS_FALLBACK;
 ---
 
 <BrandLayout brand="naturaleza" title="Impacto Regenerativo · Iwagé Naturaleza" description="Cómo cada experiencia Iwagé Naturaleza contribuye a la restauración del territorio: fondo de impacto, siembra nativa, protección hídrica y formación de guardianes.">
@@ -169,20 +176,20 @@ const INITIATIVES = [
         <p class="text-gray-500">Proyectos activos financiados por el fondo de restauración</p>
       </div>
       <div class="grid md:grid-cols-3 gap-6">
-        {INITIATIVES.map((init) => (
+        {iniciativas.map((init) => (
           <div class="bg-[#f8faf5] rounded-xl border border-[#EDE5D4] p-6">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-3xl">{init.icon}</span>
-              <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#40916C]/10 text-[#40916C]">{init.status}</span>
+              <span class="text-3xl">{init.icono}</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#40916C]/10 text-[#40916C]">{init.estado}</span>
             </div>
-            <h3 class="font-serif text-lg font-bold text-[#1a3009] mb-2">{init.title}</h3>
-            <p class="text-sm text-gray-600 mb-4">{init.desc}</p>
+            <h3 class="font-serif text-lg font-bold text-[#1a3009] mb-2">{init.titulo}</h3>
+            <p class="text-sm text-gray-600 mb-4">{init.descripcion}</p>
             <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
-              <span>{init.metric}</span>
-              <span>{init.progress}%</span>
+              <span>{init.metrica}</span>
+              <span>{init.progreso}%</span>
             </div>
             <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div class="h-full bg-[#40916C] rounded-full transition-all" style={`width: ${init.progress}%`}></div>
+              <div class="h-full bg-[#40916C] rounded-full transition-all" style={`width: ${init.progreso}%`}></div>
             </div>
           </div>
         ))}

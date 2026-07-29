@@ -6,44 +6,88 @@ interface Props {
   presentation?: string;
   image?: string;
   destacado?: boolean;
+  slug?: string;
+  precioComparativo?: number | null;
+  envioGratis?: boolean;
+  stockDisponible?: boolean;
+  recursoSlug?: string;
+  tipo?: string;
+  tipoDisponibilidad?: string;
+  requierePago?: boolean;
+  origen?: string;
+  brand?: string;
 }
-const { name, description, price, presentation, image, destacado = false } = Astro.props;
-const formattedPrice = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(price);
+const { name, description, price, presentation, image, destacado = false, slug, precioComparativo, envioGratis = false, stockDisponible = true, recursoSlug, tipo = 'producto', tipoDisponibilidad = 'inmediato', requierePago = true, origen = 'iwage_meliponas', brand = 'meliponas' } = Astro.props;
+const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+const formattedPrice = fmt.format(price);
+const descuento = precioComparativo ? Math.round((1 - price / precioComparativo) * 100) : null;
 ---
 
 <div class="group bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-  <div class="aspect-square overflow-hidden bg-surface-sunken relative">
-    {image ? (
-      <img
-        src={image}
-        alt={name}
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        loading="lazy"
-      />
-    ) : (
-      <div class="w-full h-full flex items-center justify-center text-text-muted">
-        <i data-lucide="package" class="w-12 h-12"></i>
-      </div>
-    )}
-    {destacado && (
-      <span class="absolute top-3 left-3 bg-accent text-white text-xs font-medium rounded-full px-3 py-1">
-        Destacado
-      </span>
-    )}
-  </div>
+  <a href={slug ? `/meliponas/tienda/${slug}` : undefined} class="block">
+    <div class="aspect-square overflow-hidden bg-surface-sunken relative">
+      {image ? (
+        <img
+          src={image}
+          alt={name}
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+      ) : (
+        <div class="w-full h-full flex items-center justify-center text-text-muted">
+          <i data-lucide="package" class="w-12 h-12"></i>
+        </div>
+      )}
+      {destacado && (
+        <span class="absolute top-3 left-3 bg-accent text-white text-xs font-medium rounded-full px-3 py-1">
+          Destacado
+        </span>
+      )}
+      {descuento && (
+        <span class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1">
+          -{descuento}%
+        </span>
+      )}
+      {!stockDisponible && (
+        <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <span class="bg-white/90 text-gray-800 text-sm font-medium rounded-full px-4 py-1.5">Agotado</span>
+        </div>
+      )}
+    </div>
+  </a>
   <div class="p-5">
-    <h3 class="text-base font-semibold text-text-primary mb-1">{name}</h3>
+    <a href={slug ? `/meliponas/tienda/${slug}` : undefined} class="block">
+      <h3 class="text-base font-semibold text-text-primary mb-1 group-hover:text-brand transition-colors">{name}</h3>
+    </a>
     {presentation && (
       <p class="text-xs text-text-muted mb-2">{presentation}</p>
     )}
-    <p class="text-sm text-text-secondary leading-relaxed line-clamp-2 mb-4">{description}</p>
+    <p class="text-sm text-text-secondary leading-relaxed line-clamp-2 mb-3">{description}</p>
+    {envioGratis && (
+      <p class="text-xs text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
+        <i data-lucide="truck" class="w-3.5 h-3.5"></i> Envío gratis
+      </p>
+    )}
     <div class="flex items-center justify-between">
-      <span class="text-lg font-bold text-brand">{formattedPrice}</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-lg font-bold text-brand">{formattedPrice}</span>
+        {precioComparativo && (
+          <span class="text-sm text-text-muted line-through">{fmt.format(precioComparativo)}</span>
+        )}
+      </div>
       <button
         type="button"
-        class="add-to-cart bg-brand text-white text-sm font-medium rounded-full px-4 py-2 hover:bg-brand-light hover:scale-[1.02] transition-all"
+        class="add-to-cart bg-brand text-white text-sm font-medium rounded-full px-4 py-2 hover:bg-brand-light hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         data-name={name}
         data-price={price}
+        data-slug={slug}
+        data-recurso-slug={recursoSlug}
+        data-tipo={tipo}
+        data-tipo-disponibilidad={tipoDisponibilidad}
+        data-requiere-pago={String(requierePago)}
+        data-origen={origen}
+        data-brand={brand}
+        disabled={!stockDisponible}
       >
         Agregar
       </button>

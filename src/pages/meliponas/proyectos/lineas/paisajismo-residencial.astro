@@ -1,0 +1,251 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import StepTimeline from '@/components/StepTimeline.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import { getProyectos, TIPO_LABELS } from '@/lib/proyectos';
+
+const proyectosRelacionados = (await getProyectos({ tipo: 'residencial' })).slice(0, 3);
+
+const beneficios = [
+  { icon: 'flower-2', title: 'Jardín que poliniza', desc: 'Las meliponas polinizan flores, hortalizas y frutales del jardín: cayena, trinitaria, mango, limón y más.' },
+  { icon: 'shield-check', title: 'Cero riesgo de picadura', desc: 'Tetragonisca angustula no tiene aguijón funcional. Convive con niños, mascotas y adultos mayores sin peligro.' },
+  { icon: 'eye', title: 'Observación fascinante', desc: 'Cajas con tapa acrílica: la colonia viva como pieza de contemplación diaria, sin interferir con su actividad.' },
+  { icon: 'home', title: 'Valor inmobiliario', desc: 'Un jardín biodiverso con historia: las colmenas ornamentales diferencian la propiedad y conversan con visitantes.' },
+  { icon: 'volume-2', title: 'Silencio total', desc: 'A diferencia de las abejas con aguijón, las meliponas son prácticamente silenciosas. Imperceptibles en el día a día.' },
+  { icon: 'wrench', title: 'Mantenimiento mínimo', desc: 'Una visita trimestral de revisión es suficiente. Sin trajes, sin ahumador, sin manipulación compleja.' },
+];
+
+const pasos = [
+  { number: 1, title: 'Visita al espacio', description: 'Evaluación del jardín o terraza: orientación, sombra, flora ornamental y productiva, y puntos seguros de instalación.' },
+  { number: 2, title: 'Diseño paisajístico', description: 'Ubicación de colmenas como elementos del paisaje: alturas, soportes, integración con plantas y circulación de personas.' },
+  { number: 3, title: 'Instalación', description: 'Montaje de colmenas con tapa acrílica, señalética informativa discreta y ambientación de la colonia.' },
+  { number: 4, title: 'Seguimiento', description: 'Visitas trimestrales de salud colonial, ajustes de ubicación según estación y reporte fotográfico para la administración.' },
+];
+
+const incluye = [
+  'Visita de evaluación del espacio',
+  'Diseño de integración paisajística',
+  'Colmenas con tapa acrílica de observación',
+  'Atriles o soportes según el espacio',
+  'Señalética informativa discreta',
+  'Guía de convivencia para residentes',
+  'Mantenimiento trimestral (primer año)',
+  'Reporte fotográfico de la colonia',
+];
+
+const espacios = [
+  { icon: 'trees', nombre: 'Jardines privados', desc: 'Zonas verdes con sombra parcial y flora ornamental. El escenario ideal.' },
+  { icon: 'building-2', nombre: 'Zonas comunes de conjuntos', desc: 'Valor agregado para copropiedades: biodiversidad visible y segura.' },
+  { icon: 'sun', nombre: 'Terrazas y patios', desc: 'Desde 2 m² con sombra. Las colmenas se adaptan a espacios compactos.' },
+  { icon: 'landmark', nombre: 'Espacios institucionales', desc: 'Bibliotecas, centros culturales y sedes empresariales con jardín.' },
+];
+
+const faqs = [
+  { q: '¿Es legal tener colmenas en zona urbana?', a: 'Sí, en el caso de meliponas. Al no tener aguijón no aplican las restricciones de apicultura urbana. Recomendamos informar a la administración del conjunto como buena práctica.' },
+  { q: '¿Las abejas entran a la casa o molestan?', a: 'No. Las meliponas vuelan en trayectorias cortas y directas hacia la flora. No se sienten atraídas por alimentos humanos ni basura. Su radio de acción es de 300–500 metros.' },
+  { q: '¿Qué pasa si alguien del conjunto tiene miedo?', a: 'La tapa acrílica permite observar sin contacto. Incluimos guía de convivencia y señalética que explica la seguridad de la especie. La experiencia muestra que el miedo se convierte en curiosidad.' },
+  { q: '¿Producen miel para consumo?', a: 'En colmenas ornamentales la producción es mínima (200–400 ml/año) y se deja para la colonia. El objetivo es paisajístico y educativo, no productivo.' },
+  { q: '¿Cuánto espacio mínimo necesito?', a: 'Desde 2 m² con sombra parcial. Una terraza con materas de cayena o trinitaria ya es suficiente para una colonia pequeña.' },
+];
+---
+
+<BrandLayout
+  title="Paisajismo Residencial con Meliponas · Iwagé Meliponario"
+  description="Colmenas ornamentales de abejas sin aguijón para jardines, terrazas y zonas comunes. Paisajismo vivo, seguro y sin mantenimiento complejo en Ibagué y el Tolima."
+>
+  <!-- Hero -->
+  <section class="bg-surface-sunken">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24">
+      <nav class="flex items-center gap-2 text-sm text-text-muted mb-8" aria-label="Breadcrumb">
+        <a href="/meliponas/proyectos" class="hover:text-brand transition-colors">Proyectos</a>
+        <span>/</span>
+        <span class="text-text-primary font-medium">Paisajismo Residencial</span>
+      </nav>
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <ScrollReveal>
+          <div class="w-16 h-16 rounded-2xl bg-brand-muted flex items-center justify-center text-brand mb-6">
+            <i data-lucide="home" class="w-8 h-8"></i>
+          </div>
+          <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Línea · Paisajismo vivo</p>
+          <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-text-primary leading-tight mb-6">
+            Paisajismo Residencial
+          </h1>
+          <p class="text-lg text-text-secondary leading-relaxed mb-6">
+            Colmenas ornamentales con tapa acrílica: una colonia viva como pieza central de tu jardín. Biodiversidad visible, polinización silenciosa y cero riesgo para tu familia.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 font-medium hover:bg-brand-light transition-all">
+              Evaluar mi espacio
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+            <a href="#espacios" class="inline-flex items-center gap-2 border border-border text-text-primary rounded-full px-7 py-3.5 font-medium hover:border-brand hover:text-brand transition-all">
+              ¿Aplica mi espacio?
+            </a>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal delay={150}>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">2m²</p>
+              <p class="text-xs text-text-muted mt-1">Espacio mínimo</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">0</p>
+              <p class="text-xs text-text-muted mt-1">Picaduras posibles</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">4/año</p>
+              <p class="text-xs text-text-muted mt-1">Visitas de mantenimiento</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">45</p>
+              <p class="text-xs text-text-muted mt-1">Familias beneficiadas</p>
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    </div>
+  </section>
+
+  <!-- Espacios que aplican -->
+  <Section id="espacios">
+    <ScrollReveal>
+      <SectionHeader
+        label="Espacios"
+        title="¿Dónde funciona?"
+        subtitle="Si hay sombra parcial y algo de flora, hay espacio para una colonia. Estos son los escenarios más comunes."
+      />
+    </ScrollReveal>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {espacios.map((e, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised border border-border rounded-2xl p-6 h-full">
+            <div class="w-11 h-11 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
+              <i data-lucide={e.icon} class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-semibold text-text-primary mb-1">{e.nombre}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed">{e.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Beneficios -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader label="Beneficios" title="¿Por qué una colmena en tu jardín?" align="center" />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {beneficios.map((b, i) => (
+        <ScrollReveal delay={i * 60}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
+              <i data-lucide={b.icon} class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{b.title}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed">{b.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Cómo funciona -->
+  <Section>
+    <div class="grid lg:grid-cols-2 gap-12 items-start">
+      <ScrollReveal>
+        <SectionHeader
+          label="Metodología"
+          title="De la visita a la colonia viva"
+          subtitle="Un proceso simple de 4 etapas. En menos de un mes tu espacio tiene una colonia activa y observable."
+        />
+        <StepTimeline steps={pasos} />
+      </ScrollReveal>
+      <ScrollReveal delay={150}>
+        <div class="bg-surface-raised border border-border rounded-2xl p-6">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
+            <i data-lucide="package-check" class="w-4 h-4"></i> Qué incluye
+          </h2>
+          <ul class="space-y-3">
+            {incluye.map((item) => (
+              <li class="flex items-start gap-3 text-sm text-text-secondary">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-brand shrink-0 mt-0.5"></i>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Proyectos relacionados -->
+  {proyectosRelacionados.length > 0 && (
+    <Section bg="sunken">
+      <ScrollReveal>
+        <SectionHeader label="Casos reales" title="Espacios residenciales con colmenas" />
+      </ScrollReveal>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {proyectosRelacionados.map((p, i) => (
+          <ScrollReveal delay={i * 80}>
+            <ProjectCard
+              title={p.nombre}
+              location={p.ubicacion ?? `${p.municipio ?? ''}, Tolima`}
+              type={TIPO_LABELS[p.tipo] ?? p.tipo}
+              status={p.estado}
+              description={p.descripcion_corta ?? p.descripcion ?? ''}
+              colmenas={p.colmenas ?? undefined}
+              image={p.imagen ?? undefined}
+              slug={p.slug}
+              iot={p.iot_activo}
+              trazabilidad={p.trazabilidad_qr}
+            />
+          </ScrollReveal>
+        ))}
+      </div>
+    </Section>
+  )}
+
+  <!-- FAQ -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader label="Preguntas frecuentes" title="Resolvemos tus dudas" align="center" />
+    </ScrollReveal>
+    <div class="max-w-3xl mx-auto space-y-4">
+      {faqs.map((faq, i) => (
+        <ScrollReveal delay={i * 50}>
+          <details class="group bg-surface-raised border border-border rounded-2xl overflow-hidden">
+            <summary class="flex items-center justify-between gap-4 p-5 cursor-pointer list-none">
+              <span class="font-medium text-text-primary">{faq.q}</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-text-muted shrink-0 group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="px-5 pb-5 text-sm text-text-secondary leading-relaxed">{faq.a}</p>
+          </details>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold text-dark-text mb-4">¿Tu jardín está listo para una colonia?</h2>
+        <p class="text-dark-text/60 mb-8">Agenda la visita de evaluación. Revisamos tu espacio y te decimos honestamente si aplica — sin compromiso.</p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+            Evaluar mi espacio
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </a>
+          <a href="/meliponas/tienda" class="inline-flex items-center gap-2 border border-dark-text/30 text-dark-text rounded-full px-8 py-4 font-medium hover:border-dark-text/60 transition-all">
+            Ver cajas en la tienda
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

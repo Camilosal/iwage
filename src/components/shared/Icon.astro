@@ -1,0 +1,59 @@
+---
+import {
+  ArrowRight, ArrowDown, Bee, BookOpen, Building2, Calculator, Calendar,
+  Camera, Check, CheckCircle, ClipboardList, Coffee, FileText, Globe,
+  Home, Jar, KeyRound, Leaf, Link, MessageCircle, Mountain, Package,
+  Scale, Settings2, Shield, Sprout, TrendingUp, Trophy, User, Wallet,
+  type LucideIcon,
+} from '@lucide/astro';
+
+interface Props {
+  name: string;
+  class?: string;
+  size?: number;
+}
+
+const { name, class: className = '', size = 16 } = Astro.props;
+
+const icons: Record<string, LucideIcon> = {
+  'arrow-right': ArrowRight,
+  'arrow-down': ArrowDown,
+  bee: Bee,
+  'book-open': BookOpen,
+  'building-2': Building2,
+  calculator: Calculator,
+  calendar: Calendar,
+  camera: Camera,
+  check: Check,
+  'check-circle': CheckCircle,
+  'clipboard-list': ClipboardList,
+  coffee: Coffee,
+  'file-text': FileText,
+  globe: Globe,
+  home: Home,
+  jar: Jar,
+  'key-round': KeyRound,
+  leaf: Leaf,
+  link: Link,
+  'message-circle': MessageCircle,
+  mountain: Mountain,
+  package: Package,
+  scale: Scale,
+  'settings-2': Settings2,
+  shield: Shield,
+  sprout: Sprout,
+  'trending-up': TrendingUp,
+  trophy: Trophy,
+  user: User,
+  wallet: Wallet,
+};
+
+const Icon = icons[name];
+if (!Icon) {
+  console.warn(`Icon "${name}" not found in Icon.astro mapping`);
+}
+---
+
+{
+  Icon ? <Icon class={className} size={size} /> : null
+}

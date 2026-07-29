@@ -1,0 +1,251 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import StepTimeline from '@/components/StepTimeline.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import { getProyectos, TIPO_LABELS } from '@/lib/proyectos';
+
+const proyectosRelacionados = (await getProyectos({ tipo: 'turismo' })).slice(0, 3);
+
+const beneficios = [
+  { icon: 'ticket', title: 'Experiencia diferenciadora', desc: 'Los huéspedes pagan más por vivencias únicas: observación de abejas nativas y cata de miel son memorables e instagrameables.' },
+  { icon: 'shield-check', title: 'Seguras para todo público', desc: 'Meliponas sin aguijón: la experiencia es apta para niños, adultos mayores y personas alérgicas a picaduras de Apis.' },
+  { icon: 'route', title: 'Sendero interpretativo', desc: 'Estaciones señaléticas con narrativa territorial: biología de la colmena, flora melífera y cosmovisión Pijao.' },
+  { icon: 'wine', title: 'Cata de miel premium', desc: 'Degustación guiada de miel de Angelita con maridaje local. Un cierre sensorial que fideliza visitantes.' },
+  { icon: 'qr-code', title: 'Recuerdo con trazabilidad', desc: 'Cada visitante se lleva un QR que conecta su experiencia con la colmena que observó: vínculo emocional duradero.' },
+  { icon: 'users', title: 'Personal capacitado', desc: 'Formamos a tu equipo como guías de la experiencia: guion, manejo de grupos y protocolo de seguridad.' },
+];
+
+const pasos = [
+  { number: 1, title: 'Diagnóstico de experiencia', description: 'Visita al alojamiento: recorrido de huéspedes, puntos de interés, flora disponible y perfil del visitante típico.' },
+  { number: 2, title: 'Diseño de la experiencia', description: 'Guion de la vivencia (45–90 min), trazado del sendero, estaciones, ubicación de colmenas y diseño de señalética.' },
+  { number: 3, title: 'Instalación y montaje', description: 'Colmenas en atriles de observación, señalética interpretativa bilingüe y estación de cata equipada.' },
+  { number: 4, title: 'Formación y lanzamiento', description: 'Capacitación del personal como guías, prueba piloto con invitados y ajustes finales antes del lanzamiento.' },
+];
+
+const incluye = [
+  'Diagnóstico y diseño de la experiencia',
+  'Colmenas de observación con atril y tapa acrílica',
+  'Sendero interpretativo señalizado (bilingüe)',
+  'Guion de experiencia para guías',
+  'Kit de cata: mieles, fichas sensoriales y menaje',
+  'Capacitación del personal (2 jornadas)',
+  'Señalética de seguridad y protocolo de visita',
+  'Acompañamiento durante 3 meses post-lanzamiento',
+];
+
+const formatos = [
+  { icon: 'sunrise', nombre: 'Observación al amanecer', desc: '45 min · Actividad de apertura del día con luz dorada sobre las colmenas.' },
+  { icon: 'wine', nombre: 'Cata sensorial de mieles', desc: '60 min · Degustación guiada con fichas de aroma, sabor y origen.' },
+  { icon: 'route', nombre: 'Sendero completo', desc: '90 min · Recorrido interpretativo con estaciones + cata de cierre.' },
+  { icon: 'microscope', nombre: 'Taller de biodiversidad', desc: '120 min · Para grupos: biología de meliponas, flora y territorio.' },
+];
+
+const faqs = [
+  { q: '¿Qué tipo de alojamiento puede tener esta experiencia?', a: 'Ecohoteles, glampings, fincas agroturísticas, centros vacacionales y haciendas con visita guiada. Solo necesitas un sendero o zona verde con sombra parcial y flora cercana.' },
+  { q: '¿Es segura para huéspedes alérgicos?', a: 'Sí. Las meliponas no pueden picar (aguijón atrofiado). Es la única experiencia de abejas apta para personas con alergia a Apis, siempre que no tengan alergia a productos apícolas.' },
+  { q: '¿Cuánto puedo cobrar por la experiencia?', a: 'Nuestros clientes cobran entre $25.000 y $60.000 COP por persona según el formato. Con 4 colmenas y 2 salidas semanales de 8 personas, la inversión se recupera en 4–6 meses.' },
+  { q: '¿Necesito un guía especializado en abejas?', a: 'No. Capacitamos a tu personal existente con el guion diseñado. La experiencia está pensada para ser operada por el equipo del alojamiento con autonomía.' },
+  { q: '¿La experiencia funciona todo el año?', a: 'Sí. Las meliponas son activas los 12 meses en el piedemonte tolimense. En lluvia fuerte se ajusta el recorrido a las estaciones cubiertas.' },
+];
+---
+
+<BrandLayout
+  title="Turismo de Naturaleza con Meliponas · Iwagé Meliponario"
+  description="Experiencias de observación de abejas sin aguijón y cata de miel para ecohoteles, glampings y agroturismo en el Tolima. Diseño, instalación y formación de guías."
+>
+  <!-- Hero -->
+  <section class="bg-surface-sunken">
+    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24">
+      <nav class="flex items-center gap-2 text-sm text-text-muted mb-8" aria-label="Breadcrumb">
+        <a href="/meliponas/proyectos" class="hover:text-brand transition-colors">Proyectos</a>
+        <span>/</span>
+        <span class="text-text-primary font-medium">Turismo de Naturaleza</span>
+      </nav>
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <ScrollReveal>
+          <div class="w-16 h-16 rounded-2xl bg-brand-muted flex items-center justify-center text-brand mb-6">
+            <i data-lucide="palmtree" class="w-8 h-8"></i>
+          </div>
+          <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Línea · Experiencias turísticas</p>
+          <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-text-primary leading-tight mb-6">
+            Turismo de Naturaleza
+          </h1>
+          <p class="text-lg text-text-secondary leading-relaxed mb-6">
+            Dale a tus huéspedes una experiencia que no olvidarán: observar abejas nativas sin aguijón en su hábitat, recorrer un sendero interpretativo y cerrar con una cata de miel premium del territorio.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 font-medium hover:bg-brand-light transition-all">
+              Diseñar mi experiencia
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+            <a href="#formatos" class="inline-flex items-center gap-2 border border-border text-text-primary rounded-full px-7 py-3.5 font-medium hover:border-brand hover:text-brand transition-all">
+              Ver formatos
+            </a>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal delay={150}>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">4</p>
+              <p class="text-xs text-text-muted mt-1">Formatos de experiencia</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">100%</p>
+              <p class="text-xs text-text-muted mt-1">Seguro (sin aguijón)</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">4-6</p>
+              <p class="text-xs text-text-muted mt-1">Meses de recuperación</p>
+            </div>
+            <div class="bg-surface-raised border border-border rounded-2xl p-5 text-center">
+              <p class="text-3xl font-bold text-brand">3</p>
+              <p class="text-xs text-text-muted mt-1">Empleos por proyecto</p>
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    </div>
+  </section>
+
+  <!-- Formatos de experiencia -->
+  <Section id="formatos">
+    <ScrollReveal>
+      <SectionHeader
+        label="Formatos"
+        title="Cuatro experiencias listas para operar"
+        subtitle="Combínalas según tu flujo de visitantes. Todas incluyen guion, señalética y capacitación de tu personal."
+      />
+    </ScrollReveal>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {formatos.map((f, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised border border-border rounded-2xl p-6 h-full">
+            <div class="w-11 h-11 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
+              <i data-lucide={f.icon} class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-semibold text-text-primary mb-1">{f.nombre}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed">{f.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Beneficios -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader label="Beneficios" title="¿Por qué meliponas en tu alojamiento?" align="center" />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {beneficios.map((b, i) => (
+        <ScrollReveal delay={i * 60}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
+              <i data-lucide={b.icon} class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{b.title}</h3>
+            <p class="text-sm text-text-secondary leading-relaxed">{b.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Cómo funciona -->
+  <Section>
+    <div class="grid lg:grid-cols-2 gap-12 items-start">
+      <ScrollReveal>
+        <SectionHeader
+          label="Metodología"
+          title="Del diagnóstico al lanzamiento"
+          subtitle="Diseñamos la experiencia alrededor de tu flujo de huéspedes para que sea operable por tu propio equipo desde el día uno."
+        />
+        <StepTimeline steps={pasos} />
+      </ScrollReveal>
+      <ScrollReveal delay={150}>
+        <div class="bg-surface-raised border border-border rounded-2xl p-6">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
+            <i data-lucide="package-check" class="w-4 h-4"></i> Qué incluye
+          </h2>
+          <ul class="space-y-3">
+            {incluye.map((item) => (
+              <li class="flex items-start gap-3 text-sm text-text-secondary">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-brand shrink-0 mt-0.5"></i>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Proyectos relacionados -->
+  {proyectosRelacionados.length > 0 && (
+    <Section bg="sunken">
+      <ScrollReveal>
+        <SectionHeader label="Casos reales" title="Experiencias turísticas activas" />
+      </ScrollReveal>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {proyectosRelacionados.map((p, i) => (
+          <ScrollReveal delay={i * 80}>
+            <ProjectCard
+              title={p.nombre}
+              location={p.ubicacion ?? `${p.municipio ?? ''}, Tolima`}
+              type={TIPO_LABELS[p.tipo] ?? p.tipo}
+              status={p.estado}
+              description={p.descripcion_corta ?? p.descripcion ?? ''}
+              colmenas={p.colmenas ?? undefined}
+              image={p.imagen ?? undefined}
+              slug={p.slug}
+              iot={p.iot_activo}
+              trazabilidad={p.trazabilidad_qr}
+            />
+          </ScrollReveal>
+        ))}
+      </div>
+    </Section>
+  )}
+
+  <!-- FAQ -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader label="Preguntas frecuentes" title="Resolvemos tus dudas" align="center" />
+    </ScrollReveal>
+    <div class="max-w-3xl mx-auto space-y-4">
+      {faqs.map((faq, i) => (
+        <ScrollReveal delay={i * 50}>
+          <details class="group bg-surface-raised border border-border rounded-2xl overflow-hidden">
+            <summary class="flex items-center justify-between gap-4 p-5 cursor-pointer list-none">
+              <span class="font-medium text-text-primary">{faq.q}</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-text-muted shrink-0 group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="px-5 pb-5 text-sm text-text-secondary leading-relaxed">{faq.a}</p>
+          </details>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold text-dark-text mb-4">¿Tu alojamiento quiere una experiencia única?</h2>
+        <p class="text-dark-text/60 mb-8">Cuéntanos sobre tus huéspedes y tu espacio. Diseñamos la experiencia completa y formamos a tu equipo para operarla.</p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+            Diseñar experiencia
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </a>
+          <a href="/meliponas/proyectos" class="inline-flex items-center gap-2 border border-dark-text/30 text-dark-text rounded-full px-8 py-4 font-medium hover:border-dark-text/60 transition-all">
+            Ver todos los proyectos
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

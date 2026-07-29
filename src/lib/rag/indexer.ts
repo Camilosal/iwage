@@ -256,6 +256,56 @@ async function indexProductos(): Promise<KnowledgeChunk[]> {
   } catch { return []; }
 }
 
+// ── Cross-Brand Linking ──────────────────────────────────
+
+/**
+ * Enrich chunks with cross-brand references.
+ * Links properties to nearby experiences, experiences to their anfitriones, etc.
+ */
+function enrichCrossReferences(index: KnowledgeChunk[]): void {
+  const byMunicipio = new Map<string, KnowledgeChunk[]>();
+
+  // Group chunks by municipio/location for geographic cross-linking
+  for (const chunk of index) {
+    const municipio = (chunk.metadata.municipio || chunk.metadata.ubicacion || '').toLowerCase().trim();
+    if (municipio) {
+      const group = byMunicipio.get(municipio) || [];
+      group.push(chunk);
+      byMunicipio.set(municipio, group);
+    }
+  }
+
+  // For properties: link to experiences and gestion in same municipio
+  for (const chunk of index) {
+    if (chunk.type === 'propiedad' || chunk.type === 'propiedad_gestion') {
+      const municipio = (chunk.metadata.municipio || '').toLowerCase().trim();
+      if (!municipio) continue;
+
+      const nearby = byMunicipio.get(municipio) || [];
+      const related = nearby
+        .filter(c => c.id !== chunk.id && (c.type === 'experiencia' || c.type === 'anfitrion' || c.type === 'propiedad_gestion'))
+        .slice(0, 3)
+        .map(c => ({ url: c.url, title: c.title, type: c.type }));
+
+      if (related.length > 0) chunk.related = related;
+    }
+
+    // For experiences: link to anfitriones and propiedades in same area
+    if (chunk.type === 'experiencia') {
+      const ubicacion = (chunk.metadata.ubicacion || '').toLowerCase().trim();
+      if (!ubicacion) continue;
+
+      const nearby = byMunicipio.get(ubicacion) || [];
+      const related = nearby
+        .filter(c => c.id !== chunk.id && (c.type === 'propiedad' || c.type === 'anfitrion' || c.type === 'proveedor'))
+        .slice(0, 3)
+        .map(c => ({ url: c.url, title: c.title, type: c.type }));
+
+      if (related.length > 0) chunk.related = related;
+    }
+  }
+}
+
 // ── Main Index Builder ───────────────────────────────────
 
 /**
@@ -304,6 +354,9 @@ export async function buildKnowledgeIndex(): Promise<KnowledgeChunk[]> {
     ...bitacora,
     ...productos,
   ];
+
+  // ── Cross-brand linking (Phase 5.2) ────────────────────────
+  enrichCrossReferences(index);
 
   // Cache the index
   if (index.length > 0) {

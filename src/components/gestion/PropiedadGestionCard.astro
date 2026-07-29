@@ -35,16 +35,16 @@ const precio = formatPrecioGestion(prop);
     <!-- Cross-link badges -->
     <div class="absolute bottom-3 left-3 flex gap-1.5">
       {prop.propiedad_tierras && (
-        <span class="bg-white/90 backdrop-blur-sm text-[#1B4332] text-[9px] font-bold px-2 py-0.5 rounded-full">🏡 En Tierras</span>
+        <span class="bg-white/90 backdrop-blur-sm text-[#1B4332] text-[9px] font-bold px-2 py-0.5 rounded-full"><i data-lucide="home" class="w-3.5 h-3.5 inline"></i> En Tierras</span>
       )}
       {prop.experiencias && prop.experiencias.length > 0 && (
-        <span class="bg-white/90 backdrop-blur-sm text-[#2E7D32] text-[9px] font-bold px-2 py-0.5 rounded-full">🌿 Experiencia</span>
+        <span class="bg-white/90 backdrop-blur-sm text-[#2E7D32] text-[9px] font-bold px-2 py-0.5 rounded-full"><i data-lucide="leaf" class="w-3.5 h-3.5 inline"></i> Experiencia</span>
       )}
       {prop.anfitriones && prop.anfitriones.length > 0 && (
         <span class="bg-white/90 backdrop-blur-sm text-[#1e3a5f] text-[9px] font-bold px-2 py-0.5 rounded-full">👤 Anfitrión{prop.anfitriones.length > 1 ? 'es' : ''}</span>
       )}
       {prop.proveedores && prop.proveedores.length > 0 && (
-        <span class="bg-white/90 backdrop-blur-sm text-[#6D4C41] text-[9px] font-bold px-2 py-0.5 rounded-full">☕ Proveedor</span>
+        <span class="bg-white/90 backdrop-blur-sm text-[#6D4C41] text-[9px] font-bold px-2 py-0.5 rounded-full"><i data-lucide="coffee" class="w-3.5 h-3.5 inline"></i> Proveedor</span>
       )}
     </div>
   </div>
@@ -67,7 +67,7 @@ const precio = formatPrecioGestion(prop);
     <!-- Price + CTA -->
     <div class="flex items-center justify-between pt-3 border-t border-gray-50">
       <span class="text-sm font-bold text-[#122640]">{precio}</span>
-      <span class="text-xs text-[#52B788] font-bold group-hover:translate-x-1 transition-transform">Ver ficha →</span>
+      <span class="text-xs text-[#52B788] font-bold group-hover:translate-x-1 transition-transform">Ver ficha <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></span>
     </div>
   </div>
 </a>

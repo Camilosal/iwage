@@ -1,14 +1,17 @@
 ---
-import { SITE, NAV_FLAT_LINKS } from '@/config/site';
+import { SITE, NAV_LINKS } from '@/config/site';
+
+const primaryLinks = NAV_LINKS.filter((item) => !item.children);
+const submenuGroups = NAV_LINKS.filter((item) => item.children);
 ---
 
 <footer class="bg-dark-bg text-dark-text">
   <div class="max-w-6xl mx-auto px-6 py-16">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-12">
       <!-- Brand -->
       <div>
         <div class="flex items-center gap-2 mb-4">
-          <span class="text-xl">🐝</span>
+          <i data-lucide="bee" class="w-6 h-6 text-accent"></i>
           <span class="font-bold text-lg">{SITE.name}</span>
         </div>
         <p class="text-sm text-dark-text/60 leading-relaxed max-w-xs">
@@ -16,13 +19,13 @@ import { SITE, NAV_FLAT_LINKS } from '@/config/site';
         </p>
       </div>
 
-      <!-- Links -->
+      <!-- Navegación -->
       <div>
-        <h3 class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Ecosistema</h3>
+        <h3 class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Navegación</h3>
         <ul class="space-y-2.5">
-          {NAV_FLAT_LINKS.map((link) => (
+          {primaryLinks.map((link) => (
             <li>
-              <a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined} class="text-sm text-dark-text/60 hover:text-dark-text transition-colors">
+              <a href={link.href} class="text-sm text-dark-text/60 hover:text-dark-text transition-colors">
                 {link.label}
               </a>
             </li>
@@ -30,13 +33,29 @@ import { SITE, NAV_FLAT_LINKS } from '@/config/site';
         </ul>
       </div>
 
-      <!-- Contact -->
+      <!-- Each submenu group as its own column -->
+      {submenuGroups.map((group) => (
+        <div>
+          <h3 class="font-mono text-xs uppercase tracking-widest text-accent mb-4">{group.label}</h3>
+          <ul class="space-y-2.5">
+            {group.children!.map((child) => (
+              <li>
+                <a href={child.href} target={child.external ? '_blank' : undefined} rel={child.external ? 'noopener noreferrer' : undefined} class="text-sm text-dark-text/60 hover:text-dark-text transition-colors">
+                  {child.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+
+      <!-- Contacto -->
       <div>
         <h3 class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Contacto</h3>
         <ul class="space-y-2.5 text-sm text-dark-text/60">
-          <li>📍 {SITE.location}</li>
-          <li>💬 Asesoría WhatsApp</li>
-          <li>📷 {SITE.instagram}</li>
+          <li><i data-lucide="map-pin" class="w-3.5 h-3.5 inline"></i> {SITE.location}</li>
+          <li><i data-lucide="message-circle" class="w-3.5 h-3.5 inline"></i> Asesoría WhatsApp</li>
+          <li><i data-lucide="camera" class="w-3.5 h-3.5 inline"></i> {SITE.instagram}</li>
         </ul>
       </div>
     </div>
@@ -46,7 +65,7 @@ import { SITE, NAV_FLAT_LINKS } from '@/config/site';
         © {new Date().getFullYear()} {SITE.name} Meliponario. Todos los derechos reservados.
       </p>
       <a href="/" class="inline-flex items-center gap-1.5 text-xs text-dark-text/50 hover:text-dark-text transition-colors">
-        🌐 Parte del ecosistema Iwagé →
+        <i data-lucide="globe" class="w-3.5 h-3.5 inline"></i> Parte del ecosistema Iwagé <i data-lucide="arrow-right" class="w-3 h-3 inline"></i>
       </a>
     </div>
   </div>

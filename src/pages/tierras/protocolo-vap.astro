@@ -27,7 +27,7 @@ export const prerender = true;
           { icon: '🔍', title: 'Títulos y Propiedad', desc: 'Estudio de títulos de 20 años. Verificamos la cadena de tradición, escrituras públicas, folios de matrícula y ausencia de cargas o gravámenes.', items: ['Escritura pública registrada', 'Folio de Matrícula Inmobiliaria', 'Certificado de Libertad y Tradición', 'Ausencia de embargos/hipotecas'] },
           { icon: '🗺️', title: 'Topografía y Linderos', desc: 'Georreferenciación GPS con precisión submétrica. El área real en terreno debe coincidir con los registros del IGAC.', items: ['Levantamiento topográfico GPS', 'Coincidencia IGAC vs terreno', 'Linderos físicos identificados', 'Plano georreferenciado'] },
           { icon: '💧', title: 'Recurso Hídrico', desc: 'Verificación de concesiones de agua ante Cortolima. Sin agua legal, no hay propiedad productiva.', items: ['Concesión de agua vigente', 'Caudal autorizado (L/s)', 'Servidumbres de paso', 'Fuentes hídricas mapeadas'] },
-          { icon: '📋', title: 'Normativa & PBOT', desc: 'Compatibilidad del uso del suelo con el Plan Básico de Ordenamiento Territorial del municipio.', items: ['Vocación del suelo PBOT', 'Restricción de fraccionamiento', 'Usos permitidos documentados', 'Restricciones ambientales'] },
+          { icon: 'clipboard-list', title: 'Normativa & PBOT', desc: 'Compatibilidad del uso del suelo con el Plan Básico de Ordenamiento Territorial del municipio.', items: ['Vocación del suelo PBOT', 'Restricción de fraccionamiento', 'Usos permitidos documentados', 'Restricciones ambientales'] },
         ].map((eje) => (
           <ScrollReveal>
             <div class="bg-[#FAFAF7] rounded-2xl p-6 border border-gray-100">
@@ -80,7 +80,7 @@ export const prerender = true;
       <span class="text-4xl block mb-4">📝</span>
       <h2 class="text-2xl font-bold text-white mb-3">Evaluación VAP Interactiva</h2>
       <p class="text-white/60 mb-6 max-w-lg mx-auto text-sm">Recorre las 3 fases del protocolo, marca el checklist de 16 ítems, configura el semáforo de riesgos y obtén el sello calculado automáticamente. 100% en tu navegador.</p>
-      <a href="/tierras/herramientas/evaluacion-vap" class="inline-block bg-[#52B788] text-[#0F120E] px-8 py-3.5 rounded-full font-bold text-sm hover:bg-white transition-all shadow-lg">Iniciar Evaluación →</a>
+      <a href="/tierras/herramientas/evaluacion-vap" class="inline-block bg-[#52B788] text-[#0F120E] px-8 py-3.5 rounded-full font-bold text-sm hover:bg-white transition-all shadow-lg">Iniciar Evaluación <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
     </div>
   </section>
 
@@ -89,7 +89,7 @@ export const prerender = true;
     <div class="max-w-2xl mx-auto px-6 text-center">
       <h2 class="text-2xl font-bold text-[#1B4332] mb-4">Propiedades 100% auditadas</h2>
       <p class="text-gray-500 mb-8">Cada propiedad en nuestro catálogo pasó por el Protocolo VAP. Lo que otras ocultan, nosotros lo transparentamos.</p>
-      <a href="/tierras/propiedades" class="inline-block bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg">Ver Catálogo Auditado →</a>
+      <a href="/tierras/propiedades" class="inline-block bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg">Ver Catálogo Auditado <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
     </div>
   </section>
 </BrandLayout>

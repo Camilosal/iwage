@@ -13,6 +13,8 @@ RUN --mount=type=cache,target=/root/.npm \
     npm ci
 
 # Copy source and build
+ARG PUBLIC_RESERVAS_API=https://reservas.iwage.co
+ENV PUBLIC_RESERVAS_API=$PUBLIC_RESERVAS_API
 COPY . .
 RUN npm run build
 

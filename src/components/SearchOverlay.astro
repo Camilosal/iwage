@@ -1,0 +1,454 @@
+---
+/**
+ * SearchOverlay — Command-palette-style site-wide search.
+ * Triggered by navbar search button or Cmd+K / Ctrl+K.
+ * Vanilla JS implementation for minimal bundle size.
+ */
+---
+
+<!-- Search Overlay (hidden by default) -->
+<div
+  id="search-overlay"
+  class="fixed inset-0 z-[100] hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Buscar en Iwagé"
+>
+  <!-- Backdrop -->
+  <div id="search-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+  <!-- Panel -->
+  <div class="relative mx-auto mt-[10vh] w-full max-w-2xl px-4 sm:px-0">
+    <div class="overflow-hidden rounded-2xl border border-border bg-surface-raised shadow-2xl shadow-black/20">
+      <!-- Input row -->
+      <div class="flex items-center gap-3 border-b border-border px-5 py-4">
+        <svg class="w-5 h-5 shrink-0 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          id="search-input"
+          type="text"
+          class="flex-1 bg-transparent text-base text-text-primary placeholder:text-text-muted outline-none"
+          placeholder="Buscar propiedades, experiencias, miel, café..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <kbd class="hidden sm:inline-flex items-center gap-0.5 rounded border border-border px-1.5 py-0.5 text-[10px] font-mono text-text-muted">
+          ESC
+        </kbd>
+      </div>
+
+      <!-- Brand filter chips -->
+      <div id="search-filters" class="flex items-center gap-1.5 overflow-x-auto border-b border-border/50 px-5 py-2.5">
+        <button data-brand-filter="all" class="search-filter-btn active shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors">Todos</button>
+        <button data-brand-filter="meliponas" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="bee" class="w-3.5 h-3.5"></i> Meliponas</button>
+        <button data-brand-filter="cafe" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="coffee" class="w-3.5 h-3.5"></i> Café</button>
+        <button data-brand-filter="tierras" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="mountain" class="w-3.5 h-3.5"></i> Tierras</button>
+        <button data-brand-filter="naturaleza" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="leaf" class="w-3.5 h-3.5"></i> Naturaleza</button>
+        <button data-brand-filter="gestion" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="building-2" class="w-3.5 h-3.5"></i> Gestión</button>
+      </div>
+
+      <!-- Results area -->
+      <div id="search-results" class="max-h-[50vh] overflow-y-auto px-2 py-2">
+        <!-- Initial state -->
+        <div id="search-state-initial" class="px-4 py-10 text-center">
+          <p class="text-sm text-text-muted">Escribe para buscar en todo el ecosistema Iwagé</p>
+          <div id="search-recent" class="mt-4 hidden">
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2">Búsquedas recientes</p>
+            <div id="search-recent-list" class="flex flex-wrap justify-center gap-2"></div>
+          </div>
+        </div>
+        <!-- Loading state -->
+        <div id="search-state-loading" class="hidden px-4 py-10 text-center">
+          <div class="inline-flex items-center gap-2 text-sm text-text-muted">
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            Buscando...
+          </div>
+        </div>
+        <!-- Empty state -->
+        <div id="search-state-empty" class="hidden px-4 py-10 text-center">
+          <p class="text-sm text-text-muted">Sin resultados para "<span id="search-empty-query"></span>"</p>
+          <p class="mt-1 text-xs text-text-muted/70">Intenta con otros términos o explora las marcas</p>
+        </div>
+        <!-- Results list (populated by JS) -->
+        <div id="search-results-list" class="hidden"></div>
+      </div>
+
+      <!-- Footer -->
+      <div id="search-footer" class="hidden items-center justify-between border-t border-border/50 px-5 py-2.5">
+        <span id="search-count" class="text-[11px] text-text-muted"></span>
+        <div class="flex items-center gap-3 text-[10px] text-text-muted">
+          <span class="hidden sm:inline"><kbd class="rounded border border-border px-1 py-0.5 font-mono">↑↓</kbd> navegar</span>
+          <span class="hidden sm:inline"><kbd class="rounded border border-border px-1 py-0.5 font-mono">↵</kbd> abrir</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .search-filter-btn {
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid transparent;
+  }
+  .search-filter-btn:hover {
+    color: var(--color-brand);
+    background: var(--color-brand-muted);
+  }
+  .search-filter-btn.active {
+    color: var(--color-brand);
+    background: var(--color-brand-muted);
+    border-color: var(--color-brand);
+  }
+  .search-result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .search-result-item:hover,
+  .search-result-item.selected {
+    background: var(--color-brand-muted);
+  }
+  .search-result-item mark {
+    background: var(--color-accent-muted);
+    color: var(--color-brand-dark);
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .dark .search-result-item mark {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    color: var(--color-accent-light);
+  }
+  .search-brand-header {
+    padding: 0.5rem 1rem 0.25rem;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+  .search-meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    background: var(--color-surface-sunken);
+    color: var(--color-text-muted);
+  }
+</style>
+
+<script>
+  (function () {
+    // ── Elements ─────────────────────────────────────────────
+    const overlay = document.getElementById('search-overlay')!;
+    const backdrop = document.getElementById('search-backdrop')!;
+    const input = document.getElementById('search-input') as HTMLInputElement;
+    const resultsList = document.getElementById('search-results-list')!;
+    const stateInitial = document.getElementById('search-state-initial')!;
+    const stateLoading = document.getElementById('search-state-loading')!;
+    const stateEmpty = document.getElementById('search-state-empty')!;
+    const emptyQuery = document.getElementById('search-empty-query')!;
+    const footer = document.getElementById('search-footer')!;
+    const countEl = document.getElementById('search-count')!;
+    const recentSection = document.getElementById('search-recent')!;
+    const recentList = document.getElementById('search-recent-list')!;
+
+    // ── State ────────────────────────────────────────────────
+    let isOpen = false;
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    let selectedIndex = -1;
+    let currentResults: Array<{ url: string; title: string }> = [];
+    let activeBrand = 'all';
+    let lastQuery = '';
+
+    const BRAND_ICONS: Record<string, string> = {
+      meliponas: 'bee', cafe: 'coffee', tierras: 'mountain', naturaleza: 'leaf', gestion: 'building-2', general: 'sprout',
+    };
+    const BRAND_NAMES: Record<string, string> = {
+      meliponas: 'Meliponas', cafe: 'Café', tierras: 'Tierras', naturaleza: 'Naturaleza', gestion: 'Gestión', general: 'General',
+    };
+    const TYPE_ICONS: Record<string, string> = {
+      propiedad: 'home', propiedad_gestion: 'key-round', experiencia: 'leaf', anfitrion: 'user',
+      paquete: 'package', menu: 'coffee', bitacora: 'book-open', producto: 'jar', proveedor: 'tractor', pagina: 'file-text',
+      servicio: 'settings-2', lote_miel: 'jar', proyecto: 'clipboard-list',
+    };
+
+    // ── Open / Close ─────────────────────────────────────────
+    function openSearch() {
+      isOpen = true;
+      overlay.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      input.value = '';
+      selectedIndex = -1;
+      currentResults = [];
+      showState('initial');
+      loadRecentSearches();
+      requestAnimationFrame(() => input.focus());
+    }
+
+    function closeSearch() {
+      isOpen = false;
+      overlay.classList.add('hidden');
+      document.body.style.overflow = '';
+      input.value = '';
+      selectedIndex = -1;
+    }
+
+    // ── State management ─────────────────────────────────────
+    function showState(state: 'initial' | 'loading' | 'empty' | 'results') {
+      stateInitial.classList.toggle('hidden', state !== 'initial');
+      stateLoading.classList.toggle('hidden', state !== 'loading');
+      stateEmpty.classList.toggle('hidden', state !== 'empty');
+      resultsList.classList.toggle('hidden', state !== 'results');
+      footer.classList.toggle('hidden', state !== 'results');
+      footer.classList.toggle('flex', state === 'results');
+    }
+
+    // ── Search logic ─────────────────────────────────────────
+    async function performSearch(query: string) {
+      if (query.trim().length < 2) {
+        showState('initial');
+        loadRecentSearches();
+        return;
+      }
+
+      lastQuery = query.trim();
+      showState('loading');
+
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: lastQuery,
+            brand: activeBrand === 'all' ? undefined : activeBrand,
+            limit: 15,
+          }),
+        });
+
+        if (!res.ok) throw new Error('Search failed');
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+          currentResults = data.results;
+          renderResults(data.results, lastQuery);
+          showState('results');
+          countEl.textContent = `${data.total} resultado${data.total !== 1 ? 's' : ''}`;
+          saveRecentSearch(lastQuery);
+        } else {
+          emptyQuery.textContent = lastQuery;
+          showState('empty');
+        }
+      } catch {
+        emptyQuery.textContent = lastQuery;
+        showState('empty');
+      }
+    }
+
+    // ── Render results ───────────────────────────────────────
+    function renderResults(results: any[], query: string) {
+      selectedIndex = -1;
+
+      // Group by brand
+      const groups = new Map<string, any[]>();
+      for (const r of results) {
+        const brand = r.brand || 'general';
+        if (!groups.has(brand)) groups.set(brand, []);
+        groups.get(brand)!.push(r);
+      }
+
+      let html = '';
+      for (const [brand, items] of groups) {
+        const brandIcon = BRAND_ICONS[brand] || 'sprout';
+        html += `<div class="search-brand-header"><i data-lucide="${brandIcon}" class="w-3.5 h-3.5 inline"></i> ${BRAND_NAMES[brand] || brand}</div>`;
+        for (const item of items) {
+          const icon = TYPE_ICONS[item.type] || 'link';
+          const title = highlightMatch(escapeHtml(item.title), query);
+          const summary = highlightMatch(escapeHtml(truncate(item.summary, 100)), query);
+          const badges = buildBadges(item.metadata);
+
+          html += `
+            <a href="${item.url}" class="search-result-item" data-url="${item.url}">
+              <i data-lucide="${icon}" class="w-5 h-5 shrink-0 mt-0.5 text-brand"></i>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-text-primary leading-snug">${title}</p>
+                <p class="mt-0.5 text-xs text-text-secondary leading-relaxed line-clamp-2">${summary}</p>
+                ${badges ? `<div class="mt-1.5 flex flex-wrap gap-1">${badges}</div>` : ''}
+              </div>
+            </a>`;
+        }
+      }
+
+      resultsList.innerHTML = html;
+
+      window.__lucideCreateIcons?.();
+
+      // Click handlers
+      resultsList.querySelectorAll<HTMLAnchorElement>('.search-result-item').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          closeSearch();
+          window.location.href = el.dataset.url || el.getAttribute('href') || '/';
+        });
+      });
+    }
+
+    function buildBadges(meta: Record<string, any>): string {
+      if (!meta) return '';
+      const badges: string[] = [];
+      if (meta.precio) badges.push(`$${(Number(meta.precio) / 1_000_000).toFixed(0)}M`);
+      else if (meta.precio_desde) badges.push(`Desde $${(Number(meta.precio_desde) / 1_000_000).toFixed(0)}M`);
+      else if (meta.precio_noche) badges.push(`$${Number(meta.precio_noche).toLocaleString('es-CO')}/noche`);
+      if (meta.municipio) badges.push(meta.municipio);
+      else if (meta.ubicacion) badges.push(meta.ubicacion);
+      if (meta.tipo) badges.push(meta.tipo);
+      if (meta.operacion) badges.push(meta.operacion);
+      if (meta.categoria) badges.push(meta.categoria);
+      if (meta.area_ha) badges.push(`${meta.area_ha} ha`);
+      if (meta.sello_vap) badges.push(`VAP: ${meta.sello_vap}`);
+      return badges.slice(0, 3).map(b => `<span class="search-meta-badge">${escapeHtml(b)}</span>`).join('');
+    }
+
+    // ── Highlighting ─────────────────────────────────────────
+    function highlightMatch(text: string, query: string): string {
+      const terms = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\s+/).filter(t => t.length > 2);
+      if (terms.length === 0) return text;
+
+      let result = text;
+      for (const term of terms) {
+        // Match accent-insensitive by building a regex that handles both forms
+        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escaped})`, 'gi');
+        result = result.replace(regex, '<mark>$1</mark>');
+      }
+      return result;
+    }
+
+    // ── Keyboard navigation ──────────────────────────────────
+    function updateSelection() {
+      const items = resultsList.querySelectorAll('.search-result-item');
+      items.forEach((el, i) => el.classList.toggle('selected', i === selectedIndex));
+      if (selectedIndex >= 0 && items[selectedIndex]) {
+        items[selectedIndex].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    // ── Recent searches ──────────────────────────────────────
+    function getRecentSearches(): string[] {
+      try {
+        return JSON.parse(sessionStorage.getItem('iwage_recent_searches') || '[]');
+      } catch { return []; }
+    }
+
+    function saveRecentSearch(query: string) {
+      const recent = getRecentSearches().filter(q => q !== query);
+      recent.unshift(query);
+      sessionStorage.setItem('iwage_recent_searches', JSON.stringify(recent.slice(0, 5)));
+    }
+
+    function loadRecentSearches() {
+      const recent = getRecentSearches();
+      if (recent.length === 0) {
+        recentSection.classList.add('hidden');
+        return;
+      }
+      recentSection.classList.remove('hidden');
+      recentList.innerHTML = recent.map(q =>
+        `<button class="search-recent-btn rounded-full border border-border px-3 py-1 text-xs text-text-secondary hover:text-brand hover:border-brand/40 transition-colors">${escapeHtml(q)}</button>`
+      ).join('');
+
+      recentList.querySelectorAll<HTMLButtonElement>('.search-recent-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          input.value = btn.textContent || '';
+          performSearch(btn.textContent || '');
+        });
+      });
+    }
+
+    // ── Utilities ────────────────────────────────────────────
+    function escapeHtml(str: string): string {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function truncate(str: string, max: number): string {
+      return str.length > max ? str.slice(0, max) + '…' : str;
+    }
+
+    // ── Event Listeners ──────────────────────────────────────
+
+    // Global keyboard shortcut: Cmd+K / Ctrl+K
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        isOpen ? closeSearch() : openSearch();
+      }
+      if (e.key === 'Escape' && isOpen) {
+        closeSearch();
+      }
+    });
+
+    // Backdrop click closes
+    backdrop.addEventListener('click', closeSearch);
+
+    // Input debounce
+    input.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => performSearch(input.value), 300);
+    });
+
+    // Keyboard navigation in results
+    input.addEventListener('keydown', (e) => {
+      const items = resultsList.querySelectorAll('.search-result-item');
+      if (items.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+        updateSelection();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, 0);
+        updateSelection();
+      } else if (e.key === 'Enter' && selectedIndex >= 0) {
+        e.preventDefault();
+        const selected = items[selectedIndex] as HTMLAnchorElement;
+        if (selected) {
+          closeSearch();
+          window.location.href = selected.dataset.url || selected.getAttribute('href') || '/';
+        }
+      }
+    });
+
+    // Brand filter chips
+    document.querySelectorAll<HTMLButtonElement>('.search-filter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeBrand = btn.dataset.brandFilter || 'all';
+        document.querySelectorAll('.search-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // Re-run search if there's a query
+        if (input.value.trim().length >= 2) {
+          performSearch(input.value);
+        }
+      });
+    });
+
+    // Navbar search buttons (delegated — works for both BrandNavbar and Navbar)
+    document.addEventListener('click', (e) => {
+      const trigger = (e.target as HTMLElement).closest('[data-search-trigger]');
+      if (trigger) {
+        e.preventDefault();
+        openSearch();
+      }
+    });
+  })();
+</script>

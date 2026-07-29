@@ -58,7 +58,7 @@ const whatsapp = (config?.whatsapp ?? '573001234567').replace(/\+/g, '');
               )}
               {config?.instagram && (
                 <li class="flex items-start gap-3">
-                  <span class="text-accent">📷</span>
+                  <i data-lucide="camera" class="w-4 h-4 text-accent"></i>
                   <span>{config.instagram}</span>
                 </li>
               )}
@@ -71,7 +71,7 @@ const whatsapp = (config?.whatsapp ?? '573001234567').replace(/\+/g, '');
               {config?.b2b_descripcion ?? 'Café de origen y miel de Angelita para restaurantes, hoteles y tiendas especializadas.'}
             </p>
             <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20información%20sobre%20suministro%20de%20café`} target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-5 py-2.5 text-sm font-medium hover:bg-accent-light transition-all">
-              💬 Cotizar por WhatsApp
+              <i data-lucide="message-circle" class="w-3.5 h-3.5 inline"></i> Cotizar por WhatsApp
             </a>
           </div>
         </div>
@@ -86,7 +86,7 @@ const whatsapp = (config?.whatsapp ?? '573001234567').replace(/\+/g, '');
           </p>
           <div class="space-y-4">
             <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20visitar%20el%20café`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
-              <span class="text-xl">☕</span>
+              <i data-lucide="coffee" class="w-5 h-5 text-brand shrink-0"></i>
               <div>
                 <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Planear una visita</p>
                 <p class="text-xs text-text-muted">Conoce el café y el meliponario</p>

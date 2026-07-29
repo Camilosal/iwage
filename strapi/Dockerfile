@@ -5,6 +5,8 @@ RUN npm install
 COPY . .
 # Ensure upload folder exists (required by @strapi/provider-upload-local)
 RUN mkdir -p public/uploads
+# Heap de 4 GB para el build del admin panel (webpack OOM con el default de ~1.5 GB)
+ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN npm run build
 # tsc does not copy .json content-type schemas into dist/, but Strapi
 # (production) loads them from dist/src/api/*/content-types/*/schema.json.

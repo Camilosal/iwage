@@ -3,7 +3,7 @@ import type { BrandConfig } from './types';
 export const gestion: BrandConfig = {
   slug: 'gestion',
   name: 'Iwagé Gestión',
-  tagline: 'Property Management & Operación Inmobiliaria',
+  tagline: 'Alojamientos rurales & Gestión de propiedades',
   colors: {
     brand: '#1e3a5f',
     brandLight: '#2d5a8f',
@@ -18,10 +18,21 @@ export const gestion: BrandConfig = {
     mono: "'JetBrains Mono', ui-monospace, monospace",
   },
   nav: [
-    { label: 'Propiedades', href: '/gestion/propiedades' },
-    { label: 'Alianzas', href: '/gestion/modelo-alianzas' },
+    { label: 'Alojamientos', href: '/gestion/alojamientos' },
+    { label: 'Experiencias', href: '/gestion/experiencias' },
     {
-      label: 'Comunidad',
+      label: 'Propietarios',
+      href: '/gestion/propietarios',
+      children: [
+        { label: 'Modelo de Alianzas', href: '/gestion/propietarios/modelo-alianzas' },
+        { label: 'Renta Corta', href: '/gestion/propietarios/renta-corta' },
+        { label: 'Finca Productiva', href: '/gestion/propietarios/finca-productiva' },
+        { label: 'Segunda Residencia', href: '/gestion/propietarios/segunda-residencia' },
+        { label: 'Operación Turística', href: '/gestion/propietarios/operacion-turistica' },
+      ],
+    },
+    {
+      label: 'Recursos',
       href: '/gestion/bitacora',
       children: [
         { label: 'Bitácora', href: '/gestion/bitacora' },
@@ -31,11 +42,11 @@ export const gestion: BrandConfig = {
     },
   ],
   seo: {
-    defaultTitle: 'Iwagé Gestión · Property Management Rural · Tolima',
+    defaultTitle: 'Iwagé Gestión · Alojamientos Rurales & Property Management · Tolima',
     defaultDescription:
-      'Gestión integral de propiedades rurales: renta corta, finca productiva, segunda residencia y operación turística. Maximiza el valor de tu tierra.',
+      'Reserva alojamientos rurales únicos en el Tolima y gestiona tu propiedad con expertos. Fincas, glamping, casas campestres y experiencias de territorio.',
   },
   whatsapp: '573001234567',
   instagram: '@iwage.gestion',
-  icon: '🏗️',
+  icon: 'building-2',
 };

@@ -8,6 +8,7 @@ import BusinessInsights from '@/components/tierras/BusinessInsights.astro';
 import ProtectionPeriodAlert from '@/components/tierras/ProtectionPeriodAlert.astro';
 import Storytelling from '@/components/tierras/Storytelling.astro';
 import MediaGallery from '@/components/shared/MediaGallery.astro';
+import AgendarVisita from '@/components/tierras/AgendarVisita.astro';
 import { getPropiedadBySlug, getAllPropiedadSlugs, formatPrecio, formatArea, propiedadImagen, SELLOS_VAP } from '@/lib/tierras';
 import { strapiImage } from '@/lib/strapi';
 import { getBrand } from '@/config/brands';
@@ -59,7 +60,7 @@ const fichaSections = [
   {
     id: 'rural',
     title: 'Detalle Rural',
-    icon: '🌱',
+    icon: 'sprout',
     items: [
       { label: 'Agua', value: prop.disponibilidad_agua || (dr?.tiene_concesion_agua ? 'Con concesión' : null), tip: 'La disponibilidad de agua determina la viabilidad agrícola y el valor del predio.', highlight: !!prop.disponibilidad_agua || dr?.tiene_concesion_agua },
       { label: 'Tipo concesión', value: dr?.tipo_concesion_agua ? dr.tipo_concesion_agua.replace(/_/g, ' ') : null, tip: 'Certifica el derecho legal al uso del agua, blindando tu inversión.' },
@@ -78,7 +79,7 @@ const fichaSections = [
   {
     id: 'legal',
     title: 'Estado Legal',
-    icon: '⚖️',
+    icon: 'scale',
     items: [
       { label: 'Estado legal', value: dr?.estado_legal ? dr.estado_legal.replace(/_/g, ' ') : null, tip: 'Situación jurídica actual del predio, fundamental para una compra segura.' },
       { label: 'Seguridad del sector', value: dr?.seguridad_sector ? dr.seguridad_sector.replace(/_/g, ' ') : null, tip: 'Evaluación del entorno que influye en tranquilidad y valorización a largo plazo.' },
@@ -124,7 +125,7 @@ const jsonLd = {
         <MediaGallery images={images} title={prop.titulo} columns={4} />
       ) : (
         <div class="h-64 md:h-96 rounded-2xl bg-[#1B4332]/20 flex items-center justify-center">
-          <span class="text-6xl">🌄</span>
+          <i data-lucide="mountain" class="w-12 h-12"></i>
         </div>
       )}
     </div>
@@ -194,22 +195,21 @@ const jsonLd = {
         )}
 
         <!-- Cross-brand Ecosystem -->
-        {((prop.experiencias && prop.experiencias.length > 0) || (prop.proveedores && prop.proveedores.length > 0)) && (
-          <div class="bg-white rounded-2xl p-6 border border-gray-100">
-            <h2 class="text-lg font-semibold text-[#1B4332] mb-4">Conectada al ecosistema Iwagé</h2>
-            <div class="space-y-5">
+        <div class="bg-white rounded-2xl p-6 border border-gray-100">
+          <h2 class="text-lg font-semibold text-[#1B4332] mb-4">Conectada al ecosistema Iwagé</h2>
+          <div class="space-y-5">
               {prop.experiencias && prop.experiencias.length > 0 && (
                 <div>
-                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">🌿 Experiencia{prop.experiencias.length > 1 ? 's' : ''} en Naturaleza</h3>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3"><i data-lucide="leaf" class="w-3.5 h-3.5 inline"></i> Experiencia{prop.experiencias.length > 1 ? 's' : ''} en Naturaleza</h3>
                   <div class="grid sm:grid-cols-2 gap-3">
                     {prop.experiencias.map((exp) => (
                       <a href={`/naturaleza/experiencias/${exp.slug}`} class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#2E7D32]/30 hover:shadow-md transition-all">
-                        <div class="w-10 h-10 rounded-lg bg-[#2E7D32]/10 flex items-center justify-center text-lg shrink-0">🌿</div>
+                        <div class="w-10 h-10 rounded-lg bg-[#2E7D32]/10 flex items-center justify-center text-lg shrink-0"><i data-lucide="leaf" class="w-5 h-5"></i></div>
                         <div class="flex-1 min-w-0">
                           <h4 class="text-sm font-bold text-[#2E7D32] group-hover:text-[#52B788] transition-colors truncate">{exp.titulo}</h4>
                           <p class="text-[11px] text-gray-400">{exp.categoria || 'Naturaleza'}{exp.precio_desde ? ` · desde $${(exp.precio_desde / 1000).toFixed(0)}k` : ''}</p>
                         </div>
-                        <span class="text-[10px] font-bold text-[#52B788] shrink-0">→</span>
+                        <span class="text-[10px] font-bold text-[#52B788] shrink-0"><i data-lucide="arrow-right" class="w-3 h-3"></i></span>
                       </a>
                     ))}
                   </div>
@@ -217,25 +217,42 @@ const jsonLd = {
               )}
               {prop.proveedores && prop.proveedores.length > 0 && (
                 <div>
-                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">☕ Proveedor{prop.proveedores.length > 1 ? 'es' : ''} de Café</h3>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3"><i data-lucide="coffee" class="w-3.5 h-3.5 inline"></i> Proveedor{prop.proveedores.length > 1 ? 'es' : ''} de Café</h3>
                   <div class="grid sm:grid-cols-2 gap-3">
                     {prop.proveedores.map((prov) => (
                       <a href={`/cafe/proveedores#${prov.slug}`} class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#6D4C41]/30 hover:shadow-md transition-all">
-                        <div class="w-10 h-10 rounded-lg bg-[#6D4C41]/10 flex items-center justify-center text-lg shrink-0">☕</div>
+                        <div class="w-10 h-10 rounded-lg bg-[#6D4C41]/10 flex items-center justify-center text-lg shrink-0"><i data-lucide="coffee" class="w-5 h-5"></i></div>
                         <div class="flex-1 min-w-0">
                           <h4 class="text-sm font-bold text-[#6D4C41] group-hover:text-[#52B788] transition-colors truncate">{prov.nombre}</h4>
                           <p class="text-[11px] text-gray-400">{prov.producto || 'Proveedor'}{prov.ubicacion ? ` · ${prov.ubicacion}` : ''}</p>
                         </div>
-                        <span class="text-[10px] font-bold text-[#52B788] shrink-0">→</span>
+                        <span class="text-[10px] font-bold text-[#52B788] shrink-0"><i data-lucide="arrow-right" class="w-3 h-3"></i></span>
                       </a>
                     ))}
                   </div>
                 </div>
               )}
+              {(dr?.apta_glamping_agroturismo || dr?.vocacion_suelo_pbot === 'agricola' || dr?.vocacion_suelo_pbot === 'agropecuario' || dr?.vocacion_suelo_pbot === 'agroforestal') && (
+                <a href="/meliponas/polinizacion" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#C8933E]/40 hover:shadow-md transition-all">
+                  <div class="w-10 h-10 rounded-lg bg-[#C8933E]/10 flex items-center justify-center text-lg shrink-0"><i data-lucide="bee" class="w-5 h-5"></i></div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-bold text-[#8B6914] group-hover:text-[#52B788] transition-colors">Polinización con Meliponas</h4>
+                    <p class="text-[11px] text-gray-400">Este predio tiene vocación para polinización y sistemas agroforestales</p>
+                  </div>
+                  <span class="text-[10px] font-bold text-[#52B788] shrink-0"><i data-lucide="arrow-right" class="w-3 h-3"></i></span>
+                </a>
+              )}
+              <a href="/gestion" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#1e3a5f]/30 hover:shadow-md transition-all">
+                <div class="w-10 h-10 rounded-lg bg-[#1e3a5f]/10 flex items-center justify-center text-lg shrink-0"><i data-lucide="home" class="w-5 h-5"></i></div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-bold text-[#1e3a5f] group-hover:text-[#52B788] transition-colors">Después de comprar, nosotros la administramos</h4>
+                    <p class="text-[11px] text-gray-400">Renta corta, segunda residencia o finca productiva con Iwagé Gestión</p>
+                  </div>
+                  <span class="text-[10px] font-bold text-[#52B788] shrink-0"><i data-lucide="arrow-right" class="w-3 h-3"></i></span>
+                </a>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+        </div>
 
       <!-- Right: Sidebar -->
       <div class="space-y-6">
@@ -247,13 +264,10 @@ const jsonLd = {
           <a href={`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hola, me interesa la propiedad: ${prop.titulo} (${prop.slug}). ¿Podemos agendar una visita?`)}`}
             target="_blank" rel="noopener"
             class="block w-full bg-[#52B788] text-[#0F120E] text-center py-3 rounded-xl font-bold text-sm hover:bg-[#52B788]/90 transition-all mb-3">
-            💬 WhatsApp Directo
-          </a>
-          <a href="/tierras/vender" class="block w-full border border-[#1B4332] text-[#1B4332] text-center py-3 rounded-xl font-bold text-sm hover:bg-[#1B4332] hover:text-white transition-all mb-3">
-            📞 Agendar Visita
+            <i data-lucide="message-circle" class="w-4 h-4 inline"></i> WhatsApp Directo
           </a>
           <a href="/tierras/herramientas/calculadora-notarial" class="block w-full text-center text-sm text-gray-400 hover:text-[#52B788] transition-colors py-2">
-            🧮 Calcular gastos notariales →
+            <i data-lucide="calculator" class="w-4 h-4 inline"></i> Calcular gastos notariales <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
           </a>
 
           {prop.modelo_sugerido && (
@@ -264,6 +278,9 @@ const jsonLd = {
             </div>
           )}
         </div>
+
+        <!-- Visit Booking (app_reservas) -->
+        <AgendarVisita propiedadSlug={prop.slug} propiedadTitulo={prop.titulo} whatsapp={waPhone} />
 
         <!-- Map placeholder -->
         {prop.ubicacion_latitud && prop.ubicacion_longitud && (

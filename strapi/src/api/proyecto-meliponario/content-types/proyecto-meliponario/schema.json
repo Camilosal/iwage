@@ -1,17 +1,94 @@
 {
   "kind": "collectionType",
   "collectionName": "proyecto_meliponarios",
-  "info": { "singularName": "proyecto-meliponario", "pluralName": "proyecto-meliponarios", "displayName": "Proyecto Meliponario" },
+  "info": {
+    "singularName": "proyecto-meliponario",
+    "pluralName": "proyecto-meliponarios",
+    "displayName": "Proyecto Meliponario",
+    "description": "Ficha integral de cada proyecto: gestión comercial, técnica y variables del modelo Iwagé"
+  },
   "options": { "draftAndPublish": true },
   "attributes": {
     "nombre": { "type": "string", "required": true },
     "slug": { "type": "uid", "targetField": "nombre" },
+    "descripcion": { "type": "richtext" },
+    "descripcion_corta": { "type": "text", "maxLength": 250 },
+    "imagen": { "type": "string" },
+    "galeria": { "type": "json" },
+
+    "tipo": {
+      "type": "enumeration",
+      "enum": ["finca", "empresa", "club", "cultivo", "turismo", "residencial", "institucional"],
+      "required": true
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": ["diagnostico", "diseno", "instalacion", "activo", "en-proceso", "pausado", "finalizado"],
+      "default": "en-proceso",
+      "required": true
+    },
+
     "ubicacion": { "type": "string" },
-    "tipo": { "type": "enumeration", "enum": ["finca", "empresa", "club", "cultivo", "turismo"] },
+    "municipio": { "type": "string" },
+    "vereda": { "type": "string" },
+    "altitud_msnm": { "type": "integer" },
+    "coordenadas": { "type": "string" },
+    "area_m2": { "type": "decimal" },
+
     "colmenas": { "type": "integer" },
+    "modelo_caja": {
+      "type": "enumeration",
+      "enum": ["inpa", "af", "inpa-atril", "mixto", "otro"]
+    },
     "especies": { "type": "string" },
-    "estado": { "type": "enumeration", "enum": ["activo", "en-proceso"], "default": "activo" },
-    "descripcion": { "type": "text" },
-    "metricas": { "type": "json" }
+    "flora_melifera": { "type": "json" },
+    "fecha_instalacion": { "type": "date" },
+    "fecha_ultima_visita": { "type": "date" },
+    "proxima_visita": { "type": "date" },
+
+    "cliente_nombre": { "type": "string" },
+    "cliente_tipo": {
+      "type": "enumeration",
+      "enum": ["colegio", "finca", "empresa", "hotel", "particular", "ong", "gobernacion"]
+    },
+    "cliente_contacto": { "type": "string" },
+    "valor_contrato": { "type": "integer" },
+    "estado_pago": {
+      "type": "enumeration",
+      "enum": ["pendiente", "parcial", "pagado", "no-aplica"]
+    },
+    "tipo_contrato": {
+      "type": "enumeration",
+      "enum": ["unico", "acompanamiento-mensual", "convenio", "donacion"]
+    },
+    "servicios_incluidos": { "type": "json" },
+
+    "iot_activo": { "type": "boolean", "default": false },
+    "iot_sensores": { "type": "json" },
+    "trazabilidad_qr": { "type": "boolean", "default": false },
+    "identidad_digital_colmena": { "type": "boolean", "default": false },
+
+    "produccion_miel_ml": { "type": "integer" },
+    "produccion_cosechas": { "type": "integer" },
+    "indice_biodiversidad": { "type": "decimal" },
+    "mejora_polinizacion_pct": { "type": "decimal" },
+    "salud_colonias": {
+      "type": "enumeration",
+      "enum": ["excelente", "buena", "regular", "critica"]
+    },
+
+    "impacto_familias": { "type": "integer" },
+    "impacto_estudiantes": { "type": "integer" },
+    "impacto_empleos": { "type": "integer" },
+    "prae_alineado": { "type": "boolean", "default": false },
+    "componente_ancestral": { "type": "text" },
+
+    "metricas": { "type": "json" },
+    "notas_tecnicas": { "type": "richtext" },
+    "tags": { "type": "json" },
+    "orden": { "type": "integer", "default": 0 },
+    "destacado": { "type": "boolean", "default": false },
+    "meta_title": { "type": "string", "maxLength": 70 },
+    "meta_description": { "type": "text", "maxLength": 160 }
   }
 }

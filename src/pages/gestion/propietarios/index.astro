@@ -1,0 +1,144 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import { getPropiedadesGestion, TIPOS_GESTION } from '@/lib/gestion';
+
+const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'activa', pageSize: 1 });
+---
+
+<BrandLayout brand="gestion" title="Propietarios · Gestión de Propiedades Rurales · Iwagé Gestión" description="Gestionamos tu propiedad rural en el Tolima: renta corta, finca productiva, segunda residencia y operación turística. Evaluación gratuita y modelos de alianza transparentes.">
+
+  <!-- Hero -->
+  <section class="relative min-h-[65vh] flex items-center overflow-hidden bg-[#0c1520]">
+    <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1600&q=80" alt="Gestión profesional de propiedades rurales" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+    <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-4">
+      <div class="max-w-3xl">
+        <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Para propietarios</span>
+        <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
+          Tu tierra, <span class="font-serif italic text-[#52B788]">siempre productiva.</span>
+        </h1>
+        <p class="text-xl text-white/70 max-w-2xl mb-10">
+          Administramos tu propiedad rural con un enfoque técnico y comercial. Tú mantienes la propiedad, nosotros ponemos el equipo, la tecnología y la operación.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a
+            href="https://wa.me/573001234567?text=Hola,%20quiero%20una%20valoración%20de%20mi%20propiedad%20para%20gestión"
+            target="_blank"
+            rel="noopener"
+            class="inline-block px-8 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors text-center"
+          >
+            Solicitar valoración gratuita
+          </a>
+          <a href="/gestion/propietarios/modelo-alianzas" class="inline-block px-8 py-4 rounded-full border border-white/30 text-white text-sm font-medium hover:bg-white/10 transition-colors text-center">
+            Conocer modelos <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="py-10 px-4 bg-white border-b border-gray-100">
+    <div class="max-w-4xl mx-auto grid grid-cols-3 gap-6 text-center">
+      <div>
+        <div class="text-3xl font-bold text-[#1e3a5f]">{propiedadesActivas > 0 ? propiedadesActivas : '—'}</div>
+        <div class="text-xs text-gray-400 mt-1 uppercase tracking-wide">Propiedades gestionadas</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-[#1e3a5f]">4</div>
+        <div class="text-xs text-gray-400 mt-1 uppercase tracking-wide">Líneas de operación</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-[#1e3a5f]">100%</div>
+        <div class="text-xs text-gray-400 mt-1 uppercase tracking-wide">Reportes transparentes</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services grid -->
+  <section class="py-16 px-4 bg-[#f8f9fb]">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#2d5a8f] uppercase">Líneas de operación</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-[#122640] mt-3">¿Cómo podemos gestionar tu propiedad?</h2>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-6">
+        {[
+          { slug: 'renta-corta', icon: '✨', title: 'Renta Corta', desc: 'Gestión integral en Airbnb, Booking y Vrbo. Revenue management, hospitalidad 24/7, limpieza profesional y optimización de listings.', color: '#52B788' },
+          { slug: 'finca-productiva', icon: '🌱', title: 'Finca Productiva', desc: 'Control técnico y administrativo de labores agropecuarias. Supervisión de cultivos, nóminas rurales, inventarios e indicadores de productividad.', color: '#4CAF50' },
+          { slug: 'segunda-residencia', icon: '🏘️', title: 'Segunda Residencia', desc: 'Supervisión y mantenimiento de tu casa campestre. Informes fotográficos, control de personal, servicios y atención de emergencias.', color: '#2d5a8f' },
+          { slug: 'operacion-turistica', icon: '⛺', title: 'Operación Turística', desc: 'Desarrollo y operación de proyectos turísticos: glamping, ecoturismo, retiros. Del estudio de viabilidad a la gestión diaria.', color: '#C8933E' },
+        ].map((service) => (
+          <a href={`/gestion/propietarios/${service.slug}`} class="group p-8 rounded-3xl bg-white border border-gray-100 hover:shadow-xl hover:border-[#52B788]/30 transition-all duration-300">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl" style={`background-color: ${service.color}15`}>
+                {service.icon}
+              </div>
+              <h3 class="text-xl font-bold text-[#122640] group-hover:text-[#52B788] transition-colors">{service.title}</h3>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed mb-4">{service.desc}</p>
+            <span class="text-sm font-bold text-[#52B788] group-hover:translate-x-1 inline-block transition-transform">Conocer más <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Iwagé -->
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-2xl font-light text-[#122640] text-center mb-10">¿Por qué gestionar con Iwagé?</h2>
+      <div class="grid sm:grid-cols-3 gap-6">
+        {[
+          { icon: '📊', title: 'Transparencia total', desc: 'Reportes periódicos con estado de cuenta, registro fotográfico y seguimiento técnico.' },
+          { icon: 'globe', title: 'Ecosistema integrado', desc: 'Tu propiedad conectada a nuestra red: inmobiliaria, experiencias, anfitriones y café.' },
+          { icon: '🤝', title: 'Alianza a largo plazo', desc: 'Modelos flexibles donde compartimos resultados. Tu éxito es nuestro éxito.' },
+        ].map((item) => (
+          <div class="p-6 rounded-2xl bg-[#f8f9fb] text-center">
+            <div class="text-3xl mb-3">{item.icon}</div>
+            <h3 class="font-bold text-[#122640] mb-2">{item.title}</h3>
+            <p class="text-sm text-gray-600">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Reporting -->
+  <section class="py-16 px-4 bg-[#f8f9fb]">
+    <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <span class="text-xs font-bold tracking-[0.3em] text-[#2d5a8f] uppercase">Transparencia</span>
+        <h2 class="text-3xl font-light text-[#122640] mt-3 mb-6">Reportes periódicos claros</h2>
+        <p class="text-gray-600 leading-relaxed mb-6">Como propietario, recibirás informes detallados que garantizan que tu propiedad está en las mejores manos:</p>
+        <ul class="space-y-3">
+          {['Estado de cuenta de ingresos y egresos', 'Reporte fotográfico de mantenimiento', 'Control de pago de servicios y obligaciones', 'Seguimiento técnico de personal de apoyo'].map((item) => (
+            <li class="flex items-center gap-3 text-sm text-gray-700 font-medium">
+              <div class="w-2 h-2 rounded-full bg-[#52B788]"></div>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="rounded-3xl overflow-hidden h-80">
+        <img src="https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=800&q=80" alt="Reportes de gestión de propiedades" class="w-full h-full object-cover" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 px-4 bg-[#0c1520] text-center">
+    <h2 class="text-3xl lg:text-4xl font-light text-white mb-4">¿Hablamos sobre <span class="font-serif italic text-[#52B788]">tu propiedad?</span></h2>
+    <p class="text-white/60 mb-10 max-w-lg mx-auto">Buscamos fincas en los corredores de Ibagué, Alvarado, Venadillo y alrededores para nuestra red de gestión.</p>
+    <a
+      href="https://wa.me/573001234567?text=Hola,%20quiero%20una%20valoración%20de%20mi%20propiedad%20para%20gestión"
+      target="_blank"
+      rel="noopener"
+      class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors"
+    >
+      Solicitar valoración por WhatsApp
+    </a>
+  </section>
+</BrandLayout>

@@ -1,0 +1,133 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import AlojamientoCard from '@/components/gestion/AlojamientoCard.astro';
+import SearchBar from '@/components/gestion/SearchBar.astro';
+import { getAlojamientosDisponibles, TIPOS_GESTION } from '@/lib/gestion';
+
+// SSR for query param filtering
+export const prerender = false;
+
+const url = new URL(Astro.request.url);
+const municipio = url.searchParams.get('municipio') || '';
+const checkin = url.searchParams.get('checkin') || '';
+const checkout = url.searchParams.get('checkout') || '';
+const huespedes = url.searchParams.get('huespedes') || '';
+const tipoFilter = url.searchParams.get('tipo') || '';
+
+const { data: alojamientos, total } = await getAlojamientosDisponibles({
+  municipio: municipio || undefined,
+  tipo: tipoFilter || undefined,
+  huespedes: huespedes ? Number(huespedes) : undefined,
+  pageSize: 24,
+});
+---
+
+<BrandLayout brand="gestion" title="Alojamientos Rurales en el Tolima · Iwagé Gestión" description="Reserva fincas, casas campestres, glamping y cabañas en el Tolima. Alojamientos rurales gestionados profesionalmente con experiencias de territorio incluidas.">
+
+  <!-- Hero with search -->
+  <section class="relative py-16 md:py-24 px-4 overflow-hidden bg-[#0c1520]">
+    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80" alt="Alojamientos rurales en el Tolima" class="absolute inset-0 w-full h-full object-cover opacity-30" loading="eager" />
+    <div class="absolute inset-0 bg-gradient-to-t from-[#0c1520] via-[#0c1520]/60 to-[#0c1520]/30"></div>
+    <div class="relative z-10 max-w-5xl mx-auto text-center">
+      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Iwagé Gestión</span>
+      <h1 class="text-4xl lg:text-5xl font-light text-white mt-3 mb-4">
+        Encuentra tu <span class="font-serif italic text-[#52B788]">refugio rural</span>
+      </h1>
+      <p class="text-white/60 max-w-xl mx-auto mb-8">
+        Fincas, glamping, casas campestres y más. Alojamientos gestionados profesionalmente en el corazón del Tolima.
+      </p>
+      <SearchBar municipio={municipio} checkin={checkin} checkout={checkout} huespedes={huespedes} />
+    </div>
+  </section>
+
+  <!-- Filter chips -->
+  <section class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 py-4 px-4">
+    <div class="max-w-6xl mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar">
+      <a
+        href="/gestion/alojamientos"
+        class:list={[
+          'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors',
+          !tipoFilter ? 'bg-[#1e3a5f] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        ]}
+      >
+        Todos
+      </a>
+      {TIPOS_GESTION.map((tipo) => (
+        <a
+          href={`/gestion/alojamientos?tipo=${tipo.slug}${municipio ? `&municipio=${municipio}` : ''}`}
+          class:list={[
+            'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5',
+            tipoFilter === tipo.slug ? 'bg-[#1e3a5f] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          ]}
+        >
+          <span>{tipo.icon}</span>
+          {tipo.label}
+        </a>
+      ))}
+      <span class="shrink-0 ml-auto text-xs text-gray-400 font-medium">
+        {total} alojamiento{total !== 1 ? 's' : ''}
+        {municipio ? ` en ${municipio}` : ''}
+      </span>
+    </div>
+  </section>
+
+  <!-- Results grid -->
+  <section class="py-12 px-4 bg-[#f8f9fb] min-h-[50vh]">
+    <div class="max-w-6xl mx-auto">
+      {alojamientos.length > 0 ? (
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {alojamientos.map((prop) => (
+            <AlojamientoCard prop={prop} />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-24">
+          <i data-lucide="home" class="w-10 h-10 block mb-4 mx-auto"></i>
+          <h2 class="text-xl font-semibold text-[#122640] mb-2">
+            {municipio || tipoFilter ? 'No encontramos alojamientos con esos filtros' : 'Próximamente nuevos alojamientos'}
+          </h2>
+          <p class="text-gray-500 max-w-md mx-auto mb-6">
+            Estamos incorporando nuevas propiedades. Déjanos tu contacto y te avisamos cuando haya disponibilidad.
+          </p>
+          <a
+            href="https://wa.me/573001234567?text=Hola,%20busco%20alojamiento%20rural%20en%20el%20Tolima"
+            target="_blank"
+            rel="noopener"
+            class="inline-block px-6 py-3 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold hover:bg-[#7fc4a2] transition-colors"
+          >
+            Consultar por WhatsApp
+          </a>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Experiences cross-sell -->
+  <section class="py-14 px-4 bg-white">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-2xl font-light text-[#122640] mb-4">Complementa tu estadía con experiencias</h2>
+      <p class="text-gray-600 mb-8 max-w-lg mx-auto">
+        Nuestros alojamientos están conectados con experiencias de naturaleza, café y territorio en el Tolima.
+      </p>
+      <a href="/gestion/experiencias" class="inline-block px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
+        Explorar experiencias <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- Owner CTA -->
+  <section class="py-14 px-4 bg-[#0c1520]">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-2xl lg:text-3xl font-light text-white mb-4">¿Tienes una propiedad rural?</h2>
+      <p class="text-white/60 mb-8 max-w-lg mx-auto">
+        Únete a nuestra red de alojamientos gestionados. Nosotros operamos, tú recibes ingresos.
+      </p>
+      <a
+        href="/gestion/propietarios"
+        class="inline-block px-8 py-3.5 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors"
+      >
+        Publicar mi propiedad <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+      </a>
+    </div>
+  </section>
+</BrandLayout>

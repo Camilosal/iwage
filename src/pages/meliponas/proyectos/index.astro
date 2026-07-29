@@ -7,12 +7,19 @@ import StepTimeline from '@/components/StepTimeline.astro';
 import SimulatorWidget from '@/components/SimulatorWidget.astro';
 import ProjectCard from '@/components/ProjectCard.astro';
 import { SEO } from '@/config/site';
+import { getProyectos, TIPO_LABELS } from '@/lib/proyectos';
+
+const proyectosData = await getProyectos();
+
+// Build filter list from existing types
+const tiposPresentes = [...new Set(proyectosData.map((p) => p.tipo))];
+const filtros = ['todos', ...tiposPresentes];
 
 const aplicaciones = [
-  { icon: 'graduation-cap', title: 'PRAE Educativo', desc: 'Proyectos ambientales escolares con meliponas como eje transversal.', checks: ['Material didáctico incluido', 'Talleres presenciales'] },
-  { icon: 'tractor', title: 'Fincas Productivas', desc: 'Polinización y producción de miel integrada al sistema agroforestal.', checks: ['Diagnóstico gratuito', 'Acompañamiento técnico'] },
-  { icon: 'palmtree', title: 'Turismo de Naturaleza', desc: 'Experiencias de observación y cata de miel para visitantes.', checks: ['Sendero interpretativo', 'Guía de experiencia'] },
-  { icon: 'home', title: 'Paisajismo Residencial', desc: 'Colmenas ornamentales seguras para jardines y terrazas.', checks: ['Cajas con tapa acrílica', 'Sin riesgo de picadura'] },
+  { icon: 'graduation-cap', title: 'PRAE Educativo', desc: 'Proyectos ambientales escolares con meliponas como eje transversal.', checks: ['Material didáctico incluido', 'Talleres presenciales'], href: '/meliponas/proyectos/lineas/prae-educativo' },
+  { icon: 'tractor', title: 'Fincas Productivas', desc: 'Polinización y producción de miel integrada al sistema agroforestal.', checks: ['Diagnóstico gratuito', 'Acompañamiento técnico'], href: '/meliponas/proyectos/lineas/fincas-productivas' },
+  { icon: 'palmtree', title: 'Turismo de Naturaleza', desc: 'Experiencias de observación y cata de miel para visitantes.', checks: ['Sendero interpretativo', 'Guía de experiencia'], href: '/meliponas/proyectos/lineas/turismo-naturaleza' },
+  { icon: 'home', title: 'Paisajismo Residencial', desc: 'Colmenas ornamentales seguras para jardines y terrazas.', checks: ['Cajas con tapa acrílica', 'Sin riesgo de picadura'], href: '/meliponas/proyectos/lineas/paisajismo-residencial' },
 ];
 
 const ecosistema = [
@@ -27,17 +34,6 @@ const etapas = [
   { number: 3, title: 'Instalación', description: 'Montaje de colmenas, atriles, señalética y flora complementaria si aplica.' },
   { number: 4, title: 'Acompañamiento', description: 'Visitas de seguimiento, capacitación del equipo local y reportes de actividad.' },
 ];
-
-const proyectos = [
-  { title: 'Meliponario I.E. Ambalá', location: 'Ibagué, Tolima', type: 'club', status: 'activo', description: 'Proyecto PRAE con 6 colmenas educativas y sendero interpretativo para 400 estudiantes.', colmenas: 6 },
-  { title: 'Finca El Carmen', location: 'Vereda El Carmen, Ibagué', type: 'finca', status: 'activo', description: 'Polinización de aguacate Hass y producción de miel con 12 colmenas.', colmenas: 12 },
-  { title: 'EcoHotel La Cumbre', location: 'Cajamarca, Tolima', type: 'turismo', status: 'activo', description: 'Experiencia de observación de meliponas + cata de miel para huéspedes.', colmenas: 4 },
-  { title: 'Colegio San Bonifacio', location: 'Ibagué, Tolima', type: 'club', status: 'en-proceso', description: 'Instalación de 4 colmenas educativas con material PRAE para primaria.', colmenas: 4 },
-  { title: 'Finca La Esperanza', location: 'Coello, Tolima', type: 'finca', status: 'activo', description: 'Polinización de café Caturra con 8 colmenas en bordes de lote.', colmenas: 8 },
-  { title: 'Jardín Residencial El Poblado', location: 'Ibagué, Tolima', type: 'empresa', status: 'en-proceso', description: 'Paisajismo con 3 colmenas ornamentales en zonas comunes del conjunto.', colmenas: 3 },
-];
-
-const filtros = ['todos', 'finca', 'club', 'turismo', 'empresa'];
 ---
 
 <BrandLayout title={SEO.proyectos.title} description={SEO.proyectos.description}>
@@ -62,13 +58,13 @@ const filtros = ['todos', 'finca', 'club', 'turismo', 'empresa'];
     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
       {aplicaciones.map((a, i) => (
         <ScrollReveal delay={i * 80}>
-          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm h-full">
+          <a href={a.href} class="group/line block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm h-full hover:shadow-md hover:-translate-y-1 hover:border-brand/40 transition-all duration-300">
             <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
               <i data-lucide={a.icon} class="w-6 h-6"></i>
             </div>
-            <h3 class="text-base font-semibold text-text-primary mb-2">{a.title}</h3>
+            <h3 class="text-base font-semibold text-text-primary mb-2 group-hover/line:text-brand transition-colors">{a.title}</h3>
             <p class="text-sm text-text-secondary leading-relaxed mb-4">{a.desc}</p>
-            <ul class="space-y-2">
+            <ul class="space-y-2 mb-4">
               {a.checks.map((check) => (
                 <li class="flex items-center gap-2 text-xs text-text-muted">
                   <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-brand shrink-0"></i>
@@ -76,7 +72,11 @@ const filtros = ['todos', 'finca', 'club', 'turismo', 'empresa'];
                 </li>
               ))}
             </ul>
-          </div>
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand">
+              Conocer esta línea
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover/line:translate-x-1 transition-transform"></i>
+            </span>
+          </a>
         </ScrollReveal>
       ))}
     </div>
@@ -141,14 +141,25 @@ const filtros = ['todos', 'finca', 'club', 'turismo', 'empresa'];
           class="filter-btn rounded-full px-4 py-2 text-sm font-medium transition-all"
           data-filter={f}
         >
-          {f === 'todos' ? 'Todos' : f.charAt(0).toUpperCase() + f.slice(1)}
+          {f === 'todos' ? 'Todos' : (TIPO_LABELS[f as keyof typeof TIPO_LABELS] ?? f.charAt(0).toUpperCase() + f.slice(1))}
         </button>
       ))}
     </div>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="projects-grid">
-      {proyectos.map((p, i) => (
-        <div class="project-item" data-type={p.type}>
-          <ProjectCard {...p} />
+      {proyectosData.map((p) => (
+        <div class="project-item" data-type={p.tipo}>
+          <ProjectCard
+            title={p.nombre}
+            location={p.ubicacion ?? `${p.municipio ?? ''}, Tolima`}
+            type={TIPO_LABELS[p.tipo] ?? p.tipo}
+            status={p.estado}
+            description={p.descripcion_corta ?? p.descripcion ?? ''}
+            colmenas={p.colmenas ?? undefined}
+            image={p.imagen ?? undefined}
+            slug={p.slug}
+            iot={p.iot_activo}
+            trazabilidad={p.trazabilidad_qr}
+          />
         </div>
       ))}
     </div>

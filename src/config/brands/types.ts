@@ -47,6 +47,6 @@ export interface BrandConfig {
   whatsapp?: string;
   /** Instagram handle */
   instagram?: string;
-  /** Emoji icon for the brand */
+  /** Lucide icon name for the brand */
   icon?: string;
 }

@@ -18,24 +18,31 @@ export const naturaleza: BrandConfig = {
     mono: "'JetBrains Mono', ui-monospace, monospace",
   },
   nav: [
-    { label: 'Experiencias', href: '/naturaleza/experiencias' },
-    { label: 'Programas', href: '/naturaleza/programas' },
+    {
+      label: 'Experiencias',
+      href: '/naturaleza/experiencias',
+      children: [
+        { label: 'Catálogo de Experiencias', href: '/naturaleza/experiencias' },
+        { label: 'Programas & Paquetes', href: '/naturaleza/programas' },
+        { label: 'Clasificación', href: '/naturaleza/clasificacion' },
+      ],
+    },
     {
       label: 'Anfitriones',
       href: '/naturaleza/anfitriones',
       children: [
         { label: 'Directorio', href: '/naturaleza/anfitriones' },
-        { label: 'Hub de Recursos', href: '/naturaleza/anfitriones/hub' },
         { label: 'Escalafón', href: '/naturaleza/escalafon' },
+        { label: 'Hub de Recursos', href: '/naturaleza/anfitriones/hub' },
       ],
     },
+    { label: 'Sé Anfitrión', href: '/naturaleza/se-anfitrion' },
     { label: 'Impacto', href: '/naturaleza/impacto' },
     {
-      label: 'Comunidad',
+      label: 'Recursos',
       href: '/naturaleza/bitacora',
       children: [
         { label: 'Bitácora', href: '/naturaleza/bitacora' },
-        { label: 'Clasificación', href: '/naturaleza/clasificacion' },
         { label: 'Ayuda', href: '/naturaleza/ayuda' },
         { label: 'Contacto', href: '/naturaleza/contacto' },
       ],
@@ -48,5 +55,5 @@ export const naturaleza: BrandConfig = {
   },
   whatsapp: '573001234567',
   instagram: '@iwage.naturaleza',
-  icon: '🌿',
+  icon: 'leaf',
 };

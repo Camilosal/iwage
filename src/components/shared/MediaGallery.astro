@@ -1,101 +1,187 @@
 ---
+/**
+ * MediaGallery — Galería audiovisual reutilizable con lightbox.
+ * Acepta URLs simples o objetos { url, tipo: 'imagen'|'video'|'360', titulo? }.
+ * Funciona con cualquier marca (colores heredados del tema).
+ */
+export interface GalleryItem {
+  url: string;
+  tipo?: 'imagen' | 'video' | '360';
+  titulo?: string;
+}
+
 interface Props {
-  images: string[];
+  images: (string | GalleryItem)[];
   title?: string;
   columns?: 4 | 3 | 2;
 }
 
-const { images, title = 'Galería', columns = 4 } = Astro.props;
-if (images.length === 0) return;
+const { images: rawImages, title = 'Galería', columns = 4 } = Astro.props;
+
+// Normalize items
+const items: GalleryItem[] = (rawImages || [])
+  .map((item) => (typeof item === 'string' ? { url: item, tipo: 'imagen' as const } : { tipo: 'imagen' as const, ...item }))
+  .filter((item) => !!item.url);
+
+if (items.length === 0) return;
+
+// Unique id to support multiple galleries per page
+const gid = `gal-${Math.random().toString(36).slice(2, 8)}`;
+
+function isYouTube(url: string) {
+  return /youtube\.com|youtu\.be/.test(url);
+}
+function ytEmbed(url: string) {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+}
 ---
 
-<div class="bg-white rounded-2xl border border-gray-100 overflow-hidden" data-gallery>
-  <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+<div class="rounded-2xl border border-border bg-surface-raised overflow-hidden" data-gallery-wrapper={gid}>
+  <div class="px-6 py-4 border-b border-border flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <span class="text-lg">📷</span>
-      <h2 class="text-lg font-bold text-[#1B4332]">{title}</h2>
-      <span class="text-xs text-gray-300 font-mono">{images.length} fotos</span>
+      <i data-lucide="images" class="w-5 h-5 text-brand"></i>
+      <h2 class="text-lg font-bold text-text-primary">{title}</h2>
+      <span class="text-xs text-text-muted font-mono">{items.length} {items.length === 1 ? 'elemento' : 'elementos'}</span>
     </div>
-    <button class="gallery-fullscreen-btn text-xs font-medium text-[#52B788] hover:underline" data-open-lightbox>
-      ⛶ Pantalla completa
+    <button class="text-xs font-medium text-brand hover:underline flex items-center gap-1" data-gal-open="0">
+      <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Pantalla completa
     </button>
   </div>
 
   <!-- Thumbnail Grid -->
-  <div class:list={['grid gap-1 p-1', columns === 4 ? 'grid-cols-2 md:grid-cols-4' : columns === 3 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2']}>
-    {images.map((img, i) => (
+  <div class:list={['grid gap-1.5 p-1.5', columns === 4 ? 'grid-cols-2 md:grid-cols-4' : columns === 3 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2']}>
+    {items.map((item, i) => (
       <button
-        class="gallery-thumb relative overflow-hidden rounded-lg aspect-[4/3] group cursor-pointer"
-        data-index={i}
-        data-open-lightbox
+        class="relative overflow-hidden rounded-lg aspect-[4/3] group cursor-pointer"
+        data-gal-open={String(i)}
+        aria-label={item.titulo || `${title} ${i + 1}`}
       >
-        <img src={img} alt={`${title} ${i + 1}`} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-          <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
-        </div>
-        {i === 0 && <span class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-full uppercase">Principal</span>}
+        {item.tipo === 'video' ? (
+          <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
+            <span class="w-10 h-10 rounded-full bg-brand/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="play" class="w-5 h-5 text-white ml-0.5"></i>
+            </span>
+          </div>
+        ) : item.tipo === '360' ? (
+          <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
+            <span class="w-10 h-10 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="rotate-3d" class="w-5 h-5 text-white"></i>
+            </span>
+          </div>
+        ) : (
+          <img src={item.url} alt={item.titulo || `${title} ${i + 1}`} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+        )}
+        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+        {item.titulo && (
+          <span class="absolute bottom-2 left-2 right-2 text-[10px] font-medium text-white bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md truncate text-left">{item.titulo}</span>
+        )}
+        {item.tipo === 'video' && <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">Video</span>}
+        {item.tipo === '360' && <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">360°</span>}
+        {i === 0 && item.tipo === 'imagen' && <span class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-full uppercase">Principal</span>}
       </button>
     ))}
   </div>
 </div>
 
 <!-- Lightbox Overlay -->
-<div class="gallery-lightbox fixed inset-0 z-[9999] hidden" data-lightbox>
-  <div class="absolute inset-0 bg-black/95" data-close-lightbox></div>
-  
-  <!-- Close button -->
-  <button class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-close-lightbox>
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+<div class="fixed inset-0 z-[9999] hidden" data-gal-lightbox={gid}>
+  <div class="absolute inset-0 bg-black/95" data-gal-close></div>
+
+  <!-- Close -->
+  <button class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-gal-close aria-label="Cerrar">
+    <i data-lucide="x" class="w-6 h-6"></i>
   </button>
 
   <!-- Counter -->
   <div class="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-full bg-white/10 text-white text-sm font-mono">
-    <span data-counter>1 / {images.length}</span>
+    <span data-gal-counter>1 / {items.length}</span>
   </div>
 
-  <!-- Main image -->
-  <div class="absolute inset-0 flex items-center justify-center p-16">
-    <img data-lightbox-img src={images[0]} alt="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+  <!-- Main content -->
+  <div class="absolute inset-0 flex items-center justify-center p-16" data-gal-stage>
+    <img data-gal-img src={items[0].tipo === 'imagen' ? items[0].url : ''} alt="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
   </div>
+
+  <!-- Title -->
+  <div class="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 text-white text-sm font-medium bg-black/50 px-4 py-1.5 rounded-full hidden" data-gal-title></div>
 
   <!-- Navigation -->
-  <button class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-prev>
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  <button class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-gal-prev aria-label="Anterior">
+    <i data-lucide="chevron-left" class="w-6 h-6"></i>
   </button>
-  <button class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-next>
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+  <button class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-gal-next aria-label="Siguiente">
+    <i data-lucide="chevron-right" class="w-6 h-6"></i>
   </button>
 
   <!-- Thumbnail strip -->
   <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2 max-w-[80vw] overflow-x-auto px-4 py-2 rounded-full bg-black/50">
-    {images.map((img, i) => (
-      <button class="gallery-strip-thumb w-12 h-9 rounded-md overflow-hidden shrink-0 opacity-50 hover:opacity-100 transition-opacity border-2 border-transparent data-[active=true]:border-white data-[active=true]:opacity-100" data-strip={i} data-active={i === 0 ? 'true' : 'false'}>
-        <img src={img} alt="" class="w-full h-full object-cover" loading="lazy" />
+    {items.map((item, i) => (
+      <button class="w-12 h-9 rounded-md overflow-hidden shrink-0 opacity-50 hover:opacity-100 transition-opacity border-2 border-transparent data-[active=true]:border-white data-[active=true]:opacity-100" data-gal-strip={String(i)} data-active={i === 0 ? 'true' : 'false'}>
+        {item.tipo === 'imagen' ? (
+          <img src={item.url} alt="" class="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <span class="w-full h-full flex items-center justify-center bg-white/10 text-white text-[10px]">{item.tipo === 'video' ? '▶' : '360'}</span>
+        )}
       </button>
     ))}
   </div>
 </div>
 
-<script>
-  const galleryImages: string[] = Array.from(document.querySelectorAll('[data-gallery] .gallery-thumb img')).map(img => (img as HTMLImageElement).src);
-  
-  document.querySelectorAll('[data-gallery]').forEach(gallery => {
-    const lightbox = gallery.parentElement?.querySelector('[data-lightbox]') || document.querySelector('[data-lightbox]');
-    if (!lightbox) return;
-    
-    const lbImg = lightbox.querySelector('[data-lightbox-img]') as HTMLImageElement;
-    const counter = lightbox.querySelector('[data-counter]') as HTMLElement;
-    const stripThumbs = lightbox.querySelectorAll('[data-strip]');
+<script data-gal-items={gid} type="application/json" set:html={JSON.stringify(items)} />
+<script define:vars={{ gid }}>
+  (() => {
+    const wrapper = document.querySelector(`[data-gallery-wrapper="${gid}"]`);
+    const lightbox = document.querySelector(`[data-gal-lightbox="${gid}"]`);
+    const scriptTag = document.querySelector(`[data-gal-items="${gid}"]`);
+    if (!wrapper || !lightbox || !scriptTag) return;
+
+    const items = JSON.parse(scriptTag.textContent || '[]');
+    const stage = lightbox.querySelector('[data-gal-stage]');
+    const img = lightbox.querySelector('[data-gal-img]');
+    const counter = lightbox.querySelector('[data-gal-counter]');
+    const titleEl = lightbox.querySelector('[data-gal-title]');
+    const strips = lightbox.querySelectorAll('[data-gal-strip]');
     let current = 0;
 
-    function show(idx: number) {
-      current = (idx + galleryImages.length) % galleryImages.length;
-      lbImg.src = galleryImages[current];
-      counter.textContent = `${current + 1} / ${galleryImages.length}`;
-      stripThumbs.forEach((t, i) => t.setAttribute('data-active', String(i === current)));
+    function isYouTube(url) {
+      return /youtube\.com|youtu\.be/.test(url);
+    }
+    function ytEmbed(url) {
+      const m = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+      return m ? `https://www.youtube.com/embed/${m[1]}` : url;
     }
 
-    function open(idx: number) {
+    function show(idx) {
+      current = (idx + items.length) % items.length;
+      const item = items[current];
+      counter.textContent = `${current + 1} / ${items.length}`;
+      strips.forEach((t, i) => t.setAttribute('data-active', String(i === current)));
+
+      // Title
+      if (item.titulo) {
+        titleEl.textContent = item.titulo;
+        titleEl.classList.remove('hidden');
+      } else {
+        titleEl.classList.add('hidden');
+      }
+
+      // Render media
+      if (item.tipo === 'video') {
+        const embedUrl = isYouTube(item.url) ? ytEmbed(item.url) : item.url;
+        stage.innerHTML = `<iframe src="${embedUrl}" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+      } else if (item.tipo === '360') {
+        stage.innerHTML = `<iframe src="${item.url}" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl" frameborder="0" allowfullscreen></iframe>`;
+      } else {
+        stage.innerHTML = '';
+        stage.appendChild(img);
+        img.src = item.url;
+        img.alt = item.titulo || '';
+        img.style.display = '';
+      }
+    }
+
+    function open(idx) {
       show(idx);
       lightbox.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
@@ -104,19 +190,19 @@ if (images.length === 0) return;
     function close() {
       lightbox.classList.add('hidden');
       document.body.style.overflow = '';
+      // Stop any playing video
+      const iframe = stage.querySelector('iframe');
+      if (iframe) iframe.src = '';
     }
 
-    gallery.querySelectorAll('[data-open-lightbox]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = btn.hasAttribute('data-index') ? parseInt(btn.getAttribute('data-index')!) : 0;
-        open(idx);
-      });
+    wrapper.querySelectorAll('[data-gal-open]').forEach((btn) => {
+      btn.addEventListener('click', () => open(parseInt(btn.getAttribute('data-gal-open') || '0', 10)));
     });
 
-    lightbox.querySelectorAll('[data-close-lightbox]').forEach(el => el.addEventListener('click', close));
-    lightbox.querySelector('[data-prev]')?.addEventListener('click', () => show(current - 1));
-    lightbox.querySelector('[data-next]')?.addEventListener('click', () => show(current + 1));
-    stripThumbs.forEach((t, i) => t.addEventListener('click', () => show(i)));
+    lightbox.querySelectorAll('[data-gal-close]').forEach((el) => el.addEventListener('click', close));
+    lightbox.querySelector('[data-gal-prev]')?.addEventListener('click', () => show(current - 1));
+    lightbox.querySelector('[data-gal-next]')?.addEventListener('click', () => show(current + 1));
+    strips.forEach((t, i) => t.addEventListener('click', () => show(i)));
 
     document.addEventListener('keydown', (e) => {
       if (lightbox.classList.contains('hidden')) return;
@@ -124,5 +210,5 @@ if (images.length === 0) return;
       if (e.key === 'ArrowLeft') show(current - 1);
       if (e.key === 'ArrowRight') show(current + 1);
     });
-  });
+  })();
 </script>

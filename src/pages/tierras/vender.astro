@@ -1,33 +1,107 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import { getBrand } from '@/config/brands';
+
 export const prerender = true;
+
+const waPhone = getBrand('tierras')?.whatsapp || '573001234567';
+
+const INCLUIDO = [
+  { icon: 'shield', title: 'Auditoría VAP sin costo', desc: 'Estudio de títulos de 20 años, levantamiento GPS de linderos, verificación de concesiones de agua y análisis PBOT. Valor comercial: $2–5M. Para ti: gratis.' },
+  { icon: '🎬', title: 'Producción audiovisual profesional', desc: 'Fotografía con drone, tour virtual 360°, video del predio y ficha técnica diseñada. Tu propiedad se presenta como merece.' },
+  { icon: '🎯', title: 'Difusión segmentada por perfil', desc: 'No publicamos a ciegas: conectamos tu predio con compradores de perfil productivo, campestre, nómada, turístico o patrimonial según su vocación.' },
+  { icon: 'scale', title: 'Acompañamiento legal hasta el cierre', desc: 'Promesa de compraventa, paz y salvos, verificación de impuestos y escrituración. Cero fricción para ti y para el comprador.' },
+];
+
+const PASOS = [
+  { num: '01', title: 'Radicación', desc: 'Nos envías la información básica: ubicación, área, documentos que tengas. Sin compromiso y sin exclusividad inicial.' },
+  { num: '02', title: 'Auditoría VAP', desc: 'Nuestro equipo técnico verifica títulos, linderos GPS, agua y normativa. Sin costo para el propietario. Si hay hallazgos, te los reportamos con transparencia.' },
+  { num: '03', title: 'Producción Audiovisual', desc: 'Fotografía con drone, tour 360°, video y ficha técnica profesional. Tu propiedad se ve como merece.' },
+  { num: '04', title: 'Comercialización', desc: 'Publicación en catálogo auditado, difusión segmentada por perfil de comprador, visitas guiadas con agenda digital y acompañamiento al cierre.' },
+];
+
+const COMPARATIVA_VENTA = [
+  { criterio: 'Comisión', iwage: '5–8% (según exclusividad)', solo: '$0 pero sin alcance', tradicional: '6–10% sin valor agregado' },
+  { criterio: 'Precio de venta', iwage: 'Avalúo técnico + datos de mercado', solo: 'Sub/sobrevalorado por intuición', tradicional: 'Avalúo genérico' },
+  { criterio: 'Tiempo en mercado', iwage: '60–90 días promedio', solo: '6–18 meses', tradicional: '4–12 meses' },
+  { criterio: 'Riesgo legal', iwage: 'Auditoría VAP previa publicada', solo: 'Alto (demandas post-venta)', tradicional: 'Moderado' },
+  { criterio: 'Presentación', iwage: 'Drone, 360°, ficha técnica, IA', solo: 'Fotos de celular', tradicional: 'Fotos básicas' },
+  { criterio: 'Compradores', iwage: 'Calificados por perfil y presupuesto', solo: 'Curiosos de portales', tradicional: 'Mezcla sin filtro' },
+];
+
+const FAQS_VENTA = [
+  {
+    q: '¿Qué es la exclusividad y por qué ofrece mejor comisión?',
+    a: 'Con exclusividad, Iwagé es el único canal de venta por 90 días. A cambio, invertimos en auditoría completa y producción audiovisual sin costo. La comisión es 8%. Sin exclusividad (5%), la publicación es básica y el propietario asume parte de los costos de producción.',
+  },
+  {
+    q: '¿Cuánto tarda en venderse mi propiedad?',
+    a: 'Depende del precio y la vocación del predio. Propiedades con sello VAP Oro y precio de mercado se venden en 60–90 días en promedio. Predios sobrevalorados pueden tomar más; te lo decimos con datos, no con promesas.',
+  },
+  {
+    q: '¿Qué documentos necesito para radicar?',
+    a: 'Mínimo: copia de la escritura o folio de matrícula, cédula del propietario y ubicación del predio. Si no tienes todo, radicamos igual y nuestro equipo legal te ayuda a reconstruir la documentación.',
+  },
+  {
+    q: '¿Qué pasa si la auditoría VAP encuentra problemas?',
+    a: 'Te entregamos un reporte transparente con los hallazgos y las opciones: sanear antes de vender (te acompañamos en el proceso), vender con revelación plena al comprador, o retirar el predio. Nunca publicamos problemas ocultos.',
+  },
+  {
+    q: '¿Puedo seguir usando mi finca mientras se vende?',
+    a: 'Sí. La comercialización no interrumpe tu operación. Las visitas se coordinan con agenda digital y siempre con aviso previo.',
+  },
+  {
+    q: '¿Venden propiedades con sucesión en curso?',
+    a: 'Sí, es nuestro segmento de "venta compleja" (10% de comisión). Nuestro equipo legal gestiona la sucesión ilíquida, obtiene los paz y salvos y coordina con todos los herederos hasta la escrituración.',
+  },
+];
 ---
 
-<BrandLayout brand="tierras" title="Vender mi Propiedad · Iwagé Tierras" description="Radicar tu predio con Iwagé: auditoría VAP gratuita, producción audiovisual con drone y tour 360°, acompañamiento legal hasta el cierre.">
+<BrandLayout brand="tierras" title="Vender mi Propiedad · Iwagé Tierras" description="Vende tu tierra rural al precio justo: auditoría VAP gratuita, producción audiovisual con drone y tour 360°, compradores calificados y acompañamiento legal hasta el cierre.">
 
+  <!-- Hero -->
   <section class="bg-[#0F120E] text-white py-14 md:py-20">
     <div class="max-w-4xl mx-auto px-6 text-center">
-      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">Vende con Transparencia</p>
-      <h1 class="text-3xl md:text-5xl font-bold mb-4">Radicar mi Predio</h1>
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#C8933E] mb-4">Para Propietarios</p>
+      <h1 class="text-3xl md:text-5xl font-bold mb-4">Vende tu tierra al <span class="text-[#C8933E]">precio justo</span>, sin dolores de cabeza</h1>
       <p class="text-white/70 text-lg max-w-2xl mx-auto">
-        Si tienes tierra en el Tolima y quieres venderla con precio justo y sin fricción, Iwagé la audita, la produce y la comercializa en exclusividad.
+        Si tienes tierra en el Tolima y quieres venderla con transparencia, Iwagé la audita, la produce y la comercializa ante compradores calificados.
       </p>
     </div>
   </section>
 
-  <!-- Process -->
+  <!-- Value Proposition -->
   <Section class="bg-white">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl font-bold text-[#1B4332] mb-3">Todo lo que incluye radicar con Iwagé</h2>
+        <p class="text-gray-500 text-sm max-w-lg mx-auto">Invertimos en tu propiedad antes de cobrar un peso. Nuestra ganancia solo llega cuando tú vendes.</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        {INCLUIDO.map((item) => (
+          <ScrollReveal>
+            <div class="flex items-start gap-4 bg-[#FAFAF7] rounded-2xl p-6 border border-gray-100">
+              <span class="text-3xl shrink-0">{item.icon}</span>
+              <div>
+                <h3 class="font-bold text-[#1B4332] mb-2">{item.title}</h3>
+                <p class="text-sm text-gray-500">{item.desc}</p>
+              </div>
+            </div>
+          </ScrollReveal>
+        ))}
+      </div>
+    </div>
+  </Section>
+
+  <!-- Process -->
+  <Section class="bg-[#FAFAF7]">
     <div class="max-w-4xl mx-auto">
       <h2 class="text-2xl font-bold text-[#1B4332] text-center mb-10">¿Cómo funciona?</h2>
       <div class="space-y-6">
-        {[
-          { num: '01', title: 'Radicación', desc: 'Nos envías la información básica: ubicación, área, documentos que tengas. Sin compromiso.' },
-          { num: '02', title: 'Auditoría VAP', desc: 'Nuestro equipo técnico verifica títulos, linderos GPS, agua y normativa. Sin costo para el propietario.' },
-          { num: '03', title: 'Producción Audiovisual', desc: 'Fotografía con drone, tour 360°, video y ficha técnica profesional. Tu propiedad se ve como merece.' },
-          { num: '04', title: 'Comercialización', desc: 'Publicación en catálogo auditado, difusión segmentada por perfil de comprador y acompañamiento al cierre.' },
-        ].map((step) => (
-          <div class="flex items-start gap-6 bg-[#FAFAF7] rounded-2xl p-6 border border-gray-100">
+        {PASOS.map((step) => (
+          <div class="flex items-start gap-6 bg-white rounded-2xl p-6 border border-gray-100">
             <span class="text-3xl font-bold text-[#52B788]/30">{step.num}</span>
             <div>
               <h3 class="font-bold text-[#1B4332] mb-1">{step.title}</h3>
@@ -39,6 +113,34 @@ export const prerender = true;
     </div>
   </Section>
 
+  <!-- Comparison -->
+  <Section class="bg-white">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl font-bold text-[#1B4332] mb-3">Vender con Iwagé vs. alternativas</h2>
+        <p class="text-gray-500 text-sm max-w-lg mx-auto">Tres caminos para vender tierra rural en Colombia. Solo uno incluye certeza para ambas partes.</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-100 overflow-x-auto">
+        <div class="min-w-[640px]">
+          <div class="grid grid-cols-4 bg-[#1B4332] text-white text-xs font-bold uppercase tracking-wider">
+            <div class="p-4">Criterio</div>
+            <div class="p-4 text-[#52B788]">Iwagé Tierras</div>
+            <div class="p-4 text-white/60">Vender solo</div>
+            <div class="p-4 text-white/60">Inmobiliaria tradicional</div>
+          </div>
+          {COMPARATIVA_VENTA.map((fila, i) => (
+            <div class={`grid grid-cols-4 text-sm ${i % 2 === 0 ? 'bg-white' : 'bg-[#FAFAF7]'}`}>
+              <div class="p-4 font-bold text-[#1B4332]">{fila.criterio}</div>
+              <div class="p-4 text-gray-700">{fila.iwage}</div>
+              <div class="p-4 text-gray-400">{fila.solo}</div>
+              <div class="p-4 text-gray-400">{fila.tradicional}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </Section>
+
   <!-- Comisiones -->
   <Section class="bg-[#FAFAF7]">
     <div class="max-w-3xl mx-auto">
@@ -46,7 +148,7 @@ export const prerender = true;
       <div class="bg-white rounded-2xl p-6 border border-gray-100">
         <div class="space-y-3 text-sm">
           <div class="flex justify-between py-3 border-b border-gray-50">
-            <span class="text-gray-500">Venta con exclusividad</span>
+            <span class="text-gray-500">Venta con exclusividad (90 días)</span>
             <span class="font-bold text-[#1B4332]">8%</span>
           </div>
           <div class="flex justify-between py-3 border-b border-gray-50">
@@ -54,28 +156,169 @@ export const prerender = true;
             <span class="font-bold text-[#1B4332]">10%</span>
           </div>
           <div class="flex justify-between py-3 border-b border-gray-50">
-            <span class="text-gray-500">Arriendo</span>
-            <span class="font-bold text-[#1B4332]">1 mes</span>
-          </div>
-          <div class="flex justify-between py-3">
             <span class="text-gray-500">Sin exclusividad</span>
             <span class="font-bold text-[#1B4332]">5%</span>
+          </div>
+          <div class="flex justify-between py-3">
+            <span class="text-gray-500">Arriendo</span>
+            <span class="font-bold text-[#1B4332]">1 mes</span>
           </div>
         </div>
       </div>
     </div>
   </Section>
 
+  <!-- Radicación Form -->
+  <Section class="bg-white">
+    <div class="max-w-2xl mx-auto">
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-[#1B4332] mb-3">Radicar mi predio</h2>
+        <p class="text-gray-500 text-sm">Completa el formulario y te contactamos en menos de 24 horas. Sin compromiso.</p>
+      </div>
+      <form id="form-radicacion" class="bg-[#FAFAF7] rounded-2xl p-6 md:p-8 border border-gray-100 space-y-4">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="rad-nombre" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Nombre completo *</label>
+            <input id="rad-nombre" name="nombre" type="text" required placeholder="Tu nombre"
+              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all" />
+          </div>
+          <div>
+            <label for="rad-whatsapp" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">WhatsApp *</label>
+            <input id="rad-whatsapp" name="whatsapp" type="tel" required placeholder="300 123 4567"
+              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="rad-municipio" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Municipio del predio *</label>
+            <input id="rad-municipio" name="municipio" type="text" required placeholder="Ej: Salento, Ibagué, Cajamarca"
+              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all" />
+          </div>
+          <div>
+            <label for="rad-tipo" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Tipo de propiedad *</label>
+            <select id="rad-tipo" name="tipo_propiedad" required
+              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all">
+              <option value="">Seleccionar...</option>
+              <option value="finca">Finca</option>
+              <option value="lote">Lote / Terreno</option>
+              <option value="casa_campestre">Casa Campestre</option>
+              <option value="predio_rural">Predio Rural</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="rad-area" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Área aproximada</label>
+            <input id="rad-area" name="area" type="text" placeholder="Ej: 5 hectáreas, 2.000 m²"
+              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all" />
+          </div>
+          <div>
+            <label for="rad-precio" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Precio esperado (opcional)</label>
+            <input id="rad-precio" name="precio_esperado" type="text" placeholder="Ej: $350 millones"
+              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all" />
+          </div>
+        </div>
+        <div>
+          <label for="rad-mensaje" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Cuéntanos sobre el predio</label>
+          <textarea id="rad-mensaje" name="mensaje" rows="3" placeholder="¿Tiene casa? ¿Cultivos? ¿Fuente de agua? ¿Documentos al día?"
+            class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all resize-none"></textarea>
+        </div>
+        <button type="submit"
+          class="w-full bg-[#C8933E] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#C8933E]/90 transition-all shadow-lg">
+          Radicar mi Predio
+        </button>
+        <p id="rad-status" class="text-center text-sm hidden"></p>
+        <p class="text-center text-xs text-gray-400">
+          ¿Prefieres WhatsApp?
+          <a href={`https://wa.me/${waPhone}?text=${encodeURIComponent('Hola, quiero radicar mi predio para venta. ¿Cómo empiezo?')}`}
+            target="_blank" rel="noopener" class="font-bold text-[#52B788] hover:underline">Escríbenos directo <i data-lucide="arrow-right" class="w-3 h-3 inline"></i></a>
+        </p>
+      </form>
+    </div>
+  </Section>
+
+  <!-- FAQ -->
+  <Section class="bg-[#FAFAF7]">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl font-bold text-[#1B4332] text-center mb-10">Preguntas frecuentes</h2>
+      <div class="space-y-4">
+        {FAQS_VENTA.map((faq) => (
+          <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <summary class="flex items-center justify-between gap-4 p-5 cursor-pointer list-none">
+              <span class="font-bold text-sm text-[#1B4332]">{faq.q}</span>
+              <span class="text-[#C8933E] text-lg group-open:rotate-45 transition-transform shrink-0">+</span>
+            </summary>
+            <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">{faq.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </Section>
+
   <!-- CTA -->
-  <section class="py-16 bg-white">
+  <section class="py-16 bg-[#0F120E]">
     <div class="max-w-2xl mx-auto px-6 text-center">
-      <h2 class="text-2xl font-bold text-[#1B4332] mb-4">¿Tienes tierra para vender?</h2>
-      <p class="text-gray-500 mb-8">Escríbenos por WhatsApp con la ubicación y documentos básicos. Te respondemos en menos de 24 horas.</p>
-      <a href="https://wa.me/573001234567?text=Hola%2C%20quiero%20radicar%20mi%20predio%20para%20venta.%20%C2%BFC%C3%B3mo%20empiezo%3F"
-        target="_blank" rel="noopener"
-        class="inline-block bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg">
-        💬 Radicar por WhatsApp
-      </a>
+      <h2 class="text-2xl font-bold text-white mb-4">Tu tierra merece ser vista</h2>
+      <p class="text-white/60 mb-8">Radicación sin compromiso. Respuesta en menos de 24 horas.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#form-radicacion" class="bg-[#C8933E] text-white px-10 py-4 rounded-full font-bold text-sm hover:bg-[#C8933E]/90 transition-all shadow-lg">
+          Radicar mi Predio
+        </a>
+        <a href={`https://wa.me/${waPhone}?text=${encodeURIComponent('Hola, quiero radicar mi predio para venta. ¿Cómo empiezo?')}`}
+          target="_blank" rel="noopener"
+          class="border border-[#52B788] text-[#52B788] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788] hover:text-[#0F120E] transition-all">
+          <i data-lucide="message-circle" class="w-4 h-4 inline"></i> Radicar por WhatsApp
+        </a>
+      </div>
     </div>
   </section>
 </BrandLayout>
+
+<script>
+  const form = document.getElementById('form-radicacion') as HTMLFormElement;
+  const status = document.getElementById('rad-status') as HTMLElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    status.className = 'text-center text-sm text-gray-400';
+    status.textContent = 'Procesando tu radicación...';
+
+    const fd = new FormData(form);
+    const tipoProp = (fd.get('tipo_propiedad') as string) || 'predio';
+    const area = (fd.get('area') as string) || 'sin especificar';
+    const precio = (fd.get('precio_esperado') as string) || 'sin especificar';
+
+    try {
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: fd.get('nombre'),
+          whatsapp: fd.get('whatsapp'),
+          municipio: fd.get('municipio'),
+          tipo_proyecto: 'radicacion_venta',
+          mensaje: `[RADICACIÓN] Tipo: ${tipoProp} | Área: ${area} | Precio esperado: ${precio} | ${(fd.get('mensaje') as string) || 'Sin detalles adicionales'}`,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        status.className = 'text-center text-sm font-bold text-[#52B788]';
+        status.textContent = '✓ Radicación recibida. Te contactamos en menos de 24 horas.';
+        form.reset();
+      } else {
+        status.className = 'text-center text-sm font-bold text-red-500';
+        status.textContent = json.error || 'Error al enviar. Intenta de nuevo.';
+      }
+    } catch {
+      status.className = 'text-center text-sm font-bold text-red-500';
+      status.textContent = 'Error de conexión. Escríbenos por WhatsApp.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Radicar mi Predio';
+    }
+  });
+</script>

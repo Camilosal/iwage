@@ -253,7 +253,7 @@ async function main() {
         precio_personalizado: j.precio_personalizado ? Number(j.precio_personalizado) : null,
         superpoder_en_esta_ruta: j.superpoder_en_esta_ruta,
         toque_unico: j.toque_unico,
-        url_qloapps: j.url_qloapps,
+        url_reservas: j.url_reservas || j.url_qloapps,
         lema_seccion: j.lema_seccion,
         manifiesto_ruta: j.manifiesto_ruta,
         momento_favorito_ruta: j.momento_favorito_ruta,

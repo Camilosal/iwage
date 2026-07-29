@@ -2,116 +2,206 @@
 export const prerender = true;
 
 import BrandLayout from '@/layouts/BrandLayout.astro';
-import PropiedadGestionCard from '@/components/gestion/PropiedadGestionCard.astro';
+import AlojamientoCard from '@/components/gestion/AlojamientoCard.astro';
 import { getPropiedadesGestionDestacadas, TIPOS_GESTION } from '@/lib/gestion';
 
-const destacadas = await getPropiedadesGestionDestacadas(3);
+const destacadas = await getPropiedadesGestionDestacadas(6);
 ---
 
-<BrandLayout brand="gestion" title="Iwagé Gestión · Property Management Rural · Tolima" description="Gestión integral de propiedades rurales: renta corta, finca productiva, segunda residencia y operación turística. Maximiza el valor de tu tierra en el Tolima.">
+<BrandLayout brand="gestion" title="Iwagé Gestión · Alojamientos Rurales & Property Management · Tolima" description="Reserva alojamientos rurales únicos en el Tolima o gestiona tu propiedad con expertos. Fincas, glamping, casas campestres y experiencias de territorio.">
 
-  <!-- Hero -->
-  <section class="relative min-h-[70vh] flex items-center overflow-hidden bg-[#0c1520]">
-    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80" alt="Finca rural gestionada en el Tolima" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+  <!-- Hero with dual CTA -->
+  <section class="relative min-h-[80vh] flex items-center overflow-hidden bg-[#0c1520]">
+    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80" alt="Territorio rural del Tolima" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
     <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
-    <div class="relative z-10 max-w-6xl mx-auto px-4">
+    <div class="relative z-10 max-w-6xl mx-auto px-4 w-full">
       <div class="max-w-3xl">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-2 h-2 rounded-full bg-[#52B788] animate-pulse"></div>
           <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Iwagé Gestión</span>
         </div>
-        <h1 class="text-5xl lg:text-7xl font-light text-white leading-tight mb-8">
-          Tu finca, <span class="font-serif italic text-[#52B788]">siempre productiva.</span>
+        <h1 class="text-5xl lg:text-7xl font-light text-white leading-tight mb-6">
+          El Tolima te <span class="font-serif italic text-[#52B788]">espera.</span>
         </h1>
         <p class="text-xl text-white/70 leading-relaxed mb-10 max-w-2xl">
-          Administramos tu propiedad rural en el Tolima con un enfoque técnico y comercial. Segunda residencia, renta corta, finca productiva y operación turística.
+          Alojamientos rurales gestionados profesionalmente y experiencias de territorio. O si tienes una propiedad, la hacemos productiva por ti.
         </p>
-        <a href="#contacto" class="inline-block px-8 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
-          Solicitar valoración gratuita
-        </a>
+
+        <!-- Dual CTA -->
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a href="/gestion/alojamientos" class="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            Busco alojamiento
+          </a>
+          <a href="/gestion/propietarios" class="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full border-2 border-white/30 text-white text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:border-white/50 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            Tengo una propiedad
+          </a>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Lines of operation (compact) -->
-  <section class="py-14 px-4 bg-[#f8f9fb]">
+  <!-- Featured properties (guest-facing) -->
+  <section class="py-16 px-4 bg-[#f8f9fb]">
     <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-10">
-        <span class="text-xs font-bold tracking-[0.3em] text-[#2d5a8f] uppercase">Líneas de operación</span>
-        <h2 class="text-3xl lg:text-4xl font-light text-[#122640] mt-3">Ecosistema de gestión integral</h2>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-        {TIPOS_GESTION.map((tipo) => (
-          <a href={`/gestion/propiedades?tipo=${tipo.slug}`} class="group p-5 rounded-2xl bg-white border border-gray-100 text-center hover:shadow-lg hover:border-[#52B788]/30 transition-all">
-            <div class="text-3xl mb-3">{tipo.icon}</div>
-            <h3 class="text-sm font-bold text-[#122640] group-hover:text-[#52B788] transition-colors">{tipo.label}</h3>
-            <p class="text-[11px] text-gray-400 mt-1">{tipo.desc}</p>
-          </a>
-        ))}
-      </div>
-
-      <!-- Featured properties -->
-      <div class="text-center mb-8">
-        <h3 class="text-xl font-light text-[#122640]">Propiedades destacadas</h3>
+      <div class="flex items-end justify-between mb-10">
+        <div>
+          <span class="text-xs font-bold tracking-[0.3em] text-[#2d5a8f] uppercase">Para huéspedes</span>
+          <h2 class="text-3xl lg:text-4xl font-light text-[#122640] mt-3">Alojamientos destacados</h2>
+        </div>
+        <a href="/gestion/alojamientos" class="hidden sm:inline-block text-sm font-bold text-[#52B788] hover:text-[#2d5a8f] transition-colors">
+          Ver todos <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+        </a>
       </div>
 
       {destacadas.length > 0 ? (
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {destacadas.map((prop) => (
-            <PropiedadGestionCard prop={prop} />
+          {destacadas.slice(0, 6).map((prop) => (
+            <AlojamientoCard prop={prop} />
           ))}
         </div>
       ) : (
-        <div class="text-center py-10 bg-white rounded-3xl border border-gray-100">
-          <p class="text-gray-400 text-sm mb-4">Próximamente publicaremos nuestras propiedades en gestión.</p>
-          <a href="/gestion/propiedades" class="text-sm font-bold text-[#52B788] hover:text-[#2d5a8f] transition-colors">Ver portafolio →</a>
+        <div class="text-center py-16 bg-white rounded-3xl border border-gray-100">
+          <i data-lucide="home" class="w-8 h-8 block mb-4 mx-auto"></i>
+          <p class="text-gray-400 text-sm mb-4">Próximamente publicaremos nuestros alojamientos disponibles.</p>
+          <a href="/gestion/alojamientos" class="text-sm font-bold text-[#52B788] hover:text-[#2d5a8f] transition-colors">Explorar catálogo <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
         </div>
       )}
 
-      <div class="text-center mt-8">
-        <a href="/gestion/propiedades" class="inline-block px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
-          Ver todas las propiedades →
+      <div class="text-center mt-8 sm:hidden">
+        <a href="/gestion/alojamientos" class="inline-block px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
+          Ver todos los alojamientos <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- Reporting -->
+  <!-- How it works for guests -->
   <section class="py-16 px-4 bg-white">
-    <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-      <div>
-        <span class="text-xs font-bold tracking-[0.3em] text-[#2d5a8f] uppercase">Transparencia</span>
-        <h2 class="text-3xl lg:text-4xl font-light text-[#122640] mt-3 mb-6">Reportes periódicos claros</h2>
-        <p class="text-gray-600 leading-relaxed mb-6">Como propietario, recibirás informes detallados que garantizan que tu propiedad está en las mejores manos:</p>
-        <ul class="space-y-3">
-          {['Estado de cuenta de ingresos y egresos', 'Reporte fotográfico de mantenimiento', 'Control de pago de servicios y obligaciones', 'Seguimiento técnico de personal de apoyo'].map((item) => (
-            <li class="flex items-center gap-3 text-sm text-gray-700 font-medium">
-              <div class="w-2 h-2 rounded-full bg-[#52B788]"></div>
-              {item}
-            </li>
-          ))}
-        </ul>
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold tracking-[0.3em] text-[#2d5a8f] uppercase">Reserva fácil</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-[#122640] mt-3">¿Cómo funciona?</h2>
       </div>
-      <div class="rounded-3xl overflow-hidden h-80">
-        <img src="https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=800&q=80" alt="Reportes de gestión de propiedades" class="w-full h-full object-cover" loading="lazy" />
+      <div class="grid md:grid-cols-3 gap-8">
+        {[
+          { icon: '🔍', step: 'Explora', desc: 'Busca fincas, glamping o casas campestres por destino, fechas y número de huéspedes.' },
+          { icon: '📅', step: 'Reserva', desc: 'Elige tus fechas, confirma disponibilidad y reserva en línea de forma segura.' },
+          { icon: 'leaf', step: 'Disfruta', desc: 'Llega y vive la experiencia rural. Con anfitriones locales y actividades de territorio.' },
+        ].map((item) => (
+          <div class="text-center p-8 rounded-3xl bg-[#f8f9fb] border border-gray-100">
+            <div class="text-4xl mb-4">{item.icon}</div>
+            <h3 class="text-lg font-bold text-[#122640] mb-3">{item.step}</h3>
+            <p class="text-sm text-gray-600">{item.desc}</p>
+          </div>
+        ))}
       </div>
     </div>
   </section>
 
-  <!-- Contact / Lead Form -->
-  <section id="contacto" class="py-14 px-4 bg-[#0c1520]">
+  <!-- Owner value proposition (compact) -->
+  <section class="py-16 px-4 bg-[#1e3a5f]">
+    <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <span class="text-xs font-bold tracking-[0.3em] text-[#52B788] uppercase">Para propietarios</span>
+        <h2 class="text-3xl lg:text-4xl font-light text-white mt-3 mb-6">Tu tierra, siempre productiva</h2>
+        <p class="text-white/70 leading-relaxed mb-8">
+          Administramos tu propiedad rural con enfoque técnico y comercial. Renta corta, finca productiva, segunda residencia u operación turística. Tú mantienes la propiedad, nosotros la operación.
+        </p>
+        <div class="grid grid-cols-2 gap-4 mb-8">
+          {TIPOS_GESTION.map((tipo) => (
+            <a href={`/gestion/propietarios/${tipo.slug === 'renta_corta' ? 'renta-corta' : tipo.slug === 'finca_productiva' ? 'finca-productiva' : tipo.slug === 'segunda_residencia' ? 'segunda-residencia' : 'operacion-turistica'}`} class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+              <span class="text-xl">{tipo.icon}</span>
+              <span class="text-sm text-white/80 font-medium">{tipo.label}</span>
+            </a>
+          ))}
+        </div>
+        <a href="/gestion/propietarios" class="inline-block px-8 py-3.5 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold hover:bg-[#7fc4a2] transition-colors">
+          Conocer modelos de gestión <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+        </a>
+      </div>
+      <div class="rounded-3xl overflow-hidden h-80">
+        <img src="https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=800&q=80" alt="Gestión profesional de propiedades rurales" class="w-full h-full object-cover" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Experiences teaser -->
+  <section class="py-16 px-4 bg-[#f8f9fb]">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="text-xs font-bold tracking-[0.3em] text-[#2d5a8f] uppercase">Ecosistema Iwagé</span>
+      <h2 class="text-3xl font-light text-[#122640] mt-3 mb-6">Más que un alojamiento, una experiencia</h2>
+      <p class="text-gray-600 mb-8 max-w-lg mx-auto">
+        Nuestros alojamientos están conectados con experiencias de naturaleza, café y meliponas. Rutas sensoriales, anfitriones locales y territorio vivo.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/gestion/experiencias" class="px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
+          Ver experiencias <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+        </a>
+        <a href="/naturaleza" class="px-8 py-3.5 rounded-full border-2 border-[#2d5a8f] text-[#2d5a8f] text-sm font-bold hover:bg-[#2d5a8f] hover:text-white transition-colors">
+          Iwagé Naturaleza <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials (guest + owner) -->
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-5xl mx-auto">
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Guest testimonial -->
+        <div class="p-8 rounded-3xl bg-[#f8f9fb] border border-gray-100">
+          <div class="text-3xl text-[#52B788] mb-4">"</div>
+          <p class="text-gray-700 leading-relaxed mb-6 italic">
+            La finca superó todas nuestras expectativas. Impecable, con una vista increíble y el anfitrión nos organizó una ruta de café que fue lo mejor del viaje.
+          </p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-[#52B788]/20 flex items-center justify-center text-sm">👤</div>
+            <div>
+              <p class="text-[#122640] font-medium text-sm">Huésped</p>
+              <p class="text-gray-400 text-xs">Finca en Alvarado · Renta corta</p>
+            </div>
+          </div>
+        </div>
+        <!-- Owner testimonial -->
+        <div class="p-8 rounded-3xl bg-[#0c1520]">
+          <div class="text-3xl text-[#52B788] mb-4">"</div>
+          <p class="text-white/80 leading-relaxed mb-6 italic">
+            Antes mi finca estaba abandonada la mitad del año. Ahora genera ingresos constantes y yo no tengo que preocuparme por nada. Reportes claros cada mes.
+          </p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-[#52B788]/20 flex items-center justify-center text-sm">👤</div>
+            <div>
+              <p class="text-white font-medium text-sm">Propietario aliado</p>
+              <p class="text-white/40 text-xs">Finca en Venadillo · Gestión Pura</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final dual CTA -->
+  <section class="py-16 px-4 bg-[#0c1520]">
     <div class="max-w-3xl mx-auto text-center">
-      <h2 class="text-3xl lg:text-5xl font-light text-white mb-6">¿Hablamos sobre <span class="font-serif italic text-[#52B788]">tu propiedad?</span></h2>
-      <p class="text-white/60 mb-10 max-w-lg mx-auto">Buscamos fincas en los corredores de Ibagué, Alvarado, Venadillo y alrededores para nuestra red premium de gestión.</p>
-      <a
-        href="https://wa.me/573001234567?text=Hola,%20quiero%20una%20valoración%20de%20mi%20propiedad%20para%20gestión"
-        target="_blank"
-        rel="noopener"
-        class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors"
-      >
-        Solicitar valoración por WhatsApp
-      </a>
+      <h2 class="text-3xl lg:text-5xl font-light text-white mb-6">
+        ¿Qué te trae al <span class="font-serif italic text-[#52B788]">Tolima?</span>
+      </h2>
+      <p class="text-white/60 mb-10 max-w-lg mx-auto">Ya sea que busques un refugio rural o quieras activar tu propiedad, estamos listos.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/gestion/alojamientos" class="w-full sm:w-auto px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors text-center">
+          Buscar alojamiento
+        </a>
+        <a
+          href="https://wa.me/573001234567?text=Hola,%20quiero%20una%20valoración%20de%20mi%20propiedad%20para%20gestión"
+          target="_blank"
+          rel="noopener"
+          class="w-full sm:w-auto px-10 py-4 rounded-full border border-white/30 text-white text-sm font-bold uppercase tracking-wider hover:bg-white/10 transition-colors text-center"
+        >
+          Gestionar mi propiedad
+        </a>
+      </div>
     </div>
   </section>
 </BrandLayout>

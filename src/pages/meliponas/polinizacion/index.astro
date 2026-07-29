@@ -6,15 +6,12 @@ import ScrollReveal from '@/components/ScrollReveal.astro';
 import StepTimeline from '@/components/StepTimeline.astro';
 import PricingCard from '@/components/PricingCard.astro';
 import { SEO } from '@/config/site';
+import { getCultivos, MESES_LABELS } from '@/lib/polinizacion';
 
-const cultivos = [
-  { nombre: 'Café', rendimiento: '+14% amarre', fuente: 'Corredor Ambalá, 2024', icono: 'coffee' },
-  { nombre: 'Aguacate', rendimiento: '+22% cuajado', fuente: 'Finca El Carmen, 2024', icono: 'tree-deciduous' },
-  { nombre: 'Mora', rendimiento: '+18% frutos', fuente: 'Vereda El Carmen, 2023', icono: 'berry' },
-  { nombre: 'Cítricos', rendimiento: '+12% calibre', fuente: 'Predio La Esperanza, 2024', icono: 'citrus' },
-  { nombre: 'Tomate', rendimiento: '+9% peso', fuente: 'Invernadero PRAE, 2024', icono: 'salad' },
-  { nombre: 'Fresa', rendimiento: '+15% uniformidad', fuente: 'Finca La Cumbre, 2023', icono: 'cherry' },
-];
+const cultivos = await getCultivos();
+const destacados = cultivos.filter((c) => c.destacado);
+
+const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
 const proceso = [
   { number: 1, title: 'Diagnóstico del predio', description: 'Visita técnica para evaluar flora disponible, área de cultivo y condiciones microclimáticas.' },
@@ -30,9 +27,22 @@ const beneficios = [
   { icon: 'bar-chart-3', title: 'Datos verificables', desc: 'Reportes con métricas antes/después de la intervención.' },
 ];
 
-const casos = [
-  { ubicacion: 'Finca El Carmen, Ibagué', cultivo: 'Aguacate Hass', metrica: '+22% cuajado en 1 temporada', detalle: '8 colmenas de T. angustula distribuidas en 2 hectáreas.' },
-  { ubicacion: 'Predio La Esperanza, Coello', cultivo: 'Café Caturra', metrica: '+14% amarre de cereza', detalle: '12 colmenas en bordes de lote con flora de guamo.' },
+const condicionesGenerales = [
+  { icon: 'calendar-check', titulo: 'Anticipación', desc: 'Solicitar el servicio mínimo 15 días antes de la floración esperada.' },
+  { icon: 'ban', titulo: 'Cero agroquímicos', desc: 'Suspender insecticidas y fungicidas sistémicos 15-20 días antes de la instalación.' },
+  { icon: 'droplets', titulo: 'Agua disponible', desc: 'Garantizar fuente de agua a menos de 200m de las colmenas.' },
+  { icon: 'map-pin', titulo: 'Acceso al predio', desc: 'Permitir ingreso del equipo técnico para instalación y monitoreo.' },
+];
+
+const queOfrecemos = [
+  'Diagnóstico técnico gratuito del predio',
+  'Selección de especies de meliponas según cultivo y altitud',
+  'Instalación profesional de colmenas con distribución optimizada',
+  'Monitoreo periódico con datos de actividad de forrajeo',
+  'Reporte de resultados con métricas antes/después',
+  'Ajuste de densidad según respuesta del cultivo',
+  'Asesoría en flora complementaria y corredores biológicos',
+  'Colmenas con trazabilidad QR e identidad digital',
 ];
 
 const planes = [
@@ -54,7 +64,7 @@ const planes = [
     tier: 'Polinización Premium',
     price: '$600.000',
     period: '/mes',
-    features: ['8-20 colmenas', 'Instalación + diseño paisajístico', 'Monitoreo semanal', 'Reporte con datos', 'Asesoría de flora complementaria', 'Prioridad en cosecha de miel'],
+    features: ['8-20 colmenas', 'Instalación + diseño paisajístico', 'Monitoreo semanal', 'Reporte con datos IoT', 'Asesoría de flora complementaria', 'Prioridad en cosecha de miel'],
     cta: 'Cotizar proyecto',
   },
 ];
@@ -65,56 +75,130 @@ const planes = [
   <section class="bg-dark-bg text-dark-text">
     <div class="max-w-6xl mx-auto px-6 py-16 md:py-24">
       <div class="max-w-3xl">
-        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Polinización gestionada</p>
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Polinización asistida con meliponas</p>
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
           Tus cultivos merecen<br />polinizadores nativos
         </h1>
         <p class="text-lg text-dark-text/60 leading-relaxed mb-8">
-          Servicio de polinización con abejas sin aguijón para café, aguacate, mora y cítricos en el Tolima.
+          Servicio de polinización con abejas sin aguijón (meliponas) para café, aguacate, mora, cítricos y más en el Tolima.
+          No son apis — son nativas, seguras y más eficientes en cultivos tropicales.
         </p>
         <div class="flex flex-wrap gap-4">
-          <a href="#planes" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
-            Ver planes
+          <a href="#cultivos" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+            Ver cultivos
             <i data-lucide="arrow-down" class="w-5 h-5"></i>
           </a>
-          <span class="inline-flex items-center gap-2 text-dark-text/60 px-4 py-4">
-            <span class="text-2xl font-bold text-accent-light">+14%</span>
-            <span class="text-sm">amarre promedio</span>
-          </span>
+          <a href="#planes" class="inline-flex items-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:bg-dark-text/5 transition-all">
+            Ver planes
+          </a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Cultivos -->
+  <!-- Qué ofrecemos + Condiciones -->
   <Section>
+    <div class="grid md:grid-cols-2 gap-12">
+      <ScrollReveal>
+        <SectionHeader
+          label="El servicio"
+          title="Lo que ofrecemos"
+          subtitle="Un servicio integral de polinización gestionada, no solo alquiler de colmenas."
+        />
+        <ul class="space-y-3">
+          {queOfrecemos.map((item) => (
+            <li class="flex items-start gap-3 text-sm text-text-secondary">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-brand shrink-0 mt-0.5"></i>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </ScrollReveal>
+      <ScrollReveal delay={150}>
+        <SectionHeader
+          label="Requisitos"
+          title="Lo que pedimos al productor"
+          subtitle="Condiciones mínimas para garantizar el éxito de la polinización."
+        />
+        <div class="space-y-4">
+          {condicionesGenerales.map((c) => (
+            <div class="flex gap-4 p-4 bg-surface-raised rounded-xl border border-border">
+              <div class="w-10 h-10 rounded-xl bg-accent-muted flex items-center justify-center text-accent shrink-0">
+                <i data-lucide={c.icon} class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-text-primary">{c.titulo}</p>
+                <p class="text-sm text-text-secondary">{c.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Cultivos -->
+  <Section bg="sunken" id="cultivos">
     <ScrollReveal>
       <SectionHeader
         label="Cultivos"
-        title="Resultados por cultivo"
-        subtitle="Datos reales de predios del corredor Ambalá y municipios vecinos."
+        title="Cultivos que polinizamos"
+        subtitle="Cada cultivo tiene condiciones específicas. Ingresa para ver la ficha completa."
       />
     </ScrollReveal>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {cultivos.map((c, i) => (
         <ScrollReveal delay={i * 80}>
-          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-            <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
-              <i data-lucide={c.icono} class="w-5 h-5"></i>
+          <a href={`/meliponas/polinizacion/${c.slug}`} class="block group bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand">
+                <i data-lucide={c.icono || 'flower-2'} class="w-5 h-5"></i>
+              </div>
+              {c.destacado && (
+                <span class="text-[10px] font-medium uppercase tracking-wide bg-accent-muted text-accent rounded-full px-2 py-0.5">Destacado</span>
+              )}
             </div>
-            <h3 class="text-base font-semibold text-text-primary mb-2">{c.nombre}</h3>
-            <span class="inline-block bg-accent-muted text-accent text-xs font-medium rounded-full px-3 py-1 mb-2">
-              {c.rendimiento}
-            </span>
-            <p class="text-xs text-text-muted">{c.fuente}</p>
-          </div>
+            <h3 class="text-base font-semibold text-text-primary mb-1 group-hover:text-brand transition-colors">{c.nombre}</h3>
+            {c.nombre_cientifico && (
+              <p class="text-xs italic text-text-muted mb-2">{c.nombre_cientifico}</p>
+            )}
+            {c.rendimiento && (
+              <span class="inline-block bg-accent-muted text-accent text-xs font-medium rounded-full px-3 py-1 mb-2">
+                {c.rendimiento}
+              </span>
+            )}
+            {c.descripcion_corta && (
+              <p class="text-xs text-text-secondary mt-2 line-clamp-2">{c.descripcion_corta}</p>
+            )}
+            <!-- Mini datos operativos -->
+            {c.tarifa_por_hectarea && (
+              <div class="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-text-muted">
+                <span>{fmt.format(c.tarifa_por_hectarea)}/ha</span>
+                <span>{c.densidad_cajas_ha} cajas/ha</span>
+                <span>{c.dias_en_campo} días</span>
+              </div>
+            )}
+            <!-- Meses floración -->
+            {c.meses_floracion && c.meses_floracion.length > 0 && (
+              <div class="mt-2 flex flex-wrap gap-1">
+                {c.meses_floracion.map((m) => (
+                  <span class="w-6 h-5 flex items-center justify-center text-[9px] font-medium rounded bg-brand-muted text-brand">
+                    {MESES_LABELS[m - 1]}
+                  </span>
+                ))}
+              </div>
+            )}
+            <p class="mt-3 text-xs font-medium text-brand opacity-0 group-hover:opacity-100 transition-opacity">
+              Ver ficha completa →
+            </p>
+          </a>
         </ScrollReveal>
       ))}
     </div>
   </Section>
 
-  <!-- Proceso -->
-  <Section bg="sunken">
+  <!-- Proceso + Beneficios -->
+  <Section>
     <div class="grid md:grid-cols-2 gap-12 items-start">
       <ScrollReveal>
         <SectionHeader
@@ -126,7 +210,7 @@ const planes = [
       </ScrollReveal>
       <ScrollReveal delay={200}>
         <div class="space-y-4">
-          <h3 class="text-lg font-semibold text-text-primary mb-4">Beneficios clave</h3>
+          <h3 class="text-lg font-semibold text-text-primary mb-4">¿Por qué meliponas y no apis?</h3>
           {beneficios.map((b) => (
             <div class="flex gap-4 p-4 bg-surface-raised rounded-xl border border-border">
               <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
@@ -138,32 +222,14 @@ const planes = [
               </div>
             </div>
           ))}
-        </div>
-      </ScrollReveal>
-    </div>
-  </Section>
-
-  <!-- Casos -->
-  <Section>
-    <ScrollReveal>
-      <SectionHeader label="Casos" title="Resultados reales" />
-    </ScrollReveal>
-    <div class="grid md:grid-cols-2 gap-6">
-      {casos.map((c, i) => (
-        <ScrollReveal delay={i * 100}>
-          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm">
-            <span class="inline-block bg-brand-muted text-brand text-xs font-medium rounded-full px-3 py-1 mb-3">
-              {c.cultivo}
-            </span>
-            <p class="text-2xl font-bold text-brand mb-2">{c.metrica}</p>
-            <p class="text-sm text-text-secondary mb-1">{c.detalle}</p>
-            <p class="text-xs text-text-muted flex items-center gap-1">
-              <i data-lucide="map-pin" class="w-3 h-3"></i>
-              {c.ubicacion}
+          <div class="mt-4 p-4 bg-brand-muted/50 rounded-xl border border-brand/20">
+            <p class="text-sm text-text-secondary">
+              <strong class="text-brand">Meliponas ≠ Apis:</strong> Las abejas sin aguijón (Tetragonisca, Scaptotrigona, Melipona) son nativas del trópico americano.
+              No pican, trabajan bajo sombrío, son más eficientes en flores pequeñas y no compiten con polinizadores silvestres.
             </p>
           </div>
-        </ScrollReveal>
-      ))}
+        </div>
+      </ScrollReveal>
     </div>
   </Section>
 
@@ -186,31 +252,144 @@ const planes = [
     </div>
   </Section>
 
-  <!-- CTA Form -->
+  <!-- CTA Form — conectado al sistema de reservas -->
   <Section>
     <ScrollReveal>
       <div class="max-w-xl mx-auto text-center">
         <h2 class="text-2xl font-bold text-text-primary mb-4">Solicita tu diagnóstico gratuito</h2>
         <p class="text-text-secondary mb-8">Déjanos tus datos y te contactamos en menos de 24 horas.</p>
-        <form class="space-y-4 text-left" action="/api/contacto" method="POST">
-          <input type="hidden" name="tipo_proyecto" value="polinizacion" />
+
+        <!-- Estado de éxito -->
+        <div id="polinizacion-ok" class="hidden rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
+          <span class="text-3xl">🐝</span>
+          <h3 class="mt-2 text-lg font-bold text-green-800">Solicitud registrada</h3>
+          <p class="mt-1 text-green-700">Código: <strong id="polinizacion-codigo"></strong></p>
+          <p class="mt-1 text-sm text-green-600">Te contactaremos por WhatsApp en menos de 24 horas.</p>
+        </div>
+
+        <!-- Formulario -->
+        <form id="polinizacion-form" class="space-y-4 text-left">
           <div class="grid md:grid-cols-2 gap-4">
             <input type="text" name="nombre" placeholder="Nombre completo" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
             <input type="tel" name="whatsapp" placeholder="WhatsApp" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
           </div>
           <select name="cultivo" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
             <option value="">¿Qué cultivo quieres polinizar?</option>
-            <option value="cafe">Café</option>
-            <option value="aguacate">Aguacate</option>
-            <option value="mora">Mora</option>
-            <option value="citricos">Cítricos</option>
-            <option value="otro">Otro</option>
+            {cultivos.map((c) => (
+              <option value={c.slug}>{c.nombre}</option>
+            ))}
+            <option value="otro">Otro cultivo</option>
           </select>
-          <button type="submit" class="w-full bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+          <div class="grid md:grid-cols-2 gap-4">
+            <input type="number" name="area_ha" placeholder="Área aproximada (hectáreas)" min="0.1" step="0.1" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
+            <input type="text" name="municipio" placeholder="Municipio / Vereda" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
+          </div>
+          <p id="polinizacion-error" class="hidden rounded-lg bg-red-50 p-3 text-sm text-red-700"></p>
+          <button type="submit" id="polinizacion-btn" class="w-full bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
             Enviar solicitud
           </button>
+          <button type="button" id="polinizacion-itinerario" class="w-full border border-brand text-brand rounded-full px-6 py-2.5 font-medium hover:bg-brand/5 transition-all">
+            + Agregar al itinerario
+          </button>
+          <p id="polinizacion-itinerario-ok" class="hidden text-center text-sm font-semibold text-brand">✓ Agregado a tu itinerario</p>
         </form>
+
+        <p class="mt-4 text-xs text-text-muted">
+          ¿Prefieres WhatsApp? <a href="https://wa.me/573001234567?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20polinizaci%C3%B3n%20con%20meliponas" target="_blank" rel="noopener" class="text-brand underline underline-offset-2">Escríbenos aquí</a>
+        </p>
       </div>
     </ScrollReveal>
   </Section>
 </BrandLayout>
+
+<script>
+  import { addItem } from '@/lib/cart-store';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('polinizacion-form') as HTMLFormElement;
+    const okDiv = document.getElementById('polinizacion-ok');
+    const errorEl = document.getElementById('polinizacion-error');
+    const btn = document.getElementById('polinizacion-btn') as HTMLButtonElement;
+    if (!form) return;
+
+    const apiUrl = import.meta.env.PUBLIC_RESERVAS_API || '';
+
+    // Add to unified itinerary (cart) — free item
+    document.getElementById('polinizacion-itinerario')?.addEventListener('click', () => {
+      const fd = new FormData(form);
+      const cultivo = fd.get('cultivo') as string || '';
+      const area = fd.get('area_ha') as string || '';
+      const municipio = fd.get('municipio') as string || '';
+      const notas = [
+        cultivo ? `Cultivo: ${cultivo}` : '',
+        area ? `Área: ${area} ha` : '',
+        municipio ? `Ubicación: ${municipio}` : '',
+      ].filter(Boolean).join(' | ');
+
+      addItem({
+        recurso_slug: 'servicio-polinizacion-meliponas',
+        nombre: 'Diagnóstico de polinización',
+        precio: 0,
+        cantidad: 1,
+        tipo: 'servicio',
+        tipo_disponibilidad: 'bajo_consulta',
+        brand: 'meliponas',
+        origen: 'iwage_meliponas',
+        requiere_pago: false,
+        disponibilidad_label: notas || undefined,
+        url: window.location.href,
+      });
+      const okEl = document.getElementById('polinizacion-itinerario-ok');
+      okEl?.classList.remove('hidden');
+      window.setTimeout(() => okEl?.classList.add('hidden'), 2000);
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl?.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      const fd = new FormData(form);
+      const nombre = (fd.get('nombre') as string || '').trim();
+      const telefono = (fd.get('whatsapp') as string || '').trim();
+      const cultivo = fd.get('cultivo') as string || '';
+      const area = fd.get('area_ha') as string || '';
+      const municipio = fd.get('municipio') as string || '';
+
+      const notas = [
+        cultivo ? `Cultivo: ${cultivo}` : '',
+        area ? `Área: ${area} ha` : '',
+        municipio ? `Ubicación: ${municipio}` : '',
+      ].filter(Boolean).join(' | ');
+
+      try {
+        const res = await fetch(`${apiUrl}/api/reservas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recurso_slug: 'servicio-polinizacion-meliponas',
+            cliente: { nombre, telefono, origen: 'iwage' },
+            cantidad_personas: 1,
+            notas: notas || 'Solicitud de diagnóstico de polinización',
+            origen_url: window.location.href,
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Error');
+
+        (document.getElementById('polinizacion-codigo') as HTMLElement).textContent = json.data?.codigo || 'RECIBIDA';
+        form.classList.add('hidden');
+        okDiv?.classList.remove('hidden');
+      } catch (err: any) {
+        if (errorEl) {
+          errorEl.textContent = err.message || 'No se pudo enviar. Intenta por WhatsApp.';
+          errorEl.classList.remove('hidden');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar solicitud';
+      }
+    });
+  });
+</script>

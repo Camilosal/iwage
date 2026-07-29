@@ -29,7 +29,7 @@ export const NAV_LINKS: NavItem[] = [
     ],
   },
   {
-    label: 'Comunidad',
+    label: 'Recursos',
     href: '/meliponas/bitacora',
     children: [
       { label: 'Bitácora', href: '/meliponas/bitacora' },

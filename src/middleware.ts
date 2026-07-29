@@ -11,6 +11,16 @@ const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = 
   [/^\/anfitrion\/([^/]+)\/?$/, (m) => `/naturaleza/anfitriones/${m[1]}`],
   // /propiedades/:id → /tierras/propiedades/:id
   [/^\/propiedades\/([^/]+)\/?$/, (m) => `/tierras/propiedades/${m[1]}`],
+  // /gestion/modelo-alianzas → /gestion/propietarios/modelo-alianzas
+  [/^\/gestion\/modelo-alianzas\/?$/, () => '/gestion/propietarios/modelo-alianzas'],
+  // /gestion/renta-corta → /gestion/propietarios/renta-corta
+  [/^\/gestion\/renta-corta\/?$/, () => '/gestion/propietarios/renta-corta'],
+  // /gestion/finca-productiva → /gestion/propietarios/finca-productiva
+  [/^\/gestion\/finca-productiva\/?$/, () => '/gestion/propietarios/finca-productiva'],
+  // /gestion/segunda-residencia → /gestion/propietarios/segunda-residencia
+  [/^\/gestion\/segunda-residencia\/?$/, () => '/gestion/propietarios/segunda-residencia'],
+  // /gestion/operacion-turistica → /gestion/propietarios/operacion-turistica
+  [/^\/gestion\/operacion-turistica\/?$/, () => '/gestion/propietarios/operacion-turistica'],
   // /cafe/:anything → /cafe/:anything (subdomain catch-all handled at DNS level)
 ];
 

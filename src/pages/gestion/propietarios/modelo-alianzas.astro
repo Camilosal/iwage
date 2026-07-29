@@ -53,7 +53,7 @@ const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'act
       <h2 class="text-2xl font-light text-[#122640] text-center mb-10">Modelos de participación</h2>
       <div class="grid md:grid-cols-3 gap-6">
         {[
-          { modelo: 'Gestión Pura', icon: '🔑', desc: 'Administramos tu propiedad por un fee mensual fijo + porcentaje de ingresos. Ideal para segunda residencia y renta corta.', tag: 'Bajo riesgo', cta: 'Más común en Renta Corta' },
+          { modelo: 'Gestión Pura', icon: 'key-round', desc: 'Administramos tu propiedad por un fee mensual fijo + porcentaje de ingresos. Ideal para segunda residencia y renta corta.', tag: 'Bajo riesgo', cta: 'Más común en Renta Corta' },
           { modelo: 'Co-Inversión', icon: '🚀', desc: 'Invertimos juntos en adecuaciones y compartimos utilidades en proporción al aporte. Ideal para proyectos turísticos y productivos.', tag: 'Alto retorno', cta: 'Ideal para Op. Turística' },
           { modelo: 'Operación Compartida', icon: '🤝', desc: 'Tú mantienes parte de la operación (ej: agricultura) y nosotros gestionamos el componente turístico/comercial.', tag: 'Flexibilidad', cta: 'Perfecto para Fincas Productivas' },
         ].map((m) => (
@@ -81,7 +81,7 @@ const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'act
           : 'Estamos construyendo nuestro portafolio de propiedades gestionadas en el Tolima.'}
       </p>
       <a href="/gestion/propiedades" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
-        Ver portafolio de propiedades →
+        Ver portafolio de propiedades <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
       </a>
     </div>
   </section>

@@ -37,6 +37,8 @@ export interface KnowledgeChunk {
   url: string;
   /** Additional structured metadata (price, location, category, etc.) */
   metadata: Record<string, any>;
+  /** Cross-brand related URLs (e.g. experiences near a property) */
+  related?: Array<{ url: string; title: string; type: ContentType }>;
   /** ISO date of last update */
   updatedAt: string;
 }

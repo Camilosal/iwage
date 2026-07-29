@@ -1,0 +1,315 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import MediaGallery from '@/components/shared/MediaGallery.astro';
+import { getProyectoBySlug, TIPO_LABELS, ESTADO_LABELS, MODELO_CAJA_LABELS, SALUD_LABELS } from '@/lib/proyectos';
+import { renderMarkdown } from '@/lib/render-markdown';
+
+const { slug } = Astro.params;
+const proyecto = await getProyectoBySlug(slug!);
+
+if (!proyecto) {
+  return Astro.redirect('/meliponas/proyectos');
+}
+
+const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+const tipoLabel = TIPO_LABELS[proyecto.tipo] ?? proyecto.tipo;
+const estadoInfo = ESTADO_LABELS[proyecto.estado] ?? ESTADO_LABELS['en-proceso'];
+const pageTitle = proyecto.meta_title ?? `${proyecto.nombre} · Proyectos Iwagé Meliponario`;
+const pageDesc = proyecto.meta_description ?? proyecto.descripcion_corta ?? '';
+
+// Compute Iwagé model score (0-5 features active)
+const iwageFeatures = [
+  { key: 'iot_activo', label: 'Monitoreo IoT', icon: 'radio', active: proyecto.iot_activo },
+  { key: 'trazabilidad_qr', label: 'Trazabilidad QR', icon: 'qr-code', active: proyecto.trazabilidad_qr },
+  { key: 'identidad_digital_colmena', label: 'Identidad digital colmena', icon: 'fingerprint', active: proyecto.identidad_digital_colmena },
+  { key: 'prae_alineado', label: 'Alineación PRAE', icon: 'graduation-cap', active: proyecto.prae_alineado },
+  { key: 'componente_ancestral', label: 'Componente ancestral', icon: 'feather', active: !!proyecto.componente_ancestral },
+];
+const iwageScore = iwageFeatures.filter((f) => f.active).length;
+
+const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+---
+
+<BrandLayout title={pageTitle} description={pageDesc}>
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-text-muted mb-8" aria-label="Breadcrumb">
+      <a href="/meliponas/proyectos" class="hover:text-brand transition-colors">Proyectos</a>
+      <span>/</span>
+      <span class="text-text-primary font-medium">{proyecto.nombre}</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-10">
+      <div>
+        <div class="flex items-center gap-3 mb-3">
+          <span class={`text-xs font-medium rounded-full px-3 py-1 ${estadoInfo.color}`}>{estadoInfo.label}</span>
+          <span class="text-xs text-text-muted uppercase tracking-wide">{tipoLabel}</span>
+          {proyecto.destacado && (
+            <span class="text-xs font-medium rounded-full px-3 py-1 bg-accent-muted text-accent">Destacado</span>
+          )}
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold text-text-primary mb-2">{proyecto.nombre}</h1>
+        <p class="flex items-center gap-2 text-text-secondary">
+          <i data-lucide="map-pin" class="w-4 h-4 text-text-muted"></i>
+          {proyecto.ubicacion ?? [proyecto.vereda, proyecto.municipio, 'Tolima'].filter(Boolean).join(', ')}
+        </p>
+      </div>
+      <!-- Iwagé Model Score -->
+      <div class="shrink-0 bg-surface-raised border border-border rounded-2xl p-5 text-center min-w-[160px]">
+        <p class="text-xs uppercase tracking-wide text-text-muted mb-2">Modelo Iwagé</p>
+        <p class="text-3xl font-bold text-brand">{iwageScore}<span class="text-lg text-text-muted">/5</span></p>
+        <div class="flex justify-center gap-1 mt-2">
+          {iwageFeatures.map((f) => (
+            <span class={`w-3 h-3 rounded-full ${f.active ? 'bg-brand' : 'bg-surface-sunken border border-border'}`} title={f.label}></span>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- Image -->
+    {proyecto.imagen && (
+      <div class="aspect-[21/9] rounded-2xl overflow-hidden bg-surface-sunken border border-border mb-6">
+        <img src={proyecto.imagen} alt={proyecto.nombre} class="w-full h-full object-cover" />
+      </div>
+    )}
+
+    <!-- Galería Audiovisual -->
+    {proyecto.galeria && proyecto.galeria.length > 0 && (
+      <div class="mb-10">
+        <MediaGallery images={proyecto.galeria} title={`Galería · ${proyecto.nombre}`} columns={4} />
+      </div>
+    )}
+
+    <!-- Description -->
+    {proyecto.descripcion && (
+      <div class="prose prose-sm dark:prose-invert max-w-none mb-10 text-text-secondary leading-relaxed">
+        <Fragment set:html={renderMarkdown(proyecto.descripcion)} />
+      </div>
+    )}
+
+    <!-- Main Grid: Technical + Commercial + Iwagé -->
+    <div class="grid lg:grid-cols-3 gap-8 mb-12">
+      <!-- Technical Sheet -->
+      <div class="bg-surface-raised border border-border rounded-2xl p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
+          <i data-lucide="wrench" class="w-4 h-4"></i> Ficha Técnica
+        </h2>
+        <dl class="space-y-4">
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Colmenas</dt>
+            <dd class="text-sm font-medium text-text-primary">{proyecto.colmenas ?? '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Modelo caja</dt>
+            <dd class="text-sm font-medium text-text-primary">{proyecto.modelo_caja ? MODELO_CAJA_LABELS[proyecto.modelo_caja] : '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Especies</dt>
+            <dd class="text-sm font-medium text-text-primary text-right max-w-[60%]">{proyecto.especies ?? '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Altitud</dt>
+            <dd class="text-sm font-medium text-text-primary">{proyecto.altitud_msnm ? `${proyecto.altitud_msnm} m.s.n.m.` : '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Área</dt>
+            <dd class="text-sm font-medium text-text-primary">{proyecto.area_m2 ? `${proyecto.area_m2} m²` : '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Instalación</dt>
+            <dd class="text-sm font-medium text-text-primary">{fmtDate(proyecto.fecha_instalacion)}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Última visita</dt>
+            <dd class="text-sm font-medium text-text-primary">{fmtDate(proyecto.fecha_ultima_visita)}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Próxima visita</dt>
+            <dd class="text-sm font-medium text-text-primary">{fmtDate(proyecto.proxima_visita)}</dd>
+          </div>
+          {proyecto.salud_colonias && (
+            <div class="flex justify-between">
+              <dt class="text-sm text-text-muted">Salud colonias</dt>
+              <dd class={`text-sm font-semibold ${SALUD_LABELS[proyecto.salud_colonias].color}`}>{SALUD_LABELS[proyecto.salud_colonias].label}</dd>
+            </div>
+          )}
+        </dl>
+        {proyecto.flora_melifera && proyecto.flora_melifera.length > 0 && (
+          <div class="mt-5 pt-4 border-t border-border">
+            <p class="text-xs text-text-muted mb-2">Flora melífera</p>
+            <div class="flex flex-wrap gap-1.5">
+              {proyecto.flora_melifera.map((f) => (
+                <span class="text-xs bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full px-2.5 py-1">{f}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Commercial Sheet -->
+      <div class="bg-surface-raised border border-border rounded-2xl p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
+          <i data-lucide="briefcase" class="w-4 h-4"></i> Gestión Comercial
+        </h2>
+        <dl class="space-y-4">
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Cliente</dt>
+            <dd class="text-sm font-medium text-text-primary text-right max-w-[60%]">{proyecto.cliente_nombre ?? '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Tipo cliente</dt>
+            <dd class="text-sm font-medium text-text-primary capitalize">{proyecto.cliente_tipo ?? '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Contacto</dt>
+            <dd class="text-sm font-medium text-text-primary">{proyecto.cliente_contacto ?? '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Valor contrato</dt>
+            <dd class="text-sm font-bold text-brand">{proyecto.valor_contrato ? fmt.format(proyecto.valor_contrato) : '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Estado pago</dt>
+            <dd class="text-sm font-medium text-text-primary capitalize">{proyecto.estado_pago?.replace('-', ' ') ?? '—'}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm text-text-muted">Tipo contrato</dt>
+            <dd class="text-sm font-medium text-text-primary">{proyecto.tipo_contrato?.replace(/-/g, ' ') ?? '—'}</dd>
+          </div>
+        </dl>
+        {proyecto.servicios_incluidos && proyecto.servicios_incluidos.length > 0 && (
+          <div class="mt-5 pt-4 border-t border-border">
+            <p class="text-xs text-text-muted mb-2">Servicios incluidos</p>
+            <ul class="space-y-1.5">
+              {proyecto.servicios_incluidos.map((s) => (
+                <li class="flex items-center gap-2 text-sm text-text-secondary">
+                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-brand shrink-0"></i>
+                  {s}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <!-- Iwagé Model -->
+      <div class="bg-surface-raised border border-border rounded-2xl p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> Modelo Iwagé
+        </h2>
+        <div class="space-y-3">
+          {iwageFeatures.map((f) => (
+            <div class={`flex items-center gap-3 p-3 rounded-xl ${f.active ? 'bg-brand/5 border border-brand/20' : 'bg-surface-sunken opacity-50'}`}>
+              <i data-lucide={f.icon} class={`w-5 h-5 shrink-0 ${f.active ? 'text-brand' : 'text-text-muted'}`}></i>
+              <span class={`text-sm ${f.active ? 'text-text-primary font-medium' : 'text-text-muted'}`}>{f.label}</span>
+              {f.active && <i data-lucide="check" class="w-4 h-4 text-brand ml-auto"></i>}
+            </div>
+          ))}
+        </div>
+        {proyecto.iot_sensores && proyecto.iot_sensores.length > 0 && (
+          <div class="mt-4 pt-4 border-t border-border">
+            <p class="text-xs text-text-muted mb-2">Sensores activos</p>
+            <div class="flex flex-wrap gap-1.5">
+              {proyecto.iot_sensores.map((s) => (
+                <span class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full px-2.5 py-1">{s.tipo}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        {proyecto.componente_ancestral && (
+          <div class="mt-4 pt-4 border-t border-border">
+            <p class="text-xs text-text-muted mb-2">Componente ancestral</p>
+            <p class="text-sm text-text-secondary leading-relaxed">{proyecto.componente_ancestral}</p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Metrics & Impact -->
+    <div class="grid md:grid-cols-2 gap-8 mb-12">
+      <!-- Production metrics -->
+      <div class="bg-surface-raised border border-border rounded-2xl p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
+          <i data-lucide="trending-up" class="w-4 h-4"></i> Producción y Resultados
+        </h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-surface-sunken rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-brand">{proyecto.produccion_miel_ml ? `${(proyecto.produccion_miel_ml / 1000).toFixed(1)}L` : '—'}</p>
+            <p class="text-xs text-text-muted mt-1">Miel producida</p>
+          </div>
+          <div class="bg-surface-sunken rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-brand">{proyecto.produccion_cosechas ?? '—'}</p>
+            <p class="text-xs text-text-muted mt-1">Cosechas</p>
+          </div>
+          <div class="bg-surface-sunken rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-brand">{proyecto.indice_biodiversidad ? proyecto.indice_biodiversidad.toFixed(1) : '—'}</p>
+            <p class="text-xs text-text-muted mt-1">Índice biodiversidad</p>
+          </div>
+          <div class="bg-surface-sunken rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-brand">{proyecto.mejora_polinizacion_pct ? `+${proyecto.mejora_polinizacion_pct}%` : '—'}</p>
+            <p class="text-xs text-text-muted mt-1">Mejora polinización</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Social impact -->
+      <div class="bg-surface-raised border border-border rounded-2xl p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
+          <i data-lucide="heart-handshake" class="w-4 h-4"></i> Impacto Social
+        </h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-surface-sunken rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-brand">{proyecto.impacto_familias ?? 0}</p>
+            <p class="text-xs text-text-muted mt-1">Familias vinculadas</p>
+          </div>
+          <div class="bg-surface-sunken rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-brand">{proyecto.impacto_estudiantes ?? 0}</p>
+            <p class="text-xs text-text-muted mt-1">Estudiantes</p>
+          </div>
+          <div class="bg-surface-sunken rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-brand">{proyecto.impacto_empleos ?? 0}</p>
+            <p class="text-xs text-text-muted mt-1">Empleos generados</p>
+          </div>
+          <div class="bg-surface-sunken rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-brand">{proyecto.prae_alineado ? 'Sí' : 'No'}</p>
+            <p class="text-xs text-text-muted mt-1">PRAE alineado</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical notes -->
+    {proyecto.notas_tecnicas && (
+      <div class="bg-surface-raised border border-border rounded-2xl p-6 mb-12">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-4 flex items-center gap-2">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i> Notas Técnicas
+        </h2>
+        <div class="prose prose-sm dark:prose-invert max-w-none text-text-secondary">
+          <Fragment set:html={renderMarkdown(proyecto.notas_tecnicas)} />
+        </div>
+      </div>
+    )}
+
+    <!-- Tags -->
+    {proyecto.tags && proyecto.tags.length > 0 && (
+      <div class="flex flex-wrap gap-2 mb-12">
+        {proyecto.tags.map((tag) => (
+          <span class="text-xs bg-surface-sunken text-text-muted rounded-full px-3 py-1.5">#{tag}</span>
+        ))}
+      </div>
+    )}
+
+    <!-- CTA -->
+    <div class="bg-surface-sunken rounded-2xl p-8 text-center">
+      <h2 class="text-xl font-bold text-text-primary mb-3">¿Quieres un proyecto similar?</h2>
+      <p class="text-sm text-text-secondary mb-6 max-w-lg mx-auto">
+        Diseñamos meliponarios a la medida para tu contexto. Diagnóstico gratuito y acompañamiento integral.
+      </p>
+      <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-8 py-3.5 font-medium hover:bg-brand-light transition-all">
+        Iniciar conversación
+        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+      </a>
+    </div>
+  </div>
+</BrandLayout>
