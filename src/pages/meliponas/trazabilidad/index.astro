@@ -3,13 +3,14 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
 
 const estandares = [
   {
     id: 'miel',
     numero: '01',
-    icono: '🍯',
+    icono: 'hexagon',
     titulo: 'Estándar de Miel',
     audiencia: 'Para consumidores, chefs y compradores B2B',
     desc: 'Trazabilidad por lote, cadena de frío, análisis de laboratorio y QR en cada frasco. Conoce el origen exacto de tu miel.',
@@ -19,7 +20,7 @@ const estandares = [
   {
     id: 'cajas',
     numero: '02',
-    icono: '📦',
+    icono: 'package',
     titulo: 'Estándar de Cajas',
     audiencia: 'Para meliponicultores y adoptantes',
     desc: 'Cada caja INPA/AF lleva ID único, sensores IoT de temperatura y humedad, bitácora de colonia e historial transferible.',
@@ -29,7 +30,7 @@ const estandares = [
   {
     id: 'polinizacion',
     numero: '03',
-    icono: '🐝',
+    icono: 'flower-2',
     titulo: 'Estándar de Polinización',
     audiencia: 'Para productores agrícolas',
     desc: 'Servicio con diagnóstico de predio, contrato, colonias certificadas, monitoreo en campo e informe de resultados.',
@@ -60,7 +61,7 @@ const estandares = [
         <ScrollReveal delay={i * 100}>
           <a href={e.href} class="group block bg-surface-raised rounded-2xl border border-border p-8 shadow-sm hover:shadow-lg hover:border-brand/30 transition-all h-full">
             <div class="flex items-center justify-between mb-5">
-              <span class="text-4xl">{e.icono}</span>
+              <Icon name={e.icono} class="w-9 h-9 text-brand" />
               <span class="font-mono text-xs text-accent">{e.numero}</span>
             </div>
             <h2 class="text-xl font-bold text-text-primary mb-2 group-hover:text-brand transition-colors">{e.titulo}</h2>
@@ -68,7 +69,7 @@ const estandares = [
             <p class="text-sm text-text-secondary leading-relaxed mb-6">{e.desc}</p>
             <span class="inline-flex items-center gap-2 text-brand font-medium text-sm group-hover:gap-3 transition-all">
               {e.cta}
-              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              <Icon name="arrow-right" class="w-4 h-4" />
             </span>
           </a>
         </ScrollReveal>
@@ -90,7 +91,7 @@ const estandares = [
       <ScrollReveal>
         <div class="text-center p-6">
           <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
-            <i data-lucide="map-pin" class="w-6 h-6"></i>
+            <Icon name="map-pin" class="w-6 h-6" />
           </div>
           <h3 class="font-semibold text-text-primary mb-2">Origen</h3>
           <p class="text-sm text-text-secondary">Sabemos exactamente de qué colmena, caja o predio viene cada producto.</p>
@@ -99,7 +100,7 @@ const estandares = [
       <ScrollReveal delay={100}>
         <div class="text-center p-6">
           <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
-            <i data-lucide="history" class="w-6 h-6"></i>
+            <Icon name="history" class="w-6 h-6" />
           </div>
           <h3 class="font-semibold text-text-primary mb-2">Historia</h3>
           <p class="text-sm text-text-secondary">Cada etapa queda registrada: cosecha, inspección, monitoreo, entrega.</p>
@@ -108,7 +109,7 @@ const estandares = [
       <ScrollReveal delay={200}>
         <div class="text-center p-6">
           <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
-            <i data-lucide="shield-check" class="w-6 h-6"></i>
+            <Icon name="shield-check" class="w-6 h-6" />
           </div>
           <h3 class="font-semibold text-text-primary mb-2">Verificación</h3>
           <p class="text-sm text-text-secondary">Los datos son accesibles y auditables. No pedimos confianza: la demostramos.</p>

@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 ---
 
 <BrandLayout brand="gestion" title="Finca Productiva · Iwagé Gestión" description="Administración técnica y administrativa de fincas productivas en el Tolima. Supervisión de cultivos, nóminas rurales, inventarios y reportes de productividad por hectárea.">
@@ -27,15 +28,15 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
       <h2 class="text-3xl font-light text-[#122640] text-center mb-12">Gestión integral del campo</h2>
       <div class="grid sm:grid-cols-2 gap-6">
         {[
-          { icon: '📦', title: 'Inventarios', desc: 'Control de insumos, herramientas, semillas y agroquímicos con alertas de reabastecimiento.' },
-          { icon: '🌾', title: 'Supervisión Técnica', desc: 'Planes de fertilización, siembra, poda y cosecha con seguimiento agronómico profesional.' },
-          { icon: '👷', title: 'Nóminas Rurales', desc: 'Gestión administrativa de operarios, trabajadores temporales y prestaciones de ley.' },
-          { icon: '📊', title: 'Indicadores', desc: 'Reportes mensuales de producción, rendimiento por hectárea y costos operativos.' },
-          { icon: '🤝', title: 'Proveedores', desc: 'Coordinación con proveedores agrícolas, veterinarios y servicios técnicos especializados.' },
-          { icon: '🐄', title: 'Ganadería', desc: 'Control sanitario, rotación de potreros, suplementación y registros de producción lechera.' },
+          { icon: 'package', title: 'Inventarios', desc: 'Control de insumos, herramientas, semillas y agroquímicos con alertas de reabastecimiento.' },
+          { icon: 'wheat', title: 'Supervisión Técnica', desc: 'Planes de fertilización, siembra, poda y cosecha con seguimiento agronómico profesional.' },
+          { icon: 'hard-hat', title: 'Nóminas Rurales', desc: 'Gestión administrativa de operarios, trabajadores temporales y prestaciones de ley.' },
+          { icon: 'bar-chart-2', title: 'Indicadores', desc: 'Reportes mensuales de producción, rendimiento por hectárea y costos operativos.' },
+          { icon: 'handshake', title: 'Proveedores', desc: 'Coordinación con proveedores agrícolas, veterinarios y servicios técnicos especializados.' },
+          { icon: 'beef', title: 'Ganadería', desc: 'Control sanitario, rotación de potreros, suplementación y registros de producción lechera.' },
         ].map((item) => (
           <div class="p-6 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-all">
-            <div class="text-3xl mb-3">{item.icon}</div>
+            <div class="mb-3"><Icon name={item.icon} class="w-8 h-8 mx-auto text-[#2d5a8f]" /></div>
             <h3 class="font-semibold text-[#122640] mb-2">{item.title}</h3>
             <p class="text-sm text-gray-600">{item.desc}</p>
           </div>
@@ -65,7 +66,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
   <section class="py-16 px-4 bg-[#0c1520] text-center">
     <h2 class="text-3xl font-light text-white mb-4">Tu finca merece gestión profesional</h2>
     <p class="text-white/60 mb-8">Diagnóstico inicial gratuito de tu predio productivo.</p>
-    <a href="https://wa.me/573001234567?text=Hola,%20quiero%20gestión%20para%20mi%20finca%20productiva" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
+    <a href="https://wa.me/573026693366?text=Hola,%20quiero%20gestión%20para%20mi%20finca%20productiva" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
       Solicitar diagnóstico
     </a>
   </section>

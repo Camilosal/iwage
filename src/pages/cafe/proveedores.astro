@@ -3,8 +3,19 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getProveedores, proveedorFoto } from '@/lib/cafe';
 import type { Proveedor } from '@/lib/cafe';
+import { icons } from 'lucide';
+
+// Serializa un icono Lucide a SVG inline (build-time, zero runtime)
+function lucideSvg(name: string, className: string): string {
+  const pascal = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, [string, Record<string, string | number>][] | undefined>)[pascal];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}" aria-hidden="true">${inner}</svg>`;
+}
 
 const proveedores = await getProveedores();
 
@@ -22,6 +33,30 @@ const waLink = (wa: string) => `https://wa.me/${wa.replace(/\D/g, '')}`;
 const igLink = (ig: string) => `https://instagram.com/${ig.replace(/^@/, '')}`;
 const iniciales = (nombre: string) =>
   nombre.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+
+// SVGs pre-renderizados (build-time) para el script de cliente del modal
+const PROV_SVGS: Record<string, string> = {
+  starBadge: lucideSvg('star', 'w-3 h-3 inline align-[-1px] mr-0.5'),
+  compassBadge: lucideSvg('compass', 'w-4 h-4 inline'),
+  compassLink: lucideSvg('compass', 'w-5 h-5'),
+  leafBadge: lucideSvg('leaf', 'w-4 h-4 inline'),
+  leafLink: lucideSvg('leaf', 'w-5 h-5 mt-0.5 text-accent'),
+  homeBadge: lucideSvg('home', 'w-4 h-4 inline'),
+  homeLink: lucideSvg('home', 'w-5 h-5 mt-0.5 text-[#1a4a6b]'),
+  keyBadge: lucideSvg('key-round', 'w-4 h-4 inline'),
+  keyLink: lucideSvg('key-round', 'w-5 h-5 mt-0.5 text-[#6b3fa0]'),
+  arrow: lucideSvg('arrow-right', 'w-4 h-4'),
+  whatsapp: lucideSvg('message-circle', 'w-4 h-4 inline'),
+  instagram: lucideSvg('camera', 'w-4 h-4 inline'),
+  phone: lucideSvg('phone', 'w-4 h-4 inline'),
+  clock: lucideSvg('clock', 'w-4 h-4 inline'),
+  mapPin: lucideSvg('map-pin', 'w-4 h-4 inline'),
+  mapPinSmall: lucideSvg('map-pin', 'w-3.5 h-3.5 inline align-[-2px] mr-1'),
+  estadoDisponible: lucideSvg('check-circle', 'w-3 h-3 inline align-[-1px] mr-0.5 text-emerald-500'),
+  estadoReservado: lucideSvg('clock', 'w-3 h-3 inline align-[-1px] mr-0.5 text-amber-500'),
+  estadoActiva: lucideSvg('check-circle', 'w-3 h-3 inline align-[-1px] mr-0.5 text-emerald-500'),
+  estadoPausada: lucideSvg('circle-pause', 'w-3 h-3 inline align-[-1px] mr-0.5 text-amber-500'),
+};
 ---
 
 <BrandLayout brand="cafe" title="Proveedores · Café Iwagé" description="Cada ingrediente tiene un rostro y una historia. Proveedores locales a menos de 4 km del café, cadena corta y nombre propio. Algunos son anfitriones del territorio y ofrecen experiencias.">
@@ -115,7 +150,7 @@ const iniciales = (nombre: string) =>
                     )}
                     {p.destacado && (
                       <span class="text-xs font-medium bg-brand/10 text-brand rounded-full px-3 py-1">
-                        ★ Destacado
+                        <Icon name="star" class="w-3 h-3 inline align-[-1px] mr-0.5" />Destacado
                       </span>
                     )}
                   </div>
@@ -129,13 +164,13 @@ const iniciales = (nombre: string) =>
                     <div class="flex flex-wrap gap-2 mb-3">
                       {esAnfitrion && (
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#2d5016]/10 text-[#2d5016] rounded-full px-3 py-1.5">
-                          <span aria-hidden="true">🧭</span>
+                          <Icon name="compass" class="w-4 h-4" />
                           {anfitriones.length > 0 ? `Anfitrión: ${anfitriones[0].nombre}` : 'Anfitrión del territorio'}
                         </span>
                       )}
                       {tieneExperiencias && (
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-accent/10 text-accent rounded-full px-3 py-1.5">
-                          <i data-lucide="leaf" class="w-4 h-4 text-accent" aria-hidden="true"></i>
+                          <Icon name="leaf" class="w-4 h-4 text-accent" />
                           {experiencias.length > 0
                             ? `${experiencias.length} experiencia${experiencias.length > 1 ? 's' : ''}`
                             : 'Ofrece experiencias'}
@@ -143,13 +178,13 @@ const iniciales = (nombre: string) =>
                       )}
                       {tienePropiedades && (
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#1a4a6b]/10 text-[#1a4a6b] rounded-full px-3 py-1.5">
-                          <i data-lucide="home" class="w-4 h-4 text-[#1a4a6b]" aria-hidden="true"></i>
+                          <Icon name="home" class="w-4 h-4 text-[#1a4a6b]" />
                           {propiedades.length} propiedad{propiedades.length > 1 ? 'es' : ''} en venta
                         </span>
                       )}
                       {tieneGestion && (
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#6b3fa0]/10 text-[#6b3fa0] rounded-full px-3 py-1.5">
-                          <i data-lucide="key-round" class="w-4 h-4 text-[#6b3fa0]" aria-hidden="true"></i>
+                          <Icon name="key-round" class="w-4 h-4 text-[#6b3fa0]" />
                           {propiedadesGestion.length} en gestión
                         </span>
                       )}
@@ -162,7 +197,7 @@ const iniciales = (nombre: string) =>
 
                   {/* Click hint */}
                   <p class="text-[10px] text-text-muted/50 mt-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                    Ver ficha completa <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+                    Ver ficha completa <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
                   </p>
                 </div>
               </div>
@@ -184,6 +219,9 @@ const iniciales = (nombre: string) =>
       </p>
     </div>
   </Section>
+
+  <!-- SVGs de iconos pre-renderizados (build-time) para el script de cliente -->
+  <script type="application/json" id="prov-icon-svgs" set:html={JSON.stringify(PROV_SVGS)}></script>
 
   <!-- ═══ Proveedor Detail Modal ═══ -->
   <dialog id="prov-modal" class="fixed inset-0 z-[100] m-auto w-[calc(100%-2rem)] max-w-lg rounded-3xl border-0 p-0 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:items-center">
@@ -259,6 +297,9 @@ const iniciales = (nombre: string) =>
 </BrandLayout>
 
 <script>
+  // SVGs pre-renderizados en el build (ver <script id="prov-icon-svgs">)
+  const ICONS: Record<string, string> = JSON.parse(document.getElementById('prov-icon-svgs')?.textContent || '{}');
+
   const modal = document.getElementById('prov-modal') as HTMLDialogElement;
   const closeBtn = document.getElementById('prov-close')!;
 
@@ -293,24 +334,24 @@ const iniciales = (nombre: string) =>
     const meta = document.getElementById('prov-meta')!;
     let metaHtml = '';
     if (d.distancia_km != null) metaHtml += `<span class="text-xs font-medium bg-accent/10 text-accent rounded-full px-3 py-1">${d.distancia_km} km</span>`;
-    if (d.destacado) metaHtml += '<span class="text-xs font-medium bg-brand/10 text-brand rounded-full px-3 py-1">★ Destacado</span>';
+    if (d.destacado) metaHtml += '<span class="text-xs font-medium bg-brand/10 text-brand rounded-full px-3 py-1">' + (ICONS.starBadge || '') + 'Destacado</span>';
     meta.innerHTML = metaHtml;
 
     // Roles
     const roles = document.getElementById('prov-roles')!;
     let rolesHtml = '';
     if (d.es_anfitrion) {
-      rolesHtml += '<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#2d5016]/10 text-[#2d5016] rounded-full px-3 py-1.5">🧭 Anfitrión del territorio</span>';
+      rolesHtml += '<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#2d5016]/10 text-[#2d5016] rounded-full px-3 py-1.5">' + (ICONS.compassBadge || '') + ' Anfitrión del territorio</span>';
     }
     if (d.ofrece_experiencias) {
       const count = d.experiencias?.length || 0;
-      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-accent/10 text-accent rounded-full px-3 py-1.5"><i data-lucide="leaf" class="w-4 h-4 inline"></i> ${count > 0 ? count + ' experiencia' + (count > 1 ? 's' : '') : 'Ofrece experiencias'}</span>`;
+      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-accent/10 text-accent rounded-full px-3 py-1.5">${ICONS.leafBadge || ''} ${count > 0 ? count + ' experiencia' + (count > 1 ? 's' : '') : 'Ofrece experiencias'}</span>`;
     }
     if (d.propiedades?.length > 0) {
-      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#1a4a6b]/10 text-[#1a4a6b] rounded-full px-3 py-1.5"><i data-lucide="home" class="w-4 h-4 inline"></i> ${d.propiedades.length} propiedad${d.propiedades.length > 1 ? 'es' : ''} en venta</span>`;
+      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#1a4a6b]/10 text-[#1a4a6b] rounded-full px-3 py-1.5">${ICONS.homeBadge || ''} ${d.propiedades.length} propiedad${d.propiedades.length > 1 ? 'es' : ''} en venta</span>`;
     }
     if (d.propiedades_gestion?.length > 0) {
-      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#6b3fa0]/10 text-[#6b3fa0] rounded-full px-3 py-1.5"><i data-lucide="key-round" class="w-4 h-4 inline"></i> ${d.propiedades_gestion.length} en gestión</span>`;
+      rolesHtml += `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#6b3fa0]/10 text-[#6b3fa0] rounded-full px-3 py-1.5">${ICONS.keyBadge || ''} ${d.propiedades_gestion.length} en gestión</span>`;
     }
     if (rolesHtml) {
       roles.innerHTML = rolesHtml;
@@ -347,12 +388,12 @@ const iniciales = (nombre: string) =>
       document.getElementById('prov-anf')!.innerHTML = d.anfitriones.map((a: any) => `
         <a href="${a.slug ? '/naturaleza/anfitriones/' + a.slug : '/naturaleza/anfitriones'}"
            class="group/anf flex items-center gap-3 rounded-xl border border-border bg-surface-sunken p-3 hover:border-[#2d5016]/50 transition-colors">
-          <span class="text-lg">🧭</span>
+          <span class="text-lg">${ICONS.compassLink || ''}</span>
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-text-primary group-hover/anf:text-[#2d5016] transition-colors">${a.nombre}</span>
             ${a.especialidad ? `<span class="block text-xs text-text-secondary mt-0.5">${a.especialidad}</span>` : ''}
           </span>
-          <span class="ml-auto text-text-muted group-hover/anf:text-[#2d5016] transition-colors shrink-0"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+          <span class="ml-auto text-text-muted group-hover/anf:text-[#2d5016] transition-colors shrink-0">${ICONS.arrow || ''}</span>
         </a>
       `).join('');
       anfWrap.classList.remove('hidden');
@@ -366,13 +407,13 @@ const iniciales = (nombre: string) =>
       document.getElementById('prov-exp')!.innerHTML = d.experiencias.map((e: any) => `
         <a href="${e.slug ? '/naturaleza/experiencias/' + e.slug : '/naturaleza/experiencias'}"
            class="group/exp flex items-start gap-3 rounded-xl border border-border bg-surface-sunken p-3 hover:border-accent/50 transition-colors">
-           <i data-lucide="leaf" class="w-5 h-5 mt-0.5 text-accent"></i>
+           ${ICONS.leafLink || ''}
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-text-primary group-hover/exp:text-accent transition-colors">${e.titulo}</span>
             ${e.resumen ? `<span class="block text-xs text-text-secondary mt-0.5 line-clamp-2">${e.resumen}</span>` : ''}
             ${e.categoria ? `<span class="inline-block text-[10px] font-mono uppercase tracking-wider text-text-muted mt-1">${e.categoria}</span>` : ''}
           </span>
-          <span class="ml-auto text-text-muted group-hover/exp:text-accent transition-colors shrink-0"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+          <span class="ml-auto text-text-muted group-hover/exp:text-accent transition-colors shrink-0">${ICONS.arrow || ''}</span>
         </a>
       `).join('');
       expWrap.classList.remove('hidden');
@@ -385,19 +426,19 @@ const iniciales = (nombre: string) =>
     if (d.propiedades && d.propiedades.length > 0) {
       document.getElementById('prov-props')!.innerHTML = d.propiedades.map((pr: any) => {
         const tipo = tipoLabel[pr.tipo_propiedad] || pr.tipo_propiedad || 'Propiedad';
-        const estado = pr.estado === 'disponible' ? '🟢 Disponible' : pr.estado === 'reservado' ? '🟡 Reservado' : pr.estado || '';
+        const estado = pr.estado === 'disponible' ? (ICONS.estadoDisponible || '') + 'Disponible' : pr.estado === 'reservado' ? (ICONS.estadoReservado || '') + 'Reservado' : pr.estado || '';
         const area = pr.area_hectareas ? `${pr.area_hectareas} ha` : '';
         const precio = pr.precio ? `$${Number(pr.precio).toLocaleString('es-CO')}` : '';
         return `
         <a href="${pr.slug ? '/tierras/' + pr.slug : '/tierras'}"
            class="group/pr flex items-start gap-3 rounded-xl border border-border bg-surface-sunken p-3 hover:border-[#1a4a6b]/50 transition-colors">
-          <i data-lucide="home" class="w-5 h-5 mt-0.5 text-[#1a4a6b]"></i>
+          ${ICONS.homeLink || ''}
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-text-primary group-hover/pr:text-[#1a4a6b] transition-colors">${pr.titulo}</span>
             <span class="block text-xs text-text-secondary mt-0.5">${[tipo, pr.ubicacion_municipio, area, precio].filter(Boolean).join(' · ')}</span>
             ${estado ? `<span class="inline-block text-[10px] font-mono mt-1">${estado}</span>` : ''}
           </span>
-          <span class="ml-auto text-text-muted group-hover/pr:text-[#1a4a6b] transition-colors shrink-0"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+          <span class="ml-auto text-text-muted group-hover/pr:text-[#1a4a6b] transition-colors shrink-0">${ICONS.arrow || ''}</span>
         </a>`;
       }).join('');
       propsWrap.classList.remove('hidden');
@@ -410,18 +451,18 @@ const iniciales = (nombre: string) =>
     if (d.propiedades_gestion && d.propiedades_gestion.length > 0) {
       document.getElementById('prov-gestion')!.innerHTML = d.propiedades_gestion.map((pg: any) => {
         const tipo = gestionLabel[pg.tipo_gestion] || pg.tipo_gestion || 'Gestión';
-        const estado = pg.estado === 'activa' ? '🟢 Activa' : pg.estado === 'pausada' ? '⏸ Pausada' : pg.estado || '';
+        const estado = pg.estado === 'activa' ? (ICONS.estadoActiva || '') + 'Activa' : pg.estado === 'pausada' ? (ICONS.estadoPausada || '') + 'Pausada' : pg.estado || '';
         const area = pg.area_hectareas ? `${pg.area_hectareas} ha` : '';
         return `
         <a href="${pg.slug ? '/gestion/' + pg.slug : '/gestion'}"
            class="group/gg flex items-start gap-3 rounded-xl border border-border bg-surface-sunken p-3 hover:border-[#6b3fa0]/50 transition-colors">
-          <i data-lucide="key-round" class="w-5 h-5 mt-0.5 text-[#6b3fa0]"></i>
+          ${ICONS.keyLink || ''}
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-text-primary group-hover/gg:text-[#6b3fa0] transition-colors">${pg.titulo}</span>
             <span class="block text-xs text-text-secondary mt-0.5">${[tipo, pg.ubicacion_municipio, area].filter(Boolean).join(' · ')}</span>
             ${estado ? `<span class="inline-block text-[10px] font-mono mt-1">${estado}</span>` : ''}
           </span>
-          <span class="ml-auto text-text-muted group-hover/gg:text-[#6b3fa0] transition-colors shrink-0"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+          <span class="ml-auto text-text-muted group-hover/gg:text-[#6b3fa0] transition-colors shrink-0">${ICONS.arrow || ''}</span>
         </a>`;
       }).join('');
       gestionWrap.classList.remove('hidden');
@@ -432,11 +473,11 @@ const iniciales = (nombre: string) =>
     // Contacto
     const contWrap = document.getElementById('prov-contacto-wrap')!;
     let contHtml = '';
-    if (d.whatsapp) contHtml += `<a href="https://wa.me/${d.whatsapp.replace(/\D/g, '')}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-[#25D366] transition-colors font-medium"><i data-lucide="message-circle" class="w-4 h-4 inline"></i> WhatsApp</a>`;
-    if (d.instagram) contHtml += `<a href="https://instagram.com/${d.instagram.replace(/^@/, '')}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-accent transition-colors font-medium"><i data-lucide="camera" class="w-4 h-4 inline"></i> ${d.instagram.replace(/^@/, '')}</a>`;
-    if (d.telefono) contHtml += `<a href="tel:${d.telefono.replace(/\s/g, '')}" class="inline-flex items-center gap-1.5 hover:text-accent transition-colors font-medium">📞 ${d.telefono}</a>`;
-    if (d.horario) contHtml += `<span class="inline-flex items-center gap-1.5">🕒 ${d.horario}</span>`;
-    if (d.direccion) contHtml += `<span class="inline-flex items-center gap-1.5">📍 ${d.direccion}</span>`;
+    if (d.whatsapp) contHtml += `<a href="https://wa.me/${d.whatsapp.replace(/\D/g, '')}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-[#25D366] transition-colors font-medium">${ICONS.whatsapp || ''} WhatsApp</a>`;
+    if (d.instagram) contHtml += `<a href="https://instagram.com/${d.instagram.replace(/^@/, '')}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-accent transition-colors font-medium">${ICONS.instagram || ''} ${d.instagram.replace(/^@/, '')}</a>`;
+    if (d.telefono) contHtml += `<a href="tel:${d.telefono.replace(/\s/g, '')}" class="inline-flex items-center gap-1.5 hover:text-accent transition-colors font-medium">${ICONS.phone || ''} ${d.telefono}</a>`;
+    if (d.horario) contHtml += `<span class="inline-flex items-center gap-1.5">${ICONS.clock || ''} ${d.horario}</span>`;
+    if (d.direccion) contHtml += `<span class="inline-flex items-center gap-1.5">${ICONS.mapPin || ''} ${d.direccion}</span>`;
     if (contHtml) {
       document.getElementById('prov-contacto')!.innerHTML = contHtml;
       contWrap.classList.remove('hidden');
@@ -447,7 +488,7 @@ const iniciales = (nombre: string) =>
     // Ubicación
     const ubiWrap = document.getElementById('prov-ubicacion-wrap')!;
     if (d.ubicacion) {
-      document.getElementById('prov-ubicacion')!.textContent = `📍 ${d.ubicacion}`;
+      document.getElementById('prov-ubicacion')!.innerHTML = (ICONS.mapPinSmall || '') + d.ubicacion;
       ubiWrap.classList.remove('hidden');
     } else {
       ubiWrap.classList.add('hidden');

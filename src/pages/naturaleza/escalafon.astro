@@ -2,6 +2,7 @@
 export const prerender = true;
 
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { NIVELES_ESCALAFON } from '@/lib/naturaleza';
 
 const niveles = Object.entries(NIVELES_ESCALAFON).map(([k, v]) => ({ nivel: Number(k), ...v }));
@@ -34,7 +35,7 @@ const CRITERIOS_DETALLE = [
         return (
           <div class="p-8 rounded-2xl bg-white shadow-sm border-l-4" style={`border-left-color: ${nivel.color}`}>
             <div class="flex items-center gap-4 mb-4">
-              <span class="text-4xl">{nivel.icono}</span>
+              <span class="block"><Icon name={nivel.icono} class="w-10 h-10" /></span>
               <div>
                 <h2 class="text-xl font-semibold text-[#1a3009]">Nivel {nivel.nivel}: {nivel.nombre}</h2>
                 <p class="text-sm text-gray-500">{nivel.descripcion}</p>
@@ -78,7 +79,7 @@ const CRITERIOS_DETALLE = [
   <section class="py-12 px-4 bg-[#0e1a08] text-center">
     <h2 class="text-2xl font-light text-white mb-4">¿Eres guía local en el Tolima?</h2>
     <p class="text-white/60 mb-8 max-w-md mx-auto text-sm">Únete a la red de anfitriones Iwagé y comienza tu camino desde Semilla.</p>
-    <a href="https://wa.me/573001234567?text=Hola,%20quiero%20ser%20anfitrión%20Iwagé" target="_blank" rel="noopener" class="inline-block px-8 py-3 rounded-full bg-[#d4920a] text-[#0e1a08] text-sm font-bold uppercase tracking-wider hover:bg-[#f5c842] transition-colors">
+    <a href="https://wa.me/573026693366?text=Hola,%20quiero%20ser%20anfitrión%20Iwagé" target="_blank" rel="noopener" class="inline-block px-8 py-3 rounded-full bg-[#d4920a] text-[#0e1a08] text-sm font-bold uppercase tracking-wider hover:bg-[#f5c842] transition-colors">
       Postularme como anfitrión
     </a>
   </section>

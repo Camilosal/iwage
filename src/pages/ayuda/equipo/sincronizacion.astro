@@ -1,0 +1,108 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Sincronización de recursos';
+---
+
+<WikiLayout title={title} activePath="/ayuda/equipo/sincronizacion">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/equipo/" class="hover:text-brand transition-colors">Equipo</a>
+    <span>/</span>
+    <span class="text-text-primary">Sincronización</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Sincronización de recursos</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Arquitectura de sincronización</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Los recursos reservables viven en múltiples fuentes y se sincronizan hacia <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">app_reservas</code> (el motor centralizado). Las fuentes son:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>iwage_strapi:</strong> experiencias, paquetes, propiedades en gestión, propiedades de tierras.</li>
+        <li><strong>marca_personal_strapi:</strong> servicios de consultoría.</li>
+        <li><strong>espacios_plus_strapi:</strong> espacios de trabajo.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Sincronización automática (lifecycle hooks)</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Ciertos content types de iwage_strapi tienen lifecycle hooks que disparan la sincronización automáticamente al crear o actualizar:
+      </p>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Content Type</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Lifecycle</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Tipo en reservas</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Experiencia</td>
+              <td class="px-4 py-3">afterCreate / afterUpdate</td>
+              <td class="px-4 py-3">experiencia (slot_horario)</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-mono text-xs">Propiedad-Gestion</td>
+              <td class="px-4 py-3">afterCreate / afterUpdate</td>
+              <td class="px-4 py-3">propiedad_estancia (rango_fechas o bajo_consulta)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        El hook envía un POST a <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/api/admin/recursos/sync</code> en app_reservas con los datos del recurso (nombre, slug, tipo, precio, capacidad, configuración de disponibilidad, URL pública).
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Sincronización manual (script batch)</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Para sincronizar todos los recursos de una vez (ej: después de una migración o cambio masivo), se usa el script:
+      </p>
+      <div class="bg-surface-raised border border-border rounded-xl p-5">
+        <p class="text-xs font-mono text-text-secondary">
+          node strapi/scripts/sync-recursos-reservas.mjs
+        </p>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        El script sincroniza en este orden:
+      </p>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5 mt-2">
+        <li>Experiencias de iwage_naturaleza.</li>
+        <li>Paquetes de iwage_naturaleza.</li>
+        <li>Propiedades en gestión (iwage_gestion).</li>
+        <li>Propiedades de tierras (visitas).</li>
+        <li>Servicios de marca_personal.</li>
+      </ol>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Variables de entorno del script: <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">IWAGE_STRAPI_URL</code>, <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">MP_STRAPI_URL</code>, <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">ESPACIOS_PLUS_STRAPI_URL</code>, <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">RESERVAS_API_URL</code>, <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">RESERVAS_SYNC_TOKEN</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Mecanismo anti-echo</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Algunas experiencias en iwage_strapi son "espejo" de recursos que nacieron originalmente en app_reservas (recursos de aliados externos). Para evitar duplicación infinita, el sistema verifica el campo <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">etiquetas_personalizadas.origen</code>. Si el origen es <code class="text-xs font-mono">app_reservas</code>, la experiencia se omite en la sincronización (ni el lifecycle hook ni el script batch la envían de vuelta).
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Endpoint de sync</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El endpoint <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">POST /api/admin/recursos/sync</code> en app_reservas:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li>Busca el recurso por slug + origen.</li>
+        <li>Si existe, lo actualiza (UPSERT).</li>
+        <li>Si no existe, lo crea.</li>
+        <li>Requiere token de autenticación (<code class="text-xs font-mono">RESERVAS_SYNC_TOKEN</code>).</li>
+        <li>Retorna la acción realizada: "created" o "updated".</li>
+      </ul>
+    </section>
+  </div>
+</WikiLayout>

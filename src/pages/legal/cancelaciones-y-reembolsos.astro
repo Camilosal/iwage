@@ -1,0 +1,103 @@
+---
+import LegalLayout from './_layout.astro';
+
+const title = 'Cancelaciones y Reembolsos de Reservas';
+---
+
+<LegalLayout title={title} activePath="/legal/cancelaciones-y-reembolsos" updated="Febrero de 2026">
+  <Fragment slot="breadcrumb">
+    <span class="text-text-primary">Cancelaciones y Reembolsos</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Política de Cancelaciones y Reembolsos de Reservas</h1>
+
+  <div class="space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">1. Alcance</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Esta política aplica a las reservas de <strong>experiencias</strong> (recorridos, talleres, visitas), <strong>estadías</strong> en propiedades y <strong>servicios</strong> gestionados a través del motor de reservas de Iwagé (reservas.iwage.co), tanto de recursos propios como de aliados del ecosistema.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">2. Cómo cancelar una reserva</h2>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+        <li>Ingresa al portal <strong>Mi Cuenta</strong> en reservas.iwage.co/mi-cuenta con tu correo y contraseña.</li>
+        <li>Abre la sección <strong>Mis Reservas</strong> y selecciona la reserva usando su código de confirmación.</li>
+        <li>Si la reserva aún es cancelable, verás el botón de cancelación. Confirma la operación.</li>
+        <li>La cancelación libera el cupo de inmediato. Si ya habías pagado, el equipo Iwagé te contactará para gestionar el reembolso.</li>
+      </ol>
+      <p class="text-sm text-text-secondary leading-relaxed mt-3">
+        También puedes solicitar la cancelación escribiendo a <a href="mailto:hola@iwage.co" class="text-brand hover:underline">hola@iwage.co</a> o por WhatsApp, indicando el código de tu reserva.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">3. Plazos y condiciones de reembolso</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Momento de la cancelación</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Reembolso</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border">
+              <td class="px-4 py-3">Más de 48 horas antes de la fecha reservada</td>
+              <td class="px-4 py-3">100% del valor pagado.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3">Entre 24 y 48 horas antes</td>
+              <td class="px-4 py-3">50% del valor pagado, o cambio de fecha sin costo (sujeto a disponibilidad).</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3">Menos de 24 horas antes o inasistencia (no-show)</td>
+              <td class="px-4 py-3">No hay reembolso. Podemos evaluar reprogramación por causas de fuerza mayor documentadas.</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3">Cancelación por parte de Iwagé o del aliado</td>
+              <td class="px-4 py-3">100% del valor pagado o reprogramación, a tu elección.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 bg-surface-sunken border border-border rounded-xl p-5 text-sm text-text-secondary leading-relaxed">
+        <p>
+          <strong class="text-text-primary">Nota:</strong> algunas experiencias o estadías pueden tener condiciones específicas de cancelación distintas a esta tabla general. Cuando así sea, dichas condiciones se mostrarán antes de confirmar la reserva y prevalecerán sobre esta política.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">4. Cancelaciones por clima y fuerza mayor</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Las experiencias al aire libre (recorridos por el meliponario, senderos del corredor Ambalá, visitas a fincas) dependen de condiciones climáticas. Si Iwagé o el aliado cancela por clima, seguridad o fuerza mayor, tendrás derecho a <strong>reembolso total o reprogramación sin costo</strong>, a tu elección.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">5. Proceso y tiempos de reembolso</h2>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Pagos en línea (Bold):</strong> el reembolso se gestiona a través de la pasarela hacia el mismo medio de pago. El tiempo de acreditación depende de tu banco (generalmente entre 5 y 15 días hábiles después de aprobado).</li>
+        <li><strong>Pagos por transferencia:</strong> se reembolsa a la cuenta bancaria que indiques, dentro de los 10 días hábiles siguientes a la aprobación.</li>
+        <li><strong>Pago en sitio (aún no pagado):</strong> la cancelación no genera cobros.</li>
+        <li>Todo reembolso queda registrado y su estado es consultable contactando al equipo con tu código de reserva.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">6. Modificaciones de reserva</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Si necesitas cambiar la fecha, el horario o el número de personas de una reserva confirmada, contáctanos con al menos 24 horas de anticipación. Los cambios están sujetos a disponibilidad y no generan costo adicional, salvo diferencias de tarifa entre fechas o número de asistentes.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">7. Reservas con aliados</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        En experiencias operadas por aliados del ecosistema, Iwagé coordina la cancelación y el reembolso entre el cliente y el aliado bajo esta misma política. El aliado no podrá aplicar condiciones más restrictivas que las informadas al momento de reservar.
+      </p>
+    </section>
+  </div>
+</LegalLayout>

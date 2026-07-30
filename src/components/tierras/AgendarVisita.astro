@@ -1,10 +1,14 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 /**
  * AgendarVisita — Visit booking widget integrated with app_reservas.
  *
- * Flow: pick date (next 14 days) → fetch available slots from the reservas API
- * → pick slot → fill contact form → create reservation → confirmation with code.
- * Falls back to WhatsApp if the API is unavailable or has no slots.
+ * Flow: on load, fetch available slots for the next 14 days in ONE call →
+ * dates without slots render disabled → pick date → pick slot (in memory) →
+ * fill contact form → create reservation (gratuita → confirmada) or add to
+ * the unified itinerary (cart). Falls back to WhatsApp only if the API is
+ * unreachable.
  */
 interface Props {
   propiedadSlug: string;
@@ -12,10 +16,19 @@ interface Props {
   whatsapp?: string;
 }
 
-const { propiedadSlug, propiedadTitulo, whatsapp = '573001234567' } = Astro.props;
+const { propiedadSlug, propiedadTitulo, whatsapp = '573026693366' } = Astro.props;
 
-const RESERVAS_URL = import.meta.env.PUBLIC_RESERVAS_URL || 'https://reservas.iwage.co';
+const RESERVAS_URL = import.meta.env.PUBLIC_RESERVAS_API || 'https://reservas.iwage.co';
 const RECURSO_SLUG = `visita-${propiedadSlug}`;
+
+// Fecha local YYYY-MM-DD (toISOString usa UTC y desplaza el día después
+// de las 19:00 hora Colombia).
+function fmtLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 // Generate next 14 days (skip today if past 3pm)
 const now = new Date();
@@ -24,7 +37,7 @@ const dias: Array<{ value: string; label: string }> = [];
 for (let i = startOffset; i < 14; i++) {
   const d = new Date(now);
   d.setDate(d.getDate() + i);
-  const value = d.toISOString().split('T')[0];
+  const value = fmtLocal(d);
   const label = d.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' });
   dias.push({ value, label });
 }
@@ -38,23 +51,29 @@ for (let i = startOffset; i < 14; i++) {
   data-titulo={propiedadTitulo}
   data-wa={whatsapp}
 >
-  <h3 class="font-bold text-[#1B4332] mb-1">📅 Agendar Visita</h3>
+  <h3 class="font-bold text-[#1B4332] mb-1"><Icon name="calendar" class="w-5 h-5 inline" /> Agendar Visita</h3>
   <p class="text-xs text-gray-400 mb-4">Visita guiada gratuita con nuestro equipo territorial.</p>
 
   <!-- Step 1: Date -->
   <div data-step="fecha">
     <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Selecciona una fecha</label>
+    <p data-dias-loading class="text-xs text-gray-400 py-3 text-center">Consultando disponibilidad...</p>
     <div class="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto pr-1" data-dias>
       {dias.map((dia) => (
         <button
           type="button"
           data-fecha={dia.value}
-          class="px-2 py-2 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-600 hover:border-[#52B788] hover:text-[#1B4332] transition-all capitalize"
+          disabled
+          class="px-2 py-2 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-600 hover:border-[#52B788] hover:text-[#1B4332] transition-all capitalize disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:text-gray-600"
         >
           {dia.label}
         </button>
       ))}
     </div>
+    <p data-dias-empty class="text-xs text-gray-400 py-2 text-center hidden">
+      Sin fechas disponibles en los próximos días.
+      <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hola, quiero agendar una visita a: ${propiedadTitulo}`)}`} target="_blank" rel="noopener" class="text-[#52B788] font-bold hover:underline">Escríbenos</a> para coordinarla.
+    </p>
   </div>
 
   <!-- Step 2: Slots -->
@@ -63,8 +82,7 @@ for (let i = startOffset; i < 14; i++) {
       <label class="text-xs font-bold uppercase tracking-wider text-gray-400">Horarios disponibles</label>
       <button type="button" data-back-fecha class="text-[11px] text-[#52B788] font-bold hover:underline">← Cambiar fecha</button>
     </div>
-    <p data-slots-loading class="text-xs text-gray-400 py-3 text-center">Consultando disponibilidad...</p>
-    <div data-slots-grid class="grid grid-cols-3 gap-2 hidden"></div>
+    <div data-slots-grid class="grid grid-cols-3 gap-2"></div>
     <p data-slots-empty class="text-xs text-gray-400 py-3 text-center hidden">
       Sin horarios para esta fecha. Prueba otra o
       <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hola, quiero agendar una visita a: ${propiedadTitulo}`)}`} target="_blank" rel="noopener" class="text-[#52B788] font-bold hover:underline">escríbenos</a>.
@@ -101,7 +119,7 @@ for (let i = startOffset; i < 14; i++) {
 
   <!-- Step 4: Confirmation -->
   <div data-step="ok" class="hidden text-center py-4">
-    <span class="text-4xl block mb-3">✅</span>
+    <Icon name="check-circle" class="w-10 h-10 block mb-3 text-green-500" />
     <h4 class="font-bold text-[#1B4332] mb-1">¡Visita agendada!</h4>
     <p class="text-xs text-gray-500 mb-3">Tu código de reserva:</p>
     <p data-codigo class="font-mono text-lg font-bold text-[#52B788] bg-[#52B788]/5 rounded-lg py-2 px-4 inline-block mb-4"></p>
@@ -110,7 +128,7 @@ for (let i = startOffset; i < 14; i++) {
 
   <!-- Fallback: API unavailable -->
   <div data-step="fallback" class="hidden text-center py-4">
-    <i data-lucide="message-circle" class="w-6 h-6 block mb-3"></i>
+    <Icon name="message-circle" class="w-6 h-6 block mb-3" />
     <p class="text-xs text-gray-500 mb-4">La agenda en línea no está disponible en este momento, pero podemos coordinar tu visita por WhatsApp.</p>
     <a
       href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hola, quiero agendar una visita a: ${propiedadTitulo} (${propiedadSlug})`)}`}
@@ -141,8 +159,9 @@ for (let i = startOffset; i < 14; i++) {
     };
 
     let fechaSel = '';
-    let slotId: number | null = null;
+    let slotId: string | null = null;
     let slotLabel = '';
+    const slotsPorFecha: Record<string, any[]> = {};
 
     function showStep(name: keyof typeof steps) {
       Object.values(steps).forEach((el) => el?.classList.add('hidden'));
@@ -153,56 +172,80 @@ for (let i = startOffset; i < 14; i++) {
       showStep('fallback');
     }
 
-    // Step 1: date selection
-    root.querySelectorAll('[data-fecha]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const el = btn as HTMLElement;
-        fechaSel = el.dataset.fecha!;
-        // Highlight
-        root.querySelectorAll('[data-fecha]').forEach((b) => b.classList.remove('border-[#52B788]', 'bg-[#52B788]/10', 'text-[#1B4332]'));
-        el.classList.add('border-[#52B788]', 'bg-[#52B788]/10', 'text-[#1B4332]');
+    const dateButtons = Array.from(root.querySelectorAll('[data-fecha]')) as HTMLButtonElement[];
+
+    function pintaFechas() {
+      let algunaLibre = false;
+      dateButtons.forEach((btn) => {
+        const libre = (slotsPorFecha[btn.dataset.fecha!] || []).length > 0;
+        if (libre) algunaLibre = true;
+        btn.disabled = !libre;
+      });
+      const empty = root.querySelector('[data-dias-empty]') as HTMLElement;
+      empty?.classList.toggle('hidden', algunaLibre);
+    }
+
+    // Pre-fetch de toda la ventana (14 días) en UNA sola llamada; los slots
+    // quedan agrupados por fecha y las fechas sin cupo se deshabilitan.
+    (async () => {
+      const loading = root.querySelector('[data-dias-loading]') as HTMLElement;
+      try {
+        const fechas = dateButtons.map((b) => b.dataset.fecha!);
+        const desde = fechas[0];
+        const hasta = fechas[fechas.length - 1];
+        const res = await fetch(
+          `${reservasUrl}/api/disponibilidad?recurso=${encodeURIComponent(recurso)}&desde=${desde}&hasta=${hasta}`
+        );
+        if (!res.ok) throw new Error('API error');
+        const json = await res.json();
+        for (const slot of json.data || []) {
+          (slotsPorFecha[slot.fecha] = slotsPorFecha[slot.fecha] || []).push(slot);
+        }
+        pintaFechas();
+      } catch {
+        showFallback();
+      } finally {
+        loading?.classList.add('hidden');
+      }
+    })();
+
+    // Step 1 → 2: date selection (solo fechas habilitadas tienen slots)
+    dateButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        fechaSel = btn.dataset.fecha!;
+        dateButtons.forEach((b) => b.classList.remove('border-[#52B788]', 'bg-[#52B788]/10', 'text-[#1B4332]'));
+        btn.classList.add('border-[#52B788]', 'bg-[#52B788]/10', 'text-[#1B4332]');
 
         showStep('slots');
-        const loading = root.querySelector('[data-slots-loading]') as HTMLElement;
         const grid = root.querySelector('[data-slots-grid]') as HTMLElement;
         const empty = root.querySelector('[data-slots-empty]') as HTMLElement;
-        loading.classList.remove('hidden');
-        grid.classList.add('hidden');
         grid.innerHTML = '';
-        empty.classList.add('hidden');
 
-        try {
-          const res = await fetch(`${reservasUrl}/api/disponibilidad?recurso=${encodeURIComponent(recurso)}&desde=${fechaSel}&hasta=${fechaSel}`);
-          if (!res.ok) throw new Error('API error');
-          const json = await res.json();
-          const slots: any[] = json.data || [];
-
-          loading.classList.add('hidden');
-          if (slots.length === 0) {
-            empty.classList.remove('hidden');
-            return;
-          }
-
-          grid.classList.remove('hidden');
-          slots.forEach((slot) => {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'px-2 py-2 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-600 hover:border-[#52B788] hover:text-[#1B4332] transition-all';
-            const hora = slot.hora_inicio || slot.hora || '';
-            b.textContent = hora.slice(0, 5) || 'Slot';
-            b.addEventListener('click', () => {
-              slotId = slot.id ?? slot.documentId ?? null;
-              slotLabel = b.textContent || '';
-              (root.querySelector('[data-fecha-label]') as HTMLElement).textContent =
-                new Date(fechaSel + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
-              (root.querySelector('[data-slot-label]') as HTMLElement).textContent = slotLabel;
-              showStep('form');
-            });
-            grid.appendChild(b);
-          });
-        } catch {
-          showFallback();
+        const slots: any[] = slotsPorFecha[fechaSel] || [];
+        if (slots.length === 0) {
+          grid.classList.add('hidden');
+          empty.classList.remove('hidden');
+          return;
         }
+
+        empty.classList.add('hidden');
+        grid.classList.remove('hidden');
+        slots.forEach((slot) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'px-2 py-2 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-600 hover:border-[#52B788] hover:text-[#1B4332] transition-all';
+          const hora = slot.hora_inicio || slot.hora || '';
+          b.textContent = hora.slice(0, 5) || 'Slot';
+          b.addEventListener('click', () => {
+            slotId = slot.documentId ?? slot.id ?? null;
+            slotLabel = b.textContent || '';
+            (root.querySelector('[data-fecha-label]') as HTMLElement).textContent =
+              new Date(fechaSel + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+            (root.querySelector('[data-slot-label]') as HTMLElement).textContent = slotLabel;
+            showStep('form');
+          });
+          grid.appendChild(b);
+        });
       });
     });
 
@@ -232,7 +275,7 @@ for (let i = startOffset; i < 14; i++) {
     root.querySelector('[data-back-fecha]')?.addEventListener('click', () => showStep('fecha'));
     root.querySelector('[data-back-slots]')?.addEventListener('click', () => showStep('slots'));
 
-    // Step 3: confirm reservation
+    // Step 3: confirm reservation (gratuita → confirmada, sin pago)
     root.querySelector('[data-confirmar]')?.addEventListener('click', async () => {
       const nombre = (root.querySelector('[data-nombre]') as HTMLInputElement).value.trim();
       const telefono = (root.querySelector('[data-telefono]') as HTMLInputElement).value.trim();
@@ -263,19 +306,19 @@ for (let i = startOffset; i < 14; i++) {
           body: JSON.stringify({
             recurso_slug: recurso,
             disponibilidad_id: slotId,
-            cliente: { nombre, telefono, email: email || undefined, origen: 'tierras_web' },
+            cliente: { nombre, telefono, email: email || undefined, origen: 'iwage' },
             cantidad_personas: 1,
             notas: notas ? `Visita a: ${titulo}. ${notas}` : `Visita a: ${titulo}`,
             origen_url: window.location.href,
           }),
         });
         const json = await res.json();
-        if (!res.ok) throw new Error(json.error || 'Error');
+        if (!res.ok) throw new Error(json.error || 'No se pudo agendar');
 
         (root.querySelector('[data-codigo]') as HTMLElement).textContent = json.data?.codigo || 'CONFIRMADA';
         showStep('ok');
-      } catch {
-        errorEl.textContent = 'No se pudo agendar. Intenta por WhatsApp.';
+      } catch (err: any) {
+        errorEl.textContent = err?.message || 'No se pudo agendar. Intenta por WhatsApp.';
         errorEl.classList.remove('hidden');
       } finally {
         btn.disabled = false;

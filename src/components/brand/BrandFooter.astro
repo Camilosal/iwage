@@ -1,6 +1,7 @@
 ---
 import type { BrandConfig } from '@/config/brands/types';
 import { brandList } from '@/config/brands';
+import Icon from '@/components/shared/Icon.astro';
 
 interface Props {
   brand: BrandConfig;
@@ -21,7 +22,7 @@ const submenuGroups = brand.nav.filter((item) => item.children);
       <!-- Brand info -->
       <div class="md:col-span-1">
         <div class="flex items-center gap-3 mb-4">
-          <span class="text-3xl">{brand.icon}</span>
+          <Icon name={brand.icon} class="w-8 h-8 text-accent" />
           <div>
             <span class="block text-xl font-bold tracking-wide">{brand.name}</span>
             <span class="block font-mono text-[10px] uppercase tracking-widest text-dark-text/50">
@@ -95,15 +96,15 @@ const submenuGroups = brand.nav.filter((item) => item.children);
             <li>
               <a
                 href={`/${b.slug}/`}
-                class="text-sm text-dark-text/60 hover:text-accent transition-colors"
+                class="inline-flex items-center gap-2 text-sm text-dark-text/60 hover:text-accent transition-colors"
               >
-                {b.icon} {b.name}
+                <Icon name={b.icon} class="w-4 h-4" /> {b.name}
               </a>
             </li>
           ))}
           <li>
-            <a href="/" class="text-sm text-dark-text/60 hover:text-accent transition-colors">
-              <i data-lucide="globe" class="w-3.5 h-3.5 inline"></i> Ver todo el ecosistema
+            <a href="/" class="inline-flex items-center gap-2 text-sm text-dark-text/60 hover:text-accent transition-colors">
+              <Icon name="globe" class="w-3.5 h-3.5" /> Ver todo el ecosistema
             </a>
           </li>
         </ul>
@@ -116,7 +117,7 @@ const submenuGroups = brand.nav.filter((item) => item.children);
         © {year} {brand.name} · Parte del ecosistema Iwagé · Corredor Ambalá, Ibagué, Tolima
       </p>
       <p class="text-xs text-dark-text/30">
-        <i data-lucide="sprout" class="w-3.5 h-3.5 inline"></i> Tierra de labranza
+        <Icon name="sprout" class="w-3.5 h-3.5 inline" /> Tierra de labranza
       </p>
     </div>
   </div>

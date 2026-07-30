@@ -1,0 +1,108 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Pasarela de pagos (Bold)';
+---
+
+<WikiLayout title={title} activePath="/ayuda/equipo/pagos">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/equipo/" class="hover:text-brand transition-colors">Equipo</a>
+    <span>/</span>
+    <span class="text-text-primary">Pasarela de pagos</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Pasarela de pagos (Bold)</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Integración con Bold</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        La plataforma usa Bold como pasarela de pago para transacciones en línea. Bold procesa tarjetas de crédito y débito. La integración se realiza mediante la API de Bold, con el módulo <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">src/lib/bold.ts</code> en app_reservas.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Ambientes</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Ambiente</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Variable</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Uso</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">Sandbox</td>
+              <td class="px-4 py-3 font-mono text-xs">BOLD_API_KEY_SANDBOX</td>
+              <td class="px-4 py-3">Pruebas. No procesa pagos reales.</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-semibold">Producción</td>
+              <td class="px-4 py-3 font-mono text-xs">BOLD_API_KEY</td>
+              <td class="px-4 py-3">Pagos reales. Controlado por <code class="font-mono text-xs">BOLD_ENV</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        La variable <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">BOLD_ENV</code> (default: "sandbox") controla qué clave se usa.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Flujo de pago</h2>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+        <li>Al crear una reserva con método "online", el sistema genera un <strong>payment intent</strong> en Bold.</li>
+        <li>El payment intent retorna un <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">checkout_url</code> donde el cliente ingresa sus datos de tarjeta.</li>
+        <li>Si el pago es exitoso, Bold dispara un <strong>webhook</strong> hacia <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/api/pagos/webhook</code>.</li>
+        <li>El webhook valida la firma (<code class="text-xs font-mono">BOLD_WEBHOOK_SECRET</code>), actualiza el estado del pago y confirma la reserva.</li>
+        <li>Si la pasarela no responde en el timeout (8s), se genera un mensaje de fallback y la reserva queda pendiente de pago.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Webhook de pagos</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El endpoint <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">POST /api/pagos/webhook</code> en app_reservas:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Recibe notificaciones de Bold sobre cambios de estado de pago.</li>
+        <li>Valida la firma del webhook para prevenir requests falsos.</li>
+        <li>Actualiza el registro del pago en Strapi.</li>
+        <li>Cambia el estado de la reserva a "confirmada" si el pago fue exitoso.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Estados de pago</h2>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Pendiente:</strong> payment intent creado, esperando que el cliente pague.</li>
+        <li><strong>Completado:</strong> pago exitoso confirmado por webhook.</li>
+        <li><strong>Fallido:</strong> el pago fue rechazado o expiró.</li>
+        <li><strong>Reembolsado:</strong> se procesó un reembolso total o parcial.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Consulta de estado</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El estado de un pago se puede consultar vía API: <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">GET /api/pagos/{'{reference_id}'}/estado</code>. Esto es útil para verificar el estado actualizado de un pago desde el frontend o desde el panel administrativo.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Manejo de errores</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Si la pasarela de pago no responde (timeout de 8 segundos), el sistema:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li>La reserva se crea normalmente (no se pierde).</li>
+        <li>Se registra un campo <code class="text-xs font-mono">pago_error</code> con el mensaje de fallback.</li>
+        <li>El <code class="text-xs font-mono">checkout_url</code> queda en null.</li>
+        <li>Se ofrece al cliente la opción de coordinar el pago por WhatsApp.</li>
+      </ul>
+    </section>
+  </div>
+</WikiLayout>

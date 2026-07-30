@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 interface Props {
   slug: string;
   titulo: string;
@@ -8,17 +10,17 @@ interface Props {
 const { slug, titulo, cachedNarrativas } = Astro.props;
 
 const PERFILES = [
-  { id: 'productor', label: 'Productor Agrícola', icon: '🌾' },
+  { id: 'productor', label: 'Productor Agrícola', icon: 'wheat' },
   { id: 'campestre', label: 'Vivienda Campestre', icon: 'home' },
-  { id: 'nomada', label: 'Nómada Digital', icon: '💻' },
-  { id: 'turistico', label: 'Emprendedor Turístico', icon: '🏕️' },
-  { id: 'patrimonial', label: 'Inversionista Patrimonial', icon: '📈' },
+  { id: 'nomada', label: 'Nómada Digital', icon: 'monitor' },
+  { id: 'turistico', label: 'Emprendedor Turístico', icon: 'tent' },
+  { id: 'patrimonial', label: 'Inversionista Patrimonial', icon: 'trending-up' },
 ];
 ---
 
 <div class="storytelling bg-white rounded-2xl p-6 border border-gray-100" data-slug={slug}>
   <div class="flex items-center gap-2 mb-4">
-    <span class="text-xl">✨</span>
+    <Icon name="sparkles" class="w-5 h-5" />
     <h3 class="font-black text-[#1B4332] tracking-tight text-sm uppercase">Tu Historia con Esta Propiedad</h3>
     <span class="ml-auto text-[9px] font-bold uppercase tracking-widest text-[#C8933E] bg-[#C8933E]/10 px-2 py-1 rounded-full">IA</span>
   </div>
@@ -30,7 +32,7 @@ const PERFILES = [
         class="st-tab px-3 py-2 rounded-xl text-xs font-bold border transition-all"
         data-perfil={p.id}
       >
-        {p.icon} {p.label}
+        <Icon name={p.icon} class="w-4 h-4" /> {p.label}
       </button>
     ))}
   </div>

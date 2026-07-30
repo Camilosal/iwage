@@ -1,0 +1,157 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Tipos de contenido (Content Types)';
+---
+
+<WikiLayout title={title} activePath="/ayuda/equipo/contenido-tipos">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/equipo/" class="hover:text-brand transition-colors">Equipo</a>
+    <span>/</span>
+    <span class="text-text-primary">Tipos de contenido</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Tipos de contenido en Strapi</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El CMS iwage_strapi tiene los siguientes content types. Cada uno define la estructura de datos para una parte del ecosistema.
+      </p>
+    </section>
+
+    <!-- Propiedad -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <h2 class="text-lg font-bold text-text-primary mb-2">Propiedad</h2>
+      <p class="text-xs text-text-muted font-mono mb-3">api::propiedad &middot; Inmobiliaria rural (Tierras)</p>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">Propiedades rurales en venta. Incluye datos de ubicación, características físicas, documentación y estado comercial.</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-xs text-text-secondary">
+        <div><strong>titulo</strong> (text)</div>
+        <div><strong>slug</strong> (uid)</div>
+        <div><strong>descripcion</strong> (richtext)</div>
+        <div><strong>precio</strong> (biginteger)</div>
+        <div><strong>area_hectareas</strong> (decimal)</div>
+        <div><strong>ubicacion</strong> (component)</div>
+        <div><strong>tipo_suelo</strong> (enumeration)</div>
+        <div><strong>aptitud</strong> (enumeration)</div>
+        <div><strong>imagenes</strong> (media, multiple)</div>
+        <div><strong>documento_id</strong> (text)</div>
+        <div><strong>estado</strong> (enumeration: disponible/reservada/vendida)</div>
+        <div><strong>destacada</strong> (boolean)</div>
+      </div>
+    </section>
+
+    <!-- Propiedad-Gestion -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <h2 class="text-lg font-bold text-text-primary mb-2">Propiedad-Gestion</h2>
+      <p class="text-xs text-text-muted font-mono mb-3">api::propiedad-gestion &middot; Property Management (Gestión)</p>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">Propiedades en administración para alojamientos y turismo. Sincroniza automáticamente con app_reservas al crear/actualizar.</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-xs text-text-secondary">
+        <div><strong>titulo</strong> (text)</div>
+        <div><strong>slug</strong> (uid)</div>
+        <div><strong>descripcion</strong> (richtext)</div>
+        <div><strong>precio_noche</strong> (integer)</div>
+        <div><strong>capacidad_huespedes</strong> (integer)</div>
+        <div><strong>tipo_gestion</strong> (enumeration: renta_corta/segunda_residencia/operacion_turistica/finca_productiva)</div>
+        <div><strong>estado</strong> (enumeration: activa/inactiva)</div>
+        <div><strong>complementos</strong> (relation → Complemento)</div>
+        <div><strong>productos_recomendados</strong> (relation → Producto)</div>
+        <div><strong>imagenes</strong> (media, multiple)</div>
+      </div>
+    </section>
+
+    <!-- Experiencia -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <h2 class="text-lg font-bold text-text-primary mb-2">Experiencia</h2>
+      <p class="text-xs text-text-muted font-mono mb-3">api::experiencia &middot; Turismo regenerativo (Naturaleza / Gestión)</p>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">Actividades y experiencias reservables. Sincroniza automáticamente con app_reservas al crear/actualizar (lifecycle hook).</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-xs text-text-secondary">
+        <div><strong>titulo</strong> (text)</div>
+        <div><strong>slug</strong> (uid)</div>
+        <div><strong>descripcion</strong> (richtext)</div>
+        <div><strong>precio_desde</strong> (integer)</div>
+        <div><strong>duracion</strong> (text, parseable a minutos)</div>
+        <div><strong>cupo_maximo_desc</strong> (text)</div>
+        <div><strong>imagenes</strong> (media, multiple)</div>
+        <div><strong>etiquetas_personalizadas</strong> (component, JSON con origen)</div>
+        <div><strong>complementos</strong> (relation → Complemento)</div>
+      </div>
+    </section>
+
+    <!-- Producto -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <h2 class="text-lg font-bold text-text-primary mb-2">Producto</h2>
+      <p class="text-xs text-text-muted font-mono mb-3">api::producto &middot; Catálogo de tienda (Meliponas)</p>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">Productos de la tienda: miel, cajas, kits, insumos.</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-xs text-text-secondary">
+        <div><strong>nombre</strong> (text)</div>
+        <div><strong>slug</strong> (uid)</div>
+        <div><strong>descripcion</strong> (richtext)</div>
+        <div><strong>precio</strong> (integer)</div>
+        <div><strong>categoria</strong> (enumeration)</div>
+        <div><strong>imagen</strong> (media)</div>
+        <div><strong>stock</strong> (integer)</div>
+        <div><strong>destacado</strong> (boolean)</div>
+      </div>
+    </section>
+
+    <!-- Paquete -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <h2 class="text-lg font-bold text-text-primary mb-2">Paquete</h2>
+      <p class="text-xs text-text-muted font-mono mb-3">api::paquete &middot; Programas multi-día (Naturaleza)</p>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">Paquetes turísticos de varios días con actividades incluidas. Sincroniza con app_reservas como tipo "paquete".</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-xs text-text-secondary">
+        <div><strong>titulo</strong> (text)</div>
+        <div><strong>slug</strong> (uid)</div>
+        <div><strong>precio_base</strong> (integer)</div>
+        <div><strong>duracion_dias</strong> (integer)</div>
+        <div><strong>activo</strong> (boolean)</div>
+      </div>
+    </section>
+
+    <!-- Anfitrion -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <h2 class="text-lg font-bold text-text-primary mb-2">Anfitrion</h2>
+      <p class="text-xs text-text-muted font-mono mb-3">api::anfitrion &middot; Directorio de guías (Naturaleza)</p>
+      <div class="grid sm:grid-cols-2 gap-2 text-xs text-text-secondary">
+        <div><strong>nombre</strong> (text)</div>
+        <div><strong>slug</strong> (uid)</div>
+        <div><strong>bio</strong> (richtext)</div>
+        <div><strong>especialidades</strong> (relation)</div>
+        <div><strong>escalafon</strong> (enumeration)</div>
+        <div><strong>foto</strong> (media)</div>
+        <div><strong>verificado</strong> (boolean)</div>
+      </div>
+    </section>
+
+    <!-- Otros content types -->
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Otros content types</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Content Type</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Uso</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Bitacora</td><td class="px-4 py-3">Publicaciones técnicas y blog por marca.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Cafe-Config</td><td class="px-4 py-3">Configuración global del café (horarios, ubicación).</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Complemento</td><td class="px-4 py-3">Servicios adicionales vinculables a alojamientos y experiencias.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Configuracion-Sitio</td><td class="px-4 py-3">Configuración global del sitio (redes, contacto).</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Cultivo-Polinizacion</td><td class="px-4 py-3">Tipos de cultivo para polinización.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Etapa-Proyecto</td><td class="px-4 py-3">Fases de los proyectos meliponarios.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Iniciativa</td><td class="px-4 py-3">Iniciativas de impacto y sostenibilidad.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Item-Menu</td><td class="px-4 py-3">Items del menú del café.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Lote-Miel</td><td class="px-4 py-3">Trazabilidad de lotes de cosecha de miel.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Pilar-Estandar</td><td class="px-4 py-3">Pilares y estándares de calidad.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Proveedor</td><td class="px-4 py-3">Directorio de proveedores del café.</td></tr>
+            <tr><td class="px-4 py-3 font-mono text-xs">Proyecto-Meliponario</td><td class="px-4 py-3">Proyectos de meliponicultura instalados.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">Testimonio</td><td class="px-4 py-3">Testimonios de clientes y aliados.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</WikiLayout>

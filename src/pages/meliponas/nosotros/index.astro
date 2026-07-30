@@ -3,6 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
 
 const valores = [
@@ -74,7 +75,7 @@ const equipo = [
         <ScrollReveal delay={i * 80}>
           <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center h-full">
             <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
-              <i data-lucide={v.icon} class="w-6 h-6"></i>
+              <Icon name={v.icon} class="w-6 h-6" />
             </div>
             <h3 class="text-base font-semibold text-text-primary mb-2">{v.title}</h3>
             <p class="text-sm text-text-secondary">{v.desc}</p>

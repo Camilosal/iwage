@@ -4,6 +4,7 @@ import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import QRDemo from '@/components/QRDemo.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO, SITE } from '@/config/site';
 
 const pilares = [
@@ -57,7 +58,7 @@ const mercados = [
         <ScrollReveal delay={i * 80}>
           <div class="bg-surface-raised rounded-2xl border border-border p-5 shadow-sm text-center h-full">
             <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-3">
-              <i data-lucide={p.icono} class="w-5 h-5"></i>
+              <Icon name={p.icono} class="w-5 h-5" />
             </div>
             <p class="font-mono text-xs text-accent mb-1">{String(p.numero).padStart(2, '0')}</p>
             <h3 class="text-sm font-semibold text-text-primary mb-2">{p.titulo}</h3>
@@ -79,15 +80,15 @@ const mercados = [
         />
         <div class="space-y-4">
           <div class="flex items-start gap-3">
-            <i data-lucide="scan-line" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <Icon name="scan-line" class="w-5 h-5 text-brand mt-0.5 shrink-0" />
             <p class="text-sm text-text-secondary">Escanea el QR del frasco con tu cámara</p>
           </div>
           <div class="flex items-start gap-3">
-            <i data-lucide="database" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <Icon name="database" class="w-5 h-5 text-brand mt-0.5 shrink-0" />
             <p class="text-sm text-text-secondary">Accede a la ficha completa del lote en tiempo real</p>
           </div>
           <div class="flex items-start gap-3">
-            <i data-lucide="shield-check" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <Icon name="shield-check" class="w-5 h-5 text-brand mt-0.5 shrink-0" />
             <p class="text-sm text-text-secondary">Verifica autenticidad, origen y análisis de laboratorio</p>
           </div>
         </div>
@@ -110,14 +111,14 @@ const mercados = [
         <ul class="space-y-4">
           {bienestar.map((item) => (
             <li class="flex items-start gap-3">
-              <i data-lucide="check-circle-2" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+              <Icon name="check-circle-2" class="w-5 h-5 text-brand mt-0.5 shrink-0" />
               <span class="text-sm text-text-secondary">{item}</span>
             </li>
           ))}
         </ul>
         <a href="/meliponas/bitacora" class="inline-flex items-center gap-2 mt-6 text-brand font-medium text-sm hover:gap-3 transition-all">
           Leer más en la bitácora
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <Icon name="arrow-right" class="w-4 h-4" />
         </a>
       </ScrollReveal>
       <ScrollReveal delay={200}>
@@ -150,7 +151,7 @@ const mercados = [
         <ScrollReveal delay={i * 100}>
           <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center h-full">
             <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
-              <i data-lucide={m.icono} class="w-6 h-6"></i>
+              <Icon name={m.icono} class="w-6 h-6" />
             </div>
             <h3 class="text-base font-semibold text-text-primary mb-2">{m.titulo}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{m.desc}</p>
@@ -168,11 +169,11 @@ const mercados = [
         <p class="text-dark-text/60 mb-8">Suministro constante, ficha técnica y trazabilidad para tu negocio.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="/meliponas/tienda" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
-            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <Icon name="shopping-bag" class="w-5 h-5" />
             Ver la tienda
           </a>
           <a href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}`} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
-            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            <Icon name="message-circle" class="w-5 h-5" />
             WhatsApp
           </a>
         </div>

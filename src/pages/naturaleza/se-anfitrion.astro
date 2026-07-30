@@ -1,13 +1,14 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getBrand } from '@/config/brands';
 
-const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
+const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 
 const CAMINOS = [
   {
-    icon: '🧭',
+    icon: 'compass',
     tipo: 'ser_anfitrion',
     title: 'Quiero ser anfitrión',
     desc: 'Guía experiencias en el territorio, únete a la red Iwagé y crece con el escalafón. Tu conocimiento del lugar es tu mayor activo.',
@@ -21,7 +22,7 @@ const CAMINOS = [
     dark: false,
   },
   {
-    icon: '🏡',
+    icon: 'home',
     tipo: 'presentar_espacio',
     title: 'Quiero presentar mi espacio',
     desc: 'Tu finca, predio o lugar puede convertirse en escenario de experiencias de la red Iwagé. Nosotros lo auditamos, lo producimos y lo conectamos con viajeros.',
@@ -37,19 +38,19 @@ const CAMINOS = [
 ];
 
 const BENEFICIOS = [
-  { icon: '💰', title: 'Ingresos transparentes', desc: 'Sabes exactamente qué ganas por cada experiencia. Cuentas claras, sin sorpresas.' },
-  { icon: '🎓', title: 'Capacitación gratuita', desc: 'Primeros auxilios, interpretación ambiental, hospitalidad y bilingüismo. Te formamos sin costo.' },
-  { icon: '✨', title: 'Visibilidad en la red', desc: 'Tu perfil y tu espacio publicados ante viajeros calificados de todo el ecosistema Iwagé.' },
-  { icon: '👥', title: 'Comunidad activa', desc: 'Foro de anfitriones, reuniones mensuales y una red que se cuida entre sí.' },
-  { icon: '🛡️', title: 'Seguro básico', desc: 'Cobertura de asistencia médica para incidentes durante las experiencias.' },
-  { icon: '🌱', title: 'Regeneración', desc: 'Parte de cada reserva va a un fondo que restaura el territorio que compartes.' },
+  { icon: 'coins', title: 'Ingresos transparentes', desc: 'Sabes exactamente qué ganas por cada experiencia. Cuentas claras, sin sorpresas.' },
+  { icon: 'graduation-cap', title: 'Capacitación gratuita', desc: 'Primeros auxilios, interpretación ambiental, hospitalidad y bilingüismo. Te formamos sin costo.' },
+  { icon: 'sparkles', title: 'Visibilidad en la red', desc: 'Tu perfil y tu espacio publicados ante viajeros calificados de todo el ecosistema Iwagé.' },
+  { icon: 'users', title: 'Comunidad activa', desc: 'Foro de anfitriones, reuniones mensuales y una red que se cuida entre sí.' },
+  { icon: 'shield', title: 'Seguro básico', desc: 'Cobertura de asistencia médica para incidentes durante las experiencias.' },
+  { icon: 'sprout', title: 'Regeneración', desc: 'Parte de cada reserva va a un fondo que restaura el territorio que compartes.' },
 ];
 
 const PASOS = [
-  { icon: '📝', title: 'Radicación', desc: 'Cuéntanos quién eres o preséntanos tu espacio. Sin compromiso y sin costo.' },
-  { icon: '🔍', title: 'Auditoría & capacitación', desc: 'Visitamos tu espacio, certificamos seguridad y te formamos en hospitalidad.' },
-  { icon: '🎬', title: 'Producción', desc: 'Construimos juntos la experiencia: ruta, relato, fotografía y precios justos.' },
-  { icon: '📅', title: 'Publica y recibe reservas', desc: 'Tu experiencia entra al catálogo con reservas en línea y pagos seguros.' },
+  { icon: 'pencil', title: 'Radicación', desc: 'Cuéntanos quién eres o preséntanos tu espacio. Sin compromiso y sin costo.' },
+  { icon: 'search', title: 'Auditoría & capacitación', desc: 'Visitamos tu espacio, certificamos seguridad y te formamos en hospitalidad.' },
+  { icon: 'clapperboard', title: 'Producción', desc: 'Construimos juntos la experiencia: ruta, relato, fotografía y precios justos.' },
+  { icon: 'calendar', title: 'Publica y recibe reservas', desc: 'Tu experiencia entra al catálogo con reservas en línea y pagos seguros.' },
 ];
 
 const FAQS = [
@@ -86,10 +87,10 @@ const FAQS = [
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <button type="button" data-goto-tipo="ser_anfitrion" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#4a7c23]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
-          🧭 Quiero ser anfitrión
+          <Icon name="compass" class="w-4 h-4 inline align-[-2px] mr-1" /> Quiero ser anfitrión
         </button>
         <button type="button" data-goto-tipo="presentar_espacio" class="bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#d4920a]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
-          🏡 Quiero presentar mi espacio
+          <Icon name="home" class="w-4 h-4 inline align-[-2px] mr-1" /> Quiero presentar mi espacio
         </button>
       </div>
     </div>
@@ -112,7 +113,7 @@ const FAQS = [
                 : 'bg-white border-gray-100 shadow-sm',
             ]}
           >
-            <span class="text-4xl block mb-4">{camino.icon}</span>
+            <span class="block mb-4"><Icon name={camino.icon} class="w-10 h-10" style={camino.dark ? 'color:#d4920a' : 'color:#4a7c23'} /></span>
             <h3 class:list={['text-xl font-semibold mb-3', camino.dark ? 'text-white' : 'text-[#1a3009]']}>{camino.title}</h3>
             <p class:list={['text-sm mb-6', camino.dark ? 'text-white/60' : 'text-gray-500']}>{camino.desc}</p>
             <ul class="space-y-2 mb-8">
@@ -151,7 +152,7 @@ const FAQS = [
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {BENEFICIOS.map((bene) => (
           <div class="bg-[#f8faf5] rounded-2xl border border-[#4a7c23]/10 p-6 flex items-start gap-4 hover:border-[#4a7c23]/30 transition-colors">
-            <span class="text-2xl shrink-0">{bene.icon}</span>
+            <Icon name={bene.icon} class="w-7 h-7 shrink-0 text-[#4a7c23]" />
             <div>
               <h3 class="font-semibold text-[#1a3009] mb-1">{bene.title}</h3>
               <p class="text-xs text-gray-600 leading-relaxed">{bene.desc}</p>
@@ -173,7 +174,7 @@ const FAQS = [
         {PASOS.map((paso, i) => (
           <div class="relative bg-white/5 border border-white/10 rounded-2xl p-6">
             <span class="absolute top-4 right-4 text-3xl font-mono text-white/10">0{i + 1}</span>
-            <span class="text-3xl block mb-3">{paso.icon}</span>
+            <Icon name={paso.icon} class="w-8 h-8 block mb-3 text-[#d4920a]" />
             <h3 class="font-semibold text-white mb-2">{paso.title}</h3>
             <p class="text-xs text-white/60 leading-relaxed">{paso.desc}</p>
           </div>
@@ -212,8 +213,8 @@ const FAQS = [
             <label for="tipo_proyecto" class="block text-sm font-medium text-gray-700 mb-2">¿Qué quieres hacer? *</label>
             <select id="tipo_proyecto" name="tipo_proyecto" required class="w-full rounded-xl border border-gray-200 bg-[#f8faf5] px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#4a7c23]/20 focus:border-[#4a7c23]">
               <option value="">Selecciona una opción</option>
-              <option value="ser_anfitrion">🧭 Quiero ser anfitrión</option>
-              <option value="presentar_espacio">🏡 Quiero presentar mi espacio</option>
+              <option value="ser_anfitrion">Quiero ser anfitrión</option>
+              <option value="presentar_espacio">Quiero presentar mi espacio</option>
             </select>
           </div>
         </div>
@@ -236,7 +237,7 @@ const FAQS = [
             rel="noopener"
             class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#4a7c23]/30 text-[#2d5016] text-sm font-bold hover:bg-[#f8faf5] transition-colors"
           >
-            💬 Escríbenos por WhatsApp
+            <Icon name="message-circle" class="w-4 h-4" /> Escríbenos por WhatsApp
           </a>
         </div>
       </form>
@@ -267,7 +268,7 @@ const FAQS = [
   <!-- Already a host? -->
   <section class="py-16 px-4 bg-[#0e1a08]">
     <div class="max-w-3xl mx-auto text-center">
-      <span class="text-4xl block mb-4">🌿</span>
+      <Icon name="leaf" class="w-10 h-10 block mx-auto mb-4 text-brand" />
       <h2 class="text-2xl lg:text-3xl font-light text-white mb-4">¿Ya eres anfitrión activo?</h2>
       <p class="text-white/60 mb-8 max-w-xl mx-auto">Encuentra guías, recursos, formación y comunidad en tu hub de anfitriones.</p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">

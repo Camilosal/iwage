@@ -1,0 +1,94 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Órdenes y pedidos';
+---
+
+<WikiLayout title={title} activePath="/ayuda/equipo/ordenes">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/equipo/" class="hover:text-brand transition-colors">Equipo</a>
+    <span>/</span>
+    <span class="text-text-primary">Órdenes y pedidos</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Órdenes y pedidos</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Dos tipos de órdenes</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El sistema maneja dos tipos de órdenes, cada una con su propio endpoint de creación:
+      </p>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">Orden de reserva</p>
+          <p class="text-sm text-text-secondary leading-relaxed mb-2">
+            Generada desde el carrito cuando contiene items reservables (experiencias, estadías).
+          </p>
+          <p class="text-xs text-text-muted"><code>POST /api/ordenes</code></p>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">Orden de pedido</p>
+          <p class="text-sm text-text-secondary leading-relaxed mb-2">
+            Generada desde el carrito cuando contiene productos de catálogo (tienda, café) o desde WhatsApp.
+          </p>
+          <p class="text-xs text-text-muted"><code>POST /api/pedido</code> o <code>/api/ordenes</code></p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Estructura de una orden</h2>
+      <div class="bg-surface-raised border border-border rounded-xl p-5">
+        <p class="text-xs font-mono text-text-secondary space-y-1">
+          <strong>codigo:</strong> identificador único (ej: ORD-XXXXXXXX)<br/>
+          <strong>estado:</strong> pendiente_pago | pagado | completado | cancelado<br/>
+          <strong>cliente:</strong> nombre, email, teléfono, origen<br/>
+          <strong>reservas:</strong> array de reservas generadas (si aplica)<br/>
+          <strong>precio_total:</strong> suma de todos los items<br/>
+          <strong>moneda:</strong> COP<br/>
+          <strong>checkout_url:</strong> URL de pago Bold (si aplica)<br/>
+          <strong>metadata.items:</strong> items de pedido (para órdenes de catálogo)
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Flujo de orden desde el carrito</h2>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+        <li>El cliente hace checkout desde el carrito unificado.</li>
+        <li>El endpoint <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">POST /api/ordenes</code> recibe los items del carrito y datos del cliente.</li>
+        <li>Se busca o crea el cliente en Strapi (por email o teléfono).</li>
+        <li>Para cada item reservable, se crea una reserva individual (ocupando slot o rango).</li>
+        <li>Para cada item de pedido (catálogo), se guarda en <code class="text-xs font-mono">metadata.items</code>.</li>
+        <li>Se calcula el precio total.</li>
+        <li>Si hay items que requieren pago online, se genera un payment intent en Bold.</li>
+        <li>Se retorna el código de orden, estado, total y checkout_url.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Flujo de pedido por WhatsApp</h2>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+        <li>El cliente envía su pedido por WhatsApp.</li>
+        <li>El equipo registra el pedido vía <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">POST /api/pedido</code>.</li>
+        <li>Se crea la orden con los items del pedido (nombre, precio, cantidad).</li>
+        <li>La orden nace en estado "pendiente_pago" sin pasarela de pago (el pago se coordina por WhatsApp).</li>
+        <li>Las notas del pedido pueden incluir dirección de entrega.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Gestión de órdenes desde el panel</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Desde el panel administrativo en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/ordenes</code> puedes:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li>Ver todas las órdenes con filtros por estado.</li>
+        <li>Ver detalle de una orden (items, cliente, reservas vinculadas).</li>
+        <li>Cambiar el estado de la orden.</li>
+        <li>Registrar pagos manualmente para órdenes que se pagan en sitio.</li>
+      </ul>
+    </section>
+  </div>
+</WikiLayout>

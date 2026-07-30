@@ -2,36 +2,119 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getMenuItems, CATEGORIAS_MENU, itemImage } from '@/lib/cafe';
 import type { ItemMenu } from '@/lib/cafe';
+import { icons } from 'lucide';
+
+// Serializa un icono Lucide a SVG inline (build-time, zero runtime)
+function lucideSvg(name: string, className: string): string {
+  const pascal = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, [string, Record<string, string | number>][] | undefined>)[pascal];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}" aria-hidden="true">${inner}</svg>`;
+}
 
 const allItems = await getMenuItems();
 
-// Group by category (only categories with items)
+// ── Helpers de variaciones ──
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+const parsePrecio = (p: string | null) => parseInt(String(p || '0').replace(/[^0-9]/g, ''), 10) || 0;
+const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+
+interface MenuEntry {
+  rep: ItemMenu;            // item representativo que muestra la card
+  variaciones: ItemMenu[];  // todos los items de la familia (>= 1), ordenados por precio
+  precioDesde: number;      // precio más bajo de la familia
+}
+
+// Agrupa las variaciones de una misma familia en una sola card (la representativa).
+// Los items sin familia quedan como cards individuales. La lista completa se
+// conserva para el selector del modal de detalle.
+function colapsarFamilias(items: ItemMenu[]): MenuEntry[] {
+  const out: MenuEntry[] = [];
+  const porFamilia = new Map<string, MenuEntry>();
+  for (const it of items) {
+    if (!it.familia) {
+      out.push({ rep: it, variaciones: [it], precioDesde: parsePrecio(it.precio) });
+      continue;
+    }
+    const existente = porFamilia.get(it.familia);
+    if (existente) {
+      existente.variaciones.push(it);
+    } else {
+      const entry: MenuEntry = { rep: it, variaciones: [it], precioDesde: parsePrecio(it.precio) };
+      porFamilia.set(it.familia, entry);
+      out.push(entry);
+    }
+  }
+  for (const entry of out) {
+    entry.variaciones.sort((a, b) => parsePrecio(a.precio) - parsePrecio(b.precio));
+    entry.precioDesde = parsePrecio(entry.variaciones[0]?.precio ?? entry.rep.precio);
+  }
+  return out;
+}
+
+// Group by category (only categories with items), colapsando familias en una card
 const grouped = CATEGORIAS_MENU.map(cat => ({
   ...cat,
-  items: allItems.filter(i => i.categoria === cat.slug),
-})).filter(g => g.items.length > 0);
+  entries: colapsarFamilias(allItems.filter(i => i.categoria === cat.slug)),
+})).filter(g => g.entries.length > 0);
 
 // Fallback if Strapi is empty
 const fallbackItems: ItemMenu[] = [
-  { id: 1, documentId: '1', nombre: 'Café de origen Ambalá', slug: null, descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: true, categoria: 'cafe', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
-  { id: 2, documentId: '2', nombre: 'Espresso doble', slug: null, descripcion: 'Doble shot, cuerpo medio', historia: 'Doble shot de nuestro blend house. Cuerpo medio, final dulce.', tags: ['Clásico'], precio: '$5.000', destacado: false, categoria: 'cafe', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null },
-  { id: 3, documentId: '3', nombre: 'Miel de Angelita con café', slug: null, descripcion: 'Dulzor natural sin azúcar', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, categoria: 'signature', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
-  { id: 4, documentId: '4', nombre: 'Aromática de flora nativa', slug: null, descripcion: 'Hierbas del corredor biológico', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
-  { id: 5, documentId: '5', nombre: 'Chocolate de cacao local', slug: null, descripcion: 'Cacao de El Espinal', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, categoria: 'acompanamiento', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
-  { id: 6, documentId: '6', nombre: 'Pan de yuca y miel', slug: null, descripcion: 'Horneado del día', historia: 'Almidón de yuca del Espinal con miel de Angelita. Horneado cada mañana.', tags: ['Horneado del día', 'Sin gluten'], precio: '$4.500', destacado: false, categoria: 'panaderia', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
-  { id: 7, documentId: '7', nombre: 'Cold brew de cosecha', slug: null, descripcion: 'Extracción en frío 18h', historia: 'Extracción en frío durante 18 horas con café de cosecha reciente. Suave, dulce, refrescante.', tags: ['Extracción 18h', 'Edición cosecha'], precio: '$8.000', destacado: false, categoria: 'frio', imagen: null, orden: 1, disponible: false, temporada: true, nota_disponibilidad: 'Disponible en cosecha de agosto' },
+  // ── Café de origen Ambalá (familia: cafe-ambala, eje: Tamaño) ──
+  { id: 1, documentId: '1', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-pequeno', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$5.500', destacado: true, categoria: 'cafe', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Pequeño · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 2, documentId: '2', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-mediano', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: false, categoria: 'cafe', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Mediano · 12 oz', eje_variacion: 'Tamaño' },
+  { id: 3, documentId: '3', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-grande', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$7.500', destacado: false, categoria: 'cafe', imagen: null, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Grande · 16 oz', eje_variacion: 'Tamaño' },
+  // ── Espresso (sin variaciones) ──
+  { id: 4, documentId: '4', nombre: 'Espresso doble', slug: null, descripcion: 'Doble shot, cuerpo medio', historia: 'Doble shot de nuestro blend house. Cuerpo medio, final dulce.', tags: ['Clásico'], precio: '$5.000', destacado: false, categoria: 'cafe', imagen: null, orden: 4, disponible: true, temporada: false, nota_disponibilidad: null },
+  // ── Signature: Miel con café (familia: miel-cafe, eje: Tamaño) ──
+  { id: 5, documentId: '5', nombre: 'Miel de Angelita con café', slug: 'miel-cafe-8oz', descripcion: 'Dulzor natural sin azúcar', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, categoria: 'signature', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'miel-cafe', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 6, documentId: '6', nombre: 'Miel de Angelita con café', slug: 'miel-cafe-12oz', descripcion: 'Dulzor natural sin azúcar', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$11.000', destacado: false, categoria: 'signature', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'miel-cafe', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  // ── Signature: Latte de miel y canela (familia: latte-miel, eje: Tamaño) ──
+  { id: 7, documentId: '7', nombre: 'Latte de miel y canela', slug: 'latte-miel-8oz', descripcion: 'Leche de la Finca La Cumbre', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$9.500', destacado: true, categoria: 'signature', imagen: null, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'latte-miel', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 8, documentId: '8', nombre: 'Latte de miel y canela', slug: 'latte-miel-12oz', descripcion: 'Leche de la Finca La Cumbre', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$11.500', destacado: false, categoria: 'signature', imagen: null, orden: 4, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'latte-miel', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  // ── Aromática de flora nativa (familia: aromatica-flora, eje: Sabor) ──
+  { id: 9, documentId: '9', nombre: 'Aromática de flora nativa', slug: 'aromatica-hierbabuena', descripcion: 'Hierbas del corredor biológico', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Hierbabuena', eje_variacion: 'Sabor' },
+  { id: 10, documentId: '10', nombre: 'Aromática de flora nativa', slug: 'aromatica-limoncillo', descripcion: 'Hierbas del corredor biológico', historia: 'Infusión de limoncillo fresco del corredor. Cítrico, refrescante, digestivo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Limoncillo', eje_variacion: 'Sabor' },
+  { id: 11, documentId: '11', nombre: 'Aromática de flora nativa', slug: 'aromatica-guamo', descripcion: 'Hierbas del corredor biológico', historia: 'Flor de guamo recolectada en el corredor. Floral, suave, aromática.', tags: ['Sin cafeína', 'Floral'], precio: '$6.000', destacado: false, categoria: 'infusion', imagen: null, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Flor de guamo', eje_variacion: 'Sabor' },
+  // ── Cold brew Ambalá (familia: cold-brew, eje: Tamaño) ──
+  { id: 12, documentId: '12', nombre: 'Cold brew Ambalá', slug: 'cold-brew-8oz', descripcion: 'Extracción en frío 18h', historia: 'Extracción en frío durante 18 horas con café de cosecha reciente. Suave, dulce, refrescante.', tags: ['Extracción 18h', 'Edición cosecha'], precio: '$8.000', destacado: false, categoria: 'frio', imagen: null, orden: 1, disponible: true, temporada: true, nota_disponibilidad: null, familia: 'cold-brew', etiqueta_variacion: 'Vaso · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 13, documentId: '13', nombre: 'Cold brew Ambalá', slug: 'cold-brew-16oz', descripcion: 'Extracción en frío 18h', historia: 'Extracción en frío durante 18 horas con café de cosecha reciente. Suave, dulce, refrescante.', tags: ['Extracción 18h', 'Edición cosecha'], precio: '$11.000', destacado: false, categoria: 'frio', imagen: null, orden: 2, disponible: true, temporada: true, nota_disponibilidad: null, familia: 'cold-brew', etiqueta_variacion: 'Grande · 16 oz', eje_variacion: 'Tamaño' },
+  // ── Chocolate de cacao local (familia: chocolate-local, eje: Tamaño) ──
+  { id: 14, documentId: '14', nombre: 'Chocolate de cacao local', slug: 'chocolate-8oz', descripcion: 'Cacao de El Espinal', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, categoria: 'acompanamiento', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'chocolate-local', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 15, documentId: '15', nombre: 'Chocolate de cacao local', slug: 'chocolate-12oz', descripcion: 'Cacao de El Espinal', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$9.000', destacado: false, categoria: 'acompanamiento', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'chocolate-local', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  // ── Pan de yuca y miel (sin variaciones) ──
+  { id: 16, documentId: '16', nombre: 'Pan de yuca y miel', slug: null, descripcion: 'Horneado del día', historia: 'Almidón de yuca del Espinal con miel de Angelita. Horneado cada mañana.', tags: ['Horneado del día', 'Sin gluten'], precio: '$4.500', destacado: false, categoria: 'panaderia', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
+  // ── Queso de la Cumbre con arepa (sin variaciones) ──
+  { id: 17, documentId: '17', nombre: 'Queso de la Cumbre con arepa', slug: null, descripcion: 'Desayuno del territorio', historia: 'Queso fresco del día, arepa de maíz pelado. El desayuno del territorio.', tags: ['Local', 'Desayuno'], precio: '$8.500', destacado: false, categoria: 'acompanamiento', imagen: null, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null },
 ];
 
-const displayGrouped = grouped.length > 0 ? grouped : [{ slug: 'cafe', label: 'Menú', icon: 'coffee', items: fallbackItems }];
+const displayGrouped: Array<{ slug: string; label: string; icon: string; entries: MenuEntry[] }> =
+  grouped.length > 0
+    ? grouped
+    : CATEGORIAS_MENU.map(cat => ({
+        ...cat,
+        entries: colapsarFamilias(fallbackItems.filter(i => i.categoria === cat.slug)),
+      })).filter(g => g.entries.length > 0);
 
 // Count available vs total
 const totalItems = allItems.length || fallbackItems.length;
 const availableCount = (allItems.length > 0 ? allItems : fallbackItems).filter(i => i.disponible).length;
 
-// Category icon lookup for modal
-const catIcons: Record<string, string> = { cafe: 'coffee', signature: '✨', panaderia: '🥐', infusion: 'leaf', frio: '🧊', acompanamiento: '🍫' };
+// Category icon lookup for modal (pre-rendered SVGs, zero runtime)
+const CAT_ICON_NAMES: Record<string, string> = { cafe: 'coffee', signature: 'sparkles', panaderia: 'croissant', infusion: 'leaf', frio: 'snowflake', acompanamiento: 'candy' };
+const CAT_ICON_SVGS: Record<string, string> = Object.fromEntries(
+  Object.entries(CAT_ICON_NAMES).map(([cat, name]) => [cat, lucideSvg(name, 'w-12 h-12')])
+);
+// SVGs pequenos para badges (inyectados al script de cliente)
+const BADGE_SVGS: Record<string, string> = {
+  sprout: lucideSvg('sprout', 'w-3 h-3 inline align-[-1px] mr-0.5'),
+  star: lucideSvg('star', 'w-3 h-3 inline align-[-1px] mr-0.5'),
+  coffee: lucideSvg('coffee', 'w-3 h-3 inline align-[-1px] mr-0.5'),
+};
 const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature', panaderia: 'Panadería', infusion: 'Infusiones', frio: 'Fríos', acompanamiento: 'Acompañamientos' };
 ---
 
@@ -68,16 +151,37 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
           <span class="text-2xl">{(group as any).icon ?? 'coffee'}</span>
           {group.label}
           <span class="text-xs font-normal text-text-muted bg-surface-sunken rounded-full px-2.5 py-0.5 ml-1">
-            {group.items.filter(i => i.disponible).length}/{group.items.length}
+            {group.entries.filter(en => en.variaciones.some(v => v.disponible)).length}/{group.entries.length}
           </span>
         </h2>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {group.items.map((item, i) => {
+          {group.entries.map((entry, i) => {
+            const item = entry.rep;
             const img = itemImage(item);
-            const agotado = !item.disponible;
-            const rawSlug = item.slug || item.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const tieneVar = entry.variaciones.length > 1;
+            const numVar = entry.variaciones.length;
+            const agotado = !entry.variaciones.some(v => v.disponible);
+            const rawSlug = item.slug || slugify(item.nombre);
             const recursoSlug = `cafe-${rawSlug}`;
-            const precioNum = parseInt(String(item.precio || '0').replace(/[^0-9]/g, ''), 10) || 0;
+            const precioNum = parsePrecio(item.precio);
+            const variacionesPayload = tieneVar
+              ? entry.variaciones.map((v) => {
+                  const vSlug = v.slug || slugify(v.nombre);
+                  return {
+                    slug: vSlug,
+                    nombre: v.nombre,
+                    etiqueta: v.etiqueta_variacion || v.nombre,
+                    eje: v.eje_variacion || 'Presentación',
+                    precio: v.precio,
+                    precio_num: parsePrecio(v.precio),
+                    recurso_slug: `cafe-${vSlug}`,
+                    disponible: v.disponible !== false,
+                    historia: v.historia,
+                    descripcion: v.descripcion,
+                    imagen: itemImage(v),
+                  };
+                })
+              : [];
             return (
               <ScrollReveal delay={i * 60}>
                 <article
@@ -95,6 +199,9 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
                     nota_disponibilidad: item.nota_disponibilidad,
                     destacado: item.destacado,
                     imagen: img,
+                    familia: item.familia || null,
+                    eje_variacion: item.eje_variacion || null,
+                    variaciones: variacionesPayload,
                   })}
                   class:list={[
                     'relative rounded-2xl border h-full flex flex-col overflow-hidden transition-all duration-200 cursor-pointer group',
@@ -126,18 +233,23 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
                     )}
                     {item.temporada && (
                       <span class="bg-amber-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
-                        🌱 Temporada
+                        <Icon name="sprout" class="w-3 h-3 inline align-[-1px] mr-0.5" />Temporada
                       </span>
                     )}
                     {item.destacado && !agotado && (
                       <span class="bg-accent/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
-                        ★ Destacado
+                        <Icon name="star" class="w-3 h-3 inline align-[-1px] mr-0.5" />Destacado
+                      </span>
+                    )}
+                    {tieneVar && !agotado && (
+                      <span class="bg-brand/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
+                        <Icon name="coffee" class="w-3 h-3 inline align-[-1px] mr-0.5" />{numVar} opciones
                       </span>
                     )}
                   </div>
 
                   {/* Content */}
-                  <div class="p-5 flex flex-col flex-1">
+                  <div class:list={['flex flex-col flex-1 p-5', !img && 'pt-11']}>
                     <div class="flex items-start justify-between gap-3 mb-1.5">
                       <h3 class:list={[
                         'text-base font-semibold leading-snug',
@@ -150,7 +262,7 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
                           'text-base font-bold shrink-0',
                           agotado ? 'text-text-muted' : 'text-brand',
                         ]}>
-                          {item.precio}
+                          {tieneVar ? `Desde ${fmtCOP(entry.precioDesde)}` : item.precio}
                         </span>
                       )}
                     </div>
@@ -173,7 +285,7 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
                     {/* Nota de disponibilidad */}
                     {agotado && item.nota_disponibilidad && (
                       <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
-                        📅 {item.nota_disponibilidad}
+                        <Icon name="calendar" class="w-3.5 h-3.5 inline align-[-2px] mr-1" />{item.nota_disponibilidad}
                       </p>
                     )}
 
@@ -194,7 +306,7 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
                     {/* Click hint + quick add */}
                     <div class="flex items-center justify-between mt-3">
                       <p class="text-[10px] text-text-muted/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Ver detalle <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+                        Ver detalle <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
                       </p>
                       {!agotado && (
                         <button
@@ -246,13 +358,16 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
     </div>
   </Section>
 
+  <!-- SVGs de iconos pre-renderizados (build-time) para el script de cliente -->
+  <script type="application/json" id="menu-icon-svgs" set:html={JSON.stringify({ cat: CAT_ICON_SVGS, badge: BADGE_SVGS })}></script>
+
   <!-- ═══ Detail Modal ═══ -->
   <dialog id="menu-modal" class="fixed inset-0 z-[100] m-auto w-[calc(100%-2rem)] max-w-lg rounded-3xl border-0 p-0 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:items-center">
     <div class="max-h-[85vh] overflow-y-auto rounded-3xl bg-white">
       {/* Hero / Image area */}
       <div id="modal-hero" class="relative h-44 bg-gradient-to-br from-brand/10 to-accent/10 flex items-center justify-center overflow-hidden rounded-t-3xl">
         <img id="modal-img" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden" />
-        <i data-lucide="coffee" class="w-12 h-12 opacity-30" id="modal-icon"></i>
+        <span id="modal-icon" class="opacity-30" set:html={CAT_ICON_SVGS.cafe}></span>
         <button id="modal-close" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm text-white flex items-center justify-center text-lg hover:bg-black/40 transition-colors" aria-label="Cerrar">✕</button>
         {/* Status badges */}
         <div id="modal-badges" class="absolute top-4 left-4 flex flex-wrap gap-2"></div>
@@ -281,13 +396,21 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
         {/* Nota disponibilidad */}
         <div id="modal-nota-wrap" class="hidden mb-5">
           <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            📅 <span id="modal-nota"></span>
+            <Icon name="calendar" class="w-3.5 h-3.5 inline align-[-2px] mr-1" /><span id="modal-nota"></span>
           </p>
         </div>
 
         {/* Tags */}
         <div id="modal-tags-wrap" class="mb-6">
           <div id="modal-tags" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        {/* Variaciones (tamaño, sabor, ...) */}
+        <div id="modal-variaciones-wrap" class="hidden mb-6">
+          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2">
+            Elige tu <span id="modal-var-eje">presentación</span>
+          </p>
+          <div id="modal-var-pills" class="flex flex-wrap gap-2"></div>
         </div>
 
         {/* CTA: agregar al carrito con cantidad */}
@@ -315,7 +438,10 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
 <script>
   import { addItem } from '@/lib/cart-store';
 
-  const catIcons: Record<string, string> = { cafe: 'coffee', signature: '✨', panaderia: '🥐', infusion: 'leaf', frio: '🧊', acompanamiento: '🍫' };
+  // SVGs pre-renderizados en el build (ver <script id="menu-icon-svgs">)
+  const ICON_SVGS = JSON.parse(document.getElementById('menu-icon-svgs')?.textContent || '{}');
+  const CAT_SVGS: Record<string, string> = ICON_SVGS.cat || {};
+  const BADGE_SVG: Record<string, string> = ICON_SVGS.badge || {};
   const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature', panaderia: 'Panadería', infusion: 'Infusiones', frio: 'Fríos', acompanamiento: 'Acompañamientos' };
   const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
 
@@ -326,54 +452,66 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
 
   let modalQty = 1;
   let currentData: any = null;
+  let varList: any[] = [];
+  let currentVar: any = null;
+  let baseNombre = '';
+
+  /** Item efectivo: la variación seleccionada, o el item base si no hay variaciones. */
+  function eff(): any {
+    return currentVar || currentData || {};
+  }
+
+  /** Nombre para el carrito: producto base + etiqueta de la variación elegida. */
+  function nombreCarrito(): string {
+    if (currentVar && currentVar.etiqueta && currentVar.etiqueta !== baseNombre) {
+      return `${baseNombre} (${currentVar.etiqueta})`;
+    }
+    return baseNombre;
+  }
 
   function updateAddBtn() {
     if (!currentData) return;
-    const total = (currentData.precio_num || 0) * modalQty;
+    const e = eff();
+    if (e.disponible === false) {
+      addBtn.textContent = 'No disponible actualmente';
+      addBtn.disabled = true;
+      return;
+    }
+    addBtn.disabled = false;
+    const total = (e.precio_num || 0) * modalQty;
     addBtn.textContent = `Agregar al carrito — ${fmtCOP(total)}`;
   }
 
-  function openModal(data: any) {
-    currentData = data;
-    modalQty = 1;
-    qtyEl.textContent = '1';
+  /** Re-pinta precio, descripción, historia, imagen, badges y CTA según la variación activa. */
+  function paintBody() {
+    const e = eff();
 
-    // Hero
+    // Hero / imagen (cae en la imagen del item base si la variación no tiene)
     const img = document.getElementById('modal-img') as HTMLImageElement;
     const icon = document.getElementById('modal-icon')!;
-    if (data.imagen) {
-      img.src = data.imagen;
-      img.alt = data.nombre;
+    const imgSrc = e.imagen || currentData?.imagen || null;
+    if (imgSrc) {
+      img.src = imgSrc;
+      img.alt = baseNombre;
       img.classList.remove('hidden');
       icon.classList.add('hidden');
     } else {
       img.classList.add('hidden');
       icon.classList.remove('hidden');
-      icon.textContent = catIcons[data.categoria] || 'coffee';
     }
 
-    // Badges
-    const badges = document.getElementById('modal-badges')!;
-    let badgeHtml = '';
-    if (!data.disponible) badgeHtml += '<span class="bg-red-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">Agotado</span>';
-    if (data.temporada) badgeHtml += '<span class="bg-amber-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">🌱 Temporada</span>';
-    if (data.destacado && data.disponible) badgeHtml += '<span class="bg-accent/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">★ Destacado</span>';
-    badges.innerHTML = badgeHtml;
+    // Precio
+    document.getElementById('modal-precio')!.textContent = e.precio || fmtCOP(e.precio_num || 0);
 
-    // Category + price
-    document.getElementById('modal-cat')!.textContent = catLabels[data.categoria] || data.categoria;
-    document.getElementById('modal-precio')!.textContent = data.precio || '';
-
-    // Name + desc
-    document.getElementById('modal-nombre')!.textContent = data.nombre;
+    // Descripción
     const descEl = document.getElementById('modal-desc')!;
-    descEl.textContent = data.descripcion || '';
-    descEl.classList.toggle('hidden', !data.descripcion);
+    descEl.textContent = e.descripcion || '';
+    descEl.classList.toggle('hidden', !e.descripcion);
 
     // Historia
     const histWrap = document.getElementById('modal-historia-wrap')!;
-    if (data.historia) {
-      document.getElementById('modal-historia')!.textContent = data.historia;
+    if (e.historia) {
+      document.getElementById('modal-historia')!.textContent = e.historia;
       histWrap.classList.remove('hidden');
     } else {
       histWrap.classList.add('hidden');
@@ -381,14 +519,95 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
 
     // Nota disponibilidad
     const notaWrap = document.getElementById('modal-nota-wrap')!;
-    if (!data.disponible && data.nota_disponibilidad) {
-      document.getElementById('modal-nota')!.textContent = data.nota_disponibilidad;
+    const nota = e.nota_disponibilidad || currentData?.nota_disponibilidad;
+    if (e.disponible === false && nota) {
+      document.getElementById('modal-nota')!.textContent = nota;
       notaWrap.classList.remove('hidden');
     } else {
       notaWrap.classList.add('hidden');
     }
 
-    // Tags
+    // Badges (el agotado sigue a la variación activa)
+    const badges = document.getElementById('modal-badges')!;
+    let badgeHtml = '';
+    if (e.disponible === false) badgeHtml += '<span class="bg-red-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">Agotado</span>';
+    if (currentData?.temporada) badgeHtml += '<span class="bg-amber-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">' + (BADGE_SVG.sprout || '') + 'Temporada</span>';
+    if (currentData?.destacado && e.disponible !== false) badgeHtml += '<span class="bg-accent/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">' + (BADGE_SVG.star || '') + 'Destacado</span>';
+    badges.innerHTML = badgeHtml;
+
+    // CTA: cantidad + agregar al carrito
+    const qtyWrap = document.getElementById('modal-qty-wrap')!;
+    if (e.disponible === false) {
+      qtyWrap.classList.add('hidden');
+      addBtn.textContent = 'No disponible actualmente';
+      addBtn.disabled = true;
+    } else {
+      qtyWrap.classList.remove('hidden');
+      addBtn.disabled = false;
+      updateAddBtn();
+    }
+  }
+
+  /** Dibuja el selector de variaciones (pills) y cablea la elección. */
+  function renderVariaciones() {
+    const wrap = document.getElementById('modal-variaciones-wrap')!;
+    const pills = document.getElementById('modal-var-pills')!;
+    if (varList.length < 2) {
+      wrap.classList.add('hidden');
+      pills.innerHTML = '';
+      return;
+    }
+    const eje = currentData?.eje_variacion || varList[0]?.eje || 'Presentación';
+    document.getElementById('modal-var-eje')!.textContent = String(eje).toLowerCase();
+    pills.innerHTML = varList.map((v: any) => {
+      const activo = currentVar && v.slug === currentVar.slug;
+      const agotada = v.disponible === false;
+      const cls = activo
+        ? 'bg-brand text-white border-brand shadow-sm'
+        : agotada
+          ? 'bg-surface text-text-muted border-border/50 line-through cursor-not-allowed'
+          : 'bg-surface text-text-secondary border-border hover:border-brand hover:text-brand';
+      return `<button type="button" data-var-slug="${v.slug}" class="variacion-pill text-sm font-medium rounded-full border px-4 py-2 transition-colors ${cls}" ${agotada ? 'disabled' : ''}>${v.etiqueta}</button>`;
+    }).join('');
+    wrap.classList.remove('hidden');
+    pills.querySelectorAll('.variacion-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const slug = (btn as HTMLElement).dataset.varSlug;
+        const v = varList.find((x: any) => x.slug === slug);
+        if (!v || v.disponible === false) return;
+        currentVar = v;
+        renderVariaciones();
+        paintBody();
+      });
+    });
+  }
+
+  function openModal(data: any) {
+    currentData = data;
+    baseNombre = data.nombre;
+    modalQty = 1;
+    qtyEl.textContent = '1';
+
+    // Variaciones de la familia (tamaño, sabor, ...): por defecto la representativa
+    varList = Array.isArray(data.variaciones) ? data.variaciones : [];
+    if (varList.length > 1) {
+      currentVar =
+        varList.find((v: any) => v.slug === data.slug) ||
+        varList.find((v: any) => v.disponible !== false) ||
+        varList[0];
+    } else {
+      currentVar = null;
+    }
+
+    // Ícono hero (estable, según categoría) — SVG pre-renderizado
+    const icon = document.getElementById('modal-icon')!;
+    icon.innerHTML = CAT_SVGS[data.categoria] || CAT_SVGS.cafe || '';
+
+    // Categoría + nombre (estables: el producto base; la variación se ve en el selector)
+    document.getElementById('modal-cat')!.textContent = catLabels[data.categoria] || data.categoria;
+    document.getElementById('modal-nombre')!.textContent = baseNombre;
+
+    // Tags (del producto base)
     const tagsWrap = document.getElementById('modal-tags-wrap')!;
     const tagsEl = document.getElementById('modal-tags')!;
     if (data.tags && data.tags.length > 0) {
@@ -400,17 +619,8 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
       tagsWrap.classList.add('hidden');
     }
 
-    // CTA state: cantidad + agregar al carrito
-    const qtyWrap = document.getElementById('modal-qty-wrap')!;
-    if (!data.disponible) {
-      qtyWrap.classList.add('hidden');
-      addBtn.textContent = 'No disponible actualmente';
-      addBtn.disabled = true;
-    } else {
-      qtyWrap.classList.remove('hidden');
-      addBtn.disabled = false;
-      updateAddBtn();
-    }
+    renderVariaciones();
+    paintBody();
 
     modal.showModal();
   }
@@ -423,19 +633,20 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
     if (modalQty < 10) { modalQty++; qtyEl.textContent = String(modalQty); updateAddBtn(); }
   });
 
-  // ── Agregar al carrito desde el modal ──
+  // ── Agregar al carrito desde el modal (usa la variación activa) ──
   addBtn.addEventListener('click', () => {
-    if (!currentData || !currentData.disponible) return;
+    const e = eff();
+    if (!currentData || e.disponible === false) return;
     addItem({
-      recurso_slug: currentData.recurso_slug,
-      nombre: currentData.nombre,
-      precio: currentData.precio_num || 0,
+      recurso_slug: e.recurso_slug,
+      nombre: nombreCarrito(),
+      precio: e.precio_num || 0,
       cantidad: modalQty,
       tipo: 'pedido_cafe',
       tipo_disponibilidad: 'inmediato',
       brand: 'cafe',
       origen: 'iwage_cafe',
-      requiere_pago: (currentData.precio_num || 0) > 0,
+      requiere_pago: (e.precio_num || 0) > 0,
       url: window.location.href,
     });
     addBtn.textContent = '✓ Agregado al carrito';
@@ -451,6 +662,17 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
   document.querySelectorAll('.quick-add').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
+      // Si el producto tiene variaciones, abrir el modal para elegirlas
+      const card = btn.closest('[data-menu-item]') as HTMLElement | null;
+      if (card) {
+        try {
+          const data = JSON.parse(card.getAttribute('data-menu-item')!);
+          if (Array.isArray(data.variaciones) && data.variaciones.length > 1) {
+            openModal(data);
+            return;
+          }
+        } catch { /* ignore parse errors */ }
+      }
       const el = btn as HTMLElement;
       addItem({
         recurso_slug: el.dataset.recursoSlug!,

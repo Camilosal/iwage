@@ -1,8 +1,9 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 
-const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "📋"}, {"id": "reservas", "label": "Reservas", "icon": "📅"}, {"id": "experiencias", "label": "Experiencias", "icon": "🌿"}, {"id": "anfitriones", "label": "Anfitriones", "icon": "🌱"}, {"id": "escalafon", "label": "Escalafón", "icon": "📈"}];
+const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "clipboard-list"}, {"id": "reservas", "label": "Reservas", "icon": "calendar"}, {"id": "experiencias", "label": "Experiencias", "icon": "leaf"}, {"id": "anfitriones", "label": "Anfitriones", "icon": "sprout"}, {"id": "escalafon", "label": "Escalafón", "icon": "trending-up"}];
 
 const FAQS = [{"pregunta": "¿Cómo reservo una experiencia?", "respuesta": "Explora el catálogo en /naturaleza/experiencias, elige tu experiencia, selecciona fecha y número de personas, y completa la reserva. Recibirás confirmación por email y WhatsApp.", "categoria": "reservas"}, {"pregunta": "¿Puedo cancelar mi reserva?", "respuesta": "Sí. Cancelación gratuita hasta 48 horas antes. Entre 48-24 horas se cobra el 50%. Menos de 24 horas no hay reembolso. Las condiciones pueden variar por experiencia.", "categoria": "reservas"}, {"pregunta": "¿Qué incluye el precio de una experiencia?", "respuesta": "Cada experiencia detalla qué incluye: guía certificado, seguro de asistencia, transporte desde punto de encuentro, hidratación y en algunos casos alimentación. Los detalles están en la sección 'Cuentas Claras'.", "categoria": "reservas"}, {"pregunta": "¿Hay experiencias para niños?", "respuesta": "Sí. Varias experiencias son aptas para familias. Cada una indica la edad mínima recomendada y nivel de dificultad. Filtra por 'Familiar' en el catálogo.", "categoria": "experiencias"}, {"pregunta": "¿Qué nivel de condición física necesito?", "respuesta": "Cada experiencia indica su dificultad: Suave (apta para todos), Moderada (caminatas de 2-4h) y Exigente (terreno montañoso, 4h+). Recomendamos leer la descripción completa antes de reservar.", "categoria": "experiencias"}, {"pregunta": "¿Qué es turismo regenerativo?", "respuesta": "A diferencia del turismo sostenible (no dañar), el regenerativo busca dejar el territorio mejor de lo que lo encontramos. Parte de cada reserva financia restauración ecológica y proyectos comunitarios.", "categoria": "experiencias"}, {"pregunta": "¿Cómo me convierto en anfitrión Iwagé?", "respuesta": "Aplica desde /naturaleza/anfitriones o por WhatsApp. Evaluamos tu territorio, capacidad y motivación. Si cumples los requisitos, te capacitamos en primeros auxilios, interpretación ambiental y hospitalidad.", "categoria": "anfitriones"}, {"pregunta": "¿Cuánto gana un anfitrión?", "respuesta": "Como guía: 65-70% del valor del tour. Como anfitrión con alojamiento: 70-75% de la tarifa nocturna. La estructura es completamente transparente y se detalla en el acuerdo de alianza.", "categoria": "anfitriones"}, {"pregunta": "¿Qué requisitos necesito para ser anfitrión?", "respuesta": "Ser mayor de edad, conocer el territorio que propones, disponer de tiempo para formaciones (2 días), y pasar la evaluación de capacidad. No necesitas título profesional, solo pasión por tu territorio.", "categoria": "anfitriones"}, {"pregunta": "¿Qué es el Escalafón de Anfitriones?", "respuesta": "Es nuestro sistema de 5 niveles: Semilla → Brote → Raíz → Guardián → Sabio Ancestral. Cada nivel se alcanza con experiencia, reseñas positivas y formación. Niveles superiores desbloquean mayor visibilidad y mejores comisiones.", "categoria": "escalafon"}, {"pregunta": "¿Cómo subo de nivel en el escalafón?", "respuesta": "Completando experiencias exitosas, obteniendo reseñas de 4+ estrellas, participando en formaciones y demostrando compromiso con la regeneración del territorio.", "categoria": "escalafon"}];
 ---
@@ -11,7 +12,7 @@ const FAQS = [{"pregunta": "¿Cómo reservo una experiencia?", "respuesta": "Exp
   <!-- Hero -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-4xl mx-auto px-6 text-center">
-      <span class="text-4xl block mb-4">🌿</span>
+      <Icon name="leaf" class="w-10 h-10 block mx-auto mb-4 text-brand" />
       <h1 class="text-3xl md:text-4xl font-serif text-text-primary mb-3">Centro de Ayuda</h1>
       <p class="text-text-secondary max-w-lg mx-auto mb-8">Todo sobre experiencias, reservas, anfitriones y turismo regenerativo.</p>
       <!-- Search -->
@@ -22,7 +23,7 @@ const FAQS = [{"pregunta": "¿Cómo reservo una experiencia?", "respuesta": "Exp
           placeholder="Buscar pregunta..."
           class="w-full rounded-full border border-border bg-surface-raised px-5 py-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
         />
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm">🔍</span>
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"><Icon name="search" class="w-4 h-4" /></span>
       </div>
     </div>
   </section>
@@ -36,7 +37,7 @@ const FAQS = [{"pregunta": "¿Cómo reservo una experiencia?", "respuesta": "Exp
           class={`cat-pill rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-all ${i === 0 ? 'bg-brand text-white' : 'bg-surface-sunken text-text-secondary hover:bg-brand-muted hover:text-brand'}`}
           data-cat={cat.id}
         >
-          {cat.icon} {cat.label}
+          <Icon name={cat.icon} class="w-4 h-4 inline align-[-2px]" /> {cat.label}
         </button>
       ))}
     </div>
@@ -60,7 +61,7 @@ const FAQS = [{"pregunta": "¿Cómo reservo una experiencia?", "respuesta": "Exp
 
     <!-- Empty state -->
     <div id="faq-empty" class="hidden text-center py-12">
-      <span class="text-3xl block mb-3">🤷</span>
+      <Icon name="help-circle" class="w-8 h-8 block mx-auto mb-3 text-text-muted" />
       <p class="text-text-secondary">No encontramos preguntas que coincidan.</p>
     </div>
   </section>
@@ -69,10 +70,16 @@ const FAQS = [{"pregunta": "¿Cómo reservo una experiencia?", "respuesta": "Exp
   <section class="bg-surface-sunken py-12">
     <div class="max-w-xl mx-auto px-6 text-center">
       <h2 class="text-xl font-bold text-text-primary mb-3">¿No encontraste tu respuesta?</h2>
-      <p class="text-text-secondary mb-6">Escríbenos directamente y te ayudamos en menos de 2 horas.</p>
-      <a href="/naturaleza/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
-        Contactar soporte →
-      </a>
+      <p class="text-text-secondary mb-6">Consulta la guía de uso de la plataforma o escríbenos directamente y te ayudamos en menos de 2 horas.</p>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <a href="/ayuda/" class="inline-flex items-center gap-2 border border-brand text-brand rounded-full px-6 py-3 font-medium hover:bg-brand-muted/30 transition-all">
+          <Icon name="book-open" class="w-4 h-4" />
+          Guía de uso
+        </a>
+        <a href="/naturaleza/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+          Contactar soporte →
+        </a>
+      </div>
     </div>
   </section>
 </BrandLayout>

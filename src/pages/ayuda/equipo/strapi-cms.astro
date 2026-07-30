@@ -1,0 +1,69 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Gestión de contenido con Strapi CMS';
+---
+
+<WikiLayout title={title} activePath="/ayuda/equipo/strapi-cms">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/equipo/" class="hover:text-brand transition-colors">Equipo</a>
+    <span>/</span>
+    <span class="text-text-primary">Strapi CMS</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Gestión de contenido con Strapi CMS</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Arquitectura CMS</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El contenido de Iwagé se gestiona mediante dos instancias de Strapi (headless CMS) que actúan como fuente de verdad:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li><strong>iwage_strapi</strong> (puerto 1338): contenido principal del ecosistema (propiedades, experiencias, productos, paquetes, anfitriones, bitácoras, etc.).</li>
+        <li><strong>reservas_strapi</strong> (puerto 1339): base de datos del motor de reservas (recursos reservables, clientes, reservas, órdenes, pagos).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Acceso al panel admin</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El panel de administración de Strapi se accede desde:
+      </p>
+      <div class="bg-surface-raised border border-border rounded-xl p-5">
+        <ul class="space-y-2 text-sm text-text-secondary">
+          <li><strong>iwage_strapi:</strong> <code class="text-brand font-mono text-xs">https://iwage.co/admin</code> (o <code class="font-mono text-xs">localhost:1338/admin</code> en desarrollo)</li>
+          <li><strong>reservas_strapi:</strong> <code class="text-brand font-mono text-xs">localhost:1339/admin</code> (solo acceso interno)</li>
+        </ul>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Las credenciales se almacenan en las variables de entorno del archivo <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">.env</code> (<code class="text-xs font-mono">STRAPI_ADMIN_*_KEYS</code>).
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Flujo de publicación</h2>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+        <li><strong>Crear contenido:</strong> en el panel de Strapi, navega al content type correspondiente y crea una nueva entrada.</li>
+        <li><strong>Completar campos:</strong> llena los campos obligatorios (varían por content type).</li>
+        <li><strong>Guardar como borrador:</strong> puedes guardar sin publicar para revisar antes.</li>
+        <li><strong>Publicar:</strong> haz clic en "Publish" para hacer el contenido visible en el sitio.</li>
+        <li><strong>Sincronización automática:</strong> al publicar ciertos tipos (Experiencia, Propiedad-Gestion), se dispara automáticamente la sincronización hacia <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">app_reservas</code> vía lifecycle hooks.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Media Library</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Strapi incluye una biblioteca de medios para gestionar imágenes y archivos. Las imágenes subidas se sirven desde el endpoint de assets de Strapi y se referencian en los content types mediante campos de media. Para el sitio frontal, las imágenes se obtienen vía la API REST de Strapi y se optimizan automáticamente.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">API REST</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Strapi expone una API REST para cada content type. El frontend Astro consume estas APIs mediante el helper <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">strapiFetch()</code> definido en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">src/lib/strapi.ts</code>. Las consultas soportan filtros, ordenamiento y paginación.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

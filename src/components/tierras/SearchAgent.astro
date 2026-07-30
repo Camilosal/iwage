@@ -1,4 +1,21 @@
 ---
+import { icons } from 'lucide';
+import Icon from '@/components/shared/Icon.astro';
+
+function lucideSvg(name: string, cls = 'w-5 h-5'): string {
+  const p = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, any[]>)[p];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]: [string, Record<string, any>]) =>
+    `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`
+  ).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${inner}</svg>`;
+}
+
+const ICONS_JS = {
+  mapPin: lucideSvg('map-pin', 'w-3.5 h-3.5 inline shrink-0'),
+  arrowRight: lucideSvg('arrow-right', 'w-5 h-5 text-[#52B788] opacity-40 group-hover:opacity-100 transition-opacity shrink-0'),
+};
 /**
  * Minimal AI search bar: icon + name + input + button.
  * Results render below as clickable cards linking to property detail pages.
@@ -8,7 +25,7 @@
 <div data-search-agent class="w-full">
   <!-- Search bar -->
   <div class="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-lg shadow-black/10">
-    <span class="text-xl shrink-0">🔍</span>
+    <Icon name="search" class="w-5 h-5 shrink-0" />
     <span class="hidden sm:block text-sm font-bold text-[#1B4332] whitespace-nowrap shrink-0">Búsqueda Inteligente</span>
     <input
       type="text"
@@ -43,6 +60,7 @@
 </div>
 
 <script>
+  const ICONS = JSON.parse(document.getElementById('sa-icons')?.textContent || '{}');
   const agent = document.querySelector('[data-search-agent]');
   if (agent) {
     const input = agent.querySelector('[data-search-input]') as HTMLInputElement;
@@ -107,10 +125,10 @@
                     <h3 class="font-bold text-sm text-[#1B4332] group-hover:text-[#2D6A4F] transition-colors truncate">${escapeHtml(m.titulo || 'Propiedad')}</h3>
                     ${score > 0 ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold text-white ${scoreColor} shrink-0">${score}%</span>` : ''}
                   </div>
-                  <p class="text-xs text-gray-500 mb-1.5">📍 ${escapeHtml(m.ubicacion_municipio || 'Tolima')}${m.area_hectareas ? ` · ${m.area_hectareas} ha` : ''} · ${formatPrecio(m.precio)}</p>
+                  <p class="text-xs text-gray-500 mb-1.5">${ICONS.mapPin} ${escapeHtml(m.ubicacion_municipio || 'Tolima')}${m.area_hectareas ? ` · ${m.area_hectareas} ha` : ''} · ${formatPrecio(m.precio)}</p>
                   ${m.match_reason ? `<p class="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">${escapeHtml(m.match_reason)}</p>` : ''}
                 </div>
-                <i data-lucide="arrow-right" class="w-5 h-5 text-[#52B788] opacity-40 group-hover:opacity-100 transition-opacity shrink-0"></i>
+                ${ICONS.arrowRight}
               </div>
             </a>`;
         }).join('');
@@ -129,3 +147,4 @@
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(input.value); });
   }
 </script>
+<script type="application/json" id="sa-icons" set:html={JSON.stringify(ICONS_JS)} />

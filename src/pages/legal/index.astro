@@ -1,0 +1,92 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
+
+const documentos = [
+  {
+    label: 'Términos y Condiciones',
+    href: '/legal/terminos-y-condiciones',
+    icon: 'scale',
+    desc: 'Condiciones generales de uso de la plataforma, la tienda y el sistema de reservas Iwagé.',
+  },
+  {
+    label: 'Política de Tratamiento de Datos Personales',
+    href: '/legal/tratamiento-de-datos',
+    icon: 'shield',
+    desc: 'Cómo recolectamos, usamos y protegemos tus datos personales conforme a la Ley 1581 de 2012 (Habeas Data).',
+  },
+  {
+    label: 'Política de Cookies',
+    href: '/legal/cookies',
+    icon: 'cookie',
+    desc: 'Qué cookies y tecnologías de almacenamiento local usa el sitio y cómo puedes gestionarlas.',
+  },
+  {
+    label: 'Devoluciones y Derecho de Retracto',
+    href: '/legal/devoluciones-y-retracto',
+    icon: 'package-open',
+    desc: 'Política de devoluciones de productos de la tienda y derecho de retracto según la Ley 1480 de 2011.',
+  },
+  {
+    label: 'Cancelaciones y Reembolsos de Reservas',
+    href: '/legal/cancelaciones-y-reembolsos',
+    icon: 'calendar-x',
+    desc: 'Condiciones de cancelación de experiencias y estadías, plazos y proceso de reembolso.',
+  },
+];
+---
+
+<BaseLayout
+  title="Legal y Políticas · Iwagé"
+  description="Directorio de documentos legales y políticas de la plataforma Iwagé: términos y condiciones, tratamiento de datos, cookies, devoluciones y cancelaciones."
+>
+  <div class="pt-16">
+    <!-- Hero -->
+    <section class="border-b border-border bg-surface-raised">
+      <div class="max-w-4xl mx-auto px-6 py-14 text-center">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-muted mb-5">
+          <Icon name="scale" class="w-7 h-7 text-brand" />
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-text-primary">
+          Legal y Políticas
+        </h1>
+        <p class="mt-4 text-base text-text-secondary leading-relaxed max-w-2xl mx-auto">
+          Aquí encuentras todos los documentos que rigen el uso de la plataforma Iwagé: cómo tratamos tus datos, las condiciones de compra y reserva, y tus derechos como consumidor.
+        </p>
+      </div>
+    </section>
+
+    <!-- Directorio de documentos -->
+    <section class="max-w-4xl mx-auto px-6 py-12">
+      <div class="grid gap-4">
+        {documentos.map((doc) => (
+          <a
+            href={doc.href}
+            class="group flex items-start gap-4 p-5 rounded-xl border border-border bg-surface-raised hover:border-brand/40 hover:shadow-md transition-all"
+          >
+            <div class="w-10 h-10 rounded-lg bg-brand-muted flex items-center justify-center shrink-0">
+              <Icon name={doc.icon} class="w-5 h-5 text-brand" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h2 class="text-base font-semibold text-text-primary group-hover:text-brand transition-colors">
+                {doc.label}
+              </h2>
+              <p class="mt-1 text-sm text-text-secondary leading-relaxed">{doc.desc}</p>
+            </div>
+            <Icon name="arrow-right" class="w-4 h-4 text-text-muted group-hover:text-brand group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+          </a>
+        ))}
+      </div>
+
+      <!-- Nota de responsable -->
+      <div class="mt-10 bg-surface-sunken border border-border rounded-xl p-5 text-sm text-text-secondary leading-relaxed">
+        <p>
+          <strong class="text-text-primary">Responsable:</strong> Iwagé · Corredor Ambalá, Ibagué, Tolima, Colombia · Correo de contacto: <a href="mailto:hola@iwage.co" class="text-brand hover:underline">hola@iwage.co</a>.
+        </p>
+        <p class="mt-2">
+          Si tienes dudas sobre cualquiera de estos documentos, visita el <a href="/ayuda/" class="text-brand hover:underline">Centro de Ayuda</a> o escríbenos por la <a href="/meliponas/contacto" class="text-brand hover:underline">página de contacto</a>.
+        </p>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

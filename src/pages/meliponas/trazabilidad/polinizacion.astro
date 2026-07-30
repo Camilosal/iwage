@@ -3,6 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO, SITE } from '@/config/site';
 
 const pilares = [
@@ -49,7 +50,7 @@ const cultivos = [
         <ScrollReveal delay={i * 80}>
           <div class="bg-surface-raised rounded-2xl border border-border p-5 shadow-sm text-center h-full">
             <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-3">
-              <i data-lucide={p.icono} class="w-5 h-5"></i>
+              <Icon name={p.icono} class="w-5 h-5" />
             </div>
             <p class="font-mono text-xs text-accent mb-1">{String(p.numero).padStart(2, '0')}</p>
             <h3 class="text-sm font-semibold text-text-primary mb-2">{p.titulo}</h3>
@@ -75,7 +76,7 @@ const cultivos = [
         <ScrollReveal delay={i * 100}>
           <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center h-full">
             <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
-              <i data-lucide={c.icono} class="w-6 h-6"></i>
+              <Icon name={c.icono} class="w-6 h-6" />
             </div>
             <h3 class="text-base font-semibold text-text-primary mb-2">{c.titulo}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{c.desc}</p>
@@ -90,7 +91,7 @@ const cultivos = [
     <ScrollReveal>
       <div class="max-w-3xl mx-auto text-center">
         <div class="w-14 h-14 rounded-2xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-5">
-          <i data-lucide="search-check" class="w-7 h-7"></i>
+          <Icon name="search-check" class="w-7 h-7" />
         </div>
         <h2 class="text-2xl font-bold text-text-primary mb-4">Diagnóstico de predio gratuito</h2>
         <p class="text-sm text-text-secondary leading-relaxed max-w-xl mx-auto mb-6">
@@ -98,7 +99,7 @@ const cultivos = [
         </p>
         <a href="/meliponas/polinizacion" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 font-medium text-sm hover:bg-brand-light transition-all">
           Solicitar diagnóstico
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <Icon name="arrow-right" class="w-4 h-4" />
         </a>
       </div>
     </ScrollReveal>
@@ -112,11 +113,11 @@ const cultivos = [
         <p class="text-dark-text/60 mb-8">Cuéntanos qué produces y te decimos si nuestras colonias pueden ayudarte.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="/meliponas/polinizacion" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
-            <i data-lucide="leaf" class="w-5 h-5"></i>
+            <Icon name="leaf" class="w-5 h-5" />
             Ver el servicio
           </a>
           <a href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}`} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
-            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            <Icon name="message-circle" class="w-5 h-5" />
             WhatsApp
           </a>
         </div>

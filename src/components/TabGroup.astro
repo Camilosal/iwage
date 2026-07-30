@@ -63,26 +63,32 @@ const active = defaultTab || tabs[0]?.id;
   }
 </style>
 
-<script>
-  document.querySelectorAll('.tab-group').forEach((group) => {
-    const buttons = group.querySelectorAll('.tab-btn');
-    const panels = group.querySelectorAll('.tab-panel');
-    const active = group.getAttribute('data-active');
+<script is:inline>
+  (function () {
+    var groups = document.querySelectorAll('.tab-group');
+    if (groups.length === 0) return;
+    groups.forEach(function (group) {
+      var buttons = group.querySelectorAll('.tab-btn');
+      var panels = group.querySelectorAll('.tab-panel');
+      var active = group.getAttribute('data-active');
 
-    function activate(id: string) {
-      buttons.forEach((btn) => {
-        const isActive = btn.getAttribute('data-tab') === id;
-        btn.setAttribute('aria-selected', String(isActive));
-      });
-      panels.forEach((panel) => {
-        panel.classList.toggle('active', panel.getAttribute('data-panel') === id);
-      });
-    }
+      function activate(id) {
+        buttons.forEach(function (btn) {
+          var isActive = btn.getAttribute('data-tab') === id;
+          btn.setAttribute('aria-selected', String(isActive));
+        });
+        panels.forEach(function (panel) {
+          panel.classList.toggle('active', panel.getAttribute('data-panel') === id);
+        });
+      }
 
-    buttons.forEach((btn) => {
-      btn.addEventListener('click', () => activate(btn.getAttribute('data-tab')!));
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          activate(btn.getAttribute('data-tab'));
+        });
+      });
+
+      if (active) activate(active);
     });
-
-    if (active) activate(active);
-  });
+  })();
 </script>

@@ -1,0 +1,93 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Herramientas y calculadoras';
+---
+
+<WikiLayout title={title} activePath="/ayuda/usuarios/herramientas">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/usuarios/" class="hover:text-brand transition-colors">Usuarios</a>
+    <span>/</span>
+    <span class="text-text-primary">Herramientas y calculadoras</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Herramientas y calculadoras</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Panel de herramientas</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El panel de herramientas se encuentra en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/meliponas/herramientas/</code>. Desde allí accedes a todas las herramientas disponibles del ecosistema.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Calculadora ROI</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">
+        Ubicada en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/tierras/herramientas/roi-calculator</code>. Te permite estimar el retorno de inversión de una propiedad rural.
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Ingresa el precio de compra, ingresos esperados y costos operativos.</li>
+        <li>La calculadora proyecta el ROI anual y el punto de equilibrio.</li>
+        <li>Útil para evaluar si una propiedad es una buena inversión.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Evaluador VAP (Valor Actualizado de Pagos)</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">
+        Ubicado en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/tierras/herramientas/evaluacion-vap</code>. Herramienta avanzada de evaluación financiera para propiedades con opciones de financiación.
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Calcula el valor presente de un flujo de pagos futuros.</li>
+        <li>Permite comparar escenarios de financiación.</li>
+        <li>Ideal para evaluar ofertas de pago a plazos vs. pago único.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Calculadora notarial</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">
+        Ubicada en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/tierras/herramientas/calculadora-notarial</code>. Estima los costos de escrituración para la compra de una propiedad rural.
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Ingresa el valor de la propiedad.</li>
+        <li>La calculadora estima gastos de escrituración, registro y otros costos notariales.</li>
+        <li>Te da un presupuesto aproximado para planificar la compra.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Modelador Técnico Financiero</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Herramienta externa accesible desde el panel de herramientas. Permite modelar la viabilidad financiera de proyectos de meliponicultura, incluyendo costos de instalación, producción de miel, proyecciones de ingreso y análisis de sensibilidad.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Chat con IA</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El widget de chat (esquina inferior derecha) usa un sistema RAG (Retrieval-Augmented Generation) que indexa todo el contenido del sitio. Puedes hacer preguntas en lenguaje natural y recibir respuestas con fuentes citadas. El chat tiene protección contra uso excesivo (rate limiting) para mantener la estabilidad del servicio.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Búsqueda semántica</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        La búsqueda global (<kbd class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">Ctrl+K</kbd>) no solo busca por palabras clave, sino que entiende el significado de tu consulta. Si buscas "¿cuánto cuesta una caja para abejas?", la búsqueda encuentra la página del producto aunque no contenga exactamente esas palabras.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Trazabilidad</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El sistema de trazabilidad (<code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/meliponas/trazabilidad/</code>) permite verificar el origen y calidad de los productos:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li><strong>Miel:</strong> trazabilidad por lote de cosecha con análisis de laboratorio.</li>
+        <li><strong>Cajas:</strong> identidad digital y monitoreo IoT (temperatura y humedad).</li>
+        <li><strong>Polinización:</strong> certificación del servicio con resultados medibles.</li>
+      </ul>
+    </section>
+  </div>
+</WikiLayout>

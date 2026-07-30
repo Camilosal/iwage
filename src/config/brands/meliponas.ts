@@ -28,7 +28,7 @@ export const meliponas: BrandConfig = {
       children: [
         { label: 'Panel de Herramientas', href: '/meliponas/herramientas' },
         { label: 'Trazabilidad', href: '/meliponas/trazabilidad' },
-        { label: 'Modelador Financiero Pro', href: SIMULADOR_URL, external: true },
+        { label: 'Modelador Técnico Financiero ↗', href: SIMULADOR_URL, external: true },
         { label: 'Intranet de Planeación', href: INTRANET_URL, external: true },
       ],
     },
@@ -39,6 +39,7 @@ export const meliponas: BrandConfig = {
         { label: 'Bitácora', href: '/meliponas/bitacora' },
         { label: 'Quiénes Somos', href: '/meliponas/nosotros' },
         { label: 'Ayuda', href: '/meliponas/ayuda' },
+        { label: 'Legal y Políticas', href: '/legal/' },
         { label: 'Contacto', href: '/meliponas/contacto' },
       ],
     },
@@ -48,7 +49,7 @@ export const meliponas: BrandConfig = {
     defaultDescription:
       'Miel de Tetragonisca angustula del corredor Ambalá. Cajas INPA y AF en Nogal Cafetero. Polinización gestionada y asistencia técnica en Ibagué, Tolima.',
   },
-  whatsapp: '573001234567',
+  whatsapp: '573026693366',
   instagram: '@iwage.meliponario',
-  icon: 'bee',
+  icon: 'hexagon',
 };

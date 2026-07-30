@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getAnfitriones, anfitrionFoto, nivelInfo } from '@/lib/naturaleza';
 
 const { data: anfitriones, total } = await getAnfitriones(1, 30);
@@ -27,7 +28,7 @@ const { data: anfitriones, total } = await getAnfitriones(1, 30);
               <a href={`/naturaleza/anfitriones/${host.slug}`} class="group p-6 rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all duration-300 text-center">
                 <div class="relative inline-block mb-4">
                   <img src={anfitrionFoto(host)} alt={host.nombre} class="w-24 h-24 rounded-full object-cover ring-2 ring-gray-100 group-hover:ring-[#d4920a]/40 transition-all" loading="lazy" />
-                  <span class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-sm" title={nivel.nombre}>{nivel.icono}</span>
+                  <span class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center" title={nivel.nombre}><Icon name={nivel.icono} class="w-4 h-4" /></span>
                 </div>
                 <h3 class="text-lg font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors">{host.nombre}</h3>
                 <p class="text-sm text-gray-500 mt-1">{host.especialidad}</p>
@@ -45,7 +46,7 @@ const { data: anfitriones, total } = await getAnfitriones(1, 30);
         </div>
       ) : (
         <div class="text-center py-14">
-          <p class="text-4xl mb-4">🧭</p>
+          <Icon name="compass" class="w-10 h-10 block mx-auto mb-4 text-gray-400" />
           <p class="text-gray-500">Próximamente conocerás a nuestros guardianes.</p>
         </div>
       )}

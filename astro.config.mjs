@@ -32,7 +32,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
     server: {
       host: true,
-      allowedHosts: ['iwage.co', 'www.iwage.co'],
+      allowedHosts: ['hub.iwage.co', 'iwage.co', 'www.iwage.co'],
       proxy: {
         // Proxy /admin to Strapi in development
         '/admin': {

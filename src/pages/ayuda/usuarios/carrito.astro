@@ -1,0 +1,85 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Carrito de compras';
+---
+
+<WikiLayout title={title} activePath="/ayuda/usuarios/carrito">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/usuarios/" class="hover:text-brand transition-colors">Usuarios</a>
+    <span>/</span>
+    <span class="text-text-primary">Carrito de compras</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Carrito de compras unificado</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Qué es el carrito unificado</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El carrito unificado es un componente transversal que funciona en todas las marcas del ecosistema. Te permite agregar productos del meliponario, experiencias de naturaleza, estadías en propiedades y pedidos de café, todo en un mismo carrito. Los items se agrupan por marca para que visualices claramente de dónde viene cada uno.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cómo agregar items</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Hay varias formas de agregar items al carrito:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Botón "Agregar al carrito":</strong> en páginas de producto (aparece un check "Agregado" durante 1.2 segundos).</li>
+        <li><strong>Widget de reserva:</strong> al reservar una experiencia o estadía, puedes elegir "Agregar al carrito" en lugar de pagar directamente.</li>
+        <li><strong>Menú del café:</strong> productos del café se agregan directamente desde el menú.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">El drawer del carrito</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El carrito se abre como un panel lateral (drawer) que muestra:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Items agrupados por marca:</strong> cada grupo tiene su etiqueta (Meliponas, Café, Naturaleza, Gestión, Tierras).</li>
+        <li><strong>Detalle de cada item:</strong> nombre, precio unitario, cantidad y subtotal.</li>
+        <li><strong>Información de reserva:</strong> para items agendables, muestra la fecha/hora del slot o las fechas de estadía.</li>
+        <li><strong>Controles de cantidad:</strong> botones para aumentar o disminuir la cantidad de cada item.</li>
+        <li><strong>Eliminar items:</strong> botón para remover items individuales.</li>
+        <li><strong>Total acumulado:</strong> suma de todos los items que requieren pago, en COP.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Proceso de checkout</h2>
+      <ol class="space-y-3 text-sm text-text-secondary list-decimal pl-5">
+        <li><strong>Revisa tu carrito:</strong> verifica items, cantidades y fechas.</li>
+        <li><strong>Ingresa tus datos:</strong> nombre, email y teléfono (obligatorios para generar la orden).</li>
+        <li><strong>Elige método de pago:</strong>
+          <ul class="mt-1 ml-5 space-y-1 list-disc">
+            <li><em>Pago en línea:</em> el sistema genera una orden en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">app_reservas</code> y te redirige a la pasarela Bold para pagar con tarjeta.</li>
+            <li><em>Coordinar por WhatsApp:</em> si el pago en línea no está disponible o prefieres pagar de otra forma, se abre un chat de WhatsApp con el resumen de tu pedido para coordinar el pago directamente.</li>
+          </ul>
+        </li>
+        <li><strong>Confirmación:</strong> recibes un código de orden y el detalle de las reservas generadas.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Persistencia</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El carrito se guarda automáticamente en el almacenamiento local de tu navegador (<code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">localStorage</code>). Esto significa que si cierras el navegador y vuelves, tus items siguen ahí. El carrito es independiente por dispositivo (no se sincroniza entre dispositivos).
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Items especiales</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Algunos items tienen características especiales en el carrito:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li><strong>Experiencias con slot:</strong> muestran la fecha y hora seleccionada. El mismo recurso en horarios distintos genera items separados.</li>
+        <li><strong>Estadías:</strong> muestran check-in, check-out y número de noches. La misma propiedad en fechas distintas genera items separados.</li>
+        <li><strong>Productos gratuitos:</strong> si un item no requiere pago, se incluye en el carrito pero no suma al total.</li>
+      </ul>
+    </section>
+  </div>
+</WikiLayout>

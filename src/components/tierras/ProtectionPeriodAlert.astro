@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 interface Props {
   fechaInicio?: string;
   diasProteccion?: number;
@@ -29,7 +31,7 @@ if (fechaInicio && diasProteccion > 0) {
 {isActive && (
   <div class={`rounded-xl p-4 mb-6 border-l-4 ${isNearExpiry ? 'bg-yellow-50 border-yellow-500' : 'bg-green-50 border-green-500'}`}>
     <div class="flex items-start gap-3">
-      <span class="text-xl shrink-0">{isNearExpiry ? '⚠️' : '🛡️'}</span>
+      <Icon name={isNearExpiry ? 'alert-triangle' : 'shield'} class="w-5 h-5 shrink-0" />
       <div class="flex-1">
         <div class="flex justify-between items-center mb-2">
           <p class={`text-sm font-bold ${isNearExpiry ? 'text-yellow-800' : 'text-green-800'}`}>
@@ -50,7 +52,7 @@ if (fechaInicio && diasProteccion > 0) {
         </p>
         {isNearExpiry && (
           <p class="text-xs text-yellow-700 mt-2 font-semibold">
-            ⚠️ El período expira pronto. Asegúrate de cerrar cualquier negociación pendiente.
+            <Icon name="alert-triangle" class="w-3.5 h-3.5 inline" /> El período expira pronto. Asegúrate de cerrar cualquier negociación pendiente.
           </p>
         )}
       </div>

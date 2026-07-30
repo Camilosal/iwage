@@ -18,6 +18,7 @@ const PUBLIC_APIS = [
   'bitacora',
   'propiedad-gestion',
   'iniciativa',
+  'complemento',
 ];
 
 export default {

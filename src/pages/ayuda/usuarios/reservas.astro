@@ -1,0 +1,93 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Reservas y experiencias';
+---
+
+<WikiLayout title={title} activePath="/ayuda/usuarios/reservas">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/usuarios/" class="hover:text-brand transition-colors">Usuarios</a>
+    <span>/</span>
+    <span class="text-text-primary">Reservas y experiencias</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Reservas y experiencias</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Tipos de reserva</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        La plataforma soporta dos modelos de reserva, cada uno con su propio widget interactivo:
+      </p>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">Experiencias &mdash; Slot de horario</p>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            Para actividades con hora de inicio (ej: recorrido guiado, taller de meliponicultura). Seleccionas fecha, hora y número de personas. La disponibilidad se consulta en tiempo real.
+          </p>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">Estadías &mdash; Rango de fechas</p>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            Para alojamientos y propiedades. Seleccionas fecha de llegada (check-in), fecha de salida (check-out) y número de huéspedes. El sistema calcula el total por noches automáticamente.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cómo reservar una experiencia</h2>
+      <ol class="space-y-3 text-sm text-text-secondary list-decimal pl-5">
+        <li><strong>Navega al catálogo:</strong> ve a <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/naturaleza/experiencias/</code> o <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/gestion/experiencias/</code>.</li>
+        <li><strong>Selecciona una experiencia:</strong> haz clic en la que te interese para ver su página de detalle.</li>
+        <li><strong>Consulta disponibilidad:</strong> el widget muestra un calendario con fechas disponibles y slots de horario. Selecciona tu fecha.</li>
+        <li><strong>Elige hora y personas:</strong> selecciona la hora de inicio y el número de participantes.</li>
+        <li><strong>Confirma tu datos:</strong> ingresa tu nombre, email y/o teléfono.</li>
+        <li><strong>Elige método de pago:</strong> pago en línea (tarjeta vía Bold) o pago en sitio (tarjeta, QR, transferencia o efectivo al llegar).</li>
+        <li><strong>Confirma la reserva:</strong> recibirás un código de confirmación y un enlace de seguimiento.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cómo reservar una estadía</h2>
+      <ol class="space-y-3 text-sm text-text-secondary list-decimal pl-5">
+        <li><strong>Navega a la propiedad:</strong> ve a <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/gestion/propiedades/</code> y selecciona una propiedad.</li>
+        <li><strong>Selecciona fechas:</strong> en el widget de estadía, elige check-in y check-out. El sistema valida disponibilidad en tiempo real y muestra las noches y el precio total.</li>
+        <li><strong>Indica huéspedes:</strong> selecciona el número de huéspedes (respetando la capacidad máxima de la propiedad).</li>
+        <li><strong>Confirma tu datos y método de pago:</strong> igual que en experiencias.</li>
+        <li><strong>Recibe confirmación:</strong> código de reserva y enlace de seguimiento.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Disponibilidad en tiempo real</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        La disponibilidad se consulta directamente al motor de reservas (<code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">app_reservas</code>) cada vez que cambias la fecha. El sistema usa dos modelos:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li><strong>Slot de horario:</strong> muestra horas disponibles dentro de un rango (ej: 6:00-18:00 con slots de la duración de la experiencia).</li>
+        <li><strong>Rango de fechas:</strong> modelo "abierto salvo bloqueo" &mdash; cualquier fecha está disponible salvo que esté explícitamente bloqueada.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Métodos de pago</h2>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Pago en línea:</strong> a través de la pasarela Bold (tarjetas de crédito/débito). Si la pasarela no responde, la reserva queda registrada y se coordina el pago por WhatsApp.</li>
+        <li><strong>Pago en sitio:</strong> puedes pagar al llegar con tarjeta, código QR, transferencia bancaria o efectivo. La reserva queda confirmada pendiente de pago.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Confirmación y seguimiento</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Después de reservar, recibes un <strong>código único</strong> (ej: <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">RES-20250715-A1B2</code>). Con este código puedes:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li>Ver el estado de tu reserva en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/estado/{'{codigo}'}</code>.</li>
+        <li>Cancelar la reserva (con motivo) si lo necesitas.</li>
+        <li>Acceder al detalle desde tu portal en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">reservas.iwage.co/mi-cuenta/reservas/</code>.</li>
+      </ul>
+    </section>
+  </div>
+</WikiLayout>

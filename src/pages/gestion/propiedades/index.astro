@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import PropiedadGestionCard from '@/components/gestion/PropiedadGestionCard.astro';
 import { getPropiedadesGestion, TIPOS_GESTION } from '@/lib/gestion';
 
@@ -52,7 +53,7 @@ const { data: propiedades, total } = await getPropiedadesGestion({
             tipoFilter === tipo.slug ? 'bg-[#1e3a5f] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           ]}
         >
-          <span>{tipo.icon}</span>
+          <Icon name={tipo.icon} class="w-4 h-4" />
           {tipo.label}
         </a>
       ))}
@@ -71,7 +72,7 @@ const { data: propiedades, total } = await getPropiedadesGestion({
         </div>
       ) : (
         <div class="text-center py-24">
-          <div class="text-5xl mb-4">🏗️</div>
+          <div class="mb-4"><Icon name="building-2" class="w-12 h-12 mx-auto text-gray-300" /></div>
           <h2 class="text-xl font-semibold text-[#122640] mb-2">
             {tipoFilter ? 'No hay propiedades de este tipo aún' : 'Próximamente'}
           </h2>
@@ -79,7 +80,7 @@ const { data: propiedades, total } = await getPropiedadesGestion({
             Estamos incorporando nuevas propiedades a nuestro portafolio de gestión. Déjanos tus datos y te avisamos.
           </p>
           <a
-            href="https://wa.me/573001234567?text=Hola,%20quiero%20información%20sobre%20propiedades%20en%20gestión"
+            href="https://wa.me/573026693366?text=Hola,%20quiero%20información%20sobre%20propiedades%20en%20gestión"
             target="_blank"
             rel="noopener"
             class="inline-block px-6 py-3 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold hover:bg-[#7fc4a2] transition-colors"
@@ -100,7 +101,7 @@ const { data: propiedades, total } = await getPropiedadesGestion({
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a
-          href="https://wa.me/573001234567?text=Hola,%20quiero%20una%20valoración%20de%20mi%20propiedad%20para%20gestión"
+          href="https://wa.me/573026693366?text=Hola,%20quiero%20una%20valoración%20de%20mi%20propiedad%20para%20gestión"
           target="_blank"
           rel="noopener"
           class="px-8 py-3.5 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors"
@@ -111,7 +112,7 @@ const { data: propiedades, total } = await getPropiedadesGestion({
           href="/gestion/modelo-alianzas"
           class="px-8 py-3.5 rounded-full border border-white/30 text-white text-sm font-medium hover:bg-white/10 transition-colors"
         >
-          Conocer modelos de alianza <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          Conocer modelos de alianza <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
         </a>
       </div>
     </div>

@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import FilterSidebar from '@/components/tierras/FilterSidebar.astro';
 import PropertyCard from '@/components/tierras/PropertyCard.astro';
@@ -79,8 +80,8 @@ const baseQs = qs.toString();
           <div class="flex items-center justify-between mb-6">
             <p class="text-sm text-gray-500">{total} propiedades encontradas</p>
             <div class="flex gap-2">
-              <button id="btn-grid" class="view-toggle px-3 py-1.5 rounded-lg text-xs font-bold bg-[#1B4332] text-white">▦ Lista</button>
-              <button id="btn-map" class="view-toggle px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-600 border border-gray-200 hover:border-[#52B788]">🗺️ Mapa</button>
+              <button id="btn-grid" class="view-toggle px-3 py-1.5 rounded-lg text-xs font-bold bg-[#1B4332] text-white"><Icon name="layout-grid" class="w-3.5 h-3.5 inline align-[-2px] mr-1" />Lista</button>
+              <button id="btn-map" class="view-toggle px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-600 border border-gray-200 hover:border-[#52B788]"><Icon name="map" class="w-3.5 h-3.5 inline align-[-2px] mr-1" />Mapa</button>
             </div>
           </div>
 
@@ -91,10 +92,10 @@ const baseQs = qs.toString();
 
           {propiedades.length === 0 ? (
             <div class="text-center py-14">
-              <i data-lucide="mountain" class="w-10 h-10 block mb-4"></i>
+              <Icon name="mountain" class="w-10 h-10 block mb-4 mx-auto text-[#52B788]" />
               <h3 class="text-xl font-bold text-[#1B4332] mb-2">No hay propiedades con estos filtros</h3>
               <p class="text-gray-500 mb-6">Prueba ampliar la búsqueda o contáctanos para una búsqueda personalizada.</p>
-              <a href="/tierras/propiedades" class="text-[#52B788] font-bold hover:underline">Ver todas las propiedades <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+              <a href="/tierras/propiedades" class="text-[#52B788] font-bold hover:underline">Ver todas las propiedades <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>
             </div>
           ) : (
             <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -116,7 +117,7 @@ const baseQs = qs.toString();
               <span class="text-sm text-gray-500 px-4">Página {page} de {totalPages}</span>
               {page < totalPages && (
                   <a href={`/tierras/propiedades?page=${page + 1}${baseQs ? `&${baseQs}` : ''}`}
-                    class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:border-[#52B788] transition-colors">Siguiente <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+                    class="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:border-[#52B788] transition-colors">Siguiente <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>
               )}
             </div>
           )}

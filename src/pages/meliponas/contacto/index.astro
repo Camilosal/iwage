@@ -3,6 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO, SITE } from '@/config/site';
 
 const opciones = [
@@ -33,13 +34,13 @@ const opciones = [
         <ScrollReveal delay={i * 100}>
           <a href={o.href} target={o.href.startsWith('http') ? '_blank' : undefined} rel={o.href.startsWith('http') ? 'noopener' : undefined} class="group block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
             <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
-              <i data-lucide={o.icon} class="w-6 h-6"></i>
+              <Icon name={o.icon} class="w-6 h-6" />
             </div>
             <h3 class="text-base font-semibold text-text-primary mb-2">{o.title}</h3>
             <p class="text-sm text-text-secondary leading-relaxed mb-4">{o.desc}</p>
             <span class="inline-flex items-center gap-1 text-sm font-medium text-brand group-hover:gap-2 transition-all">
               {o.cta}
-              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              <Icon name="arrow-right" class="w-4 h-4" />
             </span>
           </a>
         </ScrollReveal>
@@ -58,21 +59,21 @@ const opciones = [
         />
         <div class="space-y-6">
           <div class="flex items-start gap-3">
-            <i data-lucide="clock" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <Icon name="clock" class="w-5 h-5 text-brand mt-0.5 shrink-0" />
             <div>
               <p class="text-sm font-medium text-text-primary">Tiempo de respuesta</p>
               <p class="text-sm text-text-secondary">WhatsApp: &lt; 2h · Formulario: &lt; 48h</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
-            <i data-lucide="map-pin" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <Icon name="map-pin" class="w-5 h-5 text-brand mt-0.5 shrink-0" />
             <div>
               <p class="text-sm font-medium text-text-primary">Ubicación</p>
               <p class="text-sm text-text-secondary">{SITE.location}</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
-            <i data-lucide="instagram" class="w-5 h-5 text-brand mt-0.5 shrink-0"></i>
+            <Icon name="camera" class="w-5 h-5 text-brand mt-0.5 shrink-0" />
             <div>
               <p class="text-sm font-medium text-text-primary">Instagram</p>
               <p class="text-sm text-text-secondary">{SITE.instagram}</p>

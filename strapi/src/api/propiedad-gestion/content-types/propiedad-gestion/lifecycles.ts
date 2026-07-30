@@ -1,10 +1,14 @@
 /**
  * Lifecycle hooks for Propiedad en Gestión — auto-sync to app_reservas.
- * Solo propiedades activas con tipo_gestion=renta_corta se sincronizan como reservables.
+ * Solo propiedades activas se sincronizan como reservables.
  * Fire-and-forget: no bloquea la operación de Strapi si reservas no responde.
+ *
+ * Las propiedades con precio_noche se sincronizan como rango_fechas
+ * (modelo abierto-salvo-bloqueo, sin slots pre-generados).
  */
 
 const RESERVAS_API = process.env.RESERVAS_API_URL || 'http://reservas_app:4326';
+const SYNC_TOKEN = process.env.RESERVAS_SYNC_TOKEN || '';
 
 interface ResultData {
   id?: number;
@@ -36,17 +40,7 @@ async function syncToReservas(result: ResultData): Promise<void> {
     capacidad_maxima: result.capacidad_huespedes || 10,
     duracion_minutos: 1440, // 1 noche
     tipo_disponibilidad: requierePago ? 'rango_fechas' : 'bajo_consulta',
-    config_disponibilidad: requierePago ? {
-      dias_semana: [1, 2, 3, 4, 5, 6, 7],
-      hora_apertura: '00:00',
-      hora_cierre: '23:59',
-      duracion_slot_minutos: 1440,
-      intervalo_entre_slots_minutos: 0,
-      capacidad_por_slot: result.capacidad_huespedes || 10,
-      anticipacion_minima_horas: 24,
-      max_reservas_por_cliente: 5,
-      bloqueos: [],
-    } : null,
+    config_disponibilidad: null, // rango_fechas usa modelo abierto-salvo-bloqueo
     url_publica: `https://iwage.co/gestion/propiedades/${result.slug}`,
     metadata: { tipo_gestion: result.tipo_gestion },
   };
@@ -54,7 +48,10 @@ async function syncToReservas(result: ResultData): Promise<void> {
   try {
     const res = await fetch(`${RESERVAS_API}/api/admin/recursos/sync`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Sync-Token': SYNC_TOKEN,
+      },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(8000),
     });

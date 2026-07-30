@@ -114,10 +114,10 @@ export const TIPOS_PROPIEDAD = [
 ] as const;
 
 export const SELLOS_VAP = [
-  { id: 'oro', label: 'Sello Oro', tagline: 'Total paz mental', icono: '🥇', desc: 'Escritura pública saneada, sin cargas ni gravámenes activos. Linderos milimétricos. Sin restricciones ambientales.' },
-  { id: 'plata', label: 'Sello Plata', tagline: 'Nudo gestionable', icono: '🥈', desc: 'Documentación sólida con un nudo jurídico identificado. Ruta de cierre clara.' },
-  { id: 'bronce', label: 'Sello Bronce', tagline: 'Oportunidad informada', icono: '🥉', desc: 'Posesión histórica documentada o nudos complejos. Venta de contado bajo consentimiento informado.' },
-  { id: 'cuarentena', label: 'Cuarentena', tagline: 'Bloqueo Comercial', icono: '🚫', desc: 'Hallazgo crítico insalvable. La propiedad no se comercializa.' },
+  { id: 'oro', label: 'Sello Oro', tagline: 'Total paz mental', icono: 'medal', desc: 'Escritura pública saneada, sin cargas ni gravámenes activos. Linderos milimétricos. Sin restricciones ambientales.' },
+  { id: 'plata', label: 'Sello Plata', tagline: 'Nudo gestionable', icono: 'medal', desc: 'Documentación sólida con un nudo jurídico identificado. Ruta de cierre clara.' },
+  { id: 'bronce', label: 'Sello Bronce', tagline: 'Oportunidad informada', icono: 'medal', desc: 'Posesión histórica documentada o nudos complejos. Venta de contado bajo consentimiento informado.' },
+  { id: 'cuarentena', label: 'Cuarentena', tagline: 'Bloqueo Comercial', icono: 'ban', desc: 'Hallazgo crítico insalvable. La propiedad no se comercializa.' },
 ] as const;
 
 export const PERFILES_COMPRADOR: PerfilComprador[] = [

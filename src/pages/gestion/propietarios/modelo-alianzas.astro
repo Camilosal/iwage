@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getPropiedadesGestion } from '@/lib/gestion';
 
 const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'activa', pageSize: 1 });
@@ -26,12 +27,12 @@ const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'act
       <h2 class="text-3xl font-light text-[#122640] text-center mb-12">¿Cómo funciona la alianza?</h2>
       <div class="grid md:grid-cols-3 gap-8">
         {[
-          { icon: '🌍', rol: 'Tú pones', items: ['La propiedad (finca, casa, lote)', 'Acceso y permisos básicos', 'Visión de largo plazo'] },
-          { icon: '⚙️', rol: 'Nosotros ponemos', items: ['Equipo de gestión y operación', 'Tecnología y plataformas', 'Marketing y comercialización', 'Red de aliados y proveedores'] },
-          { icon: '📈', rol: 'Compartimos', items: ['Ingresos según modelo acordado', 'Reportes transparentes', 'Decisiones estratégicas conjuntas', 'Riesgos y oportunidades'] },
+          { icon: 'globe', rol: 'Tú pones', items: ['La propiedad (finca, casa, lote)', 'Acceso y permisos básicos', 'Visión de largo plazo'] },
+          { icon: 'settings', rol: 'Nosotros ponemos', items: ['Equipo de gestión y operación', 'Tecnología y plataformas', 'Marketing y comercialización', 'Red de aliados y proveedores'] },
+          { icon: 'trending-up', rol: 'Compartimos', items: ['Ingresos según modelo acordado', 'Reportes transparentes', 'Decisiones estratégicas conjuntas', 'Riesgos y oportunidades'] },
         ].map((col) => (
           <div class="p-8 rounded-3xl bg-white border border-gray-100">
-            <div class="text-4xl mb-4">{col.icon}</div>
+            <div class="mb-4"><Icon name={col.icon} class="w-10 h-10 mx-auto text-[#2d5a8f]" /></div>
             <h3 class="text-lg font-bold text-[#122640] mb-4">{col.rol}</h3>
             <ul class="space-y-2">
               {col.items.map((item) => (
@@ -54,11 +55,11 @@ const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'act
       <div class="grid md:grid-cols-3 gap-6">
         {[
           { modelo: 'Gestión Pura', icon: 'key-round', desc: 'Administramos tu propiedad por un fee mensual fijo + porcentaje de ingresos. Ideal para segunda residencia y renta corta.', tag: 'Bajo riesgo', cta: 'Más común en Renta Corta' },
-          { modelo: 'Co-Inversión', icon: '🚀', desc: 'Invertimos juntos en adecuaciones y compartimos utilidades en proporción al aporte. Ideal para proyectos turísticos y productivos.', tag: 'Alto retorno', cta: 'Ideal para Op. Turística' },
-          { modelo: 'Operación Compartida', icon: '🤝', desc: 'Tú mantienes parte de la operación (ej: agricultura) y nosotros gestionamos el componente turístico/comercial.', tag: 'Flexibilidad', cta: 'Perfecto para Fincas Productivas' },
+          { modelo: 'Co-Inversión', icon: 'rocket', desc: 'Invertimos juntos en adecuaciones y compartimos utilidades en proporción al aporte. Ideal para proyectos turísticos y productivos.', tag: 'Alto retorno', cta: 'Ideal para Op. Turística' },
+          { modelo: 'Operación Compartida', icon: 'handshake', desc: 'Tú mantienes parte de la operación (ej: agricultura) y nosotros gestionamos el componente turístico/comercial.', tag: 'Flexibilidad', cta: 'Perfecto para Fincas Productivas' },
         ].map((m) => (
           <div class="p-7 rounded-3xl bg-[#f8f9fb] border border-gray-100 hover:shadow-xl hover:border-[#52B788]/30 transition-all duration-300 flex flex-col">
-            <div class="text-3xl mb-4">{m.icon}</div>
+            <div class="mb-4"><Icon name={m.icon} class="w-8 h-8 mx-auto text-[#2d5a8f]" /></div>
             <div class="flex items-center gap-2 mb-3">
               <h3 class="font-bold text-[#122640]">{m.modelo}</h3>
               <span class="px-2.5 py-0.5 rounded-full bg-[#52B788]/10 text-[#2d5a8f] text-[10px] font-bold">{m.tag}</span>
@@ -81,7 +82,7 @@ const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'act
           : 'Estamos construyendo nuestro portafolio de propiedades gestionadas en el Tolima.'}
       </p>
       <a href="/gestion/propiedades" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
-        Ver portafolio de propiedades <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+        Ver portafolio de propiedades <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
       </a>
     </div>
   </section>
@@ -97,7 +98,7 @@ const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'act
             Antes mi finca estaba abandonada la mitad del año. Ahora genera ingresos constantes y yo no tengo que preocuparme por nada. El equipo de Iwagé se encarga de todo: huéspedes, mantenimiento, reportes.
           </p>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-[#52B788]/20 flex items-center justify-center text-sm">👤</div>
+            <div class="w-10 h-10 rounded-full bg-[#52B788]/20 flex items-center justify-center"><Icon name="user" class="w-5 h-5 text-[#52B788]" /></div>
             <div>
               <p class="text-white font-medium text-sm">Propietario aliado</p>
               <p class="text-white/40 text-xs">Finca en Alvarado, Tolima · Gestión Pura</p>
@@ -134,7 +135,7 @@ const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'act
   <section class="py-16 px-4 bg-[#0c1520] text-center">
     <h2 class="text-3xl font-light text-white mb-4">Construyamos juntos</h2>
     <p class="text-white/60 mb-8">Cuéntanos sobre tu propiedad y exploremos el modelo de alianza ideal.</p>
-    <a href="https://wa.me/573001234567?text=Hola,%20quiero%20explorar%20una%20alianza%20de%20gestión%20para%20mi%20propiedad" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
+    <a href="https://wa.me/573026693366?text=Hola,%20quiero%20explorar%20una%20alianza%20de%20gestión%20para%20mi%20propiedad" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
       Proponer alianza
     </a>
   </section>

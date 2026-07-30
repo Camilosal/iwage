@@ -44,6 +44,7 @@ export const naturaleza: BrandConfig = {
       children: [
         { label: 'Bitácora', href: '/naturaleza/bitacora' },
         { label: 'Ayuda', href: '/naturaleza/ayuda' },
+        { label: 'Legal y Políticas', href: '/legal/' },
         { label: 'Contacto', href: '/naturaleza/contacto' },
       ],
     },
@@ -53,7 +54,7 @@ export const naturaleza: BrandConfig = {
     defaultDescription:
       'Experiencias de turismo regenerativo guiadas por anfitriones locales en el corredor Ambalá, Tolima. Avistamiento, senderismo y conexión con el territorio.',
   },
-  whatsapp: '573001234567',
+  whatsapp: '573026693366',
   instagram: '@iwage.naturaleza',
   icon: 'leaf',
 };

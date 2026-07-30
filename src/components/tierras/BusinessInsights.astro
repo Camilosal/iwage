@@ -1,4 +1,21 @@
 ---
+import { icons } from 'lucide';
+import Icon from '@/components/shared/Icon.astro';
+
+function lucideSvg(name: string, cls = 'w-5 h-5'): string {
+  const p = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, any[]>)[p];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]: [string, Record<string, any>]) =>
+    `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`
+  ).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${inner}</svg>`;
+}
+
+const ICONS_JS = {
+  sparkles: lucideSvg('sparkles', 'text-lg'),
+};
+
 interface Insight {
   titulo: string;
   descripcion: string;
@@ -17,7 +34,7 @@ const { slug, cachedInsights } = Astro.props;
 
 <div class="business-insights bg-white rounded-2xl p-6 border border-gray-100" data-slug={slug}>
   <div class="flex items-center gap-2 mb-4">
-    <span class="text-xl">📊</span>
+    <Icon name="bar-chart-2" class="w-5 h-5" />
     <h3 class="font-black text-[#1B4332] tracking-tight text-sm uppercase">Inteligencia Estratégica</h3>
     <span class="ml-auto text-[9px] font-bold uppercase tracking-widest text-[#52B788] bg-[#52B788]/10 px-2 py-1 rounded-full">IA</span>
   </div>
@@ -27,7 +44,7 @@ const { slug, cachedInsights } = Astro.props;
       {cachedInsights.map((insight) => (
         <div class="p-4 rounded-xl bg-[#FAFAF7] border border-gray-100 hover:border-[#52B788]/30 transition-colors">
           <div class="flex items-center gap-2 mb-2">
-            <span class="text-lg">{insight.icono}</span>
+            <span class="text-lg"><Icon name={insight.icono} class="w-5 h-5" /></span>
             <h4 class="text-xs font-black text-[#1B4332] uppercase tracking-tight">{insight.titulo}</h4>
           </div>
           <p class="text-sm font-bold text-[#52B788] mb-1">{insight.valor}</p>
@@ -38,7 +55,7 @@ const { slug, cachedInsights } = Astro.props;
   ) : (
     <div class="bi-loading text-center py-8">
       <button id="bi-generate" class="px-6 py-3 bg-[#1B4332] text-white rounded-xl text-sm font-bold hover:bg-[#52B788] hover:text-[#0F120E] transition-all">
-        🤖 Generar análisis con IA
+        <Icon name="bot" class="w-5 h-5 inline" /> Generar análisis con IA
       </button>
       <p class="text-xs text-gray-400 mt-3">Análisis de valorización, conectividad, agua, energía y vocación del suelo.</p>
     </div>
@@ -56,6 +73,7 @@ const { slug, cachedInsights } = Astro.props;
 {!(cachedInsights && cachedInsights.length > 0) && (
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    const ICONS = JSON.parse(document.getElementById('bi-icons')?.textContent || '{}');
     const container = document.querySelector('.business-insights');
     if (!container) return;
     const slug = container.getAttribute('data-slug');
@@ -85,7 +103,7 @@ const { slug, cachedInsights } = Astro.props;
         results!.innerHTML = insights.map((i: any) => `
           <div class="p-4 rounded-xl bg-[#FAFAF7] border border-gray-100">
             <div class="flex items-center gap-2 mb-2">
-              <span class="text-lg">${i.icono || '📌'}</span>
+              <span class="text-lg">${i.icono ? (ICONS[i.icono] || i.icono) : ICONS.sparkles}</span>
               <h4 class="text-xs font-black text-[#1B4332] uppercase tracking-tight">${i.titulo}</h4>
             </div>
             <p class="text-sm font-bold text-[#52B788] mb-1">${i.valor}</p>
@@ -102,4 +120,5 @@ const { slug, cachedInsights } = Astro.props;
     });
   });
 </script>
+<script type="application/json" id="bi-icons" set:html={JSON.stringify(ICONS_JS)} />
 )}

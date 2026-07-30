@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 interface Props {
   title: string;
   location: string;
@@ -43,7 +45,7 @@ const st = statusConfig[status] ?? statusConfig['en-proceso'];
     </div>
     <h3 class="text-lg font-semibold text-text-primary mb-1 group-hover:text-brand transition-colors">{title}</h3>
     <p class="flex items-center gap-1 text-sm text-text-muted mb-3">
-      <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+      <Icon name="map-pin" class="w-3.5 h-3.5" />
       {location}
     </p>
     <p class="text-sm text-text-secondary leading-relaxed line-clamp-2">{description}</p>
@@ -54,12 +56,12 @@ const st = statusConfig[status] ?? statusConfig['en-proceso'];
       <div class="flex items-center gap-2">
         {iot && (
           <span class="inline-flex items-center gap-1 text-xs text-text-muted" title="Monitoreo IoT">
-            <i data-lucide="radio" class="w-3.5 h-3.5 text-brand"></i> IoT
+            <Icon name="radio" class="w-3.5 h-3.5 text-brand" /> IoT
           </span>
         )}
         {trazabilidad && (
           <span class="inline-flex items-center gap-1 text-xs text-text-muted" title="Trazabilidad QR">
-            <i data-lucide="qr-code" class="w-3.5 h-3.5 text-brand"></i> QR
+            <Icon name="qr-code" class="w-3.5 h-3.5 text-brand" /> QR
           </span>
         )}
       </div>

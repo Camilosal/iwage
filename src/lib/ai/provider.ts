@@ -1,6 +1,9 @@
 /**
  * Shared LLM provider — unified interface for OpenAI, OpenRouter, and Gemini.
- * Eliminates duplicated calling logic across API routes.
+ * Implements automatic multi-provider fallback: if the primary provider fails
+ * (rate-limit, quota, network), the system tries the remaining providers in
+ * sequence before giving up. This ensures maximum uptime when free-tier quotas
+ * are exhausted on one platform but available on another.
  */
 
 export interface LLMMessage {
@@ -25,24 +28,56 @@ export interface LLMResult {
 
 type Provider = 'openai' | 'openrouter' | 'gemini';
 
+/** Returns the preferred provider (first to try) */
 function getProvider(): Provider {
   const p = process.env.AI_PROVIDER || 'openai';
   if (p === 'gemini' || p === 'openrouter') return p;
   return 'openai';
 }
 
+/** Returns the ordered fallback chain starting with the preferred provider */
+function getFallbackChain(): Provider[] {
+  const primary = getProvider();
+  const all: Provider[] = ['openai', 'openrouter', 'gemini'];
+  return [primary, ...all.filter((p) => p !== primary)];
+}
+
+/** Check if an error is retryable (rate-limit / quota / transient) */
+function isRetryableError(err: any): boolean {
+  const msg = String(err?.message || '');
+  return /429|402|quota|rate.?limit|insufficient.?credits|RESOURCE_EXHAUSTED/i.test(msg);
+}
+
 /**
  * Call the configured LLM provider with a list of messages.
- * Supports openai, openrouter, and gemini via AI_PROVIDER env var.
+ * Implements automatic fallback: tries primary provider first, then falls back
+ * to remaining providers if the error is retryable (429/402/quota).
  */
 export async function callLLM(messages: LLMMessage[], opts: LLMOptions = {}): Promise<LLMResult> {
   const { temperature = 0.7, maxTokens = 500, timeout = 30_000 } = opts;
-  const provider = getProvider();
+  const chain = getFallbackChain();
+  const errors: string[] = [];
 
-  if (provider === 'gemini') {
-    return callGemini(messages, { temperature, maxTokens, timeout });
+  for (const provider of chain) {
+    try {
+      if (provider === 'gemini') {
+        return await callGemini(messages, { temperature, maxTokens, timeout });
+      }
+      return await callOpenAICompatible(messages, { temperature, maxTokens, timeout, provider });
+    } catch (err: any) {
+      const errMsg = err?.message || 'Unknown error';
+      errors.push(`[${provider}] ${errMsg}`);
+      console.warn(`[ai-provider] ${provider} failed: ${errMsg.slice(0, 120)}`);
+
+      // Only fallback on retryable errors; hard errors (bad request, auth) stop the chain
+      if (!isRetryableError(err)) {
+        throw err;
+      }
+    }
   }
-  return callOpenAICompatible(messages, { temperature, maxTokens, timeout, provider });
+
+  // All providers exhausted
+  throw new Error(`All AI providers exhausted. Errors: ${errors.join(' | ')}`);
 }
 
 /**
@@ -68,14 +103,14 @@ async function callOpenAICompatible(
     ? process.env.OPENROUTER_API_KEY
     : process.env.OPENAI_API_KEY;
 
-  if (!apiKey) throw new Error(`${provider.toUpperCase()}_API_KEY not configured`);
+  if (!apiKey) throw new Error(`${provider.toUpperCase()}_API_KEY not configured — quota/rate-limit`);
 
   const baseUrl = provider === 'openrouter'
     ? 'https://openrouter.ai/api/v1'
     : (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1');
 
   const model = provider === 'openrouter'
-    ? (process.env.OPENROUTER_MODEL || 'meta-llama/llama-3-8b-instruct')
+    ? (process.env.OPENROUTER_MODEL || 'google/gemma-4-26b-a4b-it:free')
     : (process.env.OPENAI_MODEL || 'gpt-4o-mini');
 
   const res = await fetch(`${baseUrl}/chat/completions`, {
@@ -90,7 +125,7 @@ async function callOpenAICompatible(
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new Error(`AI provider error (${provider}): ${res.status} — ${body.slice(0, 200)}`);
+    throw new Error(`AI provider error (${provider}): ${res.status} — ${body.slice(0, 300)}`);
   }
 
   const data = await res.json();
@@ -106,7 +141,7 @@ async function callGemini(
   const { temperature, maxTokens, timeout } = opts;
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
+  if (!apiKey) throw new Error('GEMINI_API_KEY not configured — quota/rate-limit');
 
   const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
@@ -139,7 +174,7 @@ async function callGemini(
 
   if (!res.ok) {
     const errBody = await res.text().catch(() => '');
-    throw new Error(`Gemini error: ${res.status} — ${errBody.slice(0, 200)}`);
+    throw new Error(`Gemini error: ${res.status} — ${errBody.slice(0, 300)}`);
   }
 
   const data = await res.json();

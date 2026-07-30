@@ -2,12 +2,13 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import { getBitacoraBySlug, getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
 import { renderMarkdown } from '@/lib/render-markdown';
+import Icon from '@/components/shared/Icon.astro';
 
 const BRAND = 'meliponas';
 const BRAND_NAME = 'Iwagé Meliponario';
 const AUTHOR = 'Equipo Iwagé Meliponario';
 const LOCATION = 'Pijao, Quindío, Colombia';
-const ICON = '🐝';
+const ICON = 'hexagon';
 
 const { slug } = Astro.params;
 const article = await getBitacoraBySlug(slug!);
@@ -53,7 +54,7 @@ const wordCount = article.contenido ? article.contenido.split(/\s+/).length : 0;
       )}
       <div class="flex flex-wrap items-center gap-4 text-sm text-text-muted pb-6 border-b border-border">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-full bg-brand-muted flex items-center justify-center text-sm">{ICON}</div>
+          <div class="w-8 h-8 rounded-full bg-brand-muted flex items-center justify-center"><Icon name={ICON} class="w-4 h-4 text-brand" /></div>
           <span class="font-medium text-text-secondary">{AUTHOR}</span>
         </div>
         <span class="w-1 h-1 rounded-full bg-text-muted"></span>
@@ -80,7 +81,7 @@ const wordCount = article.contenido ? article.contenido.split(/\s+/).length : 0;
       </figure>
     ) : (
       <div class="mb-10 -mx-6 md:mx-0 h-48 md:h-56 rounded-none md:rounded-2xl bg-gradient-to-br from-brand-muted via-brand/10 to-brand/5 flex items-center justify-center">
-        <span class="text-6xl opacity-40">{ICON}</span>
+        <Icon name={ICON} class="w-16 h-16 opacity-40 text-brand" />
       </div>
     )}
 
@@ -106,8 +107,8 @@ const wordCount = article.contenido ? article.contenido.split(/\s+/).length : 0;
     <!-- Author Box -->
     <div class="mt-10 p-6 rounded-2xl bg-surface-sunken border border-border">
       <div class="flex items-start gap-4">
-        <div class="w-14 h-14 rounded-full bg-brand-muted flex items-center justify-center text-2xl shrink-0">
-          {ICON}
+        <div class="w-14 h-14 rounded-full bg-brand-muted flex items-center justify-center shrink-0">
+          <Icon name={ICON} class="w-7 h-7 text-brand" />
         </div>
         <div>
           <p class="font-semibold text-text-primary mb-1">{AUTHOR}</p>
@@ -130,7 +131,7 @@ const wordCount = article.contenido ? article.contenido.split(/\s+/).length : 0;
           {relatedPosts.map(post => (
             <a href={`/${BRAND}/bitacora/${post.slug}`} class="group block bg-surface-raised rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
               <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">
-                <span class="text-3xl opacity-40">{ICON}</span>
+                <Icon name={ICON} class="w-8 h-8 opacity-40 text-brand" />
               </div>
               <div class="p-5">
                 {post.categoria && (

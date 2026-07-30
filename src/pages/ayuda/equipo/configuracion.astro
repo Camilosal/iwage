@@ -1,0 +1,109 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Configuración del sitio';
+---
+
+<WikiLayout title={title} activePath="/ayuda/equipo/configuracion">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/equipo/" class="hover:text-brand transition-colors">Equipo</a>
+    <span>/</span>
+    <span class="text-text-primary">Configuración</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Configuración del sitio</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Archivo de configuración central</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Todas las variables de entorno se centralizan en el archivo <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">.env</code> en la raíz del servidor (<code class="text-xs font-mono">/home/ubuntu/negocio/.env</code>). Este archivo es la fuente de verdad para credenciales, URLs y ajustes operativos.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Variables principales de app_iwage</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Variable</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Descripción</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">APP_URL</td><td class="px-4 py-3">URL pública del sitio (ej: https://iwage.co).</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">STRAPI_URL</td><td class="px-4 py-3">URL interna del CMS iwage_strapi (ej: http://iwage_strapi:1337).</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">STRAPI_TOKEN</td><td class="px-4 py-3">Token de API para acceder a Strapi desde el frontend.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">RESERVAS_API_URL</td><td class="px-4 py-3">URL del motor de reservas (server-side, ej: http://reservas_app:4326).</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">PUBLIC_RESERVAS_API</td><td class="px-4 py-3">URL pública del motor de reservas (client-side, ej: https://reservas.iwage.co).</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">REDIS_URL</td><td class="px-4 py-3">URL de Redis para cache y rate limiting.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Variables de app_reservas</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Variable</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Descripción</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">BOLD_API_KEY</td><td class="px-4 py-3">Clave de Bold para pagos en producción.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">BOLD_API_KEY_SANDBOX</td><td class="px-4 py-3">Clave de Bold para sandbox (pruebas).</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">BOLD_WEBHOOK_SECRET</td><td class="px-4 py-3">Secreto para validar webhooks de Bold.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">BOLD_ENV</td><td class="px-4 py-3">Ambiente de Bold: "sandbox" (default) o "production".</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-mono text-xs">STRAPI_RESERVAS_TOKEN</td><td class="px-4 py-3">Token para el Strapi de reservas.</td></tr>
+            <tr><td class="px-4 py-3 font-mono text-xs">RESERVAS_SYNC_TOKEN</td><td class="px-4 py-3">Token para el endpoint de sincronización de recursos.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Configuración del sitio (Strapi)</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Además de las variables de entorno, el content type <strong>Configuracion-Sitio</strong> en Strapi permite gestionar contenido dinámico sin tocar código: redes sociales, textos de contacto, banners y otros ajustes editoriales. Se accede desde el panel de Strapi.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Configuración por marca</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Cada marca tiene su configuración en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">src/config/brands/</code>:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li><strong>Colores:</strong> brand, brandLight, brandDark, accent, accentLight, surface, darkBg.</li>
+        <li><strong>Fuentes:</strong> sans y mono.</li>
+        <li><strong>Navegación:</strong> array de items con label, href y children opcionales.</li>
+        <li><strong>SEO:</strong> defaultTitle y defaultDescription.</li>
+        <li><strong>Contacto:</strong> WhatsApp e Instagram por marca.</li>
+        <li><strong>Icono:</strong> identificador del icono para el selector del ecosistema.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Analytics</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El sitio soporta múltiples sistemas de analytics configurables desde <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">src/config/analytics.ts</code>:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li><strong>Google Tag (GA4):</strong> controlado por flag <code class="text-xs font-mono">ANALYTICS_ENABLED.googleTag</code>.</li>
+        <li><strong>Meta Pixel:</strong> controlado por flag <code class="text-xs font-mono">ANALYTICS_ENABLED.facebookPixel</code>.</li>
+        <li><strong>Swetrix:</strong> analytics self-hosted (siempre activo, ID hardcodeado).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Docker Compose</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        La infraestructura completa se define en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">docker-compose.yml</code> en la raíz. Los servicios relevantes para la plataforma Iwagé incluyen: <code class="text-xs font-mono">iwage_app</code> (Astro frontend), <code class="text-xs font-mono">iwage_strapi</code> (CMS), <code class="text-xs font-mono">reservas_app</code> (motor de reservas), <code class="text-xs font-mono">reservas_strapi</code> (BD de reservas), <code class="text-xs font-mono">redis</code> (cache) y <code class="text-xs font-mono">nginx</code> (reverse proxy con rate limiting).
+      </p>
+    </section>
+  </div>
+</WikiLayout>

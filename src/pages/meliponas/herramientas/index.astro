@@ -2,6 +2,7 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
 import {
   SIMULADOR_URL,
@@ -14,7 +15,7 @@ import {
 const herramientas = [
   {
     id: 'trazabilidad',
-    icono: '🔬',
+    icono: 'microscope',
     titulo: 'Sistema de Trazabilidad',
     tag: 'Interno',
     desc: 'Tres estándares verificables — miel, cajas IoT y polinización — que respaldan cada producto y servicio del meliponario.',
@@ -24,8 +25,8 @@ const herramientas = [
   },
   {
     id: 'modelador',
-    icono: '📊',
-    titulo: 'Modelador Financiero Pro',
+    icono: 'bar-chart-3',
+    titulo: 'Modelador Técnico Financiero ↗',
     tag: 'App externa',
     desc: 'Simulador financiero para proyectos apícolas y meliponícolas: P&L, flujo de caja, capital de trabajo, deuda e inflación.',
     href: SIMULADOR_URL,
@@ -34,7 +35,7 @@ const herramientas = [
   },
   {
     id: 'intranet',
-    icono: '🗂️',
+    icono: 'folder-open',
     titulo: 'Intranet de Planeación',
     tag: 'App externa',
     desc: 'El sistema de planeación del ecosistema: estrategia, audiencias, operaciones, marketing y protocolo de trazabilidad.',
@@ -45,9 +46,9 @@ const herramientas = [
 ];
 
 const trazabilidadStandards = [
-  { icono: '🍯', titulo: 'Estándar de Miel', desc: 'Trazabilidad por lote, laboratorio y QR.', href: '/meliponas/trazabilidad/miel' },
-  { icono: '📦', titulo: 'Estándar de Cajas', desc: 'ID único, sensores IoT e historial transferible.', href: '/meliponas/trazabilidad/cajas' },
-  { icono: '🐝', titulo: 'Estándar de Polinización', desc: 'Diagnóstico, contrato y monitoreo en campo.', href: '/meliponas/trazabilidad/polinizacion' },
+  { icono: 'hexagon', titulo: 'Estándar de Miel', desc: 'Trazabilidad por lote, laboratorio y QR.', href: '/meliponas/trazabilidad/miel' },
+  { icono: 'package', titulo: 'Estándar de Cajas', desc: 'ID único, sensores IoT e historial transferible.', href: '/meliponas/trazabilidad/cajas' },
+  { icono: 'flower-2', titulo: 'Estándar de Polinización', desc: 'Diagnóstico, contrato y monitoreo en campo.', href: '/meliponas/trazabilidad/polinizacion' },
 ];
 ---
 
@@ -73,7 +74,7 @@ const trazabilidadStandards = [
         <ScrollReveal delay={i * 100}>
           <div class="flex flex-col h-full rounded-2xl border border-border bg-surface p-8 hover:border-brand/40 hover:shadow-lg transition-all">
             <div class="flex items-center justify-between mb-5">
-              <span class="text-4xl">{h.icono}</span>
+              <Icon name={h.icono} class="w-10 h-10 text-brand" />
               <span class="font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full bg-brand-muted/40 text-brand">
                 {h.tag}
               </span>
@@ -88,7 +89,7 @@ const trazabilidadStandards = [
             >
               {h.cta}
               {h.externo && (
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <Icon name="external-link" class="w-3.5 h-3.5" />
               )}
             </a>
           </div>
@@ -102,7 +103,7 @@ const trazabilidadStandards = [
     <div class="rounded-3xl border border-border bg-surface overflow-hidden">
       <div class="p-8 md:p-12 border-b border-border/60">
         <div class="flex items-center gap-3 mb-4">
-          <span class="text-3xl">🔬</span>
+          <Icon name="microscope" class="w-8 h-8 text-brand" />
           <span class="font-mono text-xs uppercase tracking-widest text-brand">Herramienta interna</span>
         </div>
         <h2 class="text-2xl md:text-3xl font-bold mb-3 text-text-primary">Sistema de Trazabilidad</h2>
@@ -114,12 +115,12 @@ const trazabilidadStandards = [
       <div class="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/60">
         {trazabilidadStandards.map((s) => (
           <a href={s.href} class="group p-8 hover:bg-brand-muted/20 transition-colors">
-            <span class="text-3xl block mb-4">{s.icono}</span>
+            <Icon name={s.icono} class="w-8 h-8 text-brand block mb-4" />
             <h3 class="font-bold mb-2 text-text-primary group-hover:text-brand transition-colors">{s.titulo}</h3>
             <p class="text-sm text-text-secondary leading-relaxed mb-4">{s.desc}</p>
             <span class="inline-flex items-center gap-1 text-sm font-medium text-brand">
               Ver estándar
-              <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+              <Icon name="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </span>
           </a>
         ))}
@@ -127,16 +128,18 @@ const trazabilidadStandards = [
     </div>
   </Section>
 
-  <!-- Modelador Financiero Pro (detalle) -->
+  <!-- Modelador Técnico Financiero
+↗ (detalle) -->
   <Section>
     <div class="rounded-3xl bg-dark-bg text-dark-text overflow-hidden">
       <div class="grid md:grid-cols-2 gap-8 p-8 md:p-12 items-center">
         <div>
           <div class="flex items-center gap-3 mb-4">
-            <span class="text-3xl">📊</span>
+            <Icon name="bar-chart-3" class="w-8 h-8 text-accent" />
             <span class="font-mono text-xs uppercase tracking-widest text-accent">App externa</span>
           </div>
-          <h2 class="text-2xl md:text-3xl font-bold mb-4">Modelador Financiero Pro</h2>
+          <h2 class="text-2xl md:text-3xl font-bold mb-4">Modelador Técnico Financiero
+↗</h2>
           <p class="text-dark-text/60 leading-relaxed mb-6">
             Simula la viabilidad económica de tu proyecto apícola o meliponícola antes de invertir.
             Proyecta estados financieros completos con supuestos ajustables.
@@ -144,7 +147,7 @@ const trazabilidadStandards = [
           <ul class="space-y-2 mb-8">
             {['Estado de resultados (P&L)', 'Flujo de caja y capital de trabajo', 'Depreciación, deuda e inflación', 'Escenarios comparables'].map((f) => (
               <li class="flex items-center gap-2 text-sm text-dark-text/70">
-                <svg class="w-4 h-4 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <Icon name="check" class="w-4 h-4 text-accent shrink-0" />
                 {f}
               </li>
             ))}
@@ -156,7 +159,7 @@ const trazabilidadStandards = [
             class="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-dark-bg hover:opacity-90 transition-opacity"
           >
             Abrir Modelador Pro
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <Icon name="external-link" class="w-4 h-4" />
           </a>
         </div>
         <div class="rounded-2xl border border-dark-text/10 bg-dark-text/5 p-6 font-mono text-xs">
@@ -185,7 +188,7 @@ const trazabilidadStandards = [
       <div class="p-8 md:p-12 border-b border-border/60">
         <div class="flex items-center justify-between flex-wrap gap-4 mb-4">
           <div class="flex items-center gap-3">
-            <span class="text-3xl">🗂️</span>
+            <Icon name="folder-open" class="w-8 h-8 text-brand" />
             <span class="font-mono text-xs uppercase tracking-widest text-brand">App externa</span>
           </div>
           <a
@@ -195,7 +198,7 @@ const trazabilidadStandards = [
             class="inline-flex items-center gap-2 rounded-full border border-brand px-5 py-2 text-sm font-medium text-brand hover:bg-brand hover:text-white transition-colors"
           >
             Abrir intranet
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <Icon name="external-link" class="w-3.5 h-3.5" />
           </a>
         </div>
         <h2 class="text-2xl md:text-3xl font-bold mb-3 text-text-primary">Intranet de Planeación</h2>
@@ -210,7 +213,7 @@ const trazabilidadStandards = [
         {INTRANET_CATEGORIES.map((cat) => (
           <div>
             <h3 class="flex items-center gap-2 text-sm font-mono uppercase tracking-widest text-text-primary mb-4">
-              <span class="text-lg">{cat.icon}</span>
+              <Icon name={cat.icon} class="w-5 h-5 text-brand" />
               {cat.label}
             </h3>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -223,7 +226,7 @@ const trazabilidadStandards = [
                 >
                   <div class="flex items-start justify-between mb-2">
                     <h4 class="font-medium text-text-primary group-hover:text-brand transition-colors leading-snug">{doc.title}</h4>
-                    <svg class="w-3.5 h-3.5 text-text-muted opacity-0 group-hover:opacity-60 transition-opacity shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <Icon name="external-link" class="w-3.5 h-3.5 text-text-muted opacity-0 group-hover:opacity-60 transition-opacity shrink-0 mt-0.5" />
                   </div>
                   <p class="text-xs text-text-secondary leading-relaxed">{doc.desc}</p>
                 </a>
@@ -235,7 +238,7 @@ const trazabilidadStandards = [
         <!-- Landings -->
         <div>
           <h3 class="flex items-center gap-2 text-sm font-mono uppercase tracking-widest text-text-primary mb-4">
-            <span class="text-lg">🚀</span>
+            <Icon name="rocket" class="w-5 h-5 text-brand" />
             Landings comerciales
           </h3>
           <div class="flex flex-wrap gap-2">
@@ -248,7 +251,7 @@ const trazabilidadStandards = [
                 class="inline-flex items-center gap-1.5 rounded-full border border-border/70 px-4 py-1.5 text-xs font-medium text-text-secondary hover:border-brand/40 hover:text-brand hover:bg-brand-muted/20 transition-colors"
               >
                 {l.title}
-                <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <Icon name="external-link" class="w-3 h-3 opacity-50" />
               </a>
             ))}
           </div>

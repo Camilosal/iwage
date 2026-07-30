@@ -1,12 +1,13 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 export const prerender = true;
 
 const NIVELES = [
   {
     level: 1,
     nombre: 'Rarezas del Viento',
-    icono: '🍃',
+    icono: 'wind',
     color: '#10B981',
     descripcion: 'Caminata pasiva de contemplación absoluta. Ideal para quienes buscan paz y conexión con la naturaleza sin esfuerzo.',
     esfuerzo: 'Mínimo',
@@ -19,7 +20,7 @@ const NIVELES = [
   {
     level: 2,
     nombre: 'Ritmo de la Tierra',
-    icono: '🌿',
+    icono: 'leaf',
     color: '#34D399',
     descripcion: 'Senderismo suave por terrenos estables. Perfecto para familias y principiantes en ecoturismo.',
     esfuerzo: 'Bajo',
@@ -32,7 +33,7 @@ const NIVELES = [
   {
     level: 3,
     nombre: 'Senda del Agua',
-    icono: '💧',
+    icono: 'droplets',
     color: '#06B6D4',
     descripcion: 'Requiere equilibrio y paso firme junto al río. Cruces de agua y terrenos húmedos.',
     esfuerzo: 'Moderado',
@@ -45,7 +46,7 @@ const NIVELES = [
   {
     level: 4,
     nombre: 'Pasos de Montaña',
-    icono: '🥾',
+    icono: 'footprints',
     color: '#F59E0B',
     descripcion: 'Ascensos moderados que exigen aliento constante. Ganancias de elevación significativas.',
     esfuerzo: 'Moderado-Alto',
@@ -58,7 +59,7 @@ const NIVELES = [
   {
     level: 5,
     nombre: 'Vuelo del Águila',
-    icono: '🦅',
+    icono: 'bird',
     color: '#F97316',
     descripcion: 'Reto físico en pendientes pronunciadas. Requiere resistencia y determinación.',
     esfuerzo: 'Alto',
@@ -71,7 +72,7 @@ const NIVELES = [
   {
     level: 6,
     nombre: 'Cúspide de la Roca',
-    icono: '🗻',
+    icono: 'mountain',
     color: '#EF4444',
     descripcion: 'Zonas de alta montaña y clima variable. Exposiciones a viento y cambios de temperatura.',
     esfuerzo: 'Muy Alto',
@@ -108,8 +109,8 @@ const jsonLd = {
       <!-- Level quick nav -->
       <div class="flex flex-wrap justify-center gap-2 mt-8">
         {NIVELES.map(n => (
-          <a href={`#nivel-${n.level}`} class="w-10 h-10 rounded-full flex items-center justify-center text-lg border border-white/20 hover:border-white/60 hover:scale-110 transition-all" title={`Nivel ${n.level}: ${n.nombre}`}>
-            {n.icono}
+          <a href={`#nivel-${n.level}`} class="w-10 h-10 rounded-full flex items-center justify-center border border-white/20 hover:border-white/60 hover:scale-110 transition-all" title={`Nivel ${n.level}: ${n.nombre}`}>
+            <Icon name={n.icono} class="w-5 h-5" />
           </a>
         ))}
       </div>
@@ -123,7 +124,7 @@ const jsonLd = {
         <div id={`nivel-${n.level}`} class="bg-white rounded-2xl border border-gray-100 overflow-hidden scroll-mt-24">
           <!-- Header -->
           <div class="flex items-center gap-4 px-6 py-5 border-b border-gray-50" style={`border-left: 4px solid ${n.color}`}>
-            <span class="text-3xl">{n.icono}</span>
+            <span class="block"><Icon name={n.icono} class="w-8 h-8" /></span>
             <div class="flex-1">
               <div class="flex items-center gap-3">
                 <span class="text-xs font-mono px-2 py-0.5 rounded-full text-white" style={`background: ${n.color}`}>Nivel {n.level}</span>
@@ -156,7 +157,7 @@ const jsonLd = {
           <!-- Requirements + Recommendations -->
           <div class="grid md:grid-cols-2 gap-6 px-6 py-5">
             <div>
-              <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">⚡ Requisitos</p>
+              <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3"><Icon name="zap" class="w-3.5 h-3.5 inline align-[-2px] mr-1" /> Requisitos</p>
               <ul class="space-y-2">
                 {n.requisitos.map(r => (
                   <li class="flex items-start gap-2 text-sm text-gray-600">
@@ -167,7 +168,7 @@ const jsonLd = {
               </ul>
             </div>
             <div>
-              <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">🎒 Recomendaciones</p>
+              <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3"><Icon name="backpack" class="w-3.5 h-3.5 inline align-[-2px] mr-1" /> Recomendaciones</p>
               <ul class="space-y-2">
                 {n.recomendaciones.map(r => (
                   <li class="flex items-start gap-2 text-sm text-gray-600">

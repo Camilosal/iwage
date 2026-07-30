@@ -1,5 +1,26 @@
 ---
-import { MessageCircle, X, Send } from '@lucide/astro';
+import Icon from '@/components/shared/Icon.astro';
+import { icons } from 'lucide';
+
+// SVGs de marca pre-renderizados en build para inyección en el cliente (sin runtime Lucide)
+function lucideSvg(name: string, className: string): string {
+  const pascal = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, [string, Record<string, string | number>][] | undefined>)[pascal];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}" aria-hidden="true">${inner}</svg>`;
+}
+
+const BRAND_SVGS: Record<string, string> = {
+  meliponas: lucideSvg('hexagon', 'w-4 h-4 text-white'),
+  cafe: lucideSvg('coffee', 'w-4 h-4 text-white'),
+  tierras: lucideSvg('mountain', 'w-4 h-4 text-white'),
+  naturaleza: lucideSvg('leaf', 'w-4 h-4 text-white'),
+  gestion: lucideSvg('building-2', 'w-4 h-4 text-white'),
+  general: lucideSvg('sprout', 'w-4 h-4 text-white'),
+};
+
+const BRAND_HEADER_SVG = lucideSvg('sprout', 'w-5 h-5 text-white');
 ---
 
 <div id="chat-widget" class="fixed bottom-6 right-6 z-50">
@@ -8,14 +29,14 @@ import { MessageCircle, X, Send } from '@lucide/astro';
     <!-- Header -->
     <div id="chat-header" class="bg-brand text-white px-5 py-4 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-3">
-        <i id="chat-icon" data-lucide="sprout" class="w-5 h-5 text-white"></i>
+        <span id="chat-icon" set:html={BRAND_HEADER_SVG}></span>
         <div>
           <p class="font-medium text-sm">Asistente Iwagé</p>
           <p class="text-xs text-white/60">IA · Respuestas con contexto real</p>
         </div>
       </div>
       <button id="chat-close" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-        <X class="w-4 h-4" />
+        <Icon name="x" class="w-4 h-4" />
       </button>
     </div>
 
@@ -35,7 +56,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
           autocomplete="off"
         />
         <button type="submit" class="p-2.5 rounded-full bg-brand text-white hover:bg-brand-light transition-colors shrink-0">
-          <Send class="w-4 h-4" />
+          <Icon name="send" class="w-4 h-4" />
         </button>
       </div>
     </form>
@@ -47,14 +68,20 @@ import { MessageCircle, X, Send } from '@lucide/astro';
     class="w-14 h-14 rounded-full bg-brand text-white shadow-lg flex items-center justify-center hover:bg-brand-light hover:scale-105 transition-all"
     aria-label="Abrir chat"
   >
-    <MessageCircle class="w-6 h-6" />
+    <Icon name="message-circle" class="w-6 h-6" />
   </button>
 </div>
 
+<!-- Mapa de SVGs de marca serializado en build para el script del cliente -->
+<script type="application/json" id="chat-brand-svgs" set:html={JSON.stringify(BRAND_SVGS)}></script>
+
 <script>
   // ── Brand detection from URL ──────────────────────────────
+  // SVGs de marca pre-renderizados en build (inyectados como constante)
+  const BRAND_SVGS = JSON.parse(document.getElementById('chat-brand-svgs')?.textContent || '{}') as Record<string, string>;
+
   const BRAND_CONFIG: Record<string, { icon: string; welcome: string; placeholder: string }> = {
-    meliponas: { icon: 'bee', welcome: '¡Hola! Soy el asistente de Iwagé Meliponas. Pregúntame sobre miel, cajas, polinización o proyectos.', placeholder: 'Pregunta sobre miel, cajas, polinización...' },
+    meliponas: { icon: 'hexagon', welcome: '¡Hola! Soy el asistente de Iwagé Meliponas. Pregúntame sobre miel, cajas, polinización o proyectos.', placeholder: 'Pregunta sobre miel, cajas, polinización...' },
     cafe: { icon: 'coffee', welcome: '¡Hola! Soy el asistente del Café Iwagé. Pregúntame sobre el menú, proveedores o nuestra historia.', placeholder: 'Pregunta sobre el menú, café, proveedores...' },
     tierras: { icon: 'mountain', welcome: '¡Hola! Soy el asistente de Iwagé Tierras. Puedo ayudarte a encontrar propiedades rurales verificadas.', placeholder: 'Busca fincas, lotes, casas campestres...' },
     naturaleza: { icon: 'leaf', welcome: '¡Hola! Soy el asistente de Iwagé Naturaleza. Descubre experiencias de turismo regenerativo.', placeholder: 'Pregunta sobre experiencias, tours, anfitriones...' },
@@ -82,7 +109,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
   const iconEl = document.getElementById('chat-icon')!;
 
   // Apply brand theming
-  iconEl.outerHTML = `<i id="chat-icon" data-lucide="${brandCfg.icon}" class="w-5 h-5 text-white"></i>`;
+  iconEl.outerHTML = (BRAND_SVGS[currentBrand] || BRAND_SVGS.general || '').replace('<svg', '<svg id="chat-icon"');
   input.placeholder = brandCfg.placeholder;
 
   // ── Conversation state (persisted in sessionStorage) ──────
@@ -138,7 +165,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
     }
 
     el.innerHTML = `
-      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0"><i data-lucide="${brandCfg.icon}" class="w-4 h-4 text-white"></i></div>
+      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0">${BRAND_SVGS[currentBrand] || BRAND_SVGS.general}</div>
       <div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary leading-relaxed">
         ${renderMarkdown(reply)}
         ${linksHtml}
@@ -156,7 +183,6 @@ import { MessageCircle, X, Send } from '@lucide/astro';
       });
     });
 
-    window.__lucideCreateIcons?.();
   }
 
   function showTyping() {
@@ -164,7 +190,7 @@ import { MessageCircle, X, Send } from '@lucide/astro';
     el.id = 'chat-typing';
     el.className = 'flex items-start gap-2.5 max-w-[85%]';
     el.innerHTML = `
-      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0"><i data-lucide="${brandCfg.icon}" class="w-4 h-4 text-white"></i></div>
+      <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0">${BRAND_SVGS[currentBrand] || BRAND_SVGS.general}</div>
       <div class="bg-surface-raised border border-border px-4 py-3 rounded-2xl rounded-tl-none text-sm text-text-secondary">
         <span class="inline-flex gap-1"><span class="animate-bounce" style="animation-delay:0ms">·</span><span class="animate-bounce" style="animation-delay:150ms">·</span><span class="animate-bounce" style="animation-delay:300ms">·</span></span>
       </div>`;

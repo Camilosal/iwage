@@ -1,0 +1,362 @@
+---
+import Icon from '@/components/shared/Icon.astro';
+
+/**
+ * ComplementosSection — Sección interactiva de servicios adicionales.
+ * Muestra una grilla de complementos (comidas, espectáculos, compras, etc.)
+ * de a 4 por fila. La tarjeta invita a "Ver detalle": un modal presenta la
+ * información completa (imagen de referencia, descripción íntegra, precio)
+ * con selector de cantidad y estado "Agregado" persistente sincronizado con
+ * el carrito unificado (cart-store, evento iwage:cart-updated).
+ */
+export interface Props {
+  complementos: Array<{
+    id: number;
+    documentId: string;
+    slug: string;
+    nombre: string;
+    descripcion: string | null;
+    categoria: string;
+    precio: number;
+    moneda: string;
+    precio_por: string;
+    icono: string | null;
+    imagen_url: string | null;
+  }>;
+  origen?: string;
+  brand: string;
+  parentNombre: string;
+  titulo?: string;
+  /** Oculta el encabezado propio (útil cuando la sección vive dentro de un acordeón con título) */
+  sinEncabezado?: boolean;
+}
+
+const {
+  complementos,
+  origen = 'iwage_complementos',
+  brand,
+  parentNombre,
+  titulo = 'Complementa tu experiencia',
+  sinEncabezado = false,
+} = Astro.props;
+
+const ICONOS_CATEGORIA: Record<string, string> = {
+  comida: 'utensils',
+  espectaculo: 'drama',
+  compra_local: 'shopping-bag',
+  transporte: 'car',
+  actividad: 'leaf',
+  otro: 'sparkles',
+};
+
+const LABELS_PRECIO_POR: Record<string, string> = {
+  persona: 'por persona',
+  grupo: 'por grupo',
+  noche: 'por noche',
+  unidad: 'por unidad',
+};
+
+const LABELS_CATEGORIA: Record<string, string> = {
+  comida: 'Gastronomía',
+  espectaculo: 'Espectáculo',
+  compra_local: 'Compras locales',
+  transporte: 'Transporte',
+  actividad: 'Actividad',
+  otro: 'Adicional',
+};
+
+function fmtCOP(n: number): string {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+}
+
+// Colores por marca
+const accentColor = brand === 'naturaleza' ? '#4a7c23' : '#52B788';
+const accentDark = brand === 'naturaleza' ? '#2d5016' : '#122640';
+---
+
+{complementos.length > 0 && (
+  <section class="complementos-section" style={`--comp-accent: ${accentColor}; --comp-accent-dark: ${accentDark}`}>
+    {!sinEncabezado && (
+      <>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-6 h-[1px]" style={`background-color: ${accentColor}`}></span>
+          <span class="text-[10px] font-bold uppercase tracking-[0.3em]" style={`color: ${accentColor}`}>Servicios adicionales</span>
+        </div>
+        <h2 class="text-xl lg:text-2xl font-light mb-6" style={`color: ${accentDark}`}>{titulo}</h2>
+      </>
+    )}
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {complementos.map((comp) => {
+        const icono = comp.icono || ICONOS_CATEGORIA[comp.categoria] || 'sparkles';
+        const labelCat = LABELS_CATEGORIA[comp.categoria] || 'Adicional';
+        const labelPrecio = LABELS_PRECIO_POR[comp.precio_por] || 'por persona';
+        const esGratis = comp.precio === 0;
+        return (
+          <div
+            class="comp-card group relative flex flex-col rounded-2xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all cursor-pointer"
+            data-key={`complemento-${comp.slug}`}
+            data-name={comp.nombre}
+            data-price={String(comp.precio)}
+            data-brand={brand}
+            data-origen={origen}
+            data-requiere-pago={esGratis ? 'false' : 'true'}
+          >
+            {/* Category badge */}
+            <span class="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-50 text-gray-400 border border-gray-100">
+              {labelCat}
+            </span>
+
+            {/* Icon + "added" check */}
+            <div class="relative w-11 h-11 rounded-xl flex items-center justify-center mb-3" style={`background-color: ${accentColor}10`}>
+              <Icon name={icono} class="w-5 h-5" style={`color: ${accentColor}`} />
+              <span class="comp-check hidden absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white text-[9px] font-bold leading-4 text-center" style={`background-color: ${accentColor}`}>✓</span>
+            </div>
+
+            {/* Content */}
+            <h3 class="text-sm font-semibold mb-1.5 pr-10 leading-snug" style={`color: ${accentDark}`}>{comp.nombre}</h3>
+            <button type="button" class="comp-open self-start inline-flex items-center gap-1 text-[11px] font-semibold mb-3 hover:underline" style={`color: ${accentColor}`}>
+              Ver detalle
+              <Icon name="arrow-right" class="w-3 h-3" />
+            </button>
+
+            {/* Price + qty stepper + Add button */}
+            <div class="mt-auto pt-3 border-t border-gray-50">
+              <div class="flex items-baseline gap-1.5 mb-2.5 min-h-[1.25rem]">
+                {esGratis ? (
+                  <span class="text-sm font-bold text-green-600">Gratis</span>
+                ) : (
+                  <>
+                    <span class="text-sm font-bold" style={`color: ${accentDark}`}>{fmtCOP(comp.precio)}</span>
+                    <span class="text-[9px] text-gray-400">{labelPrecio}</span>
+                  </>
+                )}
+              </div>
+              <div class="flex items-center rounded-xl border border-gray-200 overflow-hidden mb-2">
+                <button type="button" class="comp-minus flex-1 h-8 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors" aria-label={`Quitar una unidad de ${comp.nombre}`}>−</button>
+                <span class="comp-qty w-8 text-center text-xs font-bold tabular-nums border-x border-gray-100" style={`color: ${accentDark}`}>1</span>
+                <button type="button" class="comp-plus flex-1 h-8 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors" aria-label={`Agregar una unidad de ${comp.nombre}`}>+</button>
+              </div>
+              <button
+                type="button"
+                class="comp-add w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors"
+                style={`background-color: ${accentColor}15; color: ${accentColor}; border: 1px solid ${accentColor}30`}
+              >
+                Agregar
+              </button>
+              <span class="comp-added-note hidden text-[10px] font-semibold mt-1.5 block" style={`color: ${accentColor}`}>En tu reserva — ajusta la cantidad con − / +</span>
+            </div>
+
+            {/* Contenido completo del detalle (se clona dentro del modal) */}
+            <template class="comp-detail-tpl">
+              {comp.imagen_url ? (
+                <img src={comp.imagen_url} alt={`Imagen de referencia de ${comp.nombre}`} class="w-full h-52 object-cover" loading="lazy" />
+              ) : (
+                <div class="w-full h-44 flex flex-col items-center justify-center gap-2" style={`background: linear-gradient(135deg, ${accentColor}14, ${accentColor}30)`}>
+                  <Icon name={icono} class="w-14 h-14" style={`color: ${accentColor}`} />
+                  <span class="text-[10px] uppercase tracking-widest font-semibold" style={`color: ${accentColor}`}>{labelCat}</span>
+                </div>
+              )}
+              <div class="px-6 pt-5 pb-4">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-50 text-gray-500 border border-gray-100">{labelCat}</span>
+                  {esGratis && (
+                    <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">Sin costo</span>
+                  )}
+                </div>
+                <h3 class="text-lg font-semibold leading-snug mb-1" style={`color: ${accentDark}`}>{comp.nombre}</h3>
+                <p class="text-[11px] text-gray-400 mb-3">Disponible con {parentNombre}</p>
+                <div class="flex items-baseline gap-1.5 mb-4">
+                  {esGratis ? (
+                    <span class="text-base font-bold text-green-600">Gratis</span>
+                  ) : (
+                    <>
+                      <span class="text-base font-bold" style={`color: ${accentDark}`}>{fmtCOP(comp.precio)}</span>
+                      <span class="text-[10px] text-gray-400">{labelPrecio}</span>
+                    </>
+                  )}
+                </div>
+                {comp.descripcion ? (
+                  <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{comp.descripcion}</p>
+                ) : (
+                  <p class="text-sm text-gray-400 italic">El anfitrión aún no agregó una descripción detallada. Escríbenos antes de reservar si tienes dudas.</p>
+                )}
+              </div>
+            </template>
+          </div>
+        );
+      })}
+    </div>
+
+    {/* Modal de detalle del complemento */}
+    <div class="comp-modal fixed inset-0 z-[90] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Detalle del servicio adicional">
+      <div class="comp-modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div class="comp-modal-box relative flex flex-col w-full max-w-lg max-h-[88vh] rounded-2xl bg-white shadow-2xl overflow-hidden" data-key="">
+        <button type="button" class="comp-modal-close absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/95 shadow-md text-gray-500 hover:text-gray-800 text-xl leading-none font-light transition-colors" aria-label="Cerrar detalle">×</button>
+        <div class="comp-modal-body overflow-y-auto"></div>
+        <div class="shrink-0 border-t border-gray-100 bg-white px-6 py-4">
+          <div class="flex items-stretch gap-3">
+            <div class="flex items-center rounded-xl border border-gray-200 overflow-hidden shrink-0">
+              <button type="button" class="comp-minus w-10 h-10 text-base font-bold text-gray-500 hover:bg-gray-50 transition-colors" aria-label="Quitar una unidad">−</button>
+              <span class="comp-qty w-8 text-center text-sm font-bold tabular-nums border-x border-gray-100" style={`color: ${accentDark}`}>1</span>
+              <button type="button" class="comp-plus w-10 h-10 text-base font-bold text-gray-500 hover:bg-gray-50 transition-colors" aria-label="Agregar una unidad">+</button>
+            </div>
+            <button
+              type="button"
+              class="comp-add flex-1 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
+              style={`background-color: ${accentColor}15; color: ${accentColor}; border: 1px solid ${accentColor}30`}
+            >
+              Agregar
+            </button>
+          </div>
+          <span class="comp-added-note hidden text-[11px] font-semibold mt-2 block" style={`color: ${accentColor}`}>En tu reserva — ajusta la cantidad con − / +</span>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  /* Estado "agregado": borde y fondo con el acento de la marca */
+  .comp-card.comp-added {
+    border-color: var(--comp-accent);
+    box-shadow: 0 0 0 1px var(--comp-accent);
+    background-color: color-mix(in srgb, var(--comp-accent) 4%, white);
+  }
+  .comp-added .comp-add {
+    background-color: var(--comp-accent) !important;
+    color: #fff !important;
+    border-color: var(--comp-accent) !important;
+    cursor: default;
+  }
+</style>
+
+<script>
+  import { getCart, addItem, updateCantidad, CART_EVENT } from '@/lib/cart-store';
+
+  // Cantidad elegida antes de agregar (por complemento aún no en el carrito)
+  const localQty = new Map<string, number>();
+
+  function cartQty(key: string): number {
+    return getCart().find((i) => i.key === key)?.cantidad ?? 0;
+  }
+
+  /** Sincroniza tarjetas y modal con el estado real del carrito (persistente). */
+  function renderComplementos(): void {
+    document.querySelectorAll<HTMLElement>('.comp-card, .comp-modal-box').forEach((el) => {
+      const key = el.dataset.key || '';
+      if (!key) return;
+      const enCarrito = cartQty(key);
+      const qtyEl = el.querySelector<HTMLElement>('.comp-qty');
+      const btn = el.querySelector<HTMLElement>('.comp-add');
+      const check = el.querySelector<HTMLElement>('.comp-check');
+      const note = el.querySelector<HTMLElement>('.comp-added-note');
+      if (!qtyEl || !btn) return;
+
+      if (enCarrito > 0) {
+        el.classList.add('comp-added');
+        qtyEl.textContent = String(enCarrito);
+        btn.textContent = `✓ Agregado (${enCarrito})`;
+        check?.classList.remove('hidden');
+        note?.classList.remove('hidden');
+      } else {
+        el.classList.remove('comp-added');
+        qtyEl.textContent = String(localQty.get(key) || 1);
+        btn.textContent = 'Agregar';
+        check?.classList.add('hidden');
+        note?.classList.add('hidden');
+      }
+    });
+  }
+
+  /** Abre el modal con la información completa del complemento de la tarjeta. */
+  function openModal(card: HTMLElement): void {
+    const section = card.closest('.complementos-section');
+    const modal = section?.querySelector<HTMLElement>('.comp-modal');
+    const box = modal?.querySelector<HTMLElement>('.comp-modal-box');
+    const body = modal?.querySelector<HTMLElement>('.comp-modal-body');
+    const tpl = card.querySelector<HTMLTemplateElement>('.comp-detail-tpl');
+    if (!modal || !box || !body || !tpl) return;
+    // Copiar los datos del complemento al modal (carrito + sincronización)
+    for (const k of ['key', 'name', 'price', 'brand', 'origen', 'requierePago'] as const) {
+      box.dataset[k] = card.dataset[k] || '';
+    }
+    body.innerHTML = '';
+    body.appendChild(tpl.content.cloneNode(true));
+    body.scrollTop = 0;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    renderComplementos();
+  }
+
+  function closeModal(): void {
+    document.querySelectorAll<HTMLElement>('.comp-modal').forEach((m) => {
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    });
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+
+    // Cierre del modal: botón × o clic sobre el fondo oscuro
+    if (target.closest('.comp-modal-close') || target.classList.contains('comp-modal-backdrop')) {
+      closeModal();
+      return;
+    }
+
+    // La tarjeta o el modal abierto contienen los datos del complemento
+    const holder = target.closest('.comp-card, .comp-modal-box') as HTMLElement | null;
+    if (!holder) return;
+    const key = holder.dataset.key || '';
+    if (!key) return;
+    const enCarrito = cartQty(key);
+
+    if (target.closest('.comp-plus')) {
+      if (enCarrito > 0) {
+        updateCantidad(key, enCarrito + 1);
+      } else {
+        localQty.set(key, (localQty.get(key) || 1) + 1);
+        renderComplementos();
+      }
+    } else if (target.closest('.comp-minus')) {
+      if (enCarrito > 0) {
+        // Bajar a 0 lo retira del carrito y la tarjeta vuelve a "Agregar"
+        updateCantidad(key, enCarrito - 1);
+      } else {
+        localQty.set(key, Math.max(1, (localQty.get(key) || 1) - 1));
+        renderComplementos();
+      }
+    } else if (target.closest('.comp-add')) {
+      if (enCarrito > 0) return; // ya agregado: la cantidad se ajusta con − / +
+      addItem({
+        recurso_slug: key,
+        nombre: holder.dataset.name || 'Complemento',
+        precio: parseInt(holder.dataset.price || '0', 10),
+        cantidad: localQty.get(key) || 1,
+        tipo: 'complemento',
+        tipo_disponibilidad: 'inmediato',
+        brand: holder.dataset.brand || 'gestion',
+        origen: holder.dataset.origen || 'iwage_complementos',
+        requiere_pago: holder.dataset.requierePago !== 'false',
+      });
+      localQty.delete(key);
+    } else if (target.closest('.comp-open')) {
+      openModal(holder);
+    } else if (holder.classList.contains('comp-card') && !target.closest('button, .comp-qty')) {
+      // Clic en cualquier zona libre de la tarjeta → abrir el detalle
+      openModal(holder);
+    }
+  });
+
+  // Cerrar el modal con la tecla Escape
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Cualquier cambio del carrito (drawer UnifiedCart incluido) refresca las tarjetas
+  window.addEventListener(CART_EVENT, renderComplementos);
+  renderComplementos();
+</script>

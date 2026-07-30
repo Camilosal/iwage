@@ -1,5 +1,6 @@
 ---
 import { brandList } from '@/config/brands';
+import Icon from '@/components/shared/Icon.astro';
 
 interface Props {
   /** Current brand slug to highlight active */
@@ -26,15 +27,11 @@ const triggerClasses = variant === 'icon'
     title="Explorar ecosistema Iwagé"
   >
     {variant === 'icon' ? (
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+      <Icon name="globe" class="w-5 h-5" />
     ) : (
       <>
-        <i data-lucide="globe" class="w-4 h-4"></i> Ecosistema
-        <svg class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
+        <Icon name="globe" class="w-4 h-4" /> Ecosistema
+        <Icon name="chevron-down" class="w-3 h-3 transition-transform duration-200" />
       </>
     )}
   </button>
@@ -50,7 +47,7 @@ const triggerClasses = variant === 'icon'
         href="/"
         class="flex items-center gap-3 px-4 py-3 border-b border-border/50 hover:bg-brand-muted/30 transition-colors"
       >
-        <i data-lucide="sprout" class="w-6 h-6 text-accent shrink-0"></i>
+        <Icon name="sprout" class="w-6 h-6 text-accent shrink-0" />
         <div>
           <p class="text-sm font-semibold text-text-primary">Hub Iwagé</p>
           <p class="text-[11px] text-text-muted">Ecosistema de desarrollo rural · Tolima</p>
@@ -69,7 +66,7 @@ const triggerClasses = variant === 'icon'
                 : 'hover:bg-brand-muted/20',
             ]}
           >
-            <i data-lucide={brand.icon} class="w-5 h-5 shrink-0 text-brand"></i>
+            <Icon name={brand.icon} class="w-5 h-5 shrink-0 text-brand" />
             <div class="min-w-0">
               <p class:list={[
                 'text-sm font-medium truncate transition-colors',
@@ -83,11 +80,31 @@ const triggerClasses = variant === 'icon'
           </a>
         ))}
       </div>
+
+      <!-- Portal de autogestión (reservas y pedidos) -->
+      <a
+        href="https://reservas.iwage.co/mi-cuenta"
+        data-mi-cuenta-link
+        class="flex items-center gap-3 px-4 py-3 border-t border-border/50 hover:bg-brand-muted/30 transition-colors"
+      >
+        <Icon name="user" class="w-5 h-5 shrink-0 text-brand" />
+        <div>
+          <p class="text-sm font-semibold text-text-primary">Mi cuenta</p>
+          <p class="text-[11px] text-text-muted">Tus reservas, pedidos y perfil</p>
+        </div>
+      </a>
     </div>
   </div>
 </div>
 
 <script>
+  // El portal valida ?volver= contra *.iwage.co para el enlace de regreso
+  document.querySelectorAll<HTMLAnchorElement>('[data-mi-cuenta-link]').forEach((link) => {
+    if (location.hostname.endsWith('iwage.co')) {
+      link.href = `https://reservas.iwage.co/mi-cuenta?volver=${encodeURIComponent(location.href)}`;
+    }
+  });
+
   document.querySelectorAll<HTMLElement>('[data-ecosystem-dropdown]').forEach((wrapper) => {
     const btn = wrapper.querySelector('button');
     const panel = wrapper.querySelector<HTMLElement>('[data-dropdown-panel]');
@@ -105,8 +122,9 @@ const triggerClasses = variant === 'icon'
         panel!.classList.add('opacity-0', 'invisible', 'translate-y-1');
         panel!.classList.remove('opacity-100', 'visible', 'translate-y-0');
       }
-      // Rotate chevron
-      const chevron = btn!.querySelector('svg');
+      // Rotate chevron (último svg del trigger)
+      const svgs = btn!.querySelectorAll('svg');
+      const chevron = svgs[svgs.length - 1];
       chevron?.classList.toggle('rotate-180', state);
     }
 

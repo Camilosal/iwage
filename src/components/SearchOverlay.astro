@@ -4,6 +4,32 @@
  * Triggered by navbar search button or Cmd+K / Ctrl+K.
  * Vanilla JS implementation for minimal bundle size.
  */
+import Icon from '@/components/shared/Icon.astro';
+import { icons } from 'lucide';
+
+// SVGs pre-renderizados en build para inyección dinámica en el cliente (sin runtime Lucide)
+function lucideSvg(name: string, className: string): string {
+  const pascal = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, [string, Record<string, string | number>][] | undefined>)[pascal];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}" aria-hidden="true">${inner}</svg>`;
+}
+
+const BRAND_SVG: Record<string, string> = {
+  meliponas: lucideSvg('hexagon', 'w-3.5 h-3.5 inline'), cafe: lucideSvg('coffee', 'w-3.5 h-3.5 inline'),
+  tierras: lucideSvg('mountain', 'w-3.5 h-3.5 inline'), naturaleza: lucideSvg('leaf', 'w-3.5 h-3.5 inline'),
+  gestion: lucideSvg('building-2', 'w-3.5 h-3.5 inline'), general: lucideSvg('sprout', 'w-3.5 h-3.5 inline'),
+};
+const TYPE_SVG: Record<string, string> = {
+  propiedad: lucideSvg('home', 'w-5 h-5 shrink-0 mt-0.5 text-brand'), propiedad_gestion: lucideSvg('key-round', 'w-5 h-5 shrink-0 mt-0.5 text-brand'),
+  experiencia: lucideSvg('leaf', 'w-5 h-5 shrink-0 mt-0.5 text-brand'), anfitrion: lucideSvg('user', 'w-5 h-5 shrink-0 mt-0.5 text-brand'),
+  paquete: lucideSvg('package', 'w-5 h-5 shrink-0 mt-0.5 text-brand'), menu: lucideSvg('coffee', 'w-5 h-5 shrink-0 mt-0.5 text-brand'),
+  bitacora: lucideSvg('book-open', 'w-5 h-5 shrink-0 mt-0.5 text-brand'), producto: lucideSvg('jar', 'w-5 h-5 shrink-0 mt-0.5 text-brand'),
+  proveedor: lucideSvg('tractor', 'w-5 h-5 shrink-0 mt-0.5 text-brand'), pagina: lucideSvg('file-text', 'w-5 h-5 shrink-0 mt-0.5 text-brand'),
+  servicio: lucideSvg('settings-2', 'w-5 h-5 shrink-0 mt-0.5 text-brand'), lote_miel: lucideSvg('jar', 'w-5 h-5 shrink-0 mt-0.5 text-brand'),
+  proyecto: lucideSvg('clipboard-list', 'w-5 h-5 shrink-0 mt-0.5 text-brand'), link: lucideSvg('link', 'w-5 h-5 shrink-0 mt-0.5 text-brand'),
+};
 ---
 
 <!-- Search Overlay (hidden by default) -->
@@ -22,9 +48,7 @@
     <div class="overflow-hidden rounded-2xl border border-border bg-surface-raised shadow-2xl shadow-black/20">
       <!-- Input row -->
       <div class="flex items-center gap-3 border-b border-border px-5 py-4">
-        <svg class="w-5 h-5 shrink-0 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+        <Icon name="search" class="w-5 h-5 shrink-0 text-text-muted" />
         <input
           id="search-input"
           type="text"
@@ -41,11 +65,11 @@
       <!-- Brand filter chips -->
       <div id="search-filters" class="flex items-center gap-1.5 overflow-x-auto border-b border-border/50 px-5 py-2.5">
         <button data-brand-filter="all" class="search-filter-btn active shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors">Todos</button>
-        <button data-brand-filter="meliponas" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="bee" class="w-3.5 h-3.5"></i> Meliponas</button>
-        <button data-brand-filter="cafe" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="coffee" class="w-3.5 h-3.5"></i> Café</button>
-        <button data-brand-filter="tierras" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="mountain" class="w-3.5 h-3.5"></i> Tierras</button>
-        <button data-brand-filter="naturaleza" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="leaf" class="w-3.5 h-3.5"></i> Naturaleza</button>
-        <button data-brand-filter="gestion" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><i data-lucide="building-2" class="w-3.5 h-3.5"></i> Gestión</button>
+        <button data-brand-filter="meliponas" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="hexagon" class="w-3.5 h-3.5 inline" /> Meliponas</button>
+        <button data-brand-filter="cafe" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="coffee" class="w-3.5 h-3.5 inline" /> Café</button>
+        <button data-brand-filter="tierras" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="mountain" class="w-3.5 h-3.5 inline" /> Tierras</button>
+        <button data-brand-filter="naturaleza" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="leaf" class="w-3.5 h-3.5 inline" /> Naturaleza</button>
+        <button data-brand-filter="gestion" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="building-2" class="w-3.5 h-3.5 inline" /> Gestión</button>
       </div>
 
       <!-- Results area -->
@@ -61,10 +85,7 @@
         <!-- Loading state -->
         <div id="search-state-loading" class="hidden px-4 py-10 text-center">
           <div class="inline-flex items-center gap-2 text-sm text-text-muted">
-            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
+            <Icon name="loader-circle" class="w-4 h-4 animate-spin" />
             Buscando...
           </div>
         </div>
@@ -147,6 +168,9 @@
   }
 </style>
 
+<!-- Mapas de SVGs serializados en build para el script del cliente -->
+<script type="application/json" id="search-icon-svgs" set:html={JSON.stringify({ brand: BRAND_SVG, type: TYPE_SVG })}></script>
+
 <script>
   (function () {
     // ── Elements ─────────────────────────────────────────────
@@ -171,16 +195,11 @@
     let activeBrand = 'all';
     let lastQuery = '';
 
-    const BRAND_ICONS: Record<string, string> = {
-      meliponas: 'bee', cafe: 'coffee', tierras: 'mountain', naturaleza: 'leaf', gestion: 'building-2', general: 'sprout',
-    };
+    // SVGs de iconos pre-renderizados en build (inyectados como constante)
+    const ICON_SVGS = JSON.parse(document.getElementById('search-icon-svgs')?.textContent || '{"brand":{},"type":{}}') as { brand: Record<string, string>; type: Record<string, string> };
+
     const BRAND_NAMES: Record<string, string> = {
       meliponas: 'Meliponas', cafe: 'Café', tierras: 'Tierras', naturaleza: 'Naturaleza', gestion: 'Gestión', general: 'General',
-    };
-    const TYPE_ICONS: Record<string, string> = {
-      propiedad: 'home', propiedad_gestion: 'key-round', experiencia: 'leaf', anfitrion: 'user',
-      paquete: 'package', menu: 'coffee', bitacora: 'book-open', producto: 'jar', proveedor: 'tractor', pagina: 'file-text',
-      servicio: 'settings-2', lote_miel: 'jar', proyecto: 'clipboard-list',
     };
 
     // ── Open / Close ─────────────────────────────────────────
@@ -269,17 +288,17 @@
 
       let html = '';
       for (const [brand, items] of groups) {
-        const brandIcon = BRAND_ICONS[brand] || 'sprout';
-        html += `<div class="search-brand-header"><i data-lucide="${brandIcon}" class="w-3.5 h-3.5 inline"></i> ${BRAND_NAMES[brand] || brand}</div>`;
+        const brandSvg = ICON_SVGS.brand[brand] || ICON_SVGS.brand.general || '';
+        html += `<div class="search-brand-header">${brandSvg} ${BRAND_NAMES[brand] || brand}</div>`;
         for (const item of items) {
-          const icon = TYPE_ICONS[item.type] || 'link';
+          const typeSvg = ICON_SVGS.type[item.type] || ICON_SVGS.type.link || '';
           const title = highlightMatch(escapeHtml(item.title), query);
           const summary = highlightMatch(escapeHtml(truncate(item.summary, 100)), query);
           const badges = buildBadges(item.metadata);
 
           html += `
             <a href="${item.url}" class="search-result-item" data-url="${item.url}">
-              <i data-lucide="${icon}" class="w-5 h-5 shrink-0 mt-0.5 text-brand"></i>
+              ${typeSvg}
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-medium text-text-primary leading-snug">${title}</p>
                 <p class="mt-0.5 text-xs text-text-secondary leading-relaxed line-clamp-2">${summary}</p>
@@ -290,8 +309,6 @@
       }
 
       resultsList.innerHTML = html;
-
-      window.__lucideCreateIcons?.();
 
       // Click handlers
       resultsList.querySelectorAll<HTMLAnchorElement>('.search-result-item').forEach((el) => {

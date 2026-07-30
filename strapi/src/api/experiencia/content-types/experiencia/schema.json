@@ -197,6 +197,12 @@
       "relation": "manyToMany",
       "target": "api::propiedad-gestion.propiedad-gestion",
       "inversedBy": "experiencias"
+    },
+    "complementos": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::complemento.complemento",
+      "mappedBy": "experiencias"
     }
   }
 }

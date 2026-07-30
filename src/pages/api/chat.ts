@@ -78,7 +78,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   } catch (err: any) {
     console.error('[chat]', err.message);
-    return json({ error: 'Error del asistente. Intenta de nuevo.' }, 500);
+    const isQuota = /quota|exhausted|429|402|rate.?limit/i.test(err?.message || '');
+    const userMsg = isQuota
+      ? 'El asistente está temporalmente fuera de servicio por límites de uso. Usa el menú para navegar o escríbenos por WhatsApp.'
+      : 'Error del asistente. Intenta de nuevo.';
+    return json({ error: userMsg }, 500);
   }
 };
 

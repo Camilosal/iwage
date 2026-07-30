@@ -5,6 +5,7 @@ import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import StepTimeline from '@/components/StepTimeline.astro';
 import ProjectCard from '@/components/ProjectCard.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getProyectos, TIPO_LABELS } from '@/lib/proyectos';
 
 const proyectosRelacionados = (await getProyectos({ tipo: 'club' })).slice(0, 3);
@@ -60,7 +61,7 @@ const faqs = [
       <div class="grid lg:grid-cols-2 gap-12 items-center">
         <ScrollReveal>
           <div class="w-16 h-16 rounded-2xl bg-brand-muted flex items-center justify-center text-brand mb-6">
-            <i data-lucide="graduation-cap" class="w-8 h-8"></i>
+            <Icon name="graduation-cap" class="w-8 h-8" />
           </div>
           <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Línea · Educación ambiental</p>
           <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-text-primary leading-tight mb-6">
@@ -72,7 +73,7 @@ const faqs = [
           <div class="flex flex-wrap gap-3">
             <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 font-medium hover:bg-brand-light transition-all">
               Solicitar diagnóstico
-              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              <Icon name="arrow-right" class="w-4 h-4" />
             </a>
             <a href="#como-funciona" class="inline-flex items-center gap-2 border border-border text-text-primary rounded-full px-7 py-3.5 font-medium hover:border-brand hover:text-brand transition-all">
               Cómo funciona
@@ -114,7 +115,7 @@ const faqs = [
         <ScrollReveal delay={i * 80}>
           <div class="flex gap-4 p-6 bg-surface-raised border border-border rounded-2xl h-full">
             <div class="w-11 h-11 rounded-xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
-              <i data-lucide={item.icon} class="w-5 h-5"></i>
+              <Icon name={item.icon} class="w-5 h-5" />
             </div>
             <div>
               <h3 class="font-semibold text-text-primary mb-1">{item.title}</h3>
@@ -136,7 +137,7 @@ const faqs = [
         <ScrollReveal delay={i * 60}>
           <div class="bg-surface-raised rounded-2xl border border-border p-6 h-full">
             <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
-              <i data-lucide={b.icon} class="w-6 h-6"></i>
+              <Icon name={b.icon} class="w-6 h-6" />
             </div>
             <h3 class="text-base font-semibold text-text-primary mb-2">{b.title}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{b.desc}</p>
@@ -160,12 +161,12 @@ const faqs = [
       <ScrollReveal delay={150}>
         <div class="bg-surface-raised border border-border rounded-2xl p-6">
           <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
-            <i data-lucide="package-check" class="w-4 h-4"></i> Qué incluye
+            <Icon name="package-check" class="w-4 h-4" /> Qué incluye
           </h2>
           <ul class="space-y-3">
             {incluye.map((item) => (
               <li class="flex items-start gap-3 text-sm text-text-secondary">
-                <i data-lucide="check-circle-2" class="w-4 h-4 text-brand shrink-0 mt-0.5"></i>
+                <Icon name="check-circle-2" class="w-4 h-4 text-brand shrink-0 mt-0.5" />
                 {item}
               </li>
             ))}
@@ -213,7 +214,7 @@ const faqs = [
           <details class="group bg-surface-raised border border-border rounded-2xl overflow-hidden">
             <summary class="flex items-center justify-between gap-4 p-5 cursor-pointer list-none">
               <span class="font-medium text-text-primary">{faq.q}</span>
-              <i data-lucide="chevron-down" class="w-5 h-5 text-text-muted shrink-0 group-open:rotate-180 transition-transform"></i>
+              <Icon name="chevron-down" class="w-5 h-5 text-text-muted shrink-0 group-open:rotate-180 transition-transform" />
             </summary>
             <p class="px-5 pb-5 text-sm text-text-secondary leading-relaxed">{faq.a}</p>
           </details>
@@ -231,7 +232,7 @@ const faqs = [
         <div class="flex flex-wrap justify-center gap-4">
           <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
             Solicitar propuesta
-            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            <Icon name="arrow-right" class="w-5 h-5" />
           </a>
           <a href="/meliponas/proyectos" class="inline-flex items-center gap-2 border border-dark-text/30 text-dark-text rounded-full px-8 py-4 font-medium hover:border-dark-text/60 transition-all">
             Ver todos los proyectos

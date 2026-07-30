@@ -1,45 +1,46 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import { getBrand } from '@/config/brands';
 
 export const prerender = true;
 
-const waPhone = getBrand('tierras')?.whatsapp || '573001234567';
+const waPhone = getBrand('tierras')?.whatsapp || '573026693366';
 
 const PASOS_COMPRA = [
   {
     num: '01',
-    icon: '🎯',
+    icon: 'target',
     title: 'Define tu uso del predio',
     desc: '¿Producción agropecuaria? ¿Casa campestre? ¿Turismo? ¿Inversión patrimonial? Cada uso exige condiciones distintas de suelo, agua y normativa. Nuestros perfiles te ayudan a clarificar.',
     link: { href: '/tierras/perfiles', label: 'Explorar usos del predio' },
   },
   {
     num: '02',
-    icon: '🔍',
+    icon: 'search',
     title: 'Explora el catálogo auditado',
     desc: 'Filtra por tipo, municipio, precio y área. Usa la Búsqueda Inteligente para describir lo que necesitas en lenguaje natural y dejar que la IA encuentre tu match.',
     link: { href: '/tierras/propiedades', label: 'Ver catálogo' },
   },
   {
     num: '03',
-    icon: '🥾',
+    icon: 'footprints',
     title: 'Vive la propiedad antes de decidir',
     desc: 'Agenda una visita guiada o participa en una experiencia de Iwagé Naturaleza en el predio: recorre los linderos, conoce el agua, siente el territorio con quien lo habita.',
     link: { href: '/naturaleza/experiencias', label: 'Experiencias en el territorio' },
   },
   {
     num: '04',
-    icon: '🛡️',
+    icon: 'shield',
     title: 'Verifica con el Protocolo VAP',
     desc: 'Cada propiedad publicada ya pasó por auditoría: títulos de 20 años, linderos GPS, concesiones de agua y compatibilidad PBOT. Revisa el sello y el reporte de banderas.',
     link: { href: '/tierras/protocolo-vap', label: 'Conocer el protocolo' },
   },
   {
     num: '05',
-    icon: '✍️',
+    icon: 'pen-tool',
     title: 'Cierra con acompañamiento legal',
     desc: 'Estimación de gastos notariales, revisión de promesa de compraventa, verificación de paz y salvos y acompañamiento hasta la escrituración. Presencial o 100% remoto.',
     link: { href: '/tierras/herramientas/calculadora-notarial', label: 'Calcular gastos de cierre' },
@@ -105,13 +106,13 @@ const FAQS = [
           <ScrollReveal>
             <div class="flex items-start gap-6 bg-[#FAFAF7] rounded-2xl p-6 border border-gray-100">
               <div class="shrink-0 w-14 h-14 rounded-xl bg-[#1B4332] flex items-center justify-center">
-                <span class="text-2xl">{paso.icon}</span>
+                <span class="block"><Icon name={paso.icon} class="w-6 h-6 text-[#52B788]" /></span>
               </div>
               <div>
                 <p class="text-[10px] font-mono text-[#52B788] font-bold mb-1">PASO {paso.num}</p>
                 <h3 class="font-bold text-[#1B4332] mb-2">{paso.title}</h3>
                 <p class="text-sm text-gray-500 mb-3">{paso.desc}</p>
-                <a href={paso.link.href} class="text-sm font-bold text-[#52B788] hover:underline">{paso.link.label} <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+                <a href={paso.link.href} class="text-sm font-bold text-[#52B788] hover:underline">{paso.link.label} <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>
               </div>
             </div>
           </ScrollReveal>
@@ -174,7 +175,7 @@ const FAQS = [
         <a href={`https://wa.me/${waPhone}?text=${encodeURIComponent('Hola, quiero asesoría para comprar tierra rural en el Tolima.')}`}
           target="_blank" rel="noopener"
           class="border border-[#52B788] text-[#52B788] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788] hover:text-[#0F120E] transition-all">
-          <i data-lucide="message-circle" class="w-4 h-4 inline"></i> Hablar con un Asesor
+          <Icon name="message-circle" class="w-4 h-4 inline" /> Hablar con un Asesor
         </a>
       </div>
     </div>

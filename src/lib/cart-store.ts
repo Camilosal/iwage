@@ -27,6 +27,9 @@ export interface CartItem {
   disponibilidad_id?: string;
   /** Etiqueta legible del slot (fecha y hora) para mostrar en el carrito */
   disponibilidad_label?: string;
+  /** Fechas de la estadía (solo items de rango_fechas / propiedad_estancia) */
+  fecha_checkin?: string;
+  fecha_checkout?: string;
   /** URL pública del producto/página de origen */
   url?: string;
 }
@@ -38,8 +41,16 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 }
 
-function makeKey(recursoSlug: string, disponibilidadId?: string): string {
-  return disponibilidadId ? `${recursoSlug}::${disponibilidadId}` : recursoSlug;
+function makeKey(
+  recursoSlug: string,
+  disponibilidadId?: string,
+  fechaCheckin?: string,
+  fechaCheckout?: string
+): string {
+  if (disponibilidadId) return `${recursoSlug}::${disponibilidadId}`;
+  // Estadías: el mismo recurso en fechas distintas NO debe fusionarse
+  if (fechaCheckin && fechaCheckout) return `${recursoSlug}::${fechaCheckin}>${fechaCheckout}`;
+  return recursoSlug;
 }
 
 function notify(): void {
@@ -76,7 +87,9 @@ function persist(items: CartItem[]): void {
  */
 export function addItem(item: Omit<CartItem, 'key'> & { key?: string }): CartItem[] {
   const items = getCart();
-  const key = item.key || makeKey(item.recurso_slug, item.disponibilidad_id);
+  const key =
+    item.key ||
+    makeKey(item.recurso_slug, item.disponibilidad_id, item.fecha_checkin, item.fecha_checkout);
   const existing = items.find((i) => i.key === key);
 
   if (existing) {

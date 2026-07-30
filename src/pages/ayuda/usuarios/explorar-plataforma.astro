@@ -1,0 +1,89 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Explorar la plataforma';
+---
+
+<WikiLayout title={title} activePath="/ayuda/usuarios/explorar-plataforma">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/usuarios/" class="hover:text-brand transition-colors">Usuarios</a>
+    <span>/</span>
+    <span class="text-text-primary">Explorar la plataforma</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Explorar la plataforma Iwagé</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Estructura del sitio</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Iwagé es un ecosistema multi-marca construido sobre una sola plataforma Astro. El sitio principal (<code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">iwage.co</code>) actúa como hub y conecta cinco líneas de acción, cada una con su propia sub-sección, navegación temática y contenido especializado.
+      </p>
+      <div class="bg-surface-raised border border-border rounded-xl p-5">
+        <p class="text-xs font-mono uppercase tracking-widest text-accent mb-3">Rutas principales</p>
+        <ul class="space-y-2 text-sm text-text-secondary">
+          <li><code class="text-brand font-mono text-xs">/</code> &mdash; Hub del ecosistema (las 5 marcas)</li>
+          <li><code class="text-brand font-mono text-xs">/meliponas/</code> &mdash; Meliponario: miel, cajas, polinización, proyectos</li>
+          <li><code class="text-brand font-mono text-xs">/cafe/</code> &mdash; Café Iwagé: menú, bitácora, proveedores</li>
+          <li><code class="text-brand font-mono text-xs">/tierras/</code> &mdash; Tierras: propiedades rurales, calculadoras</li>
+          <li><code class="text-brand font-mono text-xs">/naturaleza/</code> &mdash; Turismo regenerativo: experiencias, anfitriones</li>
+          <li><code class="text-brand font-mono text-xs">/gestion/</code> &mdash; Property management: alojamientos, propiedades</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Navegación</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Cada marca tiene su propia barra de navegación con enlaces específicos. En la parte superior del sitio encontrarás:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Barra superior fija:</strong> contiene enlaces de navegación, búsqueda, contacto, selector del ecosistema y toggle de tema.</li>
+        <li><strong>Selector del ecosistema:</strong> el icono de hexágono en la barra te permite saltar entre las 5 marcas sin perder el contexto.</li>
+        <li><strong>Menú móvil:</strong> en pantallas pequeñas, un menú hamburguesa despliega todas las secciones con sub-menús colapsables.</li>
+        <li><strong>Footer:</strong> cada marca tiene su pie de página con enlaces rápidos, contacto y navegación al resto del ecosistema.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Búsqueda global</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        La plataforma incluye un sistema de búsqueda semántica impulsado por IA (RAG). Funciona en todo el sitio y entiende consultas en lenguaje natural.
+      </p>
+      <div class="bg-surface-raised border border-border rounded-xl p-5">
+        <p class="text-xs font-mono uppercase tracking-widest text-accent mb-3">Cómo usarla</p>
+        <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+          <li>Haz clic en el icono de lupa en la barra superior, o presiona <kbd class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">Ctrl+K</kbd> (<kbd class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">Cmd+K</kbd> en Mac).</li>
+          <li>Escribe tu consulta en lenguaje natural (ej: "¿cómo reservo una experiencia?" o "precio miel angelita").</li>
+          <li>Los resultados aparecen ordenados por relevancia, con enlaces directos a las páginas.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Modo claro y oscuro</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El sitio soporta modo claro y oscuro. La preferencia se guarda automáticamente en tu navegador y se respeta en todas las marcas del ecosistema.
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Haz clic en el icono de sol/luna en la barra superior para alternar.</li>
+        <li>Por defecto, el sitio detecta la preferencia de tu sistema operativo.</li>
+        <li>La transición entre temas es suave (animación de 350ms).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Chat con IA</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        En la esquina inferior derecha encontrarás un widget de chat impulsado por inteligencia artificial. Puedes hacerle preguntas sobre cualquier aspecto del ecosistema Iwagé: productos, experiencias, precios, ubicación, procesos. El chat busca en todo el contenido del sitio para darte respuestas precisas con enlaces a las fuentes.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Diseño responsivo</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Todo el sitio está diseñado mobile-first. Las imágenes, carruseles, formularios y widgets de reserva se adaptan automáticamente al tamaño de tu pantalla. En móvil, las barras de navegación se colapsan en menús desplegables y los widgets de reserva ocupan pantalla completa para facilitar la interacción.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

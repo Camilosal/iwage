@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getPaqueteBySlug, getPaquetes, formatPrecioCOP, DIFICULTAD_LABELS } from '@/lib/naturaleza';
 import { strapiImage } from '@/lib/strapi';
 import { getBrand } from '@/config/brands';
@@ -16,7 +17,7 @@ if (!pkg) return Astro.redirect('/naturaleza/programas', 302);
 const heroUrl = pkg.imagen_hero?.url ? strapiImage(pkg.imagen_hero.url) : 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&q=70';
 const dificultad = pkg.dificultad ? DIFICULTAD_LABELS[pkg.dificultad] : null;
 const galleryUrls = (pkg.imagenes || []).map((img) => strapiImage(img.url)).filter(Boolean);
-const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
+const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 ---
 
 <BrandLayout brand="naturaleza" title={`${pkg.seo_titulo || pkg.titulo} · Iwagé Naturaleza`} description={pkg.seo_descripcion || pkg.descripcion || `Paquete turístico ${pkg.titulo} en el Tolima.`}>
@@ -31,9 +32,9 @@ const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
       <h1 class="text-4xl md:text-6xl font-serif text-white leading-tight mb-4">{pkg.titulo}</h1>
       {pkg.tagline && <p class="text-xl text-white/70 font-light">{pkg.tagline}</p>}
       <div class="flex flex-wrap gap-4 mt-6 text-sm text-white/80">
-        {pkg.duracion_texto && <span class="flex items-center gap-1">📅 {pkg.duracion_texto}</span>}
-        {pkg.ubicacion && <span class="flex items-center gap-1">📍 {pkg.ubicacion}</span>}
-        {dificultad && <span class="flex items-center gap-1">⛰️ {dificultad.label}</span>}
+        {pkg.duracion_texto && <span class="flex items-center gap-1"><Icon name="calendar" class="w-4 h-4" /> {pkg.duracion_texto}</span>}
+        {pkg.ubicacion && <span class="flex items-center gap-1"><Icon name="map-pin" class="w-4 h-4" /> {pkg.ubicacion}</span>}
+        {dificultad && <span class="flex items-center gap-1"><Icon name="mountain" class="w-4 h-4" /> {dificultad.label}</span>}
       </div>
     </div>
   </section>
@@ -87,7 +88,7 @@ const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
             <div class="space-y-3">
               {pkg.experiencias_data.map((exp) => (
                 <a href={`/naturaleza/experiencias/${exp.slug}`} class="flex items-center gap-4 p-4 bg-[#f8faf5] rounded-xl border border-[#EDE5D4] hover:shadow-md transition-all">
-                  <span class="text-xl">🌿</span>
+                  <Icon name="leaf" class="w-5 h-5 text-[#40916C]" />
                   <span class="font-medium text-[#1a3009]">{exp.titulo}</span>
                   <span class="ml-auto text-[#40916C] text-sm">Ver →</span>
                 </a>
@@ -137,10 +138,10 @@ const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
             {pkg.precio_por_persona && <span class="text-sm text-gray-400 ml-1">/persona</span>}
           </div>
           <div class="space-y-3 text-sm text-gray-600 mb-6">
-            {pkg.duracion_texto && <p>📅 {pkg.duracion_texto}</p>}
-            {pkg.ubicacion && <p>📍 {pkg.ubicacion}</p>}
-            {dificultad && <p>⛰️ Dificultad: {dificultad.label}</p>}
-            {pkg.categoria && <p>🏷️ {pkg.categoria}</p>}
+            {pkg.duracion_texto && <p class="flex items-center gap-1"><Icon name="calendar" class="w-4 h-4" /> {pkg.duracion_texto}</p>}
+            {pkg.ubicacion && <p class="flex items-center gap-1"><Icon name="map-pin" class="w-4 h-4" /> {pkg.ubicacion}</p>}
+            {dificultad && <p class="flex items-center gap-1"><Icon name="mountain" class="w-4 h-4" /> Dificultad: {dificultad.label}</p>}
+            {pkg.categoria && <p class="flex items-center gap-1"><Icon name="tag" class="w-4 h-4" /> {pkg.categoria}</p>}
           </div>
 
           <!-- Online Booking Widget -->
@@ -162,7 +163,7 @@ const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
               rel="noopener"
               class="block w-full text-center px-6 py-3 rounded-xl border border-[#2d5016]/20 text-[#2d5016] text-xs font-bold uppercase tracking-wider hover:bg-[#2d5016]/5 transition-colors mb-3"
             >
-              💬 Reservar por WhatsApp
+              <Icon name="message-circle" class="w-4 h-4 inline align-[-2px] mr-1" /> Reservar por WhatsApp
             </a>
           </div>
           <a href="/naturaleza/programas" class="block w-full text-center px-6 py-3 rounded-xl border border-[#EDE5D4] text-sm text-gray-600 hover:bg-[#f8faf5] transition-colors">

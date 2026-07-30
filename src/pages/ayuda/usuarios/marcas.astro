@@ -1,0 +1,143 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Nuestras marcas';
+---
+
+<WikiLayout title={title} activePath="/ayuda/usuarios/marcas">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/usuarios/" class="hover:text-brand transition-colors">Usuarios</a>
+    <span>/</span>
+    <span class="text-text-primary">Nuestras marcas</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Las 5 marcas del ecosistema Iwagé</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Iwagé opera cinco líneas de acción interconectadas desde el corredor Ambalá en Ibagué, Tolima. Cada marca tiene su propia identidad visual, navegación y contenido, pero todas comparten el carrito de compras, el sistema de reservas y la cuenta de usuario.
+      </p>
+    </section>
+
+    <!-- Meliponas -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: #e8efe9;">
+          <span class="text-lg">🐝</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-text-primary">Iwagé Meliponario</h2>
+          <p class="text-xs text-text-muted font-mono">/meliponas/ &middot; Meliponicultura & Biotecnología Nativa</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">
+        La marca fundacional. Producción de miel de Angelita (<em>Tetragonisca angustula</em>), cajas tecnificadas INPA y AF, servicios de polinización gestionada y proyectos de impacto territorial.
+      </p>
+      <ul class="text-sm text-text-secondary space-y-1.5 list-disc pl-5">
+        <li><strong>Tienda:</strong> miel de Angelita, cajas INPA/AF, kits de iniciación, insumos.</li>
+        <li><strong>Polinización:</strong> servicio técnico para cultivos de aguacate, café, mora y cítricos.</li>
+        <li><strong>Proyectos:</strong> diseño de meliponarios para colegios (PRAE), fincas, centros turísticos y paisajismo.</li>
+        <li><strong>Trazabilidad:</strong> seguimiento por lote de miel, monitoreo IoT de cajas y certificación de polinización.</li>
+        <li><strong>Bitácora:</strong> publicaciones técnicas abiertas sobre meliponicultura.</li>
+      </ul>
+    </section>
+
+    <!-- Café -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: #f3ebe4;">
+          <span class="text-lg">☕</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-text-primary">Café Iwagé</h2>
+          <p class="text-xs text-text-muted font-mono">/cafe/ &middot; El territorio en cada taza</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">
+        Un café comunitario donde cada ingrediente es nombrado y los proveedores están a menos de 4 km. Menú de personajes, bitácora cafetera y directorio de proveedores locales.
+      </p>
+      <ul class="text-sm text-text-secondary space-y-1.5 list-disc pl-5">
+        <li><strong>Menú:</strong> catálogo de productos del café con ingredientes trazados.</li>
+        <li><strong>Bitácora:</strong> historias y procesos del mundo cafetero.</li>
+        <li><strong>Proveedores:</strong> directorio de aliados locales con perfil y productos.</li>
+        <li><strong>Recetas:</strong> preparaciones y maridajes.</li>
+      </ul>
+    </section>
+
+    <!-- Tierras -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: #e0f0e8;">
+          <span class="text-lg">🏔</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-text-primary">Iwagé Tierras</h2>
+          <p class="text-xs text-text-muted font-mono">/tierras/ &middot; Inmobiliaria Rural</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">
+        Compra y venta de propiedades rurales en el Tolima. Perfiles de compradores, herramientas financieras avanzadas y análisis de inversión.
+      </p>
+      <ul class="text-sm text-text-secondary space-y-1.5 list-disc pl-5">
+        <li><strong>Propiedades:</strong> catálogo de fincas con filtros por ubicación, tamaño y precio.</li>
+        <li><strong>Calculadora ROI:</strong> evalúa el retorno de inversión de una propiedad rural.</li>
+        <li><strong>Evaluador VAP:</strong> valor actualizado de pagos para financiación.</li>
+        <li><strong>Calculadora notarial:</strong> estima costos de escrituración.</li>
+        <li><strong>Perfiles:</strong> secciones personalizadas según el tipo de comprador.</li>
+      </ul>
+    </section>
+
+    <!-- Naturaleza -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: #e8f3e0;">
+          <span class="text-lg">🌿</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-text-primary">Iwagé Naturaleza</h2>
+          <p class="text-xs text-text-muted font-mono">/naturaleza/ &middot; Turismo Regenerativo</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">
+        Experiencias de turismo regenerativo guiadas por anfitriones locales. Avistamiento, senderismo, conexión con el territorio y programas de inmersión.
+      </p>
+      <ul class="text-sm text-text-secondary space-y-1.5 list-disc pl-5">
+        <li><strong>Experiencias:</strong> catálogo de actividades con reserva en línea (horarios y disponibilidad).</li>
+        <li><strong>Programas y paquetes:</strong> paquetes multi-día con alojamiento y actividades.</li>
+        <li><strong>Anfitriones:</strong> directorio de guías locales con escalafón y perfiles verificados.</li>
+        <li><strong>Sé Anfitrión:</strong> formulario para que guías y propietarios se unan a la red.</li>
+        <li><strong>Impacto:</strong> métricas de regeneración y contribución al territorio.</li>
+      </ul>
+    </section>
+
+    <!-- Gestión -->
+    <section class="bg-surface-raised border border-border rounded-xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: #e0eaf5;">
+          <span class="text-lg">🏡</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-text-primary">Iwagé Gestión</h2>
+          <p class="text-xs text-text-muted font-mono">/gestion/ &middot; Property Management</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mb-3">
+        Administración de propiedades rurales y alojamientos. Modelos de alianza, renta corta, segunda residencia y operación turística.
+      </p>
+      <ul class="text-sm text-text-secondary space-y-1.5 list-disc pl-5">
+        <li><strong>Propiedades:</strong> listado de inmuebles en gestión con reserva de estadía en línea.</li>
+        <li><strong>Alojamientos:</strong> catálogo de opciones de estancia con disponibilidad en tiempo real.</li>
+        <li><strong>Experiencias:</strong> actividades complementarias vinculadas a los alojamientos.</li>
+        <li><strong>Propietarios:</strong> modelos de alianza (finca productiva, renta corta, segunda residencia, operación turística).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Navegación entre marcas</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Puedes moverte entre marcas usando el <strong>selector del ecosistema</strong> (icono de hexágono en la barra superior) o desde el <strong>hub principal</strong> en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">iwage.co</code>. El carrito de compras y tu cuenta de usuario funcionan de forma transversal en todas las marcas.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

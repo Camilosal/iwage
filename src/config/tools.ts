@@ -31,7 +31,7 @@ export const INTRANET_CATEGORIES: IntranetCategory[] = [
   {
     id: 'estrategia',
     label: 'Estrategia & Modelo',
-    icon: '🧭',
+    icon: 'compass',
     docs: [
       {
         file: '0. matriz_integral_del_ecosistema.html',
@@ -53,7 +53,7 @@ export const INTRANET_CATEGORIES: IntranetCategory[] = [
   {
     id: 'audiencias',
     label: 'Audiencias & Marketing',
-    icon: '🎯',
+    icon: 'target',
     docs: [
       {
         file: '3. Sistema_de_audiencias.html',
@@ -70,7 +70,7 @@ export const INTRANET_CATEGORIES: IntranetCategory[] = [
   {
     id: 'operaciones',
     label: 'Operaciones',
-    icon: '⚙️',
+    icon: 'settings',
     docs: [
       {
         file: '4. Sistema_operativo_y_pipelines.html',
@@ -87,7 +87,7 @@ export const INTRANET_CATEGORIES: IntranetCategory[] = [
   {
     id: 'trazabilidad',
     label: 'Trazabilidad',
-    icon: '🔬',
+    icon: 'microscope',
     docs: [
       {
         file: '7. Protocolo_de_trazabilidad.html',

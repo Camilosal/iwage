@@ -13,6 +13,9 @@ export interface SlotDisponible {
 export interface CrearReservaInput {
   recurso_slug: string;
   disponibilidad_id?: string;
+  /** Fechas de estadía (recursos rango_fechas / propiedad_estancia) */
+  fecha_checkin?: string;
+  fecha_checkout?: string;
   cliente: {
     nombre: string;
     email?: string;
@@ -24,15 +27,21 @@ export interface CrearReservaInput {
   cantidad_personas?: number;
   notas?: string;
   origen_url?: string;
+  /** Canal de pago: 'online' (Bold) o 'en_sitio' (tarjeta, QR, BreB, efectivo o transferencia al llegar) */
+  metodo_pago?: 'online' | 'en_sitio';
 }
 
 export interface ReservaResponse {
   codigo: string;
   estado: string;
   tipo_reserva: string;
+  /** Canal de pago elegido ('online' | 'en_sitio'), null si no aplica pago */
+  metodo_pago?: string | null;
   precio_total: number;
   checkout_url: string | null;
   expira_en: string | null;
+  /** Mensaje de fallback cuando la pasarela de pago no responde (la reserva queda registrada) */
+  pago_error?: string | null;
 }
 
 export async function getDisponibilidad(
@@ -78,6 +87,8 @@ export async function cancelarReserva(codigo: string, motivo: string): Promise<v
     const err = await res.json().catch(() => ({ error: 'Unknown error' }));
     throw new Error(err.error || `Error cancelando reserva: ${res.status}`);
   }
+  const json = await res.json();
+  return json.data;
 }
 
 export async function getEstadoPago(referenceId: string): Promise<Record<string, unknown>> {

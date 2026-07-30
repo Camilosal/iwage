@@ -3,6 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getCafeConfig, getMenuItems, getProveedores, itemImage, proveedorFoto } from '@/lib/cafe';
 
 const [config, menuItems, proveedores] = await Promise.all([
@@ -26,13 +27,20 @@ const fallbackProveedores = proveedores.length > 0 ? proveedores : [
   { nombre: 'Cacao El Espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, foto: null },
 ];
 
-const whatsapp = config?.whatsapp ?? '573001234567';
+const whatsapp = config?.whatsapp ?? '573026693366';
 ---
 
 <BrandLayout brand="cafe">
   <!-- Hero -->
-  <section class="bg-dark-bg text-dark-text">
-    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+  <section class="relative bg-dark-bg text-dark-text">
+    <img
+      src="/images/hero-cafe.webp"
+      alt="Café de origen del Tolima"
+      class="absolute inset-0 h-full w-full object-cover opacity-50"
+      loading="eager"
+    />
+    <div class="absolute inset-0 bg-gradient-to-b from-dark-bg/60 via-dark-bg/50 to-dark-bg"></div>
+    <div class="relative max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
       <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Café Iwagé</p>
       <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6 font-display">
         {config?.titulo ?? 'El territorio en cada taza'}
@@ -80,7 +88,7 @@ const whatsapp = config?.whatsapp ?? '573001234567';
     </div>
     <div class="text-center mt-8">
       <a href="/cafe/menu" class="text-brand font-medium hover:text-accent transition-colors">
-        Ver menú completo <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+        Ver menú completo <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
       </a>
     </div>
   </Section>
@@ -104,7 +112,7 @@ const whatsapp = config?.whatsapp ?? '573001234567';
             <h3 class="text-base font-semibold text-text-primary mb-1">{p.nombre}</h3>
             <p class="text-sm text-text-secondary mb-2">{p.producto}</p>
             <p class="text-xs text-text-muted flex items-center justify-center gap-1">
-              📍 {p.ubicacion} · {p.distancia_km} km
+              <Icon name="map-pin" class="w-3.5 h-3.5" /> {p.ubicacion} · {p.distancia_km} km
             </p>
           </div>
         </ScrollReveal>
@@ -123,7 +131,7 @@ const whatsapp = config?.whatsapp ?? '573001234567';
           {config?.b2b_descripcion ?? 'Suministro de café de origen y miel para restaurantes, hoteles y tiendas especializadas.'}
         </p>
         <a href={`https://wa.me/${(config?.b2b_whatsapp ?? whatsapp).replace(/\+/g, '')}`} target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
-          <i data-lucide="message-circle" class="w-3.5 h-3.5 inline"></i> Cotizar suministro
+          <Icon name="message-circle" class="w-3.5 h-3.5 inline" /> Cotizar suministro
         </a>
       </div>
     </ScrollReveal>

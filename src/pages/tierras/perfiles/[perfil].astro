@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import { getPropiedades, formatPrecio, formatArea, propiedadImagen, PERFILES_COMPRADOR } from '@/lib/tierras';
@@ -57,8 +58,8 @@ const { data: propiedades } = await getPropiedades({ perfil: perfilId, pageSize:
         ))}
       </div>
       <div class="mt-6 p-4 bg-[#52B788]/5 rounded-xl border border-[#52B788]/15 flex items-center gap-3">
-        <i data-lucide="shield" class="w-5 h-5"></i>
-        <p class="text-xs text-gray-600"><strong class="text-[#1B4332]">Garantía VAP:</strong> Todas las propiedades pasan por auditoría de títulos, topografía, recurso hídrico y normativa. <a href="/tierras/protocolo-vap" class="text-[#52B788] font-medium">Conocer el protocolo <i data-lucide="arrow-right" class="w-3 h-3 inline"></i></a></p>
+        <Icon name="shield" class="w-5 h-5 text-[#52B788]" />
+        <p class="text-xs text-gray-600"><strong class="text-[#1B4332]">Garantía VAP:</strong> Todas las propiedades pasan por auditoría de títulos, topografía, recurso hídrico y normativa. <a href="/tierras/protocolo-vap" class="text-[#52B788] font-medium">Conocer el protocolo <Icon name="arrow-right" class="w-3 h-3 inline" /></a></p>
       </div>
     </div>
   </Section>
@@ -75,19 +76,19 @@ const { data: propiedades } = await getPropiedades({ perfil: perfilId, pageSize:
                 {propiedadImagen(prop) ? (
                   <img src={propiedadImagen(prop)!} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 ) : (
-                  <div class="w-full h-full flex items-center justify-center bg-[#1B4332]/10"><i data-lucide="mountain" class="w-6 h-6"></i></div>
+                  <div class="w-full h-full flex items-center justify-center bg-[#1B4332]/10"><Icon name="mountain" class="w-6 h-6 text-[#1B4332]/40" /></div>
                 )}
               </div>
               <div class="p-4">
                 <h3 class="font-bold text-[#1B4332] text-sm group-hover:text-[#52B788] transition-colors">{prop.titulo}</h3>
-                <p class="text-xs text-gray-400 mt-1">📍 {prop.ubicacion_municipio || 'Tolima'}</p>
+                <p class="text-xs text-gray-400 mt-1"><Icon name="map-pin" class="w-3 h-3 inline align-[-1px] mr-0.5" />{prop.ubicacion_municipio || 'Tolima'}</p>
                 <p class="text-lg font-bold text-[#1B4332] mt-2">{formatPrecio(prop.precio, prop.moneda)}</p>
               </div>
             </a>
           ))}
         </div>
         <div class="text-center mt-8">
-          <a href={`/tierras/propiedades?perfil=${perfilId}`} class="inline-block bg-[#1B4332] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#1B4332]/90 transition-all">Ver todas <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+          <a href={`/tierras/propiedades?perfil=${perfilId}`} class="inline-block bg-[#1B4332] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#1B4332]/90 transition-all">Ver todas <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>
         </div>
       </div>
     </Section>
@@ -98,10 +99,10 @@ const { data: propiedades } = await getPropiedades({ perfil: perfilId, pageSize:
     <div class="max-w-2xl mx-auto px-6 text-center">
       <h2 class="text-2xl font-bold text-[#1B4332] mb-4">¿Listo para encontrar tu tierra?</h2>
       <p class="text-gray-500 mb-8">Cuéntanos qué buscas y te enviamos una selección personalizada.</p>
-      <a href={`https://wa.me/573001234567?text=${encodeURIComponent(`Hola, busco tierra para: ${perfilData.label}. ¿Qué opciones tienen?`)}`}
+      <a href={`https://wa.me/573026693366?text=${encodeURIComponent(`Hola, busco tierra para: ${perfilData.label}. ¿Qué opciones tienen?`)}`}
         target="_blank" rel="noopener"
         class="inline-block bg-[#52B788] text-[#0F120E] px-10 py-4 rounded-full font-bold text-sm hover:bg-[#52B788]/90 transition-all shadow-lg">
-        <i data-lucide="message-circle" class="w-4 h-4 inline"></i> Búsqueda Personalizada
+        <Icon name="message-circle" class="w-4 h-4 inline" /> Búsqueda Personalizada
       </a>
     </div>
   </section>

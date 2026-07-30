@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 
 const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "clipboard-list"}, {"id": "vap", "label": "Protocolo VAP", "icon": "shield"}, {"id": "compra", "label": "Compra", "icon": "home"}, {"id": "venta", "label": "Venta", "icon": "wallet"}, {"id": "legal", "label": "Legal", "icon": "scale"}];
 
@@ -11,7 +12,7 @@ const FAQS = [{"pregunta": "¿Qué es el Protocolo VAP?", "respuesta": "El VAP (
   <!-- Hero -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-4xl mx-auto px-6 text-center">
-      <i data-lucide="mountain" class="w-8 h-8 block mb-4"></i>
+      <Icon name="mountain" class="w-8 h-8 block mb-4" />
       <h1 class="text-3xl md:text-4xl font-serif text-text-primary mb-3">Centro de Ayuda</h1>
       <p class="text-text-secondary max-w-lg mx-auto mb-8">Resuelve tus dudas sobre compra, venta y verificación de propiedades rurales.</p>
       <!-- Search -->
@@ -22,7 +23,7 @@ const FAQS = [{"pregunta": "¿Qué es el Protocolo VAP?", "respuesta": "El VAP (
           placeholder="Buscar pregunta..."
           class="w-full rounded-full border border-border bg-surface-raised px-5 py-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
         />
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm">🔍</span>
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm"><Icon name="search" class="w-4 h-4" /></span>
       </div>
     </div>
   </section>
@@ -36,7 +37,7 @@ const FAQS = [{"pregunta": "¿Qué es el Protocolo VAP?", "respuesta": "El VAP (
           class={`cat-pill rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-all ${i === 0 ? 'bg-brand text-white' : 'bg-surface-sunken text-text-secondary hover:bg-brand-muted hover:text-brand'}`}
           data-cat={cat.id}
         >
-          {cat.icon} {cat.label}
+          <Icon name={cat.icon} class="w-4 h-4 inline align-[-2px] mr-1.5" />{cat.label}
         </button>
       ))}
     </div>
@@ -60,7 +61,7 @@ const FAQS = [{"pregunta": "¿Qué es el Protocolo VAP?", "respuesta": "El VAP (
 
     <!-- Empty state -->
     <div id="faq-empty" class="hidden text-center py-12">
-      <span class="text-3xl block mb-3">🤷</span>
+      <span class="block mb-3"><Icon name="help-circle" class="w-8 h-8 mx-auto text-text-muted" /></span>
       <p class="text-text-secondary">No encontramos preguntas que coincidan.</p>
     </div>
   </section>
@@ -69,10 +70,16 @@ const FAQS = [{"pregunta": "¿Qué es el Protocolo VAP?", "respuesta": "El VAP (
   <section class="bg-surface-sunken py-12">
     <div class="max-w-xl mx-auto px-6 text-center">
       <h2 class="text-xl font-bold text-text-primary mb-3">¿No encontraste tu respuesta?</h2>
-      <p class="text-text-secondary mb-6">Escríbenos directamente y te ayudamos en menos de 2 horas.</p>
-      <a href="/tierras/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
-        Contactar soporte <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
-      </a>
+      <p class="text-text-secondary mb-6">Consulta la guía de uso de la plataforma o escríbenos directamente y te ayudamos en menos de 2 horas.</p>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <a href="/ayuda/" class="inline-flex items-center gap-2 border border-brand text-brand rounded-full px-6 py-3 font-medium hover:bg-brand-muted/30 transition-all">
+          <Icon name="book-open" class="w-4 h-4" />
+          Guía de uso
+        </a>
+        <a href="/tierras/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+          Contactar soporte <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
+        </a>
+      </div>
     </div>
   </section>
 </BrandLayout>

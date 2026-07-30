@@ -1,8 +1,9 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import AlojamientoCard from '@/components/gestion/AlojamientoCard.astro';
 import SearchBar from '@/components/gestion/SearchBar.astro';
-import { getAlojamientosDisponibles, TIPOS_GESTION } from '@/lib/gestion';
+import { getAlojamientosDisponibles, TIPOS_ALOJAMIENTO } from '@/lib/gestion';
 
 // SSR for query param filtering
 export const prerender = false;
@@ -16,10 +17,19 @@ const tipoFilter = url.searchParams.get('tipo') || '';
 
 const { data: alojamientos, total } = await getAlojamientosDisponibles({
   municipio: municipio || undefined,
-  tipo: tipoFilter || undefined,
+  tipoAlojamiento: tipoFilter || undefined,
+  checkin: checkin || undefined,
+  checkout: checkout || undefined,
   huespedes: huespedes ? Number(huespedes) : undefined,
   pageSize: 24,
 });
+
+// Preservar fechas y huéspedes en chips de filtro y links de cards
+const fechasQS = [
+  checkin && `checkin=${encodeURIComponent(checkin)}`,
+  checkout && `checkout=${encodeURIComponent(checkout)}`,
+  huespedes && `huespedes=${encodeURIComponent(huespedes)}`,
+].filter(Boolean).join('&');
 ---
 
 <BrandLayout brand="gestion" title="Alojamientos Rurales en el Tolima · Iwagé Gestión" description="Reserva fincas, casas campestres, glamping y cabañas en el Tolima. Alojamientos rurales gestionados profesionalmente con experiencias de territorio incluidas.">
@@ -40,11 +50,11 @@ const { data: alojamientos, total } = await getAlojamientosDisponibles({
     </div>
   </section>
 
-  <!-- Filter chips -->
+  <!-- Filter chips: tipo de alojamiento -->
   <section class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 py-4 px-4">
-    <div class="max-w-6xl mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar">
+    <div class="max-w-7xl mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar">
       <a
-        href="/gestion/alojamientos"
+        href={fechasQS ? `/gestion/alojamientos?${fechasQS}` : '/gestion/alojamientos'}
         class:list={[
           'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors',
           !tipoFilter ? 'bg-[#1e3a5f] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -52,15 +62,15 @@ const { data: alojamientos, total } = await getAlojamientosDisponibles({
       >
         Todos
       </a>
-      {TIPOS_GESTION.map((tipo) => (
+      {TIPOS_ALOJAMIENTO.map((tipo) => (
         <a
-          href={`/gestion/alojamientos?tipo=${tipo.slug}${municipio ? `&municipio=${municipio}` : ''}`}
+          href={`/gestion/alojamientos?tipo=${tipo.slug}${municipio ? `&municipio=${municipio}` : ''}${fechasQS ? `&${fechasQS}` : ''}`}
           class:list={[
             'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5',
             tipoFilter === tipo.slug ? 'bg-[#1e3a5f] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           ]}
         >
-          <span>{tipo.icon}</span>
+          <Icon name={tipo.icon} class="w-4 h-4" />
           {tipo.label}
         </a>
       ))}
@@ -73,24 +83,35 @@ const { data: alojamientos, total } = await getAlojamientosDisponibles({
 
   <!-- Results grid -->
   <section class="py-12 px-4 bg-[#f8f9fb] min-h-[50vh]">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto">
       {alojamientos.length > 0 ? (
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {alojamientos.map((prop) => (
-            <AlojamientoCard prop={prop} />
+            <AlojamientoCard
+              prop={prop}
+              checkin={checkin || undefined}
+              checkout={checkout || undefined}
+              huespedes={huespedes || undefined}
+            />
           ))}
         </div>
       ) : (
         <div class="text-center py-24">
-          <i data-lucide="home" class="w-10 h-10 block mb-4 mx-auto"></i>
+          <Icon name="home" class="w-10 h-10 block mb-4 mx-auto" />
           <h2 class="text-xl font-semibold text-[#122640] mb-2">
-            {municipio || tipoFilter ? 'No encontramos alojamientos con esos filtros' : 'Próximamente nuevos alojamientos'}
+            {checkin && checkout
+              ? 'Sin disponibilidad para esas fechas'
+              : municipio || tipoFilter
+                ? 'No encontramos alojamientos con esos filtros'
+                : 'Próximamente nuevos alojamientos'}
           </h2>
           <p class="text-gray-500 max-w-md mx-auto mb-6">
-            Estamos incorporando nuevas propiedades. Déjanos tu contacto y te avisamos cuando haya disponibilidad.
+            {checkin && checkout
+              ? 'Prueba con otras fechas o contáctanos: te ayudamos a encontrar el alojamiento ideal.'
+              : 'Estamos incorporando nuevas propiedades. Déjanos tu contacto y te avisamos cuando haya disponibilidad.'}
           </p>
           <a
-            href="https://wa.me/573001234567?text=Hola,%20busco%20alojamiento%20rural%20en%20el%20Tolima"
+            href="https://wa.me/573026693366?text=Hola,%20busco%20alojamiento%20rural%20en%20el%20Tolima"
             target="_blank"
             rel="noopener"
             class="inline-block px-6 py-3 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold hover:bg-[#7fc4a2] transition-colors"
@@ -110,7 +131,7 @@ const { data: alojamientos, total } = await getAlojamientosDisponibles({
         Nuestros alojamientos están conectados con experiencias de naturaleza, café y territorio en el Tolima.
       </p>
       <a href="/gestion/experiencias" class="inline-block px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
-        Explorar experiencias <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+        Explorar experiencias <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
       </a>
     </div>
   </section>
@@ -126,7 +147,7 @@ const { data: alojamientos, total } = await getAlojamientosDisponibles({
         href="/gestion/propietarios"
         class="inline-block px-8 py-3.5 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors"
       >
-        Publicar mi propiedad <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+        Publicar mi propiedad <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
       </a>
     </div>
   </section>

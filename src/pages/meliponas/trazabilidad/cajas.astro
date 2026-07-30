@@ -3,6 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO, SITE } from '@/config/site';
 
 const pilares = [
@@ -50,7 +51,7 @@ const iotFeatures = [
         <ScrollReveal delay={i * 80}>
           <div class="bg-surface-raised rounded-2xl border border-border p-5 shadow-sm text-center h-full">
             <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-3">
-              <i data-lucide={p.icono} class="w-5 h-5"></i>
+              <Icon name={p.icono} class="w-5 h-5" />
             </div>
             <p class="font-mono text-xs text-accent mb-1">{String(p.numero).padStart(2, '0')}</p>
             <h3 class="text-sm font-semibold text-text-primary mb-2">{p.titulo}</h3>
@@ -74,7 +75,7 @@ const iotFeatures = [
           {iotFeatures.map((f) => (
             <div class="flex items-start gap-3">
               <div class="w-9 h-9 rounded-lg bg-brand-muted flex items-center justify-center text-brand shrink-0">
-                <i data-lucide={f.icono} class="w-4 h-4"></i>
+                <Icon name={f.icono} class="w-4 h-4" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-text-primary">{f.titulo}</p>
@@ -104,7 +105,7 @@ const iotFeatures = [
     <ScrollReveal>
       <div class="max-w-3xl mx-auto text-center">
         <div class="w-14 h-14 rounded-2xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-5">
-          <i data-lucide="file-check" class="w-7 h-7"></i>
+          <Icon name="file-check" class="w-7 h-7" />
         </div>
         <h2 class="text-2xl font-bold text-text-primary mb-4">El historial viaja con la caja</h2>
         <p class="text-sm text-text-secondary leading-relaxed max-w-xl mx-auto mb-6">
@@ -112,7 +113,7 @@ const iotFeatures = [
         </p>
         <a href="/meliponas/tienda" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 font-medium text-sm hover:bg-brand-light transition-all">
           Ver cajas disponibles
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <Icon name="arrow-right" class="w-4 h-4" />
         </a>
       </div>
     </ScrollReveal>
@@ -126,11 +127,11 @@ const iotFeatures = [
         <p class="text-dark-text/60 mb-8">Cada caja sale del taller con su ID, su QR y su nodo sensor instalado.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="/meliponas/tienda" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
-            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <Icon name="shopping-bag" class="w-5 h-5" />
             Ir a la tienda
           </a>
           <a href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}`} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
-            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            <Icon name="message-circle" class="w-5 h-5" />
             WhatsApp
           </a>
         </div>

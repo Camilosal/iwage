@@ -1,12 +1,13 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 
 const VALUES = [
-  { icon: '🔍', title: 'Transparencia Radical', desc: 'Cada predio pasa por verificación VAP de 5 fases. Publicamos hallazgos completos, incluso las banderas rojas.' },
-  { icon: '🌱', title: 'Regeneración Territorial', desc: 'No solo vendemos tierra: protegemos ecosistemas. El 2% de cada operación financia restauración.' },
-  { icon: '🤝', title: 'Comercio Justo', desc: 'Comisiones 3-5% vs 6-10% del mercado. El campesino recibe el valor real de su tierra.' },
-  { icon: '🤖', title: 'Tecnología con Propósito', desc: 'IA, PropTech y datos al servicio del territorio, no del extractivismo.' },
+  { icon: 'search', title: 'Transparencia Radical', desc: 'Cada predio pasa por verificación VAP de 5 fases. Publicamos hallazgos completos, incluso las banderas rojas.' },
+  { icon: 'sprout', title: 'Regeneración Territorial', desc: 'No solo vendemos tierra: protegemos ecosistemas. El 2% de cada operación financia restauración.' },
+  { icon: 'handshake', title: 'Comercio Justo', desc: 'Comisiones 3-5% vs 6-10% del mercado. El campesino recibe el valor real de su tierra.' },
+  { icon: 'bot', title: 'Tecnología con Propósito', desc: 'IA, PropTech y datos al servicio del territorio, no del extractivismo.' },
 ];
 
 const TEAM = [
@@ -105,7 +106,7 @@ const MILESTONES = [
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {VALUES.map((v) => (
           <div class="bg-white rounded-2xl p-6 text-center border border-[#EDE5D4]">
-            <span class="text-3xl block mb-4">{v.icon}</span>
+            <span class="block mb-4"><Icon name={v.icon} class="w-8 h-8 mx-auto text-[#52B788]" /></span>
             <h3 class="font-bold text-[#1A1E18] mb-2">{v.title}</h3>
             <p class="text-sm text-gray-500">{v.desc}</p>
           </div>

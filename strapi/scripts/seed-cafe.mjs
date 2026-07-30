@@ -45,16 +45,31 @@ const cafeConfig = {
 };
 
 const menuItems = [
-  { nombre: 'Café de origen Ambalá', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Notas de panela y cítricos.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: true, categoria: 'cafe', orden: 1 },
-  { nombre: 'Espresso doble', historia: 'Doble shot de nuestro blend house. Cuerpo medio, final dulce.', tags: ['Clásico'], precio: '$5.000', destacado: false, categoria: 'cafe', orden: 2 },
-  { nombre: 'Café con miel de Angelita', historia: 'Espresso con miel cruda de Tetragonisca angustula. Dulzor floral sin azúcar.', tags: ['De la casa'], precio: '$7.500', destacado: false, categoria: 'cafe', orden: 3 },
-  { nombre: 'Miel de Angelita con café', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, categoria: 'signature', orden: 1 },
-  { nombre: 'Latte de miel y canela', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$9.500', destacado: true, categoria: 'signature', orden: 2 },
-  { nombre: 'Aromática de flora nativa', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', orden: 1 },
-  { nombre: 'Té de guayaba agria', historia: 'Hojas frescas de guayaba agria del corredor. Digestivo natural.', tags: ['Sin cafeína', 'Digestivo'], precio: '$5.000', destacado: false, categoria: 'infusion', orden: 2 },
-  { nombre: 'Cold brew Ambalá', historia: 'Extracción en frío 18 horas. Suave, dulce, sin amargor. Servido con hielo de la finca.', tags: ['Frío', '18h extracción'], precio: '$8.000', destacado: false, categoria: 'frio', orden: 1 },
-  { nombre: 'Chocolate de cacao local', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, categoria: 'acompanamiento', orden: 1 },
-  { nombre: 'Queso de la Cumbre con arepa', historia: 'Queso fresco del día, arepa de maíz pelado. El desayuno del territorio.', tags: ['Local', 'Desayuno'], precio: '$8.500', destacado: false, categoria: 'acompanamiento', orden: 2 },
+  // ── Café de origen Ambalá: 3 variaciones de tamaño (familia 'cafe-ambala') ──
+  { nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-pequeno', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Notas de panela y cítricos. Taza de 8 oz.', tags: ['Origen único', 'Tueste medio'], precio: '$5.500', destacado: true, categoria: 'cafe', orden: 1, familia: 'cafe-ambala', etiqueta_variacion: 'Pequeño · 8 oz', eje_variacion: 'Tamaño' },
+  { nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-mediano', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Notas de panela y cítricos. Taza de 12 oz.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: false, categoria: 'cafe', orden: 2, familia: 'cafe-ambala', etiqueta_variacion: 'Mediano · 12 oz', eje_variacion: 'Tamaño' },
+  { nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-grande', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Notas de panela y cítricos. Taza de 16 oz.', tags: ['Origen único', 'Tueste medio'], precio: '$7.500', destacado: false, categoria: 'cafe', orden: 3, familia: 'cafe-ambala', etiqueta_variacion: 'Grande · 16 oz', eje_variacion: 'Tamaño' },
+  // ── Espresso (sin variaciones) ──
+  { nombre: 'Espresso doble', historia: 'Doble shot de nuestro blend house. Cuerpo medio, final dulce.', tags: ['Clásico'], precio: '$5.000', destacado: false, categoria: 'cafe', orden: 4 },
+  { nombre: 'Café con miel de Angelita', historia: 'Espresso con miel cruda de Tetragonisca angustula. Dulzor floral sin azúcar.', tags: ['De la casa'], precio: '$7.500', destacado: false, categoria: 'cafe', orden: 5 },
+  // ── Signature: Miel de Angelita con café (familia 'miel-cafe', eje: Tamaño) ──
+  { nombre: 'Miel de Angelita con café', slug: 'miel-cafe-8oz', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, categoria: 'signature', orden: 1, familia: 'miel-cafe', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { nombre: 'Miel de Angelita con café', slug: 'miel-cafe-12oz', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$11.000', destacado: false, categoria: 'signature', orden: 2, familia: 'miel-cafe', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  // ── Signature: Latte de miel y canela (familia 'latte-miel', eje: Tamaño) ──
+  { nombre: 'Latte de miel y canela', slug: 'latte-miel-8oz', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$9.500', destacado: true, categoria: 'signature', orden: 3, familia: 'latte-miel', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { nombre: 'Latte de miel y canela', slug: 'latte-miel-12oz', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$11.500', destacado: false, categoria: 'signature', orden: 4, familia: 'latte-miel', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  // ── Aromática de flora nativa (familia 'aromatica-flora', eje: Sabor) ──
+  { nombre: 'Aromática de flora nativa', slug: 'aromatica-hierbabuena', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', orden: 1, familia: 'aromatica-flora', etiqueta_variacion: 'Hierbabuena', eje_variacion: 'Sabor' },
+  { nombre: 'Aromática de flora nativa', slug: 'aromatica-limoncillo', historia: 'Infusión de limoncillo fresco del corredor. Cítrico, refrescante, digestivo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', orden: 2, familia: 'aromatica-flora', etiqueta_variacion: 'Limoncillo', eje_variacion: 'Sabor' },
+  { nombre: 'Aromática de flora nativa', slug: 'aromatica-guamo', historia: 'Flor de guamo recolectada en el corredor. Floral, suave, aromática.', tags: ['Sin cafeína', 'Floral'], precio: '$6.000', destacado: false, categoria: 'infusion', orden: 3, familia: 'aromatica-flora', etiqueta_variacion: 'Flor de guamo', eje_variacion: 'Sabor' },
+  { nombre: 'Té de guayaba agria', historia: 'Hojas frescas de guayaba agria del corredor. Digestivo natural.', tags: ['Sin cafeína', 'Digestivo'], precio: '$5.000', destacado: false, categoria: 'infusion', orden: 4 },
+  // ── Cold brew Ambalá (familia 'cold-brew', eje: Tamaño) ──
+  { nombre: 'Cold brew Ambalá', slug: 'cold-brew-8oz', historia: 'Extracción en frío 18 horas. Suave, dulce, sin amargor. Servido con hielo de la finca.', tags: ['Frío', '18h extracción'], precio: '$8.000', destacado: false, categoria: 'frio', orden: 1, familia: 'cold-brew', etiqueta_variacion: 'Vaso · 8 oz', eje_variacion: 'Tamaño' },
+  { nombre: 'Cold brew Ambalá', slug: 'cold-brew-16oz', historia: 'Extracción en frío 18 horas. Suave, dulce, sin amargor. Servido con hielo de la finca.', tags: ['Frío', '18h extracción'], precio: '$11.000', destacado: false, categoria: 'frio', orden: 2, familia: 'cold-brew', etiqueta_variacion: 'Grande · 16 oz', eje_variacion: 'Tamaño' },
+  // ── Chocolate de cacao local (familia 'chocolate-local', eje: Tamaño) ──
+  { nombre: 'Chocolate de cacao local', slug: 'chocolate-8oz', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, categoria: 'acompanamiento', orden: 1, familia: 'chocolate-local', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { nombre: 'Chocolate de cacao local', slug: 'chocolate-12oz', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$9.000', destacado: false, categoria: 'acompanamiento', orden: 2, familia: 'chocolate-local', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  { nombre: 'Queso de la Cumbre con arepa', historia: 'Queso fresco del día, arepa de maíz pelado. El desayuno del territorio.', tags: ['Local', 'Desayuno'], precio: '$8.500', destacado: false, categoria: 'acompanamiento', orden: 3 },
 ];
 
 const proveedores = [
@@ -82,8 +97,11 @@ async function seed() {
   console.log('\n→ Seeding item-menus...');
   for (const item of menuItems) {
     try {
-      // Check if exists by nombre
-      const existing = await api('GET', `item-menus?filters[nombre][$eq]=${encodeURIComponent(item.nombre)}`);
+      // Check if exists by slug (las variaciones comparten nombre) or nombre
+      const filter = item.slug
+        ? `item-menus?filters[slug][$eq]=${encodeURIComponent(item.slug)}`
+        : `item-menus?filters[nombre][$eq]=${encodeURIComponent(item.nombre)}`;
+      const existing = await api('GET', filter);
       if (existing.data?.length > 0) {
         const docId = existing.data[0].documentId;
         await api('PUT', `item-menus/${docId}`, { data: item });

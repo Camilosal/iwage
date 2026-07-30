@@ -33,6 +33,19 @@
       ],
       "default": "renta_corta"
     },
+    "tipo_alojamiento": {
+      "type": "enumeration",
+      "enum": [
+        "finca",
+        "casa_campestre",
+        "cabana",
+        "glamping",
+        "domo",
+        "minicasa",
+        "apartamento"
+      ],
+      "default": "finca"
+    },
     "modelo_alianza": {
       "type": "enumeration",
       "enum": [
@@ -137,6 +150,18 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::proveedor.proveedor",
+      "mappedBy": "propiedades_gestion"
+    },
+    "complementos": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::complemento.complemento",
+      "mappedBy": "propiedades_gestion"
+    },
+    "productos": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::producto.producto",
       "mappedBy": "propiedades_gestion"
     }
   }

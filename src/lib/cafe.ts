@@ -38,6 +38,13 @@ export interface ItemMenu {
   disponible: boolean;
   temporada: boolean;
   nota_disponibilidad: string | null;
+  // ── Variaciones (productos de la misma familia: tamaño, sabor, ...) ──
+  /** Clave que agrupa las variaciones de un mismo producto (p.ej. 'cafe-ambala'). */
+  familia?: string | null;
+  /** Etiqueta legible de esta variación dentro de la familia (p.ej. 'Mediano 12 oz'). */
+  etiqueta_variacion?: string | null;
+  /** Nombre del eje de variación (p.ej. 'Tamaño', 'Sabor'). */
+  eje_variacion?: string | null;
 }
 
 export interface ProveedorAnfitrion {
@@ -138,6 +145,9 @@ export async function getMenuItems(categoria?: string): Promise<ItemMenu[]> {
       disponible: item.disponible !== false,
       temporada: item.temporada === true,
       tags: item.tags ?? [],
+      familia: item.familia || null,
+      etiqueta_variacion: item.etiqueta_variacion || null,
+      eje_variacion: item.eje_variacion || null,
     }));
   } catch {
     return [];

@@ -1,0 +1,95 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Pedidos y pagos';
+---
+
+<WikiLayout title={title} activePath="/ayuda/usuarios/pedidos">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/usuarios/" class="hover:text-brand transition-colors">Usuarios</a>
+    <span>/</span>
+    <span class="text-text-primary">Pedidos y pagos</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Pedidos y pagos</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cómo se genera un pedido</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Un pedido (u "orden") se genera cuando haces checkout desde el carrito unificado. El sistema crea una orden centralizada en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">app_reservas</code> que agrupa todos los items de tu carrito. La orden recibe un código único (ej: <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">ORD-20250715-X3K9</code>).
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Métodos de pago</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Método</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Cómo funciona</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">Pago en línea (Bold)</td>
+              <td class="px-4 py-3">Tarjeta de crédito/débito. Se procesa al momento. Recibes confirmación inmediata.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">WhatsApp</td>
+              <td class="px-4 py-3">Se abre un chat con el resumen de tu pedido. Coordinas el pago directamente con el equipo.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">En sitio (tarjeta)</td>
+              <td class="px-4 py-3">Pagas con tarjeta al llegar. La reserva queda pendiente de pago.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">En sitio (QR / transferencia)</td>
+              <td class="px-4 py-3">Pagas con código QR o transferencia bancaria al llegar.</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-semibold">En sitio (efectivo)</td>
+              <td class="px-4 py-3">Pagas en efectivo al momento de recibir el servicio o producto.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Seguimiento de pedidos</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Puedes seguir el estado de tus pedidos de dos formas:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Portal Mi Cuenta:</strong> en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">reservas.iwage.co/mi-cuenta/pedidos</code> ves tu historial completo con estado, items y totales.</li>
+        <li><strong>Código de orden:</strong> si tienes el código, puedes consultar el estado directamente.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Estados de un pedido</h2>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Pendiente:</strong> la orden fue creada pero el pago no se ha completado.</li>
+        <li><strong>Pagado:</strong> el pago fue confirmado (en línea o en sitio).</li>
+        <li><strong>Completado:</strong> el pedido fue entregado o el servicio fue prestado.</li>
+        <li><strong>Cancelado:</strong> el pedido fue cancelado (por el cliente o el administrador).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Fallback de pago</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Si la pasarela de pago (Bold) no responde en el momento del checkout, el sistema no bloquea tu pedido. La orden queda registrada con un mensaje de fallback y se te ofrece la opción de coordinar el pago por WhatsApp. Esto asegura que nunca pierdas una reserva por un problema técnico con la pasarela.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Pedidos por WhatsApp</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Además del checkout tradicional, puedes hacer pedidos directamente por WhatsApp. El equipo registra tu pedido manualmente en el sistema. Este flujo es común para pedidos de productos del meliponario o del café donde la coordinación directa es más práctica. El pedido queda registrado con origen "iwage" y puedes darle seguimiento con el código que te proporcionan.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

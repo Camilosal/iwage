@@ -1,6 +1,8 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
-import BookingWidget from '@/components/reservas/BookingWidget';
+import Icon from '@/components/shared/Icon.astro';
+import StayBookingWidget from '@/components/reservas/StayBookingWidget';
+import ComplementosSection from '@/components/shared/ComplementosSection.astro';
 import {
   getPropiedadGestionBySlug,
   getAllPropiedadGestionSlugs,
@@ -21,6 +23,11 @@ if (!prop) {
   return Astro.redirect('/gestion/propiedades');
 }
 
+// Fechas y huéspedes propagados desde la búsqueda (pre-llenan el widget)
+const checkin = Astro.url.searchParams.get('checkin') || '';
+const checkout = Astro.url.searchParams.get('checkout') || '';
+const huespedes = Astro.url.searchParams.get('huespedes') || '';
+
 const tipo = tipoGestionInfo(prop.tipo_gestion);
 const modelo = modeloAlianzaInfo(prop.modelo_alianza);
 const heroImg = propiedadGestionImagen(prop);
@@ -28,10 +35,14 @@ const galeriaImgs = (prop.galeria || []).map((g) => strapiImage(g.url)).filter(B
 const precio = formatPrecioGestion(prop);
 
 // WhatsApp desde la configuración de marca
-const waPhone = getBrand('gestion')?.whatsapp || '573001234567';
+const waPhone = getBrand('gestion')?.whatsapp || '573026693366';
 
 const title = prop.seo_titulo || `${prop.titulo} · Iwagé Gestión`;
 const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo} en ${prop.ubicacion_municipio || 'Tolima'}. ${tipo.label} por Iwagé Gestión.`;
+
+// Productos locales recomendados (cross-selling con la tienda del meliponario)
+const productosRec = (prop.productos || []).filter((p) => p.stock_disponible).slice(0, 6);
+const fmtCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 ---
 
 <BrandLayout brand="gestion" title={title} description={description}>
@@ -57,11 +68,11 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
             <img src={heroImg} alt={prop.titulo} class="w-full h-full object-cover" loading="eager" />
           ) : (
             <div class="w-full h-full flex items-center justify-center bg-[#1e3a5f]/30">
-              <span class="text-6xl">{tipo.icon}</span>
+              <span class="text-6xl"><Icon name={tipo.icon} class="w-16 h-16 text-white/40" /></span>
             </div>
           )}
-          <span class="absolute top-4 left-4 text-[11px] font-bold px-3 py-1 rounded-full uppercase text-white" style={`background-color: ${tipo.color}`}>
-            {tipo.icon} {tipo.label}
+          <span class="absolute top-4 left-4 text-[11px] font-bold px-3 py-1 rounded-full uppercase text-white inline-flex items-center gap-1" style={`background-color: ${tipo.color}`}>
+            <Icon name={tipo.icon} class="w-3.5 h-3.5" /> {tipo.label}
           </span>
         </div>
         <!-- Thumbnails -->
@@ -102,7 +113,7 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
             {prop.es_destacado && <span class="bg-[#C8933E] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">★</span>}
           </div>
           <p class="text-gray-500 flex items-center gap-2">
-            📍 {prop.ubicacion_municipio || 'Tolima'}, Colombia
+            <Icon name="map-pin" class="w-4 h-4 text-gray-400" /> {prop.ubicacion_municipio || 'Tolima'}, Colombia
             <span class="text-gray-300">|</span>
             <span class="text-[#2d5a8f] font-medium">{modelo.label}</span>
           </p>
@@ -112,28 +123,28 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {prop.numero_habitaciones && (
             <div class="bg-white rounded-xl p-4 text-center border border-gray-100">
-              <div class="text-2xl mb-1">🛏️</div>
+              <div class="text-2xl mb-1"><Icon name="bed" class="w-7 h-7 text-[#2d5a8f] mx-auto" /></div>
               <div class="text-lg font-bold text-[#122640]">{prop.numero_habitaciones}</div>
               <div class="text-[10px] text-gray-400 uppercase">Habitaciones</div>
             </div>
           )}
           {prop.numero_banos && (
             <div class="bg-white rounded-xl p-4 text-center border border-gray-100">
-              <div class="text-2xl mb-1">🚿</div>
+              <div class="text-2xl mb-1"><Icon name="bath" class="w-7 h-7 text-[#2d5a8f] mx-auto" /></div>
               <div class="text-lg font-bold text-[#122640]">{prop.numero_banos}</div>
               <div class="text-[10px] text-gray-400 uppercase">Baños</div>
             </div>
           )}
           {prop.capacidad_huespedes && (
             <div class="bg-white rounded-xl p-4 text-center border border-gray-100">
-              <div class="text-2xl mb-1">👥</div>
+              <div class="text-2xl mb-1"><Icon name="users" class="w-7 h-7 text-[#2d5a8f] mx-auto" /></div>
               <div class="text-lg font-bold text-[#122640]">{prop.capacidad_huespedes}</div>
               <div class="text-[10px] text-gray-400 uppercase">Huéspedes</div>
             </div>
           )}
           {prop.area_hectareas && (
             <div class="bg-white rounded-xl p-4 text-center border border-gray-100">
-              <i data-lucide="leaf" class="w-6 h-6 block mx-auto"></i>
+              <Icon name="leaf" class="w-6 h-6 block mx-auto text-[#2d5a8f]" />
               <div class="text-lg font-bold text-[#122640]">{prop.area_hectareas >= 1 ? `${prop.area_hectareas.toFixed(1)}` : `${(prop.area_hectareas * 10000).toFixed(0)}`}</div>
               <div class="text-[10px] text-gray-400 uppercase">{prop.area_hectareas >= 1 ? 'Hectáreas' : 'm²'}</div>
             </div>
@@ -178,11 +189,82 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
           </div>
         )}
 
+        <!-- Complementos / Adicionales -->
+        {prop.complementos && prop.complementos.length > 0 && (
+          <ComplementosSection
+            complementos={prop.complementos}
+            origen="iwage_complementos"
+            brand="gestion"
+            parentNombre={prop.titulo}
+            titulo="Complementa tu estadía"
+          />
+        )}
+
+        <!-- Productos locales recomendados (cross-selling tienda meliponario) -->
+        {productosRec.length > 0 && (
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-[1px] bg-[#C8933E]"></span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#C8933E]">Sabores del territorio</span>
+            </div>
+            <h2 class="text-xl lg:text-2xl font-light text-[#122640] mb-6">Productos locales recomendados</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {productosRec.map((p) => (
+                <div class="group relative flex flex-col rounded-2xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all">
+                  {p.destacado && (
+                    <span class="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#C8933E]/10 text-[#C8933E] border border-[#C8933E]/20">
+                      Destacado
+                    </span>
+                  )}
+                  {p.imagen ? (
+                    <img src={p.imagen} alt={p.nombre} class="w-14 h-14 rounded-xl object-cover mb-3" loading="lazy" />
+                  ) : (
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-3 bg-[#C8933E]/10">
+                      <Icon name="package" class="w-5 h-5 text-[#C8933E]" />
+                    </div>
+                  )}
+                  <a href={`/meliponas/tienda/${p.slug}`} class="block">
+                    <h3 class="text-sm font-semibold text-[#122640] group-hover:text-[#52B788] transition-colors mb-1 pr-16">{p.nombre}</h3>
+                  </a>
+                  {p.descripcion_corta && (
+                    <p class="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">{p.descripcion_corta}</p>
+                  )}
+                  <div class="mt-auto flex items-center justify-between pt-3 border-t border-gray-50">
+                    <div>
+                      <span class="text-sm font-bold text-[#122640]">{fmtCOP.format(p.precio)}</span>
+                      {p.presentacion && <span class="block text-[9px] text-gray-400">{p.presentacion}</span>}
+                    </div>
+                    <button
+                      type="button"
+                      class="add-to-cart px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors bg-[#52B788]/10 text-[#2d5a8f] border border-[#52B788]/30 hover:bg-[#52B788]/20"
+                      data-recurso-slug={`meliponas-${p.slug}`}
+                      data-name={p.nombre}
+                      data-price={String(p.precio)}
+                      data-slug={p.slug}
+                      data-qty="1"
+                      data-tipo="producto"
+                      data-tipo-disponibilidad="inmediato"
+                      data-requiere-pago="true"
+                      data-brand="gestion"
+                      data-origen="iwage_meliponas"
+                    >
+                      Agregar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <a href="/meliponas/tienda" class="inline-flex items-center gap-1 mt-4 text-xs font-bold text-[#52B788] hover:text-[#2d5a8f] transition-colors">
+              Ver toda la tienda del meliponario <Icon name="arrow-right" class="w-3.5 h-3.5" />
+            </a>
+          </div>
+        )}
+
         <!-- Reviews placeholder -->
         <div>
           <h2 class="text-lg font-semibold text-[#122640] mb-4">Reseñas de huéspedes</h2>
           <div class="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-            <div class="text-3xl mb-3">⭐</div>
+            <div class="text-3xl mb-3"><Icon name="star" class="w-8 h-8 text-[#C8933E] mx-auto" /></div>
             <p class="text-sm text-gray-500 mb-2">Este alojamiento aún no tiene reseñas.</p>
             <p class="text-xs text-gray-400">Sé el primero en compartir tu experiencia.</p>
           </div>
@@ -197,9 +279,9 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
               {/* Propiedad en Tierras (inmobiliaria) */}
               {prop.propiedad_tierras && (
                 <div>
-                    <h3 class="text-xs font-bold uppercase text-gray-400 mb-3"><i data-lucide="home" class="w-3.5 h-3.5 inline"></i> En Inmobiliaria Tierras</h3>
+                    <h3 class="text-xs font-bold uppercase text-gray-400 mb-3 inline-flex items-center gap-1"><Icon name="home" class="w-3.5 h-3.5" /> En Inmobiliaria Tierras</h3>
                   <a href={`/tierras/propiedades/${prop.propiedad_tierras.slug}`} class="group flex items-center gap-4 p-5 rounded-2xl bg-white border border-gray-100 hover:border-[#1B4332]/30 hover:shadow-lg transition-all">
-                    <i data-lucide="home" class="w-6 h-6 shrink-0 text-[#1B4332]"></i>
+                    <Icon name="home" class="w-6 h-6 shrink-0 text-[#1B4332]" />
                     <div class="flex-1 min-w-0">
                       <h4 class="text-sm font-bold text-[#1B4332] group-hover:text-[#52B788] transition-colors truncate">{prop.propiedad_tierras.titulo}</h4>
                       <p class="text-xs text-gray-500">
@@ -207,7 +289,7 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
                         {prop.propiedad_tierras.precio ? ` · $${(prop.propiedad_tierras.precio / 1_000_000).toFixed(0)}M` : ''}
                       </p>
                     </div>
-                    <span class="text-xs font-bold text-[#52B788] shrink-0">Ver ficha <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></span>
+                    <span class="text-xs font-bold text-[#52B788] shrink-0 inline-flex items-center gap-1">Ver ficha <Icon name="arrow-right" class="w-3.5 h-3.5" /></span>
                   </a>
                 </div>
               )}
@@ -215,16 +297,16 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
               {/* Experiencias en Naturaleza */}
               {prop.experiencias && prop.experiencias.length > 0 && (
                 <div>
-                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3"><i data-lucide="leaf" class="w-3.5 h-3.5 inline"></i> Experiencia{prop.experiencias.length > 1 ? 's' : ''} en Naturaleza</h3>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3 inline-flex items-center gap-1"><Icon name="leaf" class="w-3.5 h-3.5" /> Experiencia{prop.experiencias.length > 1 ? 's' : ''} en Naturaleza</h3>
                   <div class="grid sm:grid-cols-2 gap-3">
                     {prop.experiencias.map((exp) => (
                       <a href={`/naturaleza/experiencias/${exp.slug}`} class="group flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-[#2E7D32]/30 hover:shadow-lg transition-all">
-                        <i data-lucide="leaf" class="w-5 h-5 shrink-0 text-[#2E7D32]"></i>
+                        <Icon name="leaf" class="w-5 h-5 shrink-0 text-[#2E7D32]" />
                         <div class="flex-1 min-w-0">
                           <h4 class="text-sm font-bold text-[#2E7D32] group-hover:text-[#52B788] transition-colors truncate">{exp.titulo}</h4>
                           <p class="text-[11px] text-gray-400">{exp.categoria || 'Naturaleza'}{exp.precio_desde ? ` · desde $${(exp.precio_desde / 1000).toFixed(0)}k` : ''}</p>
                         </div>
-                        <span class="text-[10px] font-bold text-[#52B788] shrink-0"><i data-lucide="arrow-right" class="w-3 h-3"></i></span>
+                        <span class="text-[10px] font-bold text-[#52B788] shrink-0"><Icon name="arrow-right" class="w-3 h-3" /></span>
                       </a>
                     ))}
                   </div>
@@ -234,7 +316,7 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
               {/* Anfitriones del territorio */}
               {prop.anfitriones && prop.anfitriones.length > 0 && (
                 <div>
-                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3">👤 Anfitrión{prop.anfitriones.length > 1 ? 'es' : ''} que la ofrecen</h3>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3 inline-flex items-center gap-1"><Icon name="user" class="w-3.5 h-3.5" /> Anfitrión{prop.anfitriones.length > 1 ? 'es' : ''} que la ofrecen</h3>
                   <div class="grid sm:grid-cols-2 gap-3">
                     {prop.anfitriones.map((anf) => {
                       const foto = anf.foto_perfil_url || (anf.foto_perfil?.url ? strapiImage(anf.foto_perfil.url) : null);
@@ -243,13 +325,13 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
                           {foto ? (
                             <img src={foto} alt={anf.nombre} class="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" />
                           ) : (
-                            <div class="w-10 h-10 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-lg shrink-0">👤</div>
+                            <div class="w-10 h-10 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center shrink-0"><Icon name="user" class="w-5 h-5 text-[#1e3a5f]" /></div>
                           )}
                           <div class="flex-1 min-w-0">
                             <h4 class="text-sm font-bold text-[#1e3a5f] group-hover:text-[#52B788] transition-colors truncate">{anf.nombre}</h4>
                             <p class="text-[11px] text-gray-400">{anf.especialidad || 'Anfitrión del territorio'}{anf.nivel_escalafon ? ` · Nivel ${anf.nivel_escalafon}` : ''}</p>
                           </div>
-                          <span class="text-[10px] font-bold text-[#52B788] shrink-0">Ver perfil <i data-lucide="arrow-right" class="w-3 h-3"></i></span>
+                          <span class="text-[10px] font-bold text-[#52B788] shrink-0 inline-flex items-center gap-1">Ver perfil <Icon name="arrow-right" class="w-3 h-3" /></span>
                         </a>
                       );
                     })}
@@ -260,16 +342,16 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
               {/* Proveedores del Café */}
               {prop.proveedores && prop.proveedores.length > 0 && (
                 <div>
-                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3"><i data-lucide="coffee" class="w-3.5 h-3.5 inline"></i> Proveedor{prop.proveedores.length > 1 ? 'es' : ''} de Café</h3>
+                  <h3 class="text-xs font-bold uppercase text-gray-400 mb-3 inline-flex items-center gap-1"><Icon name="coffee" class="w-3.5 h-3.5" /> Proveedor{prop.proveedores.length > 1 ? 'es' : ''} de Café</h3>
                   <div class="grid sm:grid-cols-2 gap-3">
                     {prop.proveedores.map((prov) => (
                       <a href={`/cafe/proveedores#${prov.slug}`} class="group flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-[#6D4C41]/30 hover:shadow-lg transition-all">
-                        <i data-lucide="coffee" class="w-5 h-5 shrink-0 text-[#6D4C41]"></i>
+                        <Icon name="coffee" class="w-5 h-5 shrink-0 text-[#6D4C41]" />
                         <div class="flex-1 min-w-0">
                           <h4 class="text-sm font-bold text-[#6D4C41] group-hover:text-[#52B788] transition-colors truncate">{prov.nombre}</h4>
                           <p class="text-[11px] text-gray-400">{prov.producto || 'Proveedor'}{prov.ubicacion ? ` · ${prov.ubicacion}` : ''}</p>
                         </div>
-                        <span class="text-[10px] font-bold text-[#52B788] shrink-0"><i data-lucide="arrow-right" class="w-3 h-3"></i></span>
+                        <span class="text-[10px] font-bold text-[#52B788] shrink-0"><Icon name="arrow-right" class="w-3 h-3" /></span>
                       </a>
                     ))}
                   </div>
@@ -289,27 +371,17 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
             <div class="text-2xl font-bold text-[#122640] mb-1">{precio}</div>
             <p class="text-xs text-gray-400 mb-5">{tipo.label} · {modelo.label}</p>
 
-            {/* Date picker */}
-            <div class="grid grid-cols-2 gap-2 mb-4">
-              <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Llegada</label>
-                <input type="date" class="w-full rounded-lg border border-gray-200 px-2.5 py-2 text-sm text-[#122640] bg-[#f8f9fb] focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] outline-none" />
-              </div>
-              <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Salida</label>
-                <input type="date" class="w-full rounded-lg border border-gray-200 px-2.5 py-2 text-sm text-[#122640] bg-[#f8f9fb] focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] outline-none" />
-              </div>
-            </div>
-
             {prop.precio_noche ? (
-              <BookingWidget
+              <StayBookingWidget
                 client:load
                 recursoSlug={prop.slug}
                 recursoNombre={prop.titulo}
-                precioBase={prop.precio_noche || 0}
+                precioNoche={prop.precio_noche || 0}
                 capacidadMaxima={prop.capacidad_huespedes || 10}
-                requierePago={true}
-                origen="gestion"
+                origen="iwage_gestion"
+                initialCheckin={checkin || undefined}
+                initialCheckout={checkout || undefined}
+                initialHuespedes={huespedes ? Number(huespedes) : undefined}
               />
             ) : (
               <div class="space-y-3">
@@ -331,7 +403,7 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
             <h3 class="font-bold text-sm mb-3 text-[#52B788]">Modelo: {modelo.label}</h3>
             <p class="text-white/70 text-sm leading-relaxed">{modelo.desc}</p>
             <a href="/gestion/propietarios/modelo-alianzas" class="inline-block mt-4 text-xs font-bold text-[#52B788] hover:text-[#7fc4a2] transition-colors">
-              Conocer todos los modelos <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+              Conocer todos los modelos <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
             </a>
           </div>
 

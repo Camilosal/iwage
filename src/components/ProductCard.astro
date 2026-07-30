@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 interface Props {
   name: string;
   description: string;
@@ -16,15 +18,34 @@ interface Props {
   requierePago?: boolean;
   origen?: string;
   brand?: string;
+  /** Etiqueta de categoría para el badge de la card (p.ej. "Miel", "Cajas"). */
+  categoriaLabel?: string;
+  /** Número de variaciones de la familia. Con >1 la card muestra badge y CTA "Elegir". */
+  variaciones?: number;
+  /** Eje de variación (p.ej. "Presentación", "Tamaño") para el texto del badge. */
+  ejeVariacion?: string | null;
+  /** Muestra el precio como "Desde $X" (familias con varios precios). */
+  precioDesde?: boolean;
 }
-const { name, description, price, presentation, image, destacado = false, slug, precioComparativo, envioGratis = false, stockDisponible = true, recursoSlug, tipo = 'producto', tipoDisponibilidad = 'inmediato', requierePago = true, origen = 'iwage_meliponas', brand = 'meliponas' } = Astro.props;
+const { name, description, price, presentation, image, destacado = false, slug, precioComparativo, envioGratis = false, stockDisponible = true, recursoSlug, tipo = 'producto', tipoDisponibilidad = 'inmediato', requierePago = true, origen = 'iwage_meliponas', brand = 'meliponas', categoriaLabel, variaciones = 1, ejeVariacion = null, precioDesde = false } = Astro.props;
 const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 const formattedPrice = fmt.format(price);
 const descuento = precioComparativo ? Math.round((1 - price / precioComparativo) * 100) : null;
+const tieneVariaciones = variaciones > 1;
+const href = slug ? `/meliponas/tienda/${slug}` : undefined;
+
+/** Plural en minúsculas del eje de variación: Presentación → presentaciones, Tamaño → tamaños. */
+function pluralEje(eje: string | null): string {
+  const base = (eje ?? 'opción').toLowerCase();
+  if (base.endsWith('ón')) return base.slice(0, -2) + 'ones';
+  if (/[aeiouáéíóú]$/.test(base)) return base + 's';
+  return base + 'es';
+}
+const variacionesLabel = `${variaciones} ${pluralEje(ejeVariacion)}`;
 ---
 
-<div class="group bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-  <a href={slug ? `/meliponas/tienda/${slug}` : undefined} class="block">
+<div class="group h-full flex flex-col bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+  <a href={href} class="block">
     <div class="aspect-square overflow-hidden bg-surface-sunken relative">
       {image ? (
         <img
@@ -35,17 +56,29 @@ const descuento = precioComparativo ? Math.round((1 - price / precioComparativo)
         />
       ) : (
         <div class="w-full h-full flex items-center justify-center text-text-muted">
-          <i data-lucide="package" class="w-12 h-12"></i>
+                    <Icon name="package" class="w-12 h-12" />
         </div>
       )}
-      {destacado && (
-        <span class="absolute top-3 left-3 bg-accent text-white text-xs font-medium rounded-full px-3 py-1">
-          Destacado
-        </span>
-      )}
+      <div class="absolute top-3 left-3 flex flex-col items-start gap-1.5">
+        {destacado && (
+          <span class="bg-accent text-white text-xs font-medium rounded-full px-3 py-1">
+            Destacado
+          </span>
+        )}
+        {categoriaLabel && (
+          <span class="bg-surface-raised/90 backdrop-blur-sm text-text-secondary text-xs font-medium rounded-full px-3 py-1 border border-border">
+            {categoriaLabel}
+          </span>
+        )}
+      </div>
       {descuento && (
         <span class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1">
           -{descuento}%
+        </span>
+      )}
+      {tieneVariaciones && (
+        <span class="absolute bottom-3 left-3 bg-brand/90 backdrop-blur-sm text-white text-xs font-medium rounded-full px-3 py-1">
+          {variacionesLabel}
         </span>
       )}
       {!stockDisponible && (
@@ -55,42 +88,47 @@ const descuento = precioComparativo ? Math.round((1 - price / precioComparativo)
       )}
     </div>
   </a>
-  <div class="p-5">
-    <a href={slug ? `/meliponas/tienda/${slug}` : undefined} class="block">
-      <h3 class="text-base font-semibold text-text-primary mb-1 group-hover:text-brand transition-colors">{name}</h3>
+  <div class="p-5 flex flex-1 flex-col">
+    <a href={href} class="block">
+      <h3 class="text-base font-semibold text-text-primary leading-snug line-clamp-2 min-h-[2.75rem] mb-1 group-hover:text-brand transition-colors">{name}</h3>
     </a>
-    {presentation && (
-      <p class="text-xs text-text-muted mb-2">{presentation}</p>
-    )}
-    <p class="text-sm text-text-secondary leading-relaxed line-clamp-2 mb-3">{description}</p>
-    {envioGratis && (
-      <p class="text-xs text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
-        <i data-lucide="truck" class="w-3.5 h-3.5"></i> Envío gratis
-      </p>
-    )}
-    <div class="flex items-center justify-between">
-      <div class="flex items-baseline gap-2">
-        <span class="text-lg font-bold text-brand">{formattedPrice}</span>
+    <p class="text-xs text-text-muted mb-2 min-h-[1rem] truncate">{presentation ?? '\u00A0'}</p>
+    <p class="text-sm text-text-secondary leading-relaxed line-clamp-2 min-h-[2.875rem] mb-2">{description}</p>
+    <p class:list={["text-xs mb-3 flex items-center gap-1", envioGratis ? "text-green-600 dark:text-green-400" : "invisible"]}>
+      <Icon name="truck" class="w-3.5 h-3.5" /> Envío gratis
+    </p>
+    <div class="mt-auto">
+      <div class="flex items-baseline gap-2 flex-wrap min-h-[1.75rem] mb-3">
+        <span class="text-lg font-bold text-brand whitespace-nowrap">{precioDesde ? `Desde ${formattedPrice}` : formattedPrice}</span>
         {precioComparativo && (
-          <span class="text-sm text-text-muted line-through">{fmt.format(precioComparativo)}</span>
+          <span class="text-sm text-text-muted line-through whitespace-nowrap">{fmt.format(precioComparativo)}</span>
         )}
       </div>
-      <button
-        type="button"
-        class="add-to-cart bg-brand text-white text-sm font-medium rounded-full px-4 py-2 hover:bg-brand-light hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        data-name={name}
-        data-price={price}
-        data-slug={slug}
-        data-recurso-slug={recursoSlug}
-        data-tipo={tipo}
-        data-tipo-disponibilidad={tipoDisponibilidad}
-        data-requiere-pago={String(requierePago)}
-        data-origen={origen}
-        data-brand={brand}
-        disabled={!stockDisponible}
-      >
-        Agregar
-      </button>
+      {tieneVariaciones ? (
+        <a
+          href={href}
+          class="block w-full text-center bg-brand text-white text-sm font-medium rounded-full px-4 py-2 hover:bg-brand-light hover:scale-[1.02] transition-all"
+        >
+          Elegir
+        </a>
+      ) : (
+        <button
+          type="button"
+          class="add-to-cart block w-full text-center bg-brand text-white text-sm font-medium rounded-full px-4 py-2 hover:bg-brand-light hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          data-name={name}
+          data-price={price}
+          data-slug={slug}
+          data-recurso-slug={recursoSlug}
+          data-tipo={tipo}
+          data-tipo-disponibilidad={tipoDisponibilidad}
+          data-requiere-pago={String(requierePago)}
+          data-origen={origen}
+          data-brand={brand}
+          disabled={!stockDisponible}
+        >
+          Agregar
+        </button>
+      )}
     </div>
   </div>
 </div>

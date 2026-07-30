@@ -1,9 +1,12 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getExperienciaBySlug, getExperiencias, experienciaImagen, experienciaGaleria, anfitrionFoto, formatPrecioCOP, dificultadInfo, nivelInfo } from '@/lib/naturaleza';
 import { strapiImage } from '@/lib/strapi';
+import { tipoAlojamientoInfo } from '@/lib/gestion';
 import { getBrand } from '@/config/brands';
 import BookingWidget from '@/components/reservas/BookingWidget';
+import ComplementosSection from '@/components/shared/ComplementosSection.astro';
 
 const { slug } = Astro.params;
 const exp = await getExperienciaBySlug(slug!);
@@ -34,8 +37,38 @@ const widgetAnfitriones = (exp.anfitriones || []).map((host) => {
 // Reviews come from the primary host
 const resenas = primaryHost?.resenas || [];
 
+// Anfitriones ordenados por tarifa ascendente: la primera pestaña activa coincide con el "desde" del sidebar.
+const precioDeAnfitrion = (slug: string) =>
+  exp.anfitriones_data?.find((d) => d.anfitrion_id === slug)?.precio_personalizado ?? exp.precio_desde ?? 0;
+const anfitrionesOrdenados = [...(exp.anfitriones || [])].sort(
+  (a, b) => (precioDeAnfitrion(a.slug) || Infinity) - (precioDeAnfitrion(b.slug) || Infinity)
+);
+
+// Alojamientos reservables por noche (Gestión: renta corta u operación turística) vs otras propiedades gestionadas
+const alojamientosRecomendados = (exp.propiedades_gestion || []).filter(
+  (pg) => pg.precio_noche || pg.tipo_gestion === 'renta_corta' || pg.tipo_gestion === 'operacion_turistica'
+);
+const otrasGestion = (exp.propiedades_gestion || []).filter((pg) => !alojamientosRecomendados.includes(pg));
+
+// Normalizadores tolerantes: los datos históricos usan claves en inglés (title/question/price)
+// y los nuevos usan claves en español (nombre/pregunta/precio).
+const reqTexto = (req: string | { title?: string; desc?: string; iconName?: string }) =>
+  typeof req === 'string'
+    ? { titulo: req, desc: null as string | null, icono: null as string | null }
+    : { titulo: req?.title || '', desc: req?.desc || null, icono: req?.iconName || null };
+const faqTexto = (faq: { pregunta?: string; respuesta?: string; question?: string; answer?: string }) => ({
+  pregunta: faq.pregunta || faq.question || '',
+  respuesta: faq.respuesta || faq.answer || '',
+});
+const addonTexto = (a: { nombre?: string; precio?: number; title?: string; desc?: string; price?: string }) => ({
+  nombre: a.nombre || a.title || '',
+  desc: a.desc || null,
+  precio: typeof a.precio === 'number' ? `+${formatPrecioCOP(a.precio)}` : a.price || null,
+});
+const totalAdicionales = (exp.complementos?.length || 0) + (!exp.complementos?.length ? exp.optional_addons?.length || 0 : 0);
+
 // WhatsApp from brand config
-const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
+const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 const waReservar = `https://wa.me/${waPhone}?text=${encodeURIComponent(`Hola, quiero reservar: ${exp.titulo}`)}`;
 
 // Related experiences (same category, exclude current)
@@ -72,10 +105,10 @@ const jsonLd = {
 
       <!-- Quick Facts -->
       <div class="flex flex-wrap gap-6 mt-8 text-sm text-white/80">
-        {exp.duracion && <span>⏱ {exp.duracion}</span>}
-        {exp.ubicacion && <span>📍 {exp.ubicacion}</span>}
-        {exp.tiempo_desde_ciudad && <span>🚗 {exp.tiempo_desde_ciudad} desde {exp.ciudad_referencia || 'Ibagué'}</span>}
-        <span>👥 {exp.cupo_maximo_desc || '6-8 personas'}</span>
+        {exp.duracion && <span class="inline-flex items-center gap-1"><Icon name="timer" class="w-4 h-4" /> {exp.duracion}</span>}
+        {exp.ubicacion && <span class="inline-flex items-center gap-1"><Icon name="map-pin" class="w-4 h-4" /> {exp.ubicacion}</span>}
+        {exp.tiempo_desde_ciudad && <span class="inline-flex items-center gap-1"><Icon name="car" class="w-4 h-4" /> {exp.tiempo_desde_ciudad} desde {exp.ciudad_referencia || 'Ibagué'}</span>}
+        <span class="inline-flex items-center gap-1"><Icon name="users" class="w-4 h-4" /> {exp.cupo_maximo_desc || '6-8 personas'}</span>
         {exp.precio_desde && <span class="font-bold text-[#d4920a]">{formatPrecioCOP(exp.precio_desde)}</span>}
       </div>
     </div>
@@ -107,8 +140,8 @@ const jsonLd = {
           <div class="space-y-4">
             {exp.itinerario_sensorial.map((item, i) => (
               <div class="flex gap-4 p-4 rounded-xl bg-white border border-gray-100">
-                <div class="w-10 h-10 rounded-full bg-[#f8faf5] flex items-center justify-center text-lg shrink-0">
-                  {item.iconName || '🌿'}
+                <div class="w-10 h-10 rounded-full bg-[#f8faf5] flex items-center justify-center shrink-0">
+                  <Icon name={item.iconName || 'leaf'} class="w-5 h-5 text-[#4a7c23]" />
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
@@ -179,7 +212,7 @@ const jsonLd = {
       {(exp.tiempo_desde_ciudad || exp.estado_via || exp.ofrece_transporte) && (
         <section class="p-6 rounded-2xl bg-white border border-gray-100">
           <div class="flex items-center gap-2 mb-4">
-            <span class="text-xl">🚗</span>
+            <Icon name="car" class="w-5 h-5 text-[#2d5016]" />
             <h2 class="text-lg font-semibold text-[#1a3009]">Cómo llegar</h2>
           </div>
           <div class="grid sm:grid-cols-3 gap-4 mb-4">
@@ -203,7 +236,7 @@ const jsonLd = {
             )}
           </div>
           {exp.distancia_km && (
-            <p class="text-sm text-gray-600">📏 A {exp.distancia_km} de {exp.ciudad_referencia || 'Ibagué'}</p>
+            <p class="text-sm text-gray-600 inline-flex items-center gap-1"><Icon name="ruler" class="w-4 h-4" /> A {exp.distancia_km} de {exp.ciudad_referencia || 'Ibagué'}</p>
           )}
         </section>
       )}
@@ -217,14 +250,14 @@ const jsonLd = {
               item.tipo === 'video' ? (
                 <a href={item.url} target="_blank" rel="noopener" class="relative block w-full h-40 rounded-xl overflow-hidden group">
                   <div class="w-full h-full bg-[#0e1a08] flex items-center justify-center">
-                    <span class="text-3xl group-hover:scale-110 transition-transform">▶️</span>
+                    <span class="text-3xl group-hover:scale-110 transition-transform"><Icon name="play-circle" class="w-8 h-8 text-white" /></span>
                   </div>
                   <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.titulo || 'Video'}</span>
                 </a>
               ) : item.tipo === '360' ? (
                 <a href={item.url} target="_blank" rel="noopener" class="relative block w-full h-40 rounded-xl overflow-hidden group">
                   <div class="w-full h-full bg-[#1a3009] flex items-center justify-center">
-                    <span class="text-3xl group-hover:scale-110 transition-transform">🔄</span>
+                    <span class="text-3xl group-hover:scale-110 transition-transform"><Icon name="refresh-ccw" class="w-8 h-8 text-white" /></span>
                   </div>
                   <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.titulo || 'Tour 360°'}</span>
                 </a>
@@ -239,30 +272,77 @@ const jsonLd = {
       <!-- Requirements / What to bring -->
       {exp.requirements && exp.requirements.length > 0 && (
         <section class="p-6 rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10">
-          <h2 class="text-lg font-semibold text-[#1a3009] mb-3">🎒 Qué llevar</h2>
-          <ul class="grid sm:grid-cols-2 gap-2">
-            {exp.requirements.map((req) => (
-              <li class="flex items-start gap-2 text-sm text-gray-700">
-                <span class="text-[#4a7c23] mt-0.5">•</span> {req}
-              </li>
-            ))}
+          <h2 class="text-lg font-semibold text-[#1a3009] mb-3 inline-flex items-center gap-2"><Icon name="backpack" class="w-5 h-5 text-[#2d5016]" /> Qué llevar</h2>
+          <ul class="grid sm:grid-cols-2 gap-3">
+            {exp.requirements.map((req) => {
+              const r = reqTexto(req);
+              return (
+                <li class="flex items-start gap-2.5 text-sm text-gray-700">
+                  {r.icono ? (
+                    <Icon name={r.icono} class="w-4 h-4 text-[#4a7c23] mt-0.5 shrink-0" />
+                  ) : (
+                    <span class="text-[#4a7c23] mt-0.5">•</span>
+                  )}
+                  <span>
+                    <span class="font-medium text-[#1a3009]">{r.titulo}</span>
+                    {r.desc && <span class="block text-xs text-gray-500 mt-0.5">{r.desc}</span>}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
 
-      <!-- Optional Addons -->
-      {exp.optional_addons && exp.optional_addons.length > 0 && (
-        <section class="p-6 rounded-2xl bg-white border border-gray-100">
-          <h2 class="text-lg font-semibold text-[#1a3009] mb-3">✨ Complementa tu experiencia</h2>
-          <div class="space-y-2">
-            {exp.optional_addons.map((addon) => (
-              <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                <span class="text-sm text-gray-700">{addon.nombre}</span>
-                {addon.precio && <span class="text-sm font-bold text-[#2d5016]">+{formatPrecioCOP(addon.precio)}</span>}
+      <!-- Complementos / Adicionales — acordeón cerrado que invita a explorar -->
+      {totalAdicionales > 0 && (
+        <details class="group/adic rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+          <summary class="flex items-center justify-between gap-4 p-6 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-[#f8faf5]/70 transition-colors">
+            <div class="flex items-center gap-4">
+              <div class="w-11 h-11 rounded-xl bg-[#4a7c23]/10 flex items-center justify-center shrink-0">
+                <Icon name="sparkles" class="w-5 h-5 text-[#4a7c23]" />
               </div>
-            ))}
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#4a7c23]">Servicios adicionales</span>
+                <h2 class="text-xl lg:text-2xl font-light text-[#2d5016] leading-tight">Complementa tu experiencia</h2>
+                <p class="text-xs text-gray-500 mt-1">
+                  {totalAdicionales} {totalAdicionales === 1 ? 'complemento pensado' : 'complementos pensados'} para hacer tu ruta inolvidable — descúbrelos aquí
+                </p>
+              </div>
+            </div>
+            <span class="shrink-0 w-9 h-9 rounded-full border border-[#4a7c23]/20 flex items-center justify-center transition-transform group-open/adic:rotate-180">
+              <Icon name="chevron-down" class="w-4 h-4 text-[#4a7c23]" />
+            </span>
+          </summary>
+          <div class="px-6 pb-6 pt-1 border-t border-gray-50">
+            {exp.complementos && exp.complementos.length > 0 ? (
+              <ComplementosSection
+                complementos={exp.complementos}
+                origen="iwage_complementos"
+                brand="naturaleza"
+                parentNombre={exp.titulo}
+                titulo="Complementa tu experiencia"
+                sinEncabezado
+              />
+            ) : exp.optional_addons && exp.optional_addons.length > 0 ? (
+              <div class="space-y-2 pt-3">
+                {exp.optional_addons.map((addon) => {
+                  const a = addonTexto(addon);
+                  return (
+                    <div class="flex items-start justify-between gap-4 py-3 border-b border-gray-50 last:border-0">
+                      <div>
+                        <span class="text-sm font-medium text-[#1a3009]">{a.nombre}</span>
+                        {a.desc && <p class="text-xs text-gray-500 mt-0.5">{a.desc}</p>}
+                      </div>
+                      {a.precio && <span class="text-sm font-bold text-[#2d5016] whitespace-nowrap">{a.precio}</span>}
+                    </div>
+                  );
+                })}
+                <p class="text-[11px] text-gray-400 pt-2">Solicita estos adicionales al confirmar tu reserva por WhatsApp.</p>
+              </div>
+            ) : null}
           </div>
-        </section>
+        </details>
       )}
 
       <!-- Safety -->
@@ -286,7 +366,7 @@ const jsonLd = {
             {exp.iniciativas_impacto.map((ini) => (
               <div class="p-4 rounded-xl bg-white border border-gray-100">
                 <div class="flex items-center gap-2 mb-2">
-                  <span class="text-lg">{ini.icono || '🌱'}</span>
+                  <Icon name={ini.icono || 'sprout'} class="w-5 h-5 text-[#4a7c23]" />
                   <h3 class="font-semibold text-sm text-[#1a3009]">{ini.titulo}</h3>
                 </div>
                 {ini.descripcion && <p class="text-xs text-gray-600">{ini.descripcion}</p>}
@@ -302,12 +382,15 @@ const jsonLd = {
         <section>
           <h2 class="text-2xl font-light text-[#1a3009] mb-6">Preguntas frecuentes</h2>
           <div class="space-y-3">
-            {exp.faqs.map((faq) => (
-              <details class="group p-4 rounded-xl bg-white border border-gray-100">
-                <summary class="cursor-pointer font-medium text-sm text-[#1a3009] group-open:text-[#4a7c23]">{faq.pregunta}</summary>
-                <p class="mt-2 text-sm text-gray-600">{faq.respuesta}</p>
-              </details>
-            ))}
+            {exp.faqs.map((faq) => {
+              const f = faqTexto(faq);
+              return (
+                <details class="group p-4 rounded-xl bg-white border border-gray-100">
+                  <summary class="cursor-pointer font-medium text-sm text-[#1a3009] group-open:text-[#4a7c23]">{f.pregunta}</summary>
+                  <p class="mt-2 text-sm text-gray-600">{f.respuesta}</p>
+                </details>
+              );
+            })}
           </div>
         </section>
       )}
@@ -342,23 +425,55 @@ const jsonLd = {
           </div>
           <h2 class="text-2xl lg:text-3xl font-light text-[#1a3009] mb-2">Elige tu anfitrión</h2>
           <p class="text-sm text-gray-600 max-w-2xl mb-8">
-            Esta ruta puede vivirse de muchas formas: cada anfitrión le aporta su propia perspectiva, su enfoque y sus secretos del territorio. Elige con quién quieres caminar.
+            Esta ruta puede vivirse de muchas formas: cada anfitrión le aporta su propia perspectiva, su enfoque y sus secretos del territorio. Elige con quién quieres caminar y el precio se ajusta a su tarifa.
           </p>
 
-          <div class="space-y-6">
-            {exp.anfitriones.map((host) => {
+          <!-- Tabs: un anfitrión por pestaña; al seleccionar se actualiza el precio en toda la página -->
+          <div class="flex flex-wrap gap-3 mb-6" role="tablist" aria-label="Anfitriones de esta ruta">
+            {anfitrionesOrdenados.map((host, idx) => {
+              const precioHost = precioDeAnfitrion(host.slug);
+              return (
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === 0 ? 'true' : 'false'}
+                  data-host-tab={host.slug}
+                  data-precio={String(precioHost || '')}
+                  data-nombre={host.nombre}
+                  data-recurso={exp.slug}
+                  class:list={[
+                    'host-tab flex items-center gap-3 px-4 py-2.5 rounded-2xl border transition-all cursor-pointer',
+                    idx === 0
+                      ? 'bg-[#1a3009] border-[#1a3009] text-white shadow-md'
+                      : 'bg-white border-gray-200 text-[#1a3009] hover:border-[#4a7c23]/40',
+                  ]}
+                >
+                  <img src={anfitrionFoto(host)} alt={host.nombre} class="w-9 h-9 rounded-full object-cover border-2 border-white/40 shrink-0" loading="lazy" />
+                  <span class="text-left">
+                    <span class="block text-sm font-semibold leading-tight">{host.nombre.split(' ')[0]}</span>
+                    <span class:list={['host-tab-precio block text-[10px] font-bold', idx === 0 ? 'text-[#d4920a]' : 'text-[#4a7c23]']}>
+                      {precioHost ? `${formatPrecioCOP(precioHost)} / pers.` : 'Precio a consultar'}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div>
+            {anfitrionesOrdenados.map((host, idx) => {
               const j = exp.anfitriones_data?.find((d) => d.anfitrion_id === host.slug);
               const nivel = nivelInfo(host.nivel_escalafon);
               const precioHost = j?.precio_personalizado || null;
               return (
-                <div class="p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                <div data-host-panel={host.slug} role="tabpanel" class:list={['p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm', idx > 0 && 'hidden']}>
                   <div class="flex flex-col lg:flex-row gap-8">
                     <!-- Host identity -->
                     <div class="w-full lg:w-1/4 flex flex-col items-center text-center">
                       <div class="relative w-28 h-28 mb-4">
                         <img src={anfitrionFoto(host)} alt={host.nombre} class="w-full h-full object-cover rounded-full border-4 border-white shadow-xl" loading="lazy" />
-                        <div class="absolute -bottom-1 right-1 w-8 h-8 rounded-full bg-[#4a7c23] border-2 border-white shadow flex items-center justify-center text-sm">
-                          {nivel.icono}
+                        <div class="absolute -bottom-1 right-1 w-8 h-8 rounded-full bg-[#4a7c23] border-2 border-white shadow flex items-center justify-center">
+                          <Icon name={nivel.icono} class="w-4 h-4 text-white" />
                         </div>
                       </div>
                       <h3 class="text-lg font-semibold text-[#1a3009]">{host.nombre}</h3>
@@ -405,13 +520,13 @@ const jsonLd = {
                       <div class="grid md:grid-cols-2 gap-4 my-4">
                         {(j?.superpoder_en_esta_ruta || host.especialidad) && (
                           <div class="p-4 rounded-xl bg-[#f8faf5] border border-[#4a7c23]/10">
-                            <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#1a3009] mb-1">⭐ Su enfoque en esta ruta</h5>
+                            <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#1a3009] mb-1 inline-flex items-center gap-1"><Icon name="star" class="w-3 h-3 text-[#d4920a]" /> Su enfoque en esta ruta</h5>
                             <p class="text-xs text-gray-600 leading-relaxed">{j?.superpoder_en_esta_ruta || host.especialidad}</p>
                           </div>
                         )}
                         {(j?.momento_favorito_ruta || host.momento_favorito) && (
                           <div class="p-4 rounded-xl bg-[#0e1a08] text-white">
-                            <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#d4920a] mb-1">💚 Momento favorito</h5>
+                            <h5 class="text-[10px] font-bold uppercase tracking-wider text-[#d4920a] mb-1 inline-flex items-center gap-1"><Icon name="heart" class="w-3 h-3" /> Momento favorito</h5>
                             <p class="text-xs text-white/90 leading-relaxed italic">“{j?.momento_favorito_ruta || host.momento_favorito}”</p>
                           </div>
                         )}
@@ -439,59 +554,123 @@ const jsonLd = {
         </section>
       )}
 
-      <!-- Cross-brand Ecosystem Links -->
+      <!-- Cross-brand Ecosystem Links — acordeón cerrado con CTA hacia alojamientos -->
       {(exp.propiedades?.length || exp.propiedades_gestion?.length || exp.proveedores?.length) ? (
-        <section class="p-6 lg:p-8 rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10">
-          <div class="flex items-center gap-2 mb-6">
-            <span class="w-6 h-[1px] bg-[#d4920a]"></span>
-            <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Ecosistema Iwagé</span>
+        <details class="group/eco rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10 overflow-hidden">
+          <summary class="flex items-center justify-between gap-4 p-6 lg:p-8 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-[#4a7c23]/5 transition-colors">
+            <div class="flex items-center gap-4">
+              <div class="w-11 h-11 rounded-xl bg-[#d4920a]/10 flex items-center justify-center shrink-0">
+                <Icon name="map" class="w-5 h-5 text-[#d4920a]" />
+              </div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4920a]">Ecosistema Iwagé</span>
+                <h2 class="text-xl lg:text-2xl font-light text-[#1a3009] leading-tight">Este territorio puede ser tuyo</h2>
+                <p class="text-xs text-gray-500 mt-1">
+                  {alojamientosRecomendados.length > 0
+                    ? 'Alojamientos para quedarte, predios en venta y aliados de la ruta — ábrelo y descubre cómo vivir el territorio completo'
+                    : 'Predios en venta, propiedades gestionadas y aliados de la ruta — ábrelo y descubre cómo vivir el territorio completo'}
+                </p>
+              </div>
+            </div>
+            <span class="shrink-0 w-9 h-9 rounded-full border border-[#d4920a]/30 flex items-center justify-center transition-transform group-open/eco:rotate-180">
+              <Icon name="chevron-down" class="w-4 h-4 text-[#d4920a]" />
+            </span>
+          </summary>
+          <div class="px-6 lg:px-8 pb-6 lg:pb-8 border-t border-[#4a7c23]/10 pt-6">
+            <p class="text-sm text-gray-600 max-w-2xl mb-6">
+              Tu anfitrión es el embajador que te abre la puerta: te conecta con alojamientos para prolongar tu estadía, con predios en venta auditados por Iwagé Tierras y con la administración de Iwagé Gestión para que la tierra que te enamoró siga viva y productiva.
+            </p>
+
+            {/* Alojamientos recomendados: quédate a dormir cerca de la ruta */}
+            {alojamientosRecomendados.length > 0 && (
+              <div class="mb-8">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-[#2d5016] inline-flex items-center gap-2 mb-1">
+                  <Icon name="bed-double" class="w-4 h-4 text-[#4a7c23]" /> Alojamientos recomendados
+                </h3>
+                <p class="text-xs text-gray-500 mb-4">Quédate a dormir cerca de la ruta y despierta en el territorio que recorriste.</p>
+                <div class="grid sm:grid-cols-2 gap-4">
+                  {alojamientosRecomendados.map((pg) => {
+                    const tipo = pg.tipo_alojamiento ? tipoAlojamientoInfo(pg.tipo_alojamiento) : null;
+                    return (
+                      <a href={`/gestion/propiedades/${pg.slug}`} class="aloja-card block p-5 rounded-xl bg-white border border-gray-100 hover:border-[#4a7c23]/40 hover:shadow-md transition-all">
+                        <div class="flex items-center gap-2 mb-3">
+                          <span class="w-9 h-9 rounded-lg bg-[#4a7c23]/10 flex items-center justify-center shrink-0">
+                            <Icon name={tipo?.icon || 'bed-double'} class="w-4 h-4 text-[#4a7c23]" />
+                          </span>
+                          <span class="text-[9px] font-bold uppercase tracking-wider text-[#4a7c23] bg-[#4a7c23]/5 px-2 py-0.5 rounded-full">{tipo?.label || 'Alojamiento'}</span>
+                        </div>
+                        <h4 class="text-sm font-semibold text-[#1a3009] line-clamp-2">{pg.titulo}</h4>
+                        <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-gray-500">
+                          {pg.ubicacion_municipio && <span class="inline-flex items-center gap-1"><Icon name="map-pin" class="w-3 h-3" /> {pg.ubicacion_municipio}</span>}
+                          {pg.capacidad_huespedes && <span class="inline-flex items-center gap-1"><Icon name="users" class="w-3 h-3" /> Hasta {pg.capacidad_huespedes} huéspedes</span>}
+                        </div>
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
+                          {pg.precio_noche ? (
+                            <span class="text-sm font-bold text-[#2d5016]">{formatPrecioCOP(pg.precio_noche)} <span class="text-[10px] font-normal text-gray-400">/ noche</span></span>
+                          ) : (
+                            <span class="text-[10px] text-gray-400">Tarifa a consultar</span>
+                          )}
+                          <span class="text-[10px] font-bold text-[#d4920a]">Reservar estadía →</span>
+                        </div>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* CTA claro hacia el catálogo completo de alojamientos */}
+            <a
+              href="/gestion/alojamientos"
+              class="flex items-center justify-center gap-2 w-full sm:w-auto sm:inline-flex px-8 py-3.5 mb-8 rounded-xl bg-[#2d5016] text-white text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-[#4a7c23] transition-colors"
+            >
+              <Icon name="bed-double" class="w-4 h-4" /> Explorar todos los alojamientos
+              <Icon name="arrow-right" class="w-4 h-4" />
+            </a>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Properties for sale (Tierras) */}
+              {exp.propiedades?.map((prop) => (
+                <a href={`/tierras/propiedades/${prop.slug}`} class="eco-card block p-4 rounded-xl bg-white border border-gray-100 hover:border-[#1B4332]/30 hover:shadow-md transition-all">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg"><Icon name="home" class="w-5 h-5 text-[#1B4332]" /></span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-[#1B4332] bg-[#1B4332]/5 px-2 py-0.5 rounded-full">En venta · Tierras</span>
+                  </div>
+                  <h3 class="text-sm font-semibold text-[#1a3009] line-clamp-2">{prop.titulo}</h3>
+                  {prop.ubicacion_municipio && <p class="text-[10px] text-gray-500 mt-1 inline-flex items-center gap-1"><Icon name="map-pin" class="w-3 h-3" /> {prop.ubicacion_municipio}</p>}
+                  {prop.precio && <p class="text-xs font-bold text-[#2d5016] mt-2">{formatPrecioCOP(prop.precio)}</p>}
+                  <span class="inline-block mt-2 text-[10px] font-bold text-[#4a7c23]">Ver propiedad →</span>
+                </a>
+              ))}
+              {/* Managed properties (Gestión) que no son alojamientos reservables */}
+              {otrasGestion.map((pg) => (
+                <a href={`/gestion/propiedades/${pg.slug}`} class="eco-card block p-4 rounded-xl bg-white border border-gray-100 hover:border-[#2d5a8f]/30 hover:shadow-md transition-all">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg"><Icon name="key-round" class="w-5 h-5 text-[#2d5a8f]" /></span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-[#2d5a8f] bg-[#2d5a8f]/5 px-2 py-0.5 rounded-full">Gestionada · Gestión</span>
+                  </div>
+                  <h3 class="text-sm font-semibold text-[#1a3009] line-clamp-2">{pg.titulo}</h3>
+                  {pg.ubicacion_municipio && <p class="text-[10px] text-gray-500 mt-1 inline-flex items-center gap-1"><Icon name="map-pin" class="w-3 h-3" /> {pg.ubicacion_municipio}</p>}
+                  {pg.tipo_gestion && <p class="text-[10px] text-gray-400 mt-1 capitalize">{pg.tipo_gestion.replace(/_/g, ' ')}</p>}
+                  <span class="inline-block mt-2 text-[10px] font-bold text-[#2d5a8f]">Ver gestión →</span>
+                </a>
+              ))}
+              {/* Café suppliers */}
+              {exp.proveedores?.map((prov) => (
+                <a href={`/cafe/proveedores#${prov.slug}`} class="eco-card block p-4 rounded-xl bg-white border border-gray-100 hover:border-[#6F4E37]/30 hover:shadow-md transition-all">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg"><Icon name="coffee" class="w-5 h-5 text-[#6F4E37]" /></span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-[#6F4E37] bg-[#6F4E37]/5 px-2 py-0.5 rounded-full">Proveedor · Café</span>
+                  </div>
+                  <h3 class="text-sm font-semibold text-[#1a3009]">{prov.nombre}</h3>
+                  {prov.producto && <p class="text-[10px] text-gray-500 mt-1">{prov.producto}</p>}
+                  {prov.ubicacion && <p class="text-[10px] text-gray-400 mt-0.5 inline-flex items-center gap-1"><Icon name="map-pin" class="w-3 h-3" /> {prov.ubicacion}</p>}
+                  <span class="inline-block mt-2 text-[10px] font-bold text-[#6F4E37]">Conocer proveedor →</span>
+                </a>
+              ))}
+            </div>
           </div>
-          <h2 class="text-xl font-light text-[#1a3009] mb-2">Este territorio puede ser tuyo</h2>
-          <p class="text-sm text-gray-600 max-w-2xl mb-6">
-            Tu anfitrión es el embajador que te abre la puerta: te conecta con predios en venta auditados por Iwagé Tierras y con la administración de Iwagé Gestión para que la tierra que te enamoró siga viva y productiva.
-          </p>
-          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Properties for sale (Tierras) */}
-            {exp.propiedades?.map((prop) => (
-              <a href={`/tierras/propiedades/${prop.slug}`} class="group p-4 rounded-xl bg-white border border-gray-100 hover:border-[#1B4332]/30 hover:shadow-md transition-all">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-lg">🏡</span>
-                  <span class="text-[9px] font-bold uppercase tracking-wider text-[#1B4332] bg-[#1B4332]/5 px-2 py-0.5 rounded-full">En venta · Tierras</span>
-                </div>
-                <h3 class="text-sm font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors line-clamp-2">{prop.titulo}</h3>
-                {prop.ubicacion_municipio && <p class="text-[10px] text-gray-500 mt-1">📍 {prop.ubicacion_municipio}</p>}
-                {prop.precio && <p class="text-xs font-bold text-[#2d5016] mt-2">{formatPrecioCOP(prop.precio)}</p>}
-                <span class="inline-block mt-2 text-[10px] font-bold text-[#4a7c23]">Ver propiedad →</span>
-              </a>
-            ))}
-            {/* Managed properties (Gestión) */}
-            {exp.propiedades_gestion?.map((pg) => (
-              <a href={`/gestion/propiedades/${pg.slug}`} class="group p-4 rounded-xl bg-white border border-gray-100 hover:border-[#2d5a8f]/30 hover:shadow-md transition-all">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-lg">🔑</span>
-                  <span class="text-[9px] font-bold uppercase tracking-wider text-[#2d5a8f] bg-[#2d5a8f]/5 px-2 py-0.5 rounded-full">Gestionada · Gestión</span>
-                </div>
-                <h3 class="text-sm font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors line-clamp-2">{pg.titulo}</h3>
-                {pg.ubicacion_municipio && <p class="text-[10px] text-gray-500 mt-1">📍 {pg.ubicacion_municipio}</p>}
-                {pg.tipo_gestion && <p class="text-[10px] text-gray-400 mt-1 capitalize">{pg.tipo_gestion.replace(/_/g, ' ')}</p>}
-                <span class="inline-block mt-2 text-[10px] font-bold text-[#2d5a8f]">Ver gestión →</span>
-              </a>
-            ))}
-            {/* Café suppliers */}
-            {exp.proveedores?.map((prov) => (
-              <a href={`/cafe/proveedores#${prov.slug}`} class="group p-4 rounded-xl bg-white border border-gray-100 hover:border-[#6F4E37]/30 hover:shadow-md transition-all">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-lg">☕</span>
-                  <span class="text-[9px] font-bold uppercase tracking-wider text-[#6F4E37] bg-[#6F4E37]/5 px-2 py-0.5 rounded-full">Proveedor · Café</span>
-                </div>
-                <h3 class="text-sm font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors">{prov.nombre}</h3>
-                {prov.producto && <p class="text-[10px] text-gray-500 mt-1">{prov.producto}</p>}
-                {prov.ubicacion && <p class="text-[10px] text-gray-400 mt-0.5">📍 {prov.ubicacion}</p>}
-                <span class="inline-block mt-2 text-[10px] font-bold text-[#6F4E37]">Conocer proveedor →</span>
-              </a>
-            ))}
-          </div>
-        </section>
+        </details>
       ) : null}
 
       <!-- Territory Opportunity + Final CTA -->
@@ -506,7 +685,7 @@ const jsonLd = {
             target="_blank" rel="noopener"
             class="px-8 py-3 rounded-xl bg-[#d4920a] text-[#0e1a08] text-sm font-bold hover:bg-[#e5a50b] transition-colors"
           >
-            💬 Reservar ahora
+            <Icon name="message-circle" class="w-4 h-4" /> Reservar ahora
           </a>
           <a href="/naturaleza/experiencias" class="px-8 py-3 rounded-xl border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors">
             Ver más experiencias
@@ -520,8 +699,8 @@ const jsonLd = {
       <!-- Booking Card -->
       <div class="sticky top-24 p-6 rounded-2xl bg-white shadow-lg border border-gray-100">
         <div class="text-center mb-4">
-          <span class="text-3xl font-bold text-[#2d5016]">{formatPrecioCOP(exp.precio_desde)}</span>
-          <p class="text-xs text-gray-500 mt-1">por persona</p>
+          <span class="text-3xl font-bold text-[#2d5016]" data-precio-dinamico>{formatPrecioCOP(exp.precio_desde)}</span>
+          <p class="text-xs text-gray-500 mt-1" data-precio-nota>por persona</p>
         </div>
         <div class="space-y-2 text-xs text-gray-600 mb-6">
           <div class="flex justify-between"><span>Duración</span><span class="font-medium">{exp.duracion || '4-5 horas'}</span></div>
@@ -552,12 +731,12 @@ const jsonLd = {
             rel="noopener"
             class="block w-full py-2.5 rounded-xl border border-[#2d5016]/20 text-[#2d5016] text-center text-xs font-bold uppercase tracking-wider hover:bg-[#2d5016]/5 transition-colors"
           >
-            💬 Reservar por WhatsApp
+            <Icon name="message-circle" class="w-4 h-4" /> Reservar por WhatsApp
           </a>
         </div>
         {exp.porcentaje_fondo_impacto && (
           <p class="text-[10px] text-gray-400 text-center mt-3">
-            🌱 El {exp.porcentaje_fondo_impacto}% va al fondo de restauración
+            <Icon name="sprout" class="w-4 h-4 inline align-[-2px] mr-1 text-[#4a7c23]" /> El {exp.porcentaje_fondo_impacto}% va al fondo de restauración
           </p>
         )}
       </div>
@@ -574,7 +753,7 @@ const jsonLd = {
                   <img src={anfitrionFoto(host)} alt={host.nombre} class="w-10 h-10 rounded-full object-cover" loading="lazy" />
                   <div>
                     <span class="text-sm font-medium text-[#1a3009] group-hover:text-[#4a7c23]">{host.nombre}</span>
-                    <span class="block text-[10px] text-gray-500">{nivel.icono} {nivel.nombre}</span>
+                    <span class="block text-[10px] text-gray-500"><Icon name={nivel.icono} class="w-3 h-3 inline" /> {nivel.nombre}</span>
                   </div>
                 </a>
               );
@@ -588,9 +767,9 @@ const jsonLd = {
         <div class="p-6 rounded-2xl bg-white border border-gray-100">
           <h3 class="text-sm font-bold text-[#2d5016] mb-3">Explora en línea</h3>
           <div class="space-y-2">
-            {exp.video_url && <a href={exp.video_url} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline">🎬 Ver video</a>}
-            {exp.tour_360_url && <a href={exp.tour_360_url} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline">🔄 Tour 360°</a>}
-            {exp.link_drone && <a href={exp.link_drone} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline">🚁 Vista de dron</a>}
+            {exp.video_url && <a href={exp.video_url} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline inline-flex items-center gap-1"><Icon name="video" class="w-3.5 h-3.5" /> Ver video</a>}
+            {exp.tour_360_url && <a href={exp.tour_360_url} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline inline-flex items-center gap-1"><Icon name="refresh-ccw" class="w-3.5 h-3.5" /> Tour 360°</a>}
+            {exp.link_drone && <a href={exp.link_drone} target="_blank" rel="noopener" class="block text-xs text-[#4a7c23] hover:underline inline-flex items-center gap-1"><Icon name="helicopter" class="w-3.5 h-3.5" /> Vista de dron</a>}
           </div>
         </div>
       )}
@@ -609,8 +788,8 @@ const jsonLd = {
         {exp.paquetes_upsell.map((bundle) => (
           <div class="p-6 rounded-2xl bg-[#f8faf5] border border-[#4a7c23]/10">
             <div class="flex flex-wrap items-center gap-3 text-[10px] font-bold text-[#d4920a] uppercase tracking-wider mb-2">
-              {bundle.duration && <span>📅 {bundle.duration}</span>}
-              <span>⛺ Todo armado</span>
+              {bundle.duration && <span class="inline-flex items-center gap-1"><Icon name="calendar" class="w-3 h-3" /> {bundle.duration}</span>}
+              <span class="inline-flex items-center gap-1"><Icon name="tent" class="w-3 h-3" /> Todo armado</span>
             </div>
             <h3 class="text-xl font-semibold text-[#1a3009] mb-1">{bundle.title}</h3>
             {bundle.tagline && <p class="text-sm text-gray-600 italic mb-4">{bundle.tagline}</p>}
@@ -669,10 +848,10 @@ const jsonLd = {
                 <span class="absolute top-3 left-3 bg-white/90 text-[#1a3009] text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">{rel.categoria}</span>
               </div>
               <div class="p-4 flex flex-col flex-grow">
-                {rel.ubicacion && <p class="text-[9px] font-bold uppercase tracking-wider text-[#d4920a] mb-1">📍 {rel.ubicacion}</p>}
+                {rel.ubicacion && <p class="text-[9px] font-bold uppercase tracking-wider text-[#d4920a] mb-1 inline-flex items-center gap-1"><Icon name="map-pin" class="w-3 h-3" /> {rel.ubicacion}</p>}
                 <h3 class="font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors">{rel.titulo}</h3>
                 <div class="mt-auto pt-3 border-t border-gray-50 flex items-center gap-2 text-[10px] text-gray-400">
-                  {rel.tiempo_desde_ciudad && <span>⏱ {rel.tiempo_desde_ciudad}</span>}
+                  {rel.tiempo_desde_ciudad && <span class="inline-flex items-center gap-1"><Icon name="timer" class="w-3 h-3" /> {rel.tiempo_desde_ciudad}</span>}
                   {rel.precio_desde && <span class="ml-auto font-bold text-[#2d5016]">{formatPrecioCOP(rel.precio_desde)}</span>}
                 </div>
               </div>
@@ -687,7 +866,7 @@ const jsonLd = {
   <div class="fixed bottom-0 left-0 right-0 z-50 p-3 bg-white/95 backdrop-blur-md border-t border-gray-200 lg:hidden">
     <div class="flex items-center justify-between max-w-lg mx-auto">
       <div>
-        <span class="text-lg font-bold text-[#2d5016]">{formatPrecioCOP(exp.precio_desde)}</span>
+        <span class="text-lg font-bold text-[#2d5016]" data-precio-dinamico>{formatPrecioCOP(exp.precio_desde)}</span>
         <span class="text-xs text-gray-400 ml-1">/ persona</span>
       </div>
       <a
@@ -701,19 +880,69 @@ const jsonLd = {
   </div>
   <!-- Pre-select anfitrión bridge (vanilla JS → React island) -->
   <script>
+    const dispatchPreselect = (recursoSlug: string | null, anfitrionSlug: string | null) => {
+      const dispatch = () =>
+        document.dispatchEvent(
+          new CustomEvent('iwage:preselect-anfitrion', { detail: { recursoSlug, anfitrionSlug } })
+        );
+      dispatch();
+      // Retry once in case the React island has not hydrated yet.
+      setTimeout(dispatch, 700);
+    };
+
     document.querySelectorAll('[data-preselect-anfitrion]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const anfitrionSlug = btn.getAttribute('data-preselect-anfitrion');
         const recursoSlug = btn.getAttribute('data-recurso');
         const widget = document.getElementById('booking-widget');
         if (widget) widget.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        const dispatch = () =>
-          document.dispatchEvent(
-            new CustomEvent('iwage:preselect-anfitrion', { detail: { recursoSlug, anfitrionSlug } })
-          );
-        dispatch();
-        // Retry once in case the React island has not hydrated yet.
-        setTimeout(dispatch, 700);
+        dispatchPreselect(recursoSlug, anfitrionSlug);
+      });
+    });
+
+    // Tabs de anfitriones: activa el panel, sincroniza el precio visible y preselecciona en el widget.
+    const fmtCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    const TAB_ACTIVE = ['bg-[#1a3009]', 'border-[#1a3009]', 'text-white', 'shadow-md'];
+    const TAB_INACTIVE = ['bg-white', 'border-gray-200', 'text-[#1a3009]', 'hover:border-[#4a7c23]/40'];
+    const tabs = document.querySelectorAll<HTMLButtonElement>('[data-host-tab]');
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const slug = tab.getAttribute('data-host-tab');
+        if (!slug) return;
+
+        // Estado visual de las pestañas
+        tabs.forEach((t) => {
+          const activo = t === tab;
+          t.setAttribute('aria-selected', activo ? 'true' : 'false');
+          t.classList.remove(...(activo ? TAB_INACTIVE : TAB_ACTIVE));
+          t.classList.add(...(activo ? TAB_ACTIVE : TAB_INACTIVE));
+          const precioSpan = t.querySelector('.host-tab-precio');
+          if (precioSpan) {
+            precioSpan.classList.toggle('text-[#d4920a]', activo);
+            precioSpan.classList.toggle('text-[#4a7c23]', !activo);
+          }
+        });
+
+        // Panel visible
+        document.querySelectorAll<HTMLElement>('[data-host-panel]').forEach((panel) => {
+          panel.classList.toggle('hidden', panel.getAttribute('data-host-panel') !== slug);
+        });
+
+        // Precio dinámico en sidebar y barra móvil
+        const precio = Number(tab.getAttribute('data-precio') || '');
+        const nombre = (tab.getAttribute('data-nombre') || '').split(' ')[0];
+        if (precio > 0) {
+          document.querySelectorAll('[data-precio-dinamico]').forEach((el) => {
+            el.textContent = fmtCOP.format(precio);
+          });
+          document.querySelectorAll('[data-precio-nota]').forEach((el) => {
+            el.textContent = nombre ? `por persona · con ${nombre}` : 'por persona';
+          });
+        }
+
+        // Sincroniza el widget de reservas (sin hacer scroll)
+        dispatchPreselect(tab.getAttribute('data-recurso'), slug);
       });
     });
   </script>

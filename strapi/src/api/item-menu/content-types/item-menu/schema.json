@@ -25,6 +25,9 @@
     "orden": { "type": "integer", "default": 0 },
     "disponible": { "type": "boolean", "default": true },
     "temporada": { "type": "boolean", "default": false },
-    "nota_disponibilidad": { "type": "string" }
+    "nota_disponibilidad": { "type": "string" },
+    "familia": { "type": "string" },
+    "etiqueta_variacion": { "type": "string", "maxLength": 40 },
+    "eje_variacion": { "type": "string", "maxLength": 40 }
   }
 }

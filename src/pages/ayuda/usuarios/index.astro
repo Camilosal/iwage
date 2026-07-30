@@ -1,0 +1,44 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Guías para Usuarios';
+const description = 'Aprende a navegar el ecosistema Iwagé, hacer reservas, comprar productos y gestionar tu cuenta.';
+
+const articles = [
+  { label: 'Explorar la plataforma', href: '/ayuda/usuarios/explorar-plataforma', desc: 'Descubre cómo navegar el sitio, usar la búsqueda global, cambiar entre modo claro y oscuro, y moverte entre las marcas del ecosistema.' },
+  { label: 'Nuestras marcas', href: '/ayuda/usuarios/marcas', desc: 'Conoce las 5 líneas de acción: Meliponario, Café, Tierras, Naturaleza y Gestión. Cada una con su propio sitio, productos y experiencias.' },
+  { label: 'Tienda y productos', href: '/ayuda/usuarios/tienda', desc: 'Cómo explorar el catálogo de productos, ver detalles, agregar al carrito y completar tu compra de miel, cajas, kits y más.' },
+  { label: 'Reservas y experiencias', href: '/ayuda/usuarios/reservas', desc: 'Aprende a reservar experiencias de turismo regenerativo y estadías en propiedades del corredor Ambalá. Disponibilidad en tiempo real y pago en línea.' },
+  { label: 'Carrito de compras', href: '/ayuda/usuarios/carrito', desc: 'El carrito unificado te permite combinar productos, experiencias y reservas de diferentes marcas en un solo checkout.' },
+  { label: 'Mi Cuenta (portal)', href: '/ayuda/usuarios/mi-cuenta', desc: 'Accede a tu portal personal en reservas.iwage.co para ver tus reservas, pedidos, perfil y liquidaciones (si eres aliado).' },
+  { label: 'Pedidos y pagos', href: '/ayuda/usuarios/pedidos', desc: 'Seguimiento de pedidos, métodos de pago disponibles (Bold, WhatsApp, transferencia) y cómo funciona la confirmación.' },
+  { label: 'Herramientas y calculadoras', href: '/ayuda/usuarios/herramientas', desc: 'Calculadora ROI, evaluador VAP, calculadora notarial, chat con IA y búsqueda semántica en todo el sitio.' },
+];
+---
+
+<WikiLayout title={title} description={description} activePath="/ayuda/usuarios">
+  <Fragment slot="breadcrumb">
+    <span class="text-text-primary">Usuarios</span>
+  </Fragment>
+
+  <header class="mb-10">
+    <h1 class="text-3xl font-extrabold tracking-tight text-text-primary">Guías para Usuarios</h1>
+    <p class="mt-3 text-base text-text-secondary leading-relaxed max-w-2xl">
+      Todo lo que necesitas para aprovechar al máximo la plataforma Iwagé como visitante o cliente: navegar, reservar, comprar y gestionar tu cuenta.
+    </p>
+  </header>
+
+  <div class="grid gap-4">
+    {articles.map((a, i) => (
+      <a href={a.href} class="group flex items-start gap-4 p-5 rounded-xl border border-border bg-surface-raised hover:border-brand/40 hover:shadow-md transition-all">
+        <div class="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center shrink-0 text-sm font-bold text-brand">
+          {i + 1}
+        </div>
+        <div>
+          <h2 class="text-base font-semibold text-text-primary group-hover:text-brand transition-colors">{a.label}</h2>
+          <p class="mt-1 text-sm text-text-secondary leading-relaxed">{a.desc}</p>
+        </div>
+      </a>
+    ))}
+  </div>
+</WikiLayout>

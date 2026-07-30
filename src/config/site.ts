@@ -5,7 +5,7 @@ export const SITE = {
   url: process.env.APP_URL || 'https://iwage.co',
   description:
     'Centro de meliponicultura en Ibagué, Tolima. Miel de Angelita pura, cajas tecnificadas INPA/AF, proyectos de impacto y polinización asistida.',
-  whatsapp: '+573001234567', // TODO: replace with real number
+  whatsapp: '+573026693366',
   email: 'hola@iwage.co',
   instagram: '@iwage.meliponario',
   location: 'Corredor Ambalá, Ibagué, Tolima',
@@ -24,7 +24,7 @@ export const NAV_LINKS: NavItem[] = [
     children: [
       { label: 'Panel de Herramientas', href: '/meliponas/herramientas' },
       { label: 'Trazabilidad', href: '/meliponas/trazabilidad' },
-      { label: 'Modelador Financiero Pro', href: SIMULADOR_URL, external: true },
+      { label: 'Modelador Técnico Financiero ↗', href: SIMULADOR_URL, external: true },
       { label: 'Intranet de Planeación', href: INTRANET_URL, external: true },
     ],
   },
@@ -34,7 +34,8 @@ export const NAV_LINKS: NavItem[] = [
     children: [
       { label: 'Bitácora', href: '/meliponas/bitacora' },
       { label: 'Quiénes Somos', href: '/meliponas/nosotros' },
-      { label: 'Ayuda', href: '/meliponas/ayuda' },
+      { label: 'Ayuda', href: '/ayuda/' },
+      { label: 'Legal y Políticas', href: '/legal/' },
       { label: 'Contacto', href: '/meliponas/contacto' },
     ],
   },
@@ -89,7 +90,7 @@ export const SEO = {
   herramientas: {
     title: 'Herramientas del Meliponario · Trazabilidad, Modelador Pro e Intranet · Iwagé',
     description:
-      'Panel de herramientas del meliponario Iwagé: sistema de trazabilidad (miel, cajas IoT y polinización), Modelador Financiero Pro y la Intranet de planeación del ecosistema.',
+      'Panel de herramientas del meliponario Iwagé: sistema de trazabilidad (miel, cajas IoT y polinización), Modelador Técnico Financiero ↗ y la Intranet de planeación del ecosistema.',
   },
   bitacora: {
     title: 'Bitácora del Meliponario · Conocimiento abierto · Iwagé',

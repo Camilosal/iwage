@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 export const prerender = true;
 ---
 
@@ -58,7 +59,7 @@ export const prerender = true;
         <div class="lg:col-span-2">
           <!-- Empty state -->
           <div id="empty-state" class="bg-white rounded-2xl p-12 border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center min-h-[400px]">
-            <span class="text-5xl mb-4">📋</span>
+            <Icon name="clipboard-list" class="w-12 h-12 mb-4 text-[#52B788]" />
             <h3 class="text-lg font-bold text-[#1B4332] mb-2">Ingresa el valor del inmueble</h3>
             <p class="text-gray-500 text-sm max-w-xs">Haz clic en "Calcular Gastos" para ver el desglose completo de costos para comprador y vendedor.</p>
           </div>

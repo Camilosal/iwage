@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 interface Props {
   icon: string;
   title: string;
@@ -13,14 +15,14 @@ const { icon, title, description, href } = Astro.props;
   class="group block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
 >
   <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center mb-4 text-brand group-hover:bg-brand group-hover:text-white transition-colors duration-300">
-    <i data-lucide={icon} class="w-6 h-6"></i>
+    <Icon name={icon} class="w-6 h-6" />
   </div>
   <h3 class="text-lg font-semibold text-text-primary mb-2">{title}</h3>
   <p class="text-sm text-text-secondary leading-relaxed">{description}</p>
   {href && (
     <span class="inline-flex items-center gap-1 mt-4 text-sm font-medium text-brand group-hover:gap-2 transition-all">
       Explorar
-      <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      <Icon name="arrow-right" class="w-4 h-4" />
     </span>
   )}
 </a>

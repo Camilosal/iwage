@@ -1,5 +1,6 @@
 ---
 import { TIPOS_PROPIEDAD, PERFILES_COMPRADOR } from '@/lib/tierras';
+import Icon from '@/components/shared/Icon.astro';
 
 interface Props {
   currentTipo?: string;
@@ -103,13 +104,13 @@ const AREAS = [
         <label class="cursor-pointer flex-1">
           <input type="radio" name="operacion" value="venta" checked={currentOperacion === 'venta'} class="peer hidden" />
           <span class="block text-center px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 text-gray-500 peer-checked:bg-[#1B4332] peer-checked:text-white peer-checked:border-[#1B4332] hover:border-[#52B788] transition-all">
-            <i data-lucide="wallet" class="w-3.5 h-3.5 inline"></i> Venta
+            <Icon name="wallet" class="w-3.5 h-3.5 inline" /> Venta
           </span>
         </label>
         <label class="cursor-pointer flex-1">
           <input type="radio" name="operacion" value="arriendo" checked={currentOperacion === 'arriendo'} class="peer hidden" />
           <span class="block text-center px-3 py-2 rounded-lg text-xs font-bold border border-gray-200 text-gray-500 peer-checked:bg-[#1B4332] peer-checked:text-white peer-checked:border-[#1B4332] hover:border-[#52B788] transition-all">
-            <i data-lucide="key-round" class="w-3.5 h-3.5 inline"></i> Arriendo
+            <Icon name="key-round" class="w-3.5 h-3.5 inline" /> Arriendo
           </span>
         </label>
       </div>

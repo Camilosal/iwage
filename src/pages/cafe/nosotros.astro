@@ -2,6 +2,7 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getCafeConfig } from '@/lib/cafe';
 
 const config = await getCafeConfig();
@@ -55,21 +56,21 @@ const config = await getCafeConfig();
       <div class="grid md:grid-cols-3 gap-6">
         <ScrollReveal>
           <div class="bg-surface-raised rounded-2xl border border-border p-6 text-center">
-            <div class="text-2xl mb-3">📍</div>
+            <div class="mb-3"><Icon name="map-pin" class="w-6 h-6 mx-auto text-brand" /></div>
             <h3 class="font-semibold text-text-primary mb-2">Cadena corta</h3>
             <p class="text-sm text-text-secondary">Menos de 4 km entre el ingrediente y la taza. Conocemos cada finca.</p>
           </div>
         </ScrollReveal>
         <ScrollReveal delay={100}>
           <div class="bg-surface-raised rounded-2xl border border-border p-6 text-center">
-            <i data-lucide="bee" class="w-6 h-6 block mb-3 mx-auto"></i>
+            <Icon name="hexagon" class="w-6 h-6 block mb-3 mx-auto" />
             <h3 class="font-semibold text-text-primary mb-2">Del meliponario</h3>
             <p class="text-sm text-text-secondary">La miel de Angelita no es un ingrediente más. Es nuestro origen.</p>
           </div>
         </ScrollReveal>
         <ScrollReveal delay={200}>
           <div class="bg-surface-raised rounded-2xl border border-border p-6 text-center">
-            <div class="text-2xl mb-3">✍️</div>
+            <Icon name="pen-tool" class="w-6 h-6 mb-3 mx-auto" />
             <h3 class="font-semibold text-text-primary mb-2">Nombre propio</h3>
             <p class="text-sm text-text-secondary">Nada genérico. Cada producto, cada proveedor, cada taza tiene identidad.</p>
           </div>

@@ -29,6 +29,7 @@ export const cafe: BrandConfig = {
         { label: 'Nosotros', href: '/cafe/nosotros' },
         { label: 'Bitácora', href: '/cafe/bitacora' },
         { label: 'Ayuda', href: '/cafe/ayuda' },
+        { label: 'Legal y Políticas', href: '/legal/' },
         { label: 'Contacto', href: '/cafe/contacto' },
       ],
     },
@@ -38,7 +39,7 @@ export const cafe: BrandConfig = {
     defaultDescription:
       'Un café comunitario construido sobre ingredientes nombrados, proveedores a menos de 4km y un menú donde cada producto es un personaje.',
   },
-  whatsapp: '573001234567',
+  whatsapp: '573026693366',
   instagram: '@cafe.iwage',
   icon: 'coffee',
 };

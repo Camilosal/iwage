@@ -12,12 +12,14 @@
  *   MP_STRAPI_URL           (default: http://localhost:1337)
  *   ESPACIOS_PLUS_STRAPI_URL (default: http://localhost:1340)
  *   RESERVAS_API_URL        (default: http://localhost:4326)
+ *   RESERVAS_SYNC_TOKEN     (requerido: token del endpoint /api/admin/recursos/sync)
  */
 
 const IWAGE_STRAPI = process.env.IWAGE_STRAPI_URL || 'http://localhost:1338';
 const MP_STRAPI = process.env.MP_STRAPI_URL || 'http://localhost:1337';
 const ESPACIOS_PLUS_STRAPI = process.env.ESPACIOS_PLUS_STRAPI_URL || 'http://localhost:1340';
 const RESERVAS_API = process.env.RESERVAS_API_URL || 'http://localhost:4326';
+const SYNC_TOKEN = process.env.RESERVAS_SYNC_TOKEN || '';
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -36,7 +38,10 @@ async function strapiGetAll(base, endpoint, fields, extraParams = '') {
 async function syncRecurso(data) {
   const res = await fetch(`${RESERVAS_API}/api/admin/recursos/sync`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Sync-Token': SYNC_TOKEN,
+    },
     body: JSON.stringify(data),
     signal: AbortSignal.timeout(10000),
   });
@@ -82,11 +87,17 @@ function parseDurationMinutes(dur) {
 async function syncExperiencias() {
   console.log('\n📗 iwage_naturaleza: experiencias');
   const items = await strapiGetAll(IWAGE_STRAPI, 'experiencias',
-    ['slug', 'titulo', 'precio_desde', 'duracion', 'publicado', 'cupo_maximo_desc'],
+    ['slug', 'titulo', 'precio_desde', 'duracion', 'publicado', 'cupo_maximo_desc', 'etiquetas_personalizadas'],
     '&filters[publicado][$eq]=true');
 
   let count = 0;
   for (const exp of items) {
+    // Anti-eco: las experiencias espejo de recursos de aliados nacen en
+    // app_reservas; devolverlas duplicaría el recurso original.
+    if (exp.etiquetas_personalizadas?.origen === 'app_reservas') {
+      console.log(`  ↷ ${exp.titulo} (origen app_reservas, omitida)`);
+      continue;
+    }
     const durMin = parseDurationMinutes(exp.duracion);
     const capacidad = parseInt(exp.cupo_maximo_desc) || 8;
     const result = await syncRecurso({
@@ -184,17 +195,7 @@ async function syncPropiedadesGestion() {
       capacidad_maxima: prop.capacidad_huespedes || 10,
       duracion_minutos: 1440, // 1 noche
       tipo_disponibilidad: requierePago ? 'rango_fechas' : 'bajo_consulta',
-      config_disponibilidad: requierePago ? {
-        dias_semana: [1, 2, 3, 4, 5, 6, 7],
-        hora_apertura: '00:00',
-        hora_cierre: '23:59',
-        duracion_slot_minutos: 1440,
-        intervalo_entre_slots_minutos: 0,
-        capacidad_por_slot: prop.capacidad_huespedes || 10,
-        anticipacion_minima_horas: 24,
-        max_reservas_por_cliente: 5,
-        bloqueos: [],
-      } : null,
+      config_disponibilidad: null, // rango_fechas usa modelo abierto-salvo-bloqueo
       url_publica: `https://iwage.co/gestion/propiedades/${prop.slug}`,
       metadata: { tipo_gestion: prop.tipo_gestion },
     });
@@ -378,6 +379,37 @@ async function syncServicioPolinizacion() {
   return 0;
 }
 
+// ── Sync: iwage_complementos (servicios adicionales) ─────
+
+async function syncComplementos() {
+  console.log('\n🎁 iwage_complementos: complementos');
+  const items = await strapiGetAll(IWAGE_STRAPI, 'complementos',
+    ['nombre', 'slug', 'precio', 'categoria', 'disponible', 'precio_por'],
+    '&filters[disponible][$eq]=true');
+
+  let count = 0;
+  for (const comp of items) {
+    const result = await syncRecurso({
+      nombre: comp.nombre,
+      slug: `complemento-${comp.slug}`,
+      tipo: 'complemento',
+      origen: 'iwage_complementos',
+      origen_slug: comp.slug,
+      requiere_pago: (comp.precio || 0) > 0,
+      precio_base: comp.precio || null,
+      moneda: 'COP',
+      capacidad_maxima: 50,
+      duracion_minutos: null,
+      tipo_disponibilidad: 'inmediato',
+      config_disponibilidad: null,
+      url_publica: 'https://iwage.co/gestion/alojamientos',
+      metadata: { categoria: comp.categoria, precio_por: comp.precio_por },
+    });
+    if (result) { count++; console.log(`  ✓ ${comp.nombre} (${result.action})`); }
+  }
+  return count;
+}
+
 // ── Sync: espacios_plus (servicios de diseño) ────────────
 
 async function syncServiciosEspaciosPlus() {
@@ -499,6 +531,7 @@ async function main() {
     espacios_servicios: await syncServiciosEspaciosPlus(),
     espacios_modelos: await syncModelosVivienda(),
     espacios_productos: await syncProductosEspaciosPlus(),
+    complementos: await syncComplementos(),
   };
 
   const total = Object.values(results).reduce((a, b) => a + b, 0);
@@ -508,6 +541,7 @@ async function main() {
   console.log(`   marca_personal=${results.servicios_marca}`);
   console.log(`   cafe=${results.cafe_menu} meliponas=${results.meliponas_productos + results.meliponas_polinizacion}`);
   console.log(`   espacios_plus: svc=${results.espacios_servicios} modelos=${results.espacios_modelos} prod=${results.espacios_productos}`);
+  console.log(`   complementos=${results.complementos}`);
 }
 
 main().catch((err) => {

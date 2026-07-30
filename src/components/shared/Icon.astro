@@ -1,59 +1,44 @@
 ---
-import {
-  ArrowRight, ArrowDown, Bee, BookOpen, Building2, Calculator, Calendar,
-  Camera, Check, CheckCircle, ClipboardList, Coffee, FileText, Globe,
-  Home, Jar, KeyRound, Leaf, Link, MessageCircle, Mountain, Package,
-  Scale, Settings2, Shield, Sprout, TrendingUp, Trophy, User, Wallet,
-  type LucideIcon,
-} from '@lucide/astro';
+import { icons } from 'lucide';
 
 interface Props {
+  /** Nombre Lucide en kebab-case, ej: 'coffee', 'arrow-right' */
   name: string;
   class?: string;
-  size?: number;
+  style?: string;
 }
 
-const { name, class: className = '', size = 16 } = Astro.props;
+const { name, class: className = 'w-5 h-5', style } = Astro.props;
 
-const icons: Record<string, LucideIcon> = {
-  'arrow-right': ArrowRight,
-  'arrow-down': ArrowDown,
-  bee: Bee,
-  'book-open': BookOpen,
-  'building-2': Building2,
-  calculator: Calculator,
-  calendar: Calendar,
-  camera: Camera,
-  check: Check,
-  'check-circle': CheckCircle,
-  'clipboard-list': ClipboardList,
-  coffee: Coffee,
-  'file-text': FileText,
-  globe: Globe,
-  home: Home,
-  jar: Jar,
-  'key-round': KeyRound,
-  leaf: Leaf,
-  link: Link,
-  'message-circle': MessageCircle,
-  mountain: Mountain,
-  package: Package,
-  scale: Scale,
-  'settings-2': Settings2,
-  shield: Shield,
-  sprout: Sprout,
-  'trending-up': TrendingUp,
-  trophy: Trophy,
-  user: User,
-  wallet: Wallet,
-};
+// Normalizar a PascalCase: 'arrow-right' -> 'ArrowRight', 'building-2' -> 'Building2'
+const pascal = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+const node = (icons as Record<string, [string, Record<string, string | number>][] | undefined>)[pascal];
 
-const Icon = icons[name];
-if (!Icon) {
-  console.warn(`Icon "${name}" not found in Icon.astro mapping`);
+if (!node && import.meta.env.DEV) {
+  console.warn(`[Icon] "${name}" no existe en Lucide`);
 }
+
+const inner = node
+  ? node.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('')
+  : '';
 ---
 
-{
-  Icon ? <Icon class={className} size={size} /> : null
-}
+{inner ? (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class={className}
+    style={style}
+    aria-hidden="true"
+    set:html={inner}
+  />
+) : (
+  <span class={className} style={style} aria-hidden="true"></span>
+)}

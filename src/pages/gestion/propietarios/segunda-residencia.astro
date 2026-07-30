@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 ---
 
 <BrandLayout brand="gestion" title="Segunda Residencia · Iwagé Gestión" description="Administración de segunda residencia campestre en el Tolima. Mantenimiento preventivo, supervisión de personal, informes fotográficos mensuales. Tu refugio siempre impecable.">
@@ -27,15 +28,15 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
       <h2 class="text-3xl font-light text-[#122640] text-center mb-12">Cuidamos cada detalle</h2>
       <div class="grid sm:grid-cols-2 gap-6">
         {[
-          { icon: '🏊', title: 'Áreas Sociales & Piscinas', desc: 'Mantenimiento preventivo de piscinas, zonas BBQ, jardines y áreas recreativas.' },
-          { icon: '👤', title: 'Personal Doméstico', desc: 'Supervisión de mayordomía, jardinería y servicio. Coordinación de horarios y tareas.' },
-          { icon: '⚡', title: 'Servicios & Impuestos', desc: 'Gestión técnica de servicios públicos, pago de impuestos prediales y obligaciones.' },
-          { icon: '📸', title: 'Informes Fotográficos', desc: 'Reporte mensual con registro visual del estado general de la propiedad.' },
-          { icon: '🐛', title: 'Control de Plagas', desc: 'Fumigación programada, control de roedores y prevención de plagas tropicales.' },
-          { icon: '🔧', title: 'Mantenimiento Correctivo', desc: 'Atención de emergencias: daños locativos, fallas eléctricas, plomería y estructura.' },
+          { icon: 'waves', title: 'Áreas Sociales & Piscinas', desc: 'Mantenimiento preventivo de piscinas, zonas BBQ, jardines y áreas recreativas.' },
+          { icon: 'user', title: 'Personal Doméstico', desc: 'Supervisión de mayordomía, jardinería y servicio. Coordinación de horarios y tareas.' },
+          { icon: 'zap', title: 'Servicios & Impuestos', desc: 'Gestión técnica de servicios públicos, pago de impuestos prediales y obligaciones.' },
+          { icon: 'camera', title: 'Informes Fotográficos', desc: 'Reporte mensual con registro visual del estado general de la propiedad.' },
+          { icon: 'bug', title: 'Control de Plagas', desc: 'Fumigación programada, control de roedores y prevención de plagas tropicales.' },
+          { icon: 'wrench', title: 'Mantenimiento Correctivo', desc: 'Atención de emergencias: daños locativos, fallas eléctricas, plomería y estructura.' },
         ].map((item) => (
           <div class="p-6 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-all">
-            <div class="text-3xl mb-3">{item.icon}</div>
+            <div class="mb-3"><Icon name={item.icon} class="w-8 h-8 mx-auto text-[#2d5a8f]" /></div>
             <h3 class="font-semibold text-[#122640] mb-2">{item.title}</h3>
             <p class="text-sm text-gray-600">{item.desc}</p>
           </div>
@@ -66,7 +67,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
   <section class="py-16 px-4 bg-[#0c1520] text-center">
     <h2 class="text-3xl font-light text-white mb-4">Llega y disfruta, sin preocupaciones</h2>
     <p class="text-white/60 mb-8">Visita de diagnóstico sin costo.</p>
-    <a href="https://wa.me/573001234567?text=Hola,%20quiero%20gestión%20de%20segunda%20residencia" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
+    <a href="https://wa.me/573026693366?text=Hola,%20quiero%20gestión%20de%20segunda%20residencia" target="_blank" rel="noopener" class="inline-block px-10 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
       Agendar visita
     </a>
   </section>

@@ -1,4 +1,18 @@
 ---
+import { icons } from 'lucide';
+
+function lucideSvg(name: string, cls = 'w-5 h-5'): string {
+  const p = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, any[]>)[p];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]: [string, Record<string, any>]) =>
+    `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`
+  ).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${inner}</svg>`;
+}
+
+const LEAF_SVG = lucideSvg('leaf', 'width:12px;height:12px;color:white;stroke-width:2.5');
+
 interface MapExperiencia {
   slug: string;
   titulo: string;
@@ -63,7 +77,7 @@ const withCoords = experiencias.filter((e) => e.latitud && e.longitud);
           const color = CATEGORY_COLORS[exp.categoria] || '#40916C';
           const icon = L.divIcon({
             className: 'exp-marker',
-            html: `<div style="background:${color};width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:12px;">🌿</span></div>`,
+            html: `<div style="background:${color};width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:12px;">${LEAF_SVG}</span></div>`,
             iconSize: [28, 28],
             iconAnchor: [14, 28],
             popupAnchor: [0, -28],

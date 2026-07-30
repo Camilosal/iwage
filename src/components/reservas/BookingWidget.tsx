@@ -36,6 +36,7 @@ export default function BookingWidget({
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
   const [anfitrionSel, setAnfitrionSel] = useState<string>('');
+  const [metodoPago, setMetodoPago] = useState<'online' | 'en_sitio'>('online');
   const [result, setResult] = useState<ReservaResponse | null>(null);
   const [addedToCart, setAddedToCart] = useState(false);
 
@@ -64,6 +65,10 @@ export default function BookingWidget({
 
   const selectedSlotObj = slots.find((s) => s.documentId === selectedSlot);
 
+  // Precio activo: si el anfitrión elegido tiene tarifa personalizada, esta manda sobre la base.
+  const anfitrionActivo = anfitriones?.find((a) => a.slug === anfitrionSel);
+  const precioActivo = anfitrionActivo?.precio_personalizado ?? precioBase;
+
   const handleAddToCart = () => {
     if (slots.length > 0 && !selectedSlot) {
       setError('Selecciona un horario para agregar al carrito.');
@@ -73,8 +78,8 @@ export default function BookingWidget({
     const brand = origen.replace(/^iwage_/, '');
     addItem({
       recurso_slug: recursoSlug,
-      nombre: recursoNombre,
-      precio: precioBase,
+      nombre: anfitrionActivo ? `${recursoNombre} · con ${anfitrionActivo.nombre}` : recursoNombre,
+      precio: precioActivo,
       cantidad: personas,
       tipo: 'reserva',
       tipo_disponibilidad: 'slot_horario',
@@ -83,7 +88,7 @@ export default function BookingWidget({
       requiere_pago: requierePago,
       disponibilidad_id: selectedSlot || undefined,
       disponibilidad_label: selectedSlotObj
-        ? `${selectedSlotObj.fecha} — ${selectedSlotObj.hora_inicio} a ${selectedSlotObj.hora_fin}`
+        ? `${selectedSlotObj.fecha} — ${String(selectedSlotObj.hora_inicio).slice(0, 5)} a ${String(selectedSlotObj.hora_fin).slice(0, 5)}`
         : undefined,
       url: typeof window !== 'undefined' ? window.location.href : undefined,
     });
@@ -96,8 +101,10 @@ export default function BookingWidget({
     setLoading(true);
     setError(null);
 
-    const anfitrionNombre = anfitriones?.find((a) => a.slug === anfitrionSel)?.nombre;
-    const notas = anfitrionNombre ? `Anfitrión de preferencia: ${anfitrionNombre}` : undefined;
+    const anfitrionNombre = anfitrionActivo?.nombre;
+    const notas = anfitrionNombre
+      ? `Anfitrión de preferencia: ${anfitrionNombre}${anfitrionActivo?.precio_personalizado ? ` (tarifa $${anfitrionActivo.precio_personalizado.toLocaleString('es-CO')} COP/persona)` : ''}`
+      : undefined;
 
     const payload: CrearReservaInput = {
       recurso_slug: recursoSlug,
@@ -106,6 +113,7 @@ export default function BookingWidget({
       cantidad_personas: personas,
       notas,
       origen_url: typeof window !== 'undefined' ? window.location.href : undefined,
+      metodo_pago: requierePago && precioActivo > 0 ? metodoPago : undefined,
     };
 
     try {
@@ -129,6 +137,7 @@ export default function BookingWidget({
   };
 
   if (result && !result.checkout_url) {
+    const pagaEnSitio = result.metodo_pago === 'en_sitio';
     return (
       <div className="rounded-xl border border-green-200 bg-green-50 p-6 text-center">
         <h3 className="text-lg font-semibold text-green-800">Reserva confirmada</h3>
@@ -136,7 +145,9 @@ export default function BookingWidget({
           Codigo: <strong>{result.codigo}</strong>
         </p>
         <p className="mt-1 text-sm text-green-600">
-          Te enviaremos los detalles por WhatsApp.
+          {pagaEnSitio
+            ? `Pagas al llegar: $${result.precio_total.toLocaleString('es-CO')} COP (tarjeta, QR, BreB, efectivo o transferencia). Te enviaremos los detalles por WhatsApp.`
+            : 'Te enviaremos los detalles por WhatsApp.'}
         </p>
       </div>
     );
@@ -160,7 +171,7 @@ export default function BookingWidget({
             <option value="">Selecciona un horario</option>
             {slots.map((s) => (
               <option key={s.documentId} value={s.documentId}>
-                {s.fecha} — {s.hora_inicio} a {s.hora_fin} ({s.capacidad_disponible} cupos)
+                {s.fecha} — {String(s.hora_inicio).slice(0, 5)} a {String(s.hora_fin).slice(0, 5)} ({s.capacidad_disponible} cupos)
               </option>
             ))}
           </select>
@@ -232,11 +243,44 @@ export default function BookingWidget({
         </div>
       )}
 
-      {requierePago && precioBase > 0 && (
+      {requierePago && precioActivo > 0 && (
         <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-          Total: <strong>${(precioBase * personas).toLocaleString('es-CO')} COP</strong>
-          <br />
-          <span className="text-xs">Se te redirigira a la pasarela de pago Bold.</span>
+          Total: <strong>${(precioActivo * personas).toLocaleString('es-CO')} COP</strong>
+          {anfitrionActivo?.precio_personalizado ? (
+            <span className="block text-xs mt-0.5">
+              Tarifa de {anfitrionActivo.nombre}: ${anfitrionActivo.precio_personalizado.toLocaleString('es-CO')} por persona.
+            </span>
+          ) : null}
+          <div className="mt-2 space-y-1.5">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name={`metodo-pago-${recursoSlug}`}
+                value="online"
+                checked={metodoPago === 'online'}
+                onChange={() => setMetodoPago('online')}
+                className="mt-0.5"
+              />
+              <span>
+                Pagar en línea
+                <span className="block text-xs">Pago seguro con Bold.</span>
+              </span>
+            </label>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name={`metodo-pago-${recursoSlug}`}
+                value="en_sitio"
+                checked={metodoPago === 'en_sitio'}
+                onChange={() => setMetodoPago('en_sitio')}
+                className="mt-0.5"
+              />
+              <span>
+                Pagar en el sitio
+                <span className="block text-xs">Tarjeta, QR, BreB, efectivo o transferencia al llegar.</span>
+              </span>
+            </label>
+          </div>
         </div>
       )}
 
@@ -256,7 +300,13 @@ export default function BookingWidget({
         disabled={loading}
         className="w-full rounded-lg border border-emerald-700 px-4 py-2.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-50"
       >
-        {loading ? 'Procesando...' : requierePago ? 'Reservar y pagar directo' : 'Reservar gratis directo'}
+        {loading
+          ? 'Procesando...'
+          : requierePago && precioActivo > 0
+          ? metodoPago === 'en_sitio'
+            ? 'Reservar (pago en el sitio)'
+            : 'Reservar y pagar directo'
+          : 'Reservar gratis directo'}
       </button>
     </form>
   );

@@ -1,0 +1,68 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Tienda y productos';
+---
+
+<WikiLayout title={title} activePath="/ayuda/usuarios/tienda">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/usuarios/" class="hover:text-brand transition-colors">Usuarios</a>
+    <span>/</span>
+    <span class="text-text-primary">Tienda y productos</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Tienda y productos</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Catálogo de productos</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        La tienda principal se encuentra en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/meliponas/tienda/</code>. Allí encontrarás los productos del meliponario organizados por categorías. Los productos se gestionan desde Strapi y se muestran dinámicamente.
+      </p>
+      <div class="bg-surface-raised border border-border rounded-xl p-5">
+        <p class="text-xs font-mono uppercase tracking-widest text-accent mb-3">Categorías principales</p>
+        <ul class="space-y-2 text-sm text-text-secondary">
+          <li><strong>Miel de Angelita:</strong> frascos de miel pura de <em>Tetragonisca angustula</em>, con trazabilidad por lote y cosecha.</li>
+          <li><strong>Cajas tecnificadas:</strong> cajas INPA y AF en Nogal Cafetero para colonias de meliponas.</li>
+          <li><strong>Kits:</strong> kits de iniciación para meliponicultores, con todo lo necesario para empezar.</li>
+          <li><strong>Insumos:</strong> materiales y accesorios para el manejo de colmenas.</li>
+          <li><strong>Productos artesanales:</strong> derivados de la producción del territorio.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Página de producto</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Cada producto tiene su propia página con:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Imágenes:</strong> galería de fotos del producto.</li>
+        <li><strong>Descripción:</strong> detalles, características y usos.</li>
+        <li><strong>Precio:</strong> mostrado en pesos colombianos (COP).</li>
+        <li><strong>Stock:</strong> indicador de disponibilidad.</li>
+        <li><strong>Botón "Agregar al carrito":</strong> agrega el producto al carrito unificado.</li>
+        <li><strong>Trazabilidad:</strong> para productos como miel, incluye información del lote y cosecha.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Agregar al carrito</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Al hacer clic en "Agregar al carrito", el producto se añade al carrito unificado (ver <a href="/ayuda/usuarios/carrito" class="text-brand underline hover:text-brand-light">Guía del carrito</a>). El botón muestra un feedback visual de "Agregado" durante 1.2 segundos. Puedes agregar productos de diferentes marcas al mismo carrito.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Productos de otras marcas</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Además de la tienda del meliponario, otras marcas del ecosistema ofrecen productos y servicios reservables:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5 mt-3">
+        <li><strong>Café Iwagé:</strong> productos del menú del café, accesibles desde <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/cafe/menu/</code>.</li>
+        <li><strong>Naturaleza:</strong> experiencias y paquetes reservables desde <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/naturaleza/experiencias/</code>.</li>
+        <li><strong>Gestión:</strong> alojamientos y propiedades con reserva de estadía.</li>
+      </ul>
+    </section>
+  </div>
+</WikiLayout>

@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 // QR Traceability demo: phone mockup with slide-up animation
 ---
 
@@ -9,7 +11,7 @@
       <div id="qr-idle" class="transition-all duration-300">
         <div class="w-32 h-32 mx-auto bg-white rounded-xl p-3 mb-4">
           <div class="w-full h-full bg-dark-bg rounded-lg flex items-center justify-center">
-            <i data-lucide="qr-code" class="w-16 h-16 text-white"></i>
+            <Icon name="qr-code" class="w-16 h-16 text-white" />
           </div>
         </div>
         <p class="text-dark-text/60 text-sm">Escanea el código QR del frasco</p>

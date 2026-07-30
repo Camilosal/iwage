@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 interface Props {
   sello: 'oro' | 'plata' | 'bronce' | 'cuarentena' | null;
   notaTransparencia?: string | null;
@@ -10,10 +12,10 @@ interface Props {
 const { sello, notaTransparencia, conclusionAuditor, fechaAprobacion, variant = 'card' } = Astro.props;
 
 const METALES: Record<string, { icono: string; label: string; color: string; bg: string; border: string; desc: string }> = {
-  oro: { icono: '🥇', label: 'Sello Oro', color: '#B8860B', bg: 'bg-amber-50', border: 'border-amber-200', desc: 'Cero observaciones. Documentación perfecta, linderos claros, sin riesgos jurídicos.' },
-  plata: { icono: '🥈', label: 'Sello Plata', color: '#6B7280', bg: 'bg-gray-50', border: 'border-gray-200', desc: 'Máximo 2 observaciones menores. Propiedad segura con aspectos por documentar.' },
-  bronce: { icono: '🥉', label: 'Sello Bronce', color: '#92400E', bg: 'bg-orange-50', border: 'border-orange-200', desc: '3+ observaciones. Requiere saneamiento parcial antes de escritura.' },
-  cuarentena: { icono: '🚫', label: 'En Cuarentena', color: '#DC2626', bg: 'bg-red-50', border: 'border-red-200', desc: 'Riesgo crítico detectado. No apta para transacción hasta resolver.' },
+  oro: { icono: 'medal', label: 'Sello Oro', color: '#B8860B', bg: 'bg-amber-50', border: 'border-amber-200', desc: 'Cero observaciones. Documentación perfecta, linderos claros, sin riesgos jurídicos.' },
+  plata: { icono: 'medal', label: 'Sello Plata', color: '#6B7280', bg: 'bg-gray-50', border: 'border-gray-200', desc: 'Máximo 2 observaciones menores. Propiedad segura con aspectos por documentar.' },
+  bronce: { icono: 'medal', label: 'Sello Bronce', color: '#92400E', bg: 'bg-orange-50', border: 'border-orange-200', desc: '3+ observaciones. Requiere saneamiento parcial antes de escritura.' },
+  cuarentena: { icono: 'ban', label: 'En Cuarentena', color: '#DC2626', bg: 'bg-red-50', border: 'border-red-200', desc: 'Riesgo crítico detectado. No apta para transacción hasta resolver.' },
 };
 
 const metal = sello ? METALES[sello] : null;
@@ -21,22 +23,22 @@ const metal = sello ? METALES[sello] : null;
 
 {variant === 'badge' && metal && (
   <span class:list={['inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border', metal.bg, metal.border]} style={`color: ${metal.color}`}>
-    {metal.icono} {metal.label}
+    <Icon name={metal.icono} class="w-4 h-4 inline align-[-2px]" /> {metal.label}
   </span>
 )}
 
 {variant === 'badge' && !metal && (
   <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-gray-50 border-gray-200 text-gray-400">
-    ⚪ Sin verificar
+    <Icon name="circle-dashed" class="w-4 h-4 inline align-[-2px]" /> Sin verificar
   </span>
 )}
 
 {variant === 'card' && metal && (
   <div class:list={['rounded-2xl border-2 p-6 relative overflow-hidden', metal.bg, metal.border]}>
-    <div class="absolute top-0 right-0 w-24 h-24 opacity-10 text-8xl -mr-4 -mt-4 select-none pointer-events-none">{metal.icono}</div>
+    <div class="absolute top-0 right-0 w-24 h-24 opacity-10 -mr-4 -mt-4 select-none pointer-events-none"><Icon name={metal.icono} class="w-24 h-24" /></div>
     <div class="flex items-start gap-4">
-      <div class="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-3xl shrink-0 border border-gray-100">
-        {metal.icono}
+      <div class="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0 border border-gray-100">
+        <Icon name={metal.icono} class="w-8 h-8" />
       </div>
       <div class="flex-1">
         <div class="flex items-center gap-2 mb-1">
@@ -54,14 +56,14 @@ const metal = sello ? METALES[sello] : null;
 
         {notaTransparencia && (
           <div class="bg-amber-50/80 rounded-xl p-3 border border-amber-100 mb-3">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-amber-600 mb-1">⚠️ Nota de Transparencia</p>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-amber-600 mb-1"><Icon name="alert-triangle" class="w-3.5 h-3.5 inline align-[-2px] mr-1" />Nota de Transparencia</p>
             <p class="text-sm text-gray-600">{notaTransparencia}</p>
           </div>
         )}
 
         <div class="flex items-center gap-4 text-[11px] text-gray-400">
-          {fechaAprobacion && <span>📅 Aprobado: {new Date(fechaAprobacion).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
-          <a href="/tierras/protocolo-vap" class="hover:text-[#52B788] transition-colors font-medium">¿Qué es VAP? <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+          {fechaAprobacion && <span class="inline-flex items-center gap-1"><Icon name="calendar" class="w-3.5 h-3.5 inline" /> Aprobado: {new Date(fechaAprobacion).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+          <a href="/tierras/protocolo-vap" class="hover:text-[#52B788] transition-colors font-medium">¿Qué es VAP? <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>
         </div>
       </div>
     </div>
@@ -71,11 +73,11 @@ const metal = sello ? METALES[sello] : null;
 {variant === 'card' && !metal && (
   <div class="rounded-2xl border-2 border-dashed border-gray-200 p-6 bg-gray-50/50">
     <div class="flex items-start gap-4">
-      <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-2xl shrink-0 border border-gray-100">🔍</div>
+      <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shrink-0 border border-gray-100"><Icon name="search" class="w-6 h-6 text-gray-400" /></div>
       <div>
         <h3 class="font-bold text-gray-700 text-sm">Predio sin Verificación VAP®</h3>
         <p class="text-xs text-gray-500 mt-1">Esta propiedad aún no ha pasado el protocolo de auditoría técnica y jurídica.</p>
-        <a href="/tierras/protocolo-vap" class="inline-block mt-3 text-xs font-bold text-[#52B788] hover:underline">Conocer el Protocolo VAP <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+        <a href="/tierras/protocolo-vap" class="inline-block mt-3 text-xs font-bold text-[#52B788] hover:underline">Conocer el Protocolo VAP <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>
       </div>
     </div>
   </div>

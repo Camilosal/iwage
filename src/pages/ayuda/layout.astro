@@ -1,0 +1,199 @@
+---
+import '@/styles/global.css';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+import ChatWidget from '@/components/ChatWidget.astro';
+import SearchOverlay from '@/components/SearchOverlay.astro';
+import UnifiedCart from '@/components/cart/UnifiedCart';
+import Icon from '@/components/shared/Icon.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Current active path for sidebar highlighting (e.g. '/ayuda/usuarios/tienda') */
+  activePath?: string;
+}
+
+const { title, description = 'Guía de uso y documentación de la plataforma Iwagé', activePath = '' } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://iwage.co');
+
+const usuariosLinks = [
+  { label: 'Explorar la plataforma', href: '/ayuda/usuarios/explorar-plataforma', icon: 'globe' },
+  { label: 'Nuestras marcas', href: '/ayuda/usuarios/marcas', icon: 'hexagon' },
+  { label: 'Tienda y productos', href: '/ayuda/usuarios/tienda', icon: 'shopping-bag' },
+  { label: 'Reservas y experiencias', href: '/ayuda/usuarios/reservas', icon: 'calendar' },
+  { label: 'Carrito de compras', href: '/ayuda/usuarios/carrito', icon: 'shopping-cart' },
+  { label: 'Mi Cuenta (portal)', href: '/ayuda/usuarios/mi-cuenta', icon: 'user' },
+  { label: 'Pedidos y pagos', href: '/ayuda/usuarios/pedidos', icon: 'receipt' },
+  { label: 'Herramientas y calculadoras', href: '/ayuda/usuarios/herramientas', icon: 'calculator' },
+];
+
+const equipoLinks = [
+  { label: 'Gestión de contenido (Strapi)', href: '/ayuda/equipo/strapi-cms', icon: 'database' },
+  { label: 'Tipos de contenido', href: '/ayuda/equipo/contenido-tipos', icon: 'file-text' },
+  { label: 'Panel de reservas (admin)', href: '/ayuda/equipo/reservas-admin', icon: 'settings' },
+  { label: 'Ciclo de vida de reservas', href: '/ayuda/equipo/gestion-reservas', icon: 'refresh-cw' },
+  { label: 'Portal de aliados', href: '/ayuda/equipo/portal-aliados', icon: 'users' },
+  { label: 'Sincronización de recursos', href: '/ayuda/equipo/sincronizacion', icon: 'refresh-cw' },
+  { label: 'Pasarela de pagos (Bold)', href: '/ayuda/equipo/pagos', icon: 'credit-card' },
+  { label: 'Órdenes y pedidos', href: '/ayuda/equipo/ordenes', icon: 'package' },
+  { label: 'Configuración del sitio', href: '/ayuda/equipo/configuracion', icon: 'sliders' },
+];
+
+function isActive(href: string): boolean {
+  return activePath === href || activePath.startsWith(href + '/');
+}
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} · Ayuda Iwagé</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL.href} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={`${title} · Ayuda Iwagé`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:site_name" content="Iwagé" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem('iwage-theme');
+        var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col bg-surface text-text-primary font-[Inter,system-ui,sans-serif]">
+    <Navbar />
+
+    <main class="flex-1 pt-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-xs text-text-muted mb-6 font-mono uppercase tracking-wider">
+          <a href="/ayuda/" class="hover:text-brand transition-colors">Ayuda</a>
+          <span>/</span>
+          <slot name="breadcrumb" />
+        </nav>
+
+        <div class="flex gap-8">
+          <!-- Sidebar (desktop) -->
+          <aside class="hidden lg:block w-64 shrink-0">
+            <div class="sticky top-24 space-y-6 max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 pb-8">
+              <!-- Usuarios -->
+              <div>
+                <h3 class="text-[11px] font-bold uppercase tracking-widest text-accent mb-3 px-3">Usuarios</h3>
+                <ul class="space-y-0.5">
+                  {usuariosLinks.map((link) => (
+                    <li>
+                      <a
+                        href={link.href}
+                        class={`flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-colors ${
+                          isActive(link.href)
+                            ? 'bg-brand-muted text-brand font-semibold'
+                            : 'text-text-secondary hover:text-brand hover:bg-brand-muted/50'
+                        }`}
+                      >
+                        <Icon name={link.icon} class="w-4 h-4 shrink-0" />
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <!-- Equipo -->
+              <div>
+                <h3 class="text-[11px] font-bold uppercase tracking-widest text-accent mb-3 px-3">Equipo</h3>
+                <ul class="space-y-0.5">
+                  {equipoLinks.map((link) => (
+                    <li>
+                      <a
+                        href={link.href}
+                        class={`flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-colors ${
+                          isActive(link.href)
+                            ? 'bg-brand-muted text-brand font-semibold'
+                            : 'text-text-secondary hover:text-brand hover:bg-brand-muted/50'
+                        }`}
+                      >
+                        <Icon name={link.icon} class="w-4 h-4 shrink-0" />
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Mobile sidebar toggle -->
+          <div class="lg:hidden mb-6 w-full">
+            <details class="group">
+              <summary class="flex items-center gap-2 px-4 py-3 bg-surface-raised border border-border rounded-xl text-sm font-medium text-text-secondary cursor-pointer hover:border-brand/40 transition-colors">
+                <Icon name="menu" class="w-4 h-4" />
+                Navegación de la guía
+                <Icon name="chevron-down" class="w-4 h-4 ml-auto transition-transform group-open:rotate-180" />
+              </summary>
+              <div class="mt-2 bg-surface-raised border border-border rounded-xl p-4 space-y-4">
+                <div>
+                  <h3 class="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">Usuarios</h3>
+                  <ul class="space-y-0.5">
+                    {usuariosLinks.map((link) => (
+                      <li>
+                        <a href={link.href} class={`block px-3 py-2 text-sm rounded-lg transition-colors ${isActive(link.href) ? 'bg-brand-muted text-brand font-semibold' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/50'}`}>
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">Equipo</h3>
+                  <ul class="space-y-0.5">
+                    {equipoLinks.map((link) => (
+                      <li>
+                        <a href={link.href} class={`block px-3 py-2 text-sm rounded-lg transition-colors ${isActive(link.href) ? 'bg-brand-muted text-brand font-semibold' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/50'}`}>
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <!-- Main content -->
+          <article class="flex-1 min-w-0">
+            <slot />
+
+            <!-- Feedback widget -->
+            <div class="mt-12 pt-8 border-t border-border">
+              <div class="bg-surface-raised border border-border rounded-xl p-6 text-center">
+                <p class="text-sm font-semibold text-text-primary mb-3">¿Te fue útil esta guía?</p>
+                <div class="flex items-center justify-center gap-3">
+                  <a href={`mailto:hola@iwage.co?subject=Feedback%20Ayuda%3A%20${encodeURIComponent(title)}&body=S%C3%AD%2C%20me%20fue%20%C3%BAtil.`} class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full bg-brand text-white hover:bg-brand-light transition-colors">
+                    Sí, gracias
+                  </a>
+                  <a href={`mailto:hola@iwage.co?subject=Feedback%20Ayuda%3A%20${encodeURIComponent(title)}&body=Necesito%20m%C3%A1s%20informaci%C3%B3n%20sobre%3A`} class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full border border-border text-text-secondary hover:text-brand hover:border-brand/40 transition-colors">
+                    Necesito más info
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <Footer />
+    <ChatWidget />
+    <SearchOverlay />
+    <UnifiedCart client:only="react" />
+  </body>
+</html>

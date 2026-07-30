@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import BitacoraSidebar from '@/components/brand/BitacoraSidebar.astro';
 import { getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
 import type { EntradaBitacora } from '@/lib/bitacora';
@@ -40,7 +41,7 @@ function normalizeSearch(a: EntradaBitacora): string {
 
   {articulos.length === 0 ? (
     <section class="max-w-7xl mx-auto px-6 py-20 text-center">
-      <span class="text-4xl block mb-4">📝</span>
+      <Icon name="pencil" class="w-10 h-10 block mb-4 mx-auto text-text-muted" />
       <p class="text-text-secondary max-w-md mx-auto">Pronto publicaremos nuevos artículos. Vuelve pronto.</p>
     </section>
   ) : (
@@ -93,7 +94,7 @@ function normalizeSearch(a: EntradaBitacora): string {
 
           <!-- Empty state (no filter matches) -->
           <div id="no-results" class="hidden py-16 text-center">
-            <span class="text-4xl block mb-4">🔍</span>
+            <Icon name="search" class="w-10 h-10 block mb-4 mx-auto text-text-muted" />
             <p class="font-medium text-text-primary mb-1">Sin resultados</p>
             <p class="text-sm text-text-secondary">Ningún artículo coincide con los filtros aplicados.</p>
           </div>

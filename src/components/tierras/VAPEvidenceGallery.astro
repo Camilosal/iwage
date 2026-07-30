@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 interface FotoEvidencia {
   url: string;
   label: string;
@@ -15,7 +17,7 @@ const { fotos } = Astro.props;
 {fotos && fotos.length > 0 && (
   <div class="vap-evidence mt-8">
     <div class="flex items-center gap-2 mb-4">
-      <span class="text-xl">📸</span>
+      <Icon name="camera" class="w-5 h-5" />
       <h3 class="font-black text-[#1B4332] tracking-tight uppercase text-sm">Evidencia de Auditoría en Campo</h3>
     </div>
 

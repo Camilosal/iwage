@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import MediaGallery from '@/components/shared/MediaGallery.astro';
 import { getAnfitrionBySlug, anfitrionFoto, nivelInfo, NIVELES_ESCALAFON, formatPrecioCOP, dificultadInfo } from '@/lib/naturaleza';
 import { getBrand } from '@/config/brands';
@@ -15,7 +16,7 @@ const nivel = nivelInfo(host.nivel_escalafon);
 const foto = anfitrionFoto(host);
 const nivelesList = Object.entries(NIVELES_ESCALAFON).map(([key, n]) => ({ nivel: Number(key), ...n }));
 const firstName = host.nombre.split(' ')[0];
-const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
+const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 
 // Per-host custom prices from each experiencia's junction data
 const precioPorHost = (exp: any): number | null => {
@@ -48,15 +49,15 @@ const jsonLd = {
     <div class="relative z-10 max-w-4xl mx-auto text-center">
       <img src={foto} alt={host.nombre} class="w-32 h-32 rounded-full object-cover mx-auto mb-6 ring-4 ring-[#d4920a]/30" />
       <button id="level-trigger" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-sm text-white/80 mb-4 hover:bg-white/20 transition-colors cursor-pointer">
-        <span>{nivel.icono}</span>
+        <Icon name={nivel.icono} class="w-4 h-4" />
         <span class="font-bold" style={`color: ${nivel.color}`}>{nivel.nombre}</span>
         <span class="text-[#d4920a]">★ {host.calificacion_promedio?.toFixed(1) || '5.0'}</span>
         <span class="text-white/40">({host.numero_resenas || 0})</span>
-        <span class="text-[10px] text-white/40 ml-1">ℹ️</span>
+        <span class="text-[10px] text-white/40 ml-1"><Icon name="info" class="w-3 h-3" /></span>
       </button>
       <h1 class="text-4xl lg:text-5xl font-light text-white mb-3">{host.nombre}</h1>
       <p class="text-lg text-[#d4920a]">{host.especialidad}</p>
-      {host.arraigo && <p class="text-sm text-white/50 mt-2">📍 {host.arraigo}</p>}
+      {host.arraigo && <p class="text-sm text-white/50 mt-2 inline-flex items-center gap-1"><Icon name="map-pin" class="w-3.5 h-3.5" /> {host.arraigo}</p>}
     </div>
   </section>
 
@@ -79,7 +80,7 @@ const jsonLd = {
           <div class="grid md:grid-cols-2 gap-4 mt-4">
             {host.momento_favorito && (
               <div class="p-5 rounded-2xl bg-white border border-gray-100 flex items-start gap-3">
-                <span class="w-9 h-9 rounded-xl bg-[#d4920a]/10 flex items-center justify-center shrink-0 text-lg">✨</span>
+                <span class="w-9 h-9 rounded-xl bg-[#d4920a]/10 flex items-center justify-center shrink-0"><Icon name="sparkles" class="w-5 h-5 text-[#d4920a]" /></span>
                 <div>
                   <p class="text-[9px] font-bold uppercase tracking-widest text-[#d4920a] mb-1">Momento que detiene el tiempo</p>
                   <p class="text-sm text-gray-700 font-serif italic leading-relaxed">"{host.momento_favorito}"</p>
@@ -88,7 +89,7 @@ const jsonLd = {
             )}
             {host.sueno_narrativa && (
               <div class="p-5 rounded-2xl bg-[#4a7c23]/5 border border-[#4a7c23]/20 flex items-start gap-3">
-                <span class="w-9 h-9 rounded-xl bg-[#4a7c23]/10 flex items-center justify-center shrink-0 text-lg">🌄</span>
+                <span class="w-9 h-9 rounded-xl bg-[#4a7c23]/10 flex items-center justify-center shrink-0"><Icon name="sunrise" class="w-5 h-5 text-[#4a7c23]" /></span>
                 <div>
                   <p class="text-[9px] font-bold uppercase tracking-widest text-[#4a7c23] mb-1">Mi gran sueño</p>
                   <p class="text-sm text-[#1a3009] font-serif italic leading-relaxed">"{host.sueno_narrativa}"</p>
@@ -113,9 +114,9 @@ const jsonLd = {
         <!-- Tier card -->
         <div class="rounded-2xl bg-[#0e1a08] p-6 text-white relative overflow-hidden">
           <div class="absolute top-0 right-0 w-24 h-24 bg-[#d4920a]/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-4">🛡️ Escalafón oficial</p>
+          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-4 inline-flex items-center gap-1"><Icon name="shield" class="w-3.5 h-3.5" /> Escalafón oficial</p>
           <div class="flex items-center gap-3 mb-4">
-            <span class="w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0" style={`background: ${nivel.color}25; border: 2px solid ${nivel.color}`}>{nivel.icono}</span>
+            <span class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={`background: ${nivel.color}25; border: 2px solid ${nivel.color}`}><Icon name={nivel.icono} class="w-6 h-6" /></span>
             <div>
               <p class="font-serif text-lg">Nivel {host.nivel_escalafon} · <span class="italic" style={`color: ${nivel.color}`}>{host.nombre_escalafon || nivel.nombre}</span></p>
               <p class="text-xs text-white/50">★ {host.calificacion_promedio?.toFixed(1) || '5.0'} · {host.numero_resenas || 0} reseñas</p>
@@ -131,19 +132,19 @@ const jsonLd = {
             <p class="text-white/70 font-serif text-sm italic leading-relaxed mb-4">"{host.descripcion_escalafon || nivel.descripcion}"</p>
           )}
           <button data-level-open class="text-[10px] uppercase tracking-widest text-[#d4920a] hover:text-white transition-colors pt-3 border-t border-white/10 w-full text-left">
-            🏆 Ver los niveles del escalafón →
+            <Icon name="trophy" class="w-3.5 h-3.5 inline align-[-2px] mr-1" /> Ver los niveles del escalafón →
           </button>
         </div>
         <!-- Certifications card -->
         <div class="rounded-2xl bg-white border border-gray-100 p-6">
-          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">✅ Acreditaciones técnicas</p>
+          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4 inline-flex items-center gap-1"><Icon name="shield-check" class="w-3.5 h-3.5" /> Acreditaciones técnicas</p>
           {host.certificaciones_seguridad && host.certificaciones_seguridad.length > 0 ? (
             <div class="space-y-2.5">
               {host.certificaciones_seguridad.map((cert: any) => {
                 const isString = typeof cert === 'string';
                 return (
                   <div class="flex gap-2.5 items-start bg-[#f8faf5] p-3 rounded-xl">
-                    <span class="text-[#d4920a] shrink-0 mt-0.5">🛡️</span>
+                    <span class="text-[#d4920a] shrink-0 mt-0.5"><Icon name="shield" class="w-4 h-4" /></span>
                     <div>
                       <p class="text-sm font-bold text-[#1a3009]">{isString ? cert : cert.titulo}</p>
                       {!isString && cert.entidad && (
@@ -266,7 +267,7 @@ const jsonLd = {
         <div class="space-y-4">
           {host.fondo_impacto_titulo && (
             <div class="flex items-center gap-4 p-5 rounded-2xl bg-[#0e1a08] text-white">
-              <span class="w-11 h-11 rounded-xl bg-[#4a7c23]/20 flex items-center justify-center shrink-0 text-xl">💚</span>
+              <span class="w-11 h-11 rounded-xl bg-[#4a7c23]/20 flex items-center justify-center shrink-0"><Icon name="heart" class="w-5 h-5 text-[#8BC34A]" /></span>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-widest text-[#8BC34A] mb-1">{host.fondo_impacto_titulo}</p>
                 {host.fondo_impacto_descripcion && <p class="text-sm text-white/70">{host.fondo_impacto_descripcion}</p>}
@@ -331,7 +332,7 @@ const jsonLd = {
         <div class="grid sm:grid-cols-2 gap-4">
           <a href="/tierras/propiedades" class="group p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-[#d4920a]/40 hover:bg-white/10 transition-all">
             <div class="flex items-center gap-2 mb-2">
-              <span class="text-xl">🏡</span>
+              <span class="block"><Icon name="home" class="w-5 h-5" /></span>
               <span class="text-[9px] font-bold uppercase tracking-wider text-[#d4920a] bg-[#d4920a]/10 px-2 py-0.5 rounded-full">Iwagé Tierras</span>
             </div>
             <h3 class="font-semibold text-white group-hover:text-[#d4920a] transition-colors mb-1">Compra tierra aquí</h3>
@@ -340,7 +341,7 @@ const jsonLd = {
           </a>
           <a href="/gestion" class="group p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-[#d4920a]/40 hover:bg-white/10 transition-all">
             <div class="flex items-center gap-2 mb-2">
-              <span class="text-xl">🔑</span>
+              <span class="block"><Icon name="key-round" class="w-5 h-5" /></span>
               <span class="text-[9px] font-bold uppercase tracking-wider text-[#8BC34A] bg-[#8BC34A]/10 px-2 py-0.5 rounded-full">Iwagé Gestión</span>
             </div>
             <h3 class="font-semibold text-white group-hover:text-[#d4920a] transition-colors mb-1">Te la administramos</h3>
@@ -359,7 +360,7 @@ const jsonLd = {
         <div class="space-y-3">
           {host.pacto_items.map((item) => (
             <div class="flex items-start gap-3">
-              <span class="text-lg">{item.icono_name || '🤝'}</span>
+              <Icon name={item.icono_name || 'handshake'} class="w-5 h-5 shrink-0 mt-0.5" />
               <div>
                 <span class="font-medium text-sm">{item.titulo}</span>
                 {item.descripcion && <p class="text-xs text-white/60">{item.descripcion}</p>}
@@ -435,7 +436,7 @@ const jsonLd = {
       <div class="space-y-4">
         {nivelesList.map((n) => (
           <div class:list={['flex items-center gap-4 p-4 rounded-xl border', n.nivel === host.nivel_escalafon ? 'border-[#4a7c23] bg-[#f8faf5]' : 'border-gray-100']}>
-            <span class="text-2xl">{n.icono}</span>
+            <span class="block"><Icon name={n.icono} class="w-6 h-6" /></span>
             <div class="flex-1">
               <span class="font-bold text-sm" style={`color: ${n.color}`}>{n.nombre}</span>
               <p class="text-xs text-gray-500">{n.descripcion}</p>

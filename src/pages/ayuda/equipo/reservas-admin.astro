@@ -1,0 +1,82 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Panel de reservas (administración)';
+---
+
+<WikiLayout title={title} activePath="/ayuda/equipo/reservas-admin">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/equipo/" class="hover:text-brand transition-colors">Equipo</a>
+    <span>/</span>
+    <span class="text-text-primary">Panel de reservas</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Panel de reservas (administración)</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Acceso</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El panel administrativo se encuentra en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">reservas.iwage.co</code>. Solo usuarios con rol de administrador tienen acceso al dashboard completo. El login usa credenciales internas del sistema.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Dashboard</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        La página principal (<code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/</code>) muestra estadísticas clave:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Total de reservas:</strong> cantidad de reservas en el sistema.</li>
+        <li><strong>Reservas activas:</strong> pendientes y confirmadas.</li>
+        <li><strong>Ingresos:</strong> total facturado (pagado + pendiente).</li>
+        <li><strong>Recursos activos:</strong> cantidad de recursos publicados.</li>
+        <li><strong>Clientes:</strong> total de clientes registrados.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Secciones del panel</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Sección</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Ruta</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Función</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border"><td class="px-4 py-3 font-semibold">Reservas</td><td class="px-4 py-3 font-mono text-xs">/reservas</td><td class="px-4 py-3">Lista de todas las reservas. Ver detalle, cambiar estado.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-semibold">Recursos</td><td class="px-4 py-3 font-mono text-xs">/recursos</td><td class="px-4 py-3">Gestión de recursos reservables. Crear, editar, moderar.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-semibold">Clientes</td><td class="px-4 py-3 font-mono text-xs">/clientes</td><td class="px-4 py-3">Directorio de clientes con historial de reservas.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-semibold">Órdenes</td><td class="px-4 py-3 font-mono text-xs">/ordenes</td><td class="px-4 py-3">Órdenes de pedido generadas desde el carrito.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-semibold">Pagos</td><td class="px-4 py-3 font-mono text-xs">/pagos</td><td class="px-4 py-3">Registro de pagos y reembolsos.</td></tr>
+            <tr class="border-b border-border"><td class="px-4 py-3 font-semibold">Calendario</td><td class="px-4 py-3 font-mono text-xs">/calendario</td><td class="px-4 py-3">Vista de calendario con reservas y bloqueos.</td></tr>
+            <tr><td class="px-4 py-3 font-semibold">Configuración</td><td class="px-4 py-3 font-mono text-xs">/configuracion</td><td class="px-4 py-3">Ajustes del sistema de reservas.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Gestión de recursos</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Desde la sección de recursos puedes:
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Crear recurso:</strong> definir nombre, slug, tipo, origen, precio, capacidad y configuración de disponibilidad.</li>
+        <li><strong>Moderar:</strong> aprobar o rechazar recursos creados por aliados (ciclo de publicación).</li>
+        <li><strong>Gestionar disponibilidad:</strong> bloquear fechas específicas para un recurso.</li>
+        <li><strong>Bulk actions:</strong> operaciones masivas sobre disponibilidad.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Calendario</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        La vista de calendario muestra las reservas programadas y los bloqueos de disponibilidad. Permite visualizar la ocupación por recurso y por rango de fechas. Los bloqueos manuales se pueden crear desde esta vista para impedir reservas en fechas específicas.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

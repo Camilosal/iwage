@@ -5,6 +5,7 @@ import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import StepTimeline from '@/components/StepTimeline.astro';
 import PricingCard from '@/components/PricingCard.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
 import { getCultivos, MESES_LABELS } from '@/lib/polinizacion';
 
@@ -86,7 +87,7 @@ const planes = [
         <div class="flex flex-wrap gap-4">
           <a href="#cultivos" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
             Ver cultivos
-            <i data-lucide="arrow-down" class="w-5 h-5"></i>
+            <Icon name="arrow-down" class="w-5 h-5" />
           </a>
           <a href="#planes" class="inline-flex items-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:bg-dark-text/5 transition-all">
             Ver planes
@@ -108,7 +109,7 @@ const planes = [
         <ul class="space-y-3">
           {queOfrecemos.map((item) => (
             <li class="flex items-start gap-3 text-sm text-text-secondary">
-              <i data-lucide="check-circle-2" class="w-5 h-5 text-brand shrink-0 mt-0.5"></i>
+              <Icon name="check-circle-2" class="w-5 h-5 text-brand shrink-0 mt-0.5" />
               <span>{item}</span>
             </li>
           ))}
@@ -124,7 +125,7 @@ const planes = [
           {condicionesGenerales.map((c) => (
             <div class="flex gap-4 p-4 bg-surface-raised rounded-xl border border-border">
               <div class="w-10 h-10 rounded-xl bg-accent-muted flex items-center justify-center text-accent shrink-0">
-                <i data-lucide={c.icon} class="w-5 h-5"></i>
+                <Icon name={c.icon} class="w-5 h-5" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-text-primary">{c.titulo}</p>
@@ -152,7 +153,7 @@ const planes = [
           <a href={`/meliponas/polinizacion/${c.slug}`} class="block group bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
             <div class="flex items-start justify-between mb-4">
               <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand">
-                <i data-lucide={c.icono || 'flower-2'} class="w-5 h-5"></i>
+                <Icon name={c.icono || 'flower-2'} class="w-5 h-5" />
               </div>
               {c.destacado && (
                 <span class="text-[10px] font-medium uppercase tracking-wide bg-accent-muted text-accent rounded-full px-2 py-0.5">Destacado</span>
@@ -214,7 +215,7 @@ const planes = [
           {beneficios.map((b) => (
             <div class="flex gap-4 p-4 bg-surface-raised rounded-xl border border-border">
               <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
-                <i data-lucide={b.icon} class="w-5 h-5"></i>
+                <Icon name={b.icon} class="w-5 h-5" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-text-primary">{b.title}</p>
@@ -261,7 +262,7 @@ const planes = [
 
         <!-- Estado de éxito -->
         <div id="polinizacion-ok" class="hidden rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
-          <span class="text-3xl">🐝</span>
+          <Icon name="hexagon" class="w-8 h-8 mx-auto text-green-600" />
           <h3 class="mt-2 text-lg font-bold text-green-800">Solicitud registrada</h3>
           <p class="mt-1 text-green-700">Código: <strong id="polinizacion-codigo"></strong></p>
           <p class="mt-1 text-sm text-green-600">Te contactaremos por WhatsApp en menos de 24 horas.</p>
@@ -295,7 +296,7 @@ const planes = [
         </form>
 
         <p class="mt-4 text-xs text-text-muted">
-          ¿Prefieres WhatsApp? <a href="https://wa.me/573001234567?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20polinizaci%C3%B3n%20con%20meliponas" target="_blank" rel="noopener" class="text-brand underline underline-offset-2">Escríbenos aquí</a>
+          ¿Prefieres WhatsApp? <a href="https://wa.me/573026693366?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20polinizaci%C3%B3n%20con%20meliponas" target="_blank" rel="noopener" class="text-brand underline underline-offset-2">Escríbenos aquí</a>
         </p>
       </div>
     </ScrollReveal>

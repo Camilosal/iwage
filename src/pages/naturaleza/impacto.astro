@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getIniciativas } from '@/lib/naturaleza';
 
 const ESG = [
@@ -33,30 +34,30 @@ const ESG = [
 ];
 
 const BIC_CARDS = [
-  { icon: '🏔️', title: 'Protección del Territorio', desc: 'Cada experiencia financia directamente la conservación de hectáreas de bosque andino. Trabajamos con propietarios rurales para que la protección sea económicamente sostenible.' },
-  { icon: '❤️', title: 'Bienestar Comunitario', desc: 'Generamos ingresos dignos para familias rurales que han sido guardianas del territorio por generaciones. El turismo se convierte en alternativa económica a la deforestación.' },
-  { icon: '🌱', title: 'Regeneración Activa', desc: 'No solo conservamos: regeneramos. Nuestro fondo de restauración financia siembra de especies nativas, recuperación de suelos y protección de fuentes hídricas.' },
-  { icon: '🎯', title: 'Transparencia Total', desc: 'Publicamos cómo se distribuye cada peso de tu experiencia. Sabes exactamente cuánto llega al anfitrión, cuánto al fondo de impacto y cuánto a la operación.' },
+  { icon: 'mountain', title: 'Protección del Territorio', desc: 'Cada experiencia financia directamente la conservación de hectáreas de bosque andino. Trabajamos con propietarios rurales para que la protección sea económicamente sostenible.' },
+  { icon: 'heart', title: 'Bienestar Comunitario', desc: 'Generamos ingresos dignos para familias rurales que han sido guardianas del territorio por generaciones. El turismo se convierte en alternativa económica a la deforestación.' },
+  { icon: 'sprout', title: 'Regeneración Activa', desc: 'No solo conservamos: regeneramos. Nuestro fondo de restauración financia siembra de especies nativas, recuperación de suelos y protección de fuentes hídricas.' },
+  { icon: 'target', title: 'Transparencia Total', desc: 'Publicamos cómo se distribuye cada peso de tu experiencia. Sabes exactamente cuánto llega al anfitrión, cuánto al fondo de impacto y cuánto a la operación.' },
 ];
 
 const METRICS = [
-  { icon: '🌲', value: '6.8', label: 'Hectáreas protegidas' },
-  { icon: '👨‍👩‍👧‍👦', value: '5', label: 'Familias beneficiadas' },
-  { icon: '🌿', value: '3.5%', label: 'Fondo de impacto' },
-  { icon: '🔍', value: '100%', label: 'Transparencia' },
+  { icon: 'trees', value: '6.8', label: 'Hectáreas protegidas' },
+  { icon: 'users', value: '5', label: 'Familias beneficiadas' },
+  { icon: 'leaf', value: '3.5%', label: 'Fondo de impacto' },
+  { icon: 'search', value: '100%', label: 'Transparencia' },
 ];
 
 // Iniciativas de temporada: gestionables desde el CMS (Strapi → Iniciativas de Impacto).
 // Si el CMS no devuelve datos (ej. sin sembrar), se muestran unas por defecto para que la sección nunca quede vacía.
 const INICIATIVAS_FALLBACK = [
-  { icono: '🌱', titulo: 'Fondo de Semillas Nativas', descripcion: 'Recolección y propagación de especies clave para restaurar el Corredor del Combeima.', estado: 'En curso', metrica: '1.200 plántulas', progreso: 75 },
-  { icono: '👥', titulo: 'Escuela de Guías Locales', descripcion: 'Programa de capacitación en bilingüismo y primeros auxilios para jóvenes rurales.', estado: 'Activo', metrica: '12 becados', progreso: 60 },
-  { icono: '🌲', titulo: 'Vivero de Alta Montaña', descripcion: 'Infraestructura para la producción masiva de frailejones en el Páramo de Anaime.', estado: 'Construcción', metrica: '60% avance', progreso: 60 },
+  { icono: 'sprout', titulo: 'Fondo de Semillas Nativas', descripcion: 'Recolección y propagación de especies clave para restaurar el Corredor del Combeima.', estado: 'En curso', metrica: '1.200 plántulas', progreso: 75 },
+  { icono: 'users', titulo: 'Escuela de Guías Locales', descripcion: 'Programa de capacitación en bilingüismo y primeros auxilios para jóvenes rurales.', estado: 'Activo', metrica: '12 becados', progreso: 60 },
+  { icono: 'trees', titulo: 'Vivero de Alta Montaña', descripcion: 'Infraestructura para la producción masiva de frailejones en el Páramo de Anaime.', estado: 'Construcción', metrica: '60% avance', progreso: 60 },
 ];
 
 const iniciativasCMS = await getIniciativas();
 const iniciativas = iniciativasCMS.length > 0
-  ? iniciativasCMS.map((i) => ({ icono: i.icono || '🌱', titulo: i.titulo, descripcion: i.descripcion || '', estado: i.estado || 'En curso', metrica: i.metrica || '', progreso: i.progreso ?? 0 }))
+  ? iniciativasCMS.map((i) => ({ icono: i.icono || 'sprout', titulo: i.titulo, descripcion: i.descripcion || '', estado: i.estado || 'En curso', metrica: i.metrica || '', progreso: i.progreso ?? 0 }))
   : INICIATIVAS_FALLBACK;
 ---
 
@@ -133,7 +134,7 @@ const iniciativas = iniciativasCMS.length > 0
         {BIC_CARDS.map((card) => (
           <div class="bg-white/5 rounded-xl border border-white/10 p-6">
             <div class="flex items-center gap-3 mb-4">
-              <span class="text-2xl">{card.icon}</span>
+              <Icon name={card.icon} class="w-7 h-7 text-white shrink-0" />
               <h3 class="font-serif text-lg font-bold">{card.title}</h3>
             </div>
             <p class="text-white/60 text-sm leading-relaxed">{card.desc}</p>
@@ -159,7 +160,7 @@ const iniciativas = iniciativasCMS.length > 0
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         {METRICS.map((m) => (
           <div class="bg-white rounded-xl border border-[#EDE5D4] p-6 text-center">
-            <span class="text-2xl block mb-3">{m.icon}</span>
+            <Icon name={m.icon} class="w-7 h-7 text-[#40916C] block mx-auto mb-3" />
             <p class="text-3xl font-serif font-bold text-[#1a3009]">{m.value}</p>
             <p class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mt-1">{m.label}</p>
           </div>
@@ -179,7 +180,7 @@ const iniciativas = iniciativasCMS.length > 0
         {iniciativas.map((init) => (
           <div class="bg-[#f8faf5] rounded-xl border border-[#EDE5D4] p-6">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-3xl">{init.icono}</span>
+              <Icon name={init.icono} class="w-8 h-8 text-[#40916C]" />
               <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#40916C]/10 text-[#40916C]">{init.estado}</span>
             </div>
             <h3 class="font-serif text-lg font-bold text-[#1a3009] mb-2">{init.titulo}</h3>
@@ -203,17 +204,17 @@ const iniciativas = iniciativasCMS.length > 0
       <h2 class="text-2xl font-light text-[#1a3009] mb-8 text-center">El Fondo de Restauración</h2>
       <div class="grid md:grid-cols-3 gap-6">
         <div class="p-6 rounded-2xl bg-white shadow-sm text-center">
-          <div class="text-4xl mb-3">🌱</div>
+          <div class="text-4xl mb-3"><Icon name="sprout" class="w-10 h-10 text-[#40916C] mx-auto" /></div>
           <h3 class="font-semibold text-[#1a3009] mb-2">2% de cada experiencia</h3>
           <p class="text-sm text-gray-600">De cada reserva, un porcentaje va directo al fondo comunitario de restauración.</p>
         </div>
         <div class="p-6 rounded-2xl bg-white shadow-sm text-center">
-          <div class="text-4xl mb-3">🌳</div>
+          <div class="text-4xl mb-3"><Icon name="trees" class="w-10 h-10 text-[#40916C] mx-auto" /></div>
           <h3 class="font-semibold text-[#1a3009] mb-2">Siembra nativa</h3>
           <p class="text-sm text-gray-600">Financiamos jornadas de siembra de especies nativas en corredores biológicos del Ambalá.</p>
         </div>
         <div class="p-6 rounded-2xl bg-white shadow-sm text-center">
-          <div class="text-4xl mb-3">💧</div>
+          <div class="text-4xl mb-3"><Icon name="droplets" class="w-10 h-10 text-[#40916C] mx-auto" /></div>
           <h3 class="font-semibold text-[#1a3009] mb-2">Protección hídrica</h3>
           <p class="text-sm text-gray-600">Aislamiento de fuentes de agua y restauración de rondas hídricas con familias campesinas.</p>
         </div>
@@ -247,7 +248,7 @@ const iniciativas = iniciativasCMS.length > 0
   <!-- CTA -->
   <section class="py-12 bg-[#0e1a08] text-white">
     <div class="max-w-4xl mx-auto px-6 text-center">
-      <span class="text-3xl block mb-4">❤️</span>
+      <Icon name="heart" class="w-8 h-8 text-[#C8933E] block mx-auto mb-4" />
       <h2 class="font-serif text-2xl md:text-3xl mb-4">
         Sé parte del <span class="text-[#C8933E] italic">cambio</span>
       </h2>

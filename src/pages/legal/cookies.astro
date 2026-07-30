@@ -1,0 +1,93 @@
+---
+import LegalLayout from './_layout.astro';
+
+const title = 'Política de Cookies';
+---
+
+<LegalLayout title={title} activePath="/legal/cookies" updated="Febrero de 2026">
+  <Fragment slot="breadcrumb">
+    <span class="text-text-primary">Cookies</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Política de Cookies y Almacenamiento Local</h1>
+
+  <div class="space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">1. Qué son las cookies</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Las cookies son pequeños archivos que el sitio guarda en tu navegador para recordar información entre visitas. Además de cookies, la plataforma Iwagé usa <strong>almacenamiento local del navegador (localStorage)</strong>, una tecnología equivalente que guarda datos únicamente en tu dispositivo y no se envía automáticamente a nuestros servidores.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">2. Qué usamos y para qué</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Elemento</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Tipo</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Finalidad</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">iwage-theme</td>
+              <td class="px-4 py-3">localStorage · esencial</td>
+              <td class="px-4 py-3">Recordar tu preferencia de modo claro u oscuro.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Carrito de compras</td>
+              <td class="px-4 py-3">localStorage · esencial</td>
+              <td class="px-4 py-3">Conservar los productos, experiencias y reservas que agregas al carrito unificado entre páginas y visitas.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Sesión Mi Cuenta</td>
+              <td class="px-4 py-3">Cookie de sesión · esencial</td>
+              <td class="px-4 py-3">Mantener tu sesión iniciada en el portal reservas.iwage.co/mi-cuenta.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Google Analytics (GA4)</td>
+              <td class="px-4 py-3">Cookie · analítica</td>
+              <td class="px-4 py-3">Medir visitas y uso del sitio de forma agregada (solo si está habilitado).</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Meta Pixel</td>
+              <td class="px-4 py-3">Cookie · marketing</td>
+              <td class="px-4 py-3">Medir la efectividad de campañas en Meta/Facebook (solo si está habilitado).</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-mono text-xs">Swetrix</td>
+              <td class="px-4 py-3">Analítica sin cookies</td>
+              <td class="px-4 py-3">Analítica de visitas respetuosa con la privacidad, sin cookies ni identificadores persistentes.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">3. Cookies de terceros</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Durante el proceso de pago en línea, la pasarela <strong>Bold</strong> puede establecer sus propias cookies dentro de su formulario de pago, gobernadas por sus políticas. Igualmente, los botones o enlaces a WhatsApp e Instagram redirigen a plataformas de terceros con sus propias políticas de cookies.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">4. Cómo gestionar las cookies</h2>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Puedes borrar o bloquear cookies y datos de sitios desde la configuración de tu navegador (Chrome, Firefox, Safari, Edge).</li>
+        <li>Si borras el almacenamiento local, perderás tu preferencia de tema y el contenido del carrito no finalizado.</li>
+        <li>Bloquear las cookies esenciales puede impedir iniciar sesión en el portal Mi Cuenta.</li>
+        <li>Para la analítica de Google puedes usar el complemento de inhabilitación oficial de Google Analytics.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">5. Cambios en esta política</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Si incorporamos nuevas tecnologías de seguimiento o analítica, actualizaremos esta página con su nueva fecha. El tratamiento de los datos recolectados por estas tecnologías se rige por la <a href="/legal/tratamiento-de-datos" class="text-brand hover:underline">Política de Tratamiento de Datos Personales</a>.
+      </p>
+    </section>
+  </div>
+</LegalLayout>

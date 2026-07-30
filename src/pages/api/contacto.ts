@@ -1,19 +1,19 @@
 import type { APIRoute } from 'astro';
+import { enviarNotificacion, tablaDatos, escapeHtml } from '@/lib/mailer';
+import { registrarContacto } from '@/lib/contacts';
 
 // Contact form submission endpoint
-// Validates, stores lead (in-memory for now, Strapi in production), sends notification
+// Validates, stores lead, sends notification, persists to centralized CRM + Listmonk
 
 interface Lead {
   nombre: string;
+  email?: string;
   whatsapp: string;
   municipio?: string;
   tipo_proyecto: string;
   mensaje?: string;
   fecha: string;
 }
-
-// In-memory store (replace with Strapi/DB in production)
-const leads: Lead[] = [];
 
 // Simple rate limiter
 const rateLimit = new Map<string, { count: number; reset: number }>();
@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   try {
     const body = await request.json();
-    const { nombre, whatsapp, municipio, tipo_proyecto, mensaje } = body;
+    const { nombre, email, whatsapp, municipio, tipo_proyecto, mensaje } = body;
 
     // Validation
     if (!nombre || typeof nombre !== 'string' || nombre.trim().length < 2) {
@@ -64,20 +64,45 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       });
     }
 
-    // Store lead
+    // Build lead
     const lead: Lead = {
       nombre: nombre.trim(),
+      email: (typeof email === 'string' && email.includes('@')) ? email.trim() : undefined,
       whatsapp: whatsapp.trim(),
       municipio: municipio?.trim() || undefined,
       tipo_proyecto,
       mensaje: mensaje?.trim() || undefined,
       fecha: new Date().toISOString(),
     };
-    leads.push(lead);
 
-    // TODO: In production, store in Strapi and/or send email notification
-    // await strapiClient.create('leads', lead);
-    // await sendEmailNotification(lead);
+    // Notificación por email (SES) — best-effort, no bloquea la respuesta al usuario
+    enviarNotificacion({
+      asunto: `[Iwagé] Nuevo contacto: ${lead.nombre} — ${lead.tipo_proyecto}`,
+      html: `
+        <h2 style="font-family:sans-serif;">Nuevo mensaje de contacto en iwage.co</h2>
+        ${tablaDatos([
+          ['Nombre', lead.nombre],
+          ['Email', lead.email],
+          ['WhatsApp', lead.whatsapp],
+          ['Municipio', lead.municipio],
+          ['Tipo de proyecto', lead.tipo_proyecto],
+          ['Fecha', lead.fecha],
+        ])}
+        ${lead.mensaje ? `<p style="font-family:sans-serif;"><strong>Mensaje:</strong><br>${escapeHtml(lead.mensaje)}</p>` : ''}
+      `,
+      texto: `Nuevo contacto Iwagé\nNombre: ${lead.nombre}\nEmail: ${lead.email || '-'}\nWhatsApp: ${lead.whatsapp}\nMunicipio: ${lead.municipio || '-'}\nTipo: ${lead.tipo_proyecto}\nMensaje: ${lead.mensaje || '-'}`,
+    }).catch(() => {});
+
+    // Persistir en sistema centralizado (form-handler DB) + suscribir a Listmonk
+    registrarContacto({
+      nombre: lead.nombre,
+      email: lead.email,
+      telefono: lead.whatsapp,
+      municipio: lead.municipio,
+      tipo_proyecto: lead.tipo_proyecto,
+      mensaje: lead.mensaje,
+      fuente: 'iwage-contacto',
+    }).catch(() => {});
 
     console.log('[contacto] New lead:', lead.nombre, '-', lead.tipo_proyecto);
 

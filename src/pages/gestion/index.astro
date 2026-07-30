@@ -2,6 +2,7 @@
 export const prerender = true;
 
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import AlojamientoCard from '@/components/gestion/AlojamientoCard.astro';
 import { getPropiedadesGestionDestacadas, TIPOS_GESTION } from '@/lib/gestion';
 
@@ -12,7 +13,7 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
 
   <!-- Hero with dual CTA -->
   <section class="relative min-h-[80vh] flex items-center overflow-hidden bg-[#0c1520]">
-    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80" alt="Territorio rural del Tolima" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+    <img src="/images/hero-gestion.webp" alt="Territorio rural del Tolima" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
     <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
     <div class="relative z-10 max-w-6xl mx-auto px-4 w-full">
       <div class="max-w-3xl">
@@ -51,7 +52,7 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
           <h2 class="text-3xl lg:text-4xl font-light text-[#122640] mt-3">Alojamientos destacados</h2>
         </div>
         <a href="/gestion/alojamientos" class="hidden sm:inline-block text-sm font-bold text-[#52B788] hover:text-[#2d5a8f] transition-colors">
-          Ver todos <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          Ver todos <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
         </a>
       </div>
 
@@ -63,15 +64,15 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
         </div>
       ) : (
         <div class="text-center py-16 bg-white rounded-3xl border border-gray-100">
-          <i data-lucide="home" class="w-8 h-8 block mb-4 mx-auto"></i>
+          <Icon name="home" class="w-8 h-8 block mb-4 mx-auto" />
           <p class="text-gray-400 text-sm mb-4">Próximamente publicaremos nuestros alojamientos disponibles.</p>
-          <a href="/gestion/alojamientos" class="text-sm font-bold text-[#52B788] hover:text-[#2d5a8f] transition-colors">Explorar catálogo <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+          <a href="/gestion/alojamientos" class="text-sm font-bold text-[#52B788] hover:text-[#2d5a8f] transition-colors">Explorar catálogo <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>
         </div>
       )}
 
       <div class="text-center mt-8 sm:hidden">
         <a href="/gestion/alojamientos" class="inline-block px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
-          Ver todos los alojamientos <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          Ver todos los alojamientos <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
         </a>
       </div>
     </div>
@@ -86,12 +87,12 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
       </div>
       <div class="grid md:grid-cols-3 gap-8">
         {[
-          { icon: '🔍', step: 'Explora', desc: 'Busca fincas, glamping o casas campestres por destino, fechas y número de huéspedes.' },
-          { icon: '📅', step: 'Reserva', desc: 'Elige tus fechas, confirma disponibilidad y reserva en línea de forma segura.' },
+          { icon: 'search', step: 'Explora', desc: 'Busca fincas, glamping o casas campestres por destino, fechas y número de huéspedes.' },
+          { icon: 'calendar', step: 'Reserva', desc: 'Elige tus fechas, confirma disponibilidad y reserva en línea de forma segura.' },
           { icon: 'leaf', step: 'Disfruta', desc: 'Llega y vive la experiencia rural. Con anfitriones locales y actividades de territorio.' },
         ].map((item) => (
           <div class="text-center p-8 rounded-3xl bg-[#f8f9fb] border border-gray-100">
-            <div class="text-4xl mb-4">{item.icon}</div>
+            <div class="mb-4"><Icon name={item.icon} class="w-10 h-10 text-[#2d5a8f]" /></div>
             <h3 class="text-lg font-bold text-[#122640] mb-3">{item.step}</h3>
             <p class="text-sm text-gray-600">{item.desc}</p>
           </div>
@@ -112,13 +113,13 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
         <div class="grid grid-cols-2 gap-4 mb-8">
           {TIPOS_GESTION.map((tipo) => (
             <a href={`/gestion/propietarios/${tipo.slug === 'renta_corta' ? 'renta-corta' : tipo.slug === 'finca_productiva' ? 'finca-productiva' : tipo.slug === 'segunda_residencia' ? 'segunda-residencia' : 'operacion-turistica'}`} class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
-              <span class="text-xl">{tipo.icon}</span>
+              <Icon name={tipo.icon} class="w-5 h-5 text-white/80" />
               <span class="text-sm text-white/80 font-medium">{tipo.label}</span>
             </a>
           ))}
         </div>
         <a href="/gestion/propietarios" class="inline-block px-8 py-3.5 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold hover:bg-[#7fc4a2] transition-colors">
-          Conocer modelos de gestión <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          Conocer modelos de gestión <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
         </a>
       </div>
       <div class="rounded-3xl overflow-hidden h-80">
@@ -137,10 +138,10 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="/gestion/experiencias" class="px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
-          Ver experiencias <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          Ver experiencias <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
         </a>
         <a href="/naturaleza" class="px-8 py-3.5 rounded-full border-2 border-[#2d5a8f] text-[#2d5a8f] text-sm font-bold hover:bg-[#2d5a8f] hover:text-white transition-colors">
-          Iwagé Naturaleza <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          Iwagé Naturaleza <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
         </a>
       </div>
     </div>
@@ -157,7 +158,7 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
             La finca superó todas nuestras expectativas. Impecable, con una vista increíble y el anfitrión nos organizó una ruta de café que fue lo mejor del viaje.
           </p>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-[#52B788]/20 flex items-center justify-center text-sm">👤</div>
+            <div class="w-10 h-10 rounded-full bg-[#52B788]/20 flex items-center justify-center"><Icon name="user" class="w-5 h-5 text-[#52B788]" /></div>
             <div>
               <p class="text-[#122640] font-medium text-sm">Huésped</p>
               <p class="text-gray-400 text-xs">Finca en Alvarado · Renta corta</p>
@@ -171,7 +172,7 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
             Antes mi finca estaba abandonada la mitad del año. Ahora genera ingresos constantes y yo no tengo que preocuparme por nada. Reportes claros cada mes.
           </p>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-[#52B788]/20 flex items-center justify-center text-sm">👤</div>
+            <div class="w-10 h-10 rounded-full bg-[#52B788]/20 flex items-center justify-center"><Icon name="user" class="w-5 h-5 text-[#52B788]" /></div>
             <div>
               <p class="text-white font-medium text-sm">Propietario aliado</p>
               <p class="text-white/40 text-xs">Finca en Venadillo · Gestión Pura</p>
@@ -194,7 +195,7 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
           Buscar alojamiento
         </a>
         <a
-          href="https://wa.me/573001234567?text=Hola,%20quiero%20una%20valoración%20de%20mi%20propiedad%20para%20gestión"
+          href="https://wa.me/573026693366?text=Hola,%20quiero%20una%20valoración%20de%20mi%20propiedad%20para%20gestión"
           target="_blank"
           rel="noopener"
           class="w-full sm:w-auto px-10 py-4 rounded-full border border-white/30 text-white text-sm font-bold uppercase tracking-wider hover:bg-white/10 transition-colors text-center"

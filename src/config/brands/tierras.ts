@@ -46,6 +46,7 @@ export const tierras: BrandConfig = {
         { label: 'Bitácora', href: '/tierras/bitacora' },
         { label: 'Nosotros', href: '/tierras/nosotros' },
         { label: 'Ayuda', href: '/tierras/ayuda' },
+        { label: 'Legal y Políticas', href: '/legal/' },
         { label: 'Contacto', href: '/tierras/contacto' },
       ],
     },
@@ -55,7 +56,7 @@ export const tierras: BrandConfig = {
     defaultDescription:
       'Propiedades rurales con verificación técnica, conocimiento territorial y valoración algorítmica en el Tolima. Fincas productivas, campestres y turísticas.',
   },
-  whatsapp: '573001234567',
+  whatsapp: '573026693366',
   instagram: '@iwage.tierras',
   icon: 'mountain',
 };

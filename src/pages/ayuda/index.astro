@@ -1,0 +1,144 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
+
+const title = 'Centro de Ayuda';
+const description = 'Guía completa de la plataforma Iwagé: cómo usar el sitio, hacer reservas, comprar productos y administrar contenido.';
+
+const usuarioArticles = [
+  { label: 'Explorar la plataforma', href: '/ayuda/usuarios/explorar-plataforma', desc: 'Navegación, búsqueda y personalización del sitio', icon: 'globe' },
+  { label: 'Nuestras marcas', href: '/ayuda/usuarios/marcas', desc: 'Las 5 líneas de acción del ecosistema Iwagé', icon: 'hexagon' },
+  { label: 'Tienda y productos', href: '/ayuda/usuarios/tienda', desc: 'Catálogo, categorías y flujo de compra', icon: 'shopping-bag' },
+  { label: 'Reservas y experiencias', href: '/ayuda/usuarios/reservas', desc: 'Cómo reservar experiencias y estadías', icon: 'calendar' },
+  { label: 'Carrito de compras', href: '/ayuda/usuarios/carrito', desc: 'Carrito unificado multi-marca y checkout', icon: 'shopping-cart' },
+  { label: 'Mi Cuenta', href: '/ayuda/usuarios/mi-cuenta', desc: 'Portal de usuario: reservas, pedidos y perfil', icon: 'user' },
+  { label: 'Pedidos y pagos', href: '/ayuda/usuarios/pedidos', desc: 'Seguimiento de pedidos y métodos de pago', icon: 'receipt' },
+  { label: 'Herramientas', href: '/ayuda/usuarios/herramientas', desc: 'Calculadoras, chat IA y búsqueda avanzada', icon: 'calculator' },
+];
+
+const equipoArticles = [
+  { label: 'Gestión de contenido (Strapi)', href: '/ayuda/equipo/strapi-cms', desc: 'Administrar contenido en el CMS Strapi', icon: 'database' },
+  { label: 'Tipos de contenido', href: '/ayuda/equipo/contenido-tipos', desc: 'Referencia de todos los content types', icon: 'file-text' },
+  { label: 'Panel de reservas (admin)', href: '/ayuda/equipo/reservas-admin', desc: 'Dashboard, calendario y gestión de recursos', icon: 'settings' },
+  { label: 'Ciclo de vida de reservas', href: '/ayuda/equipo/gestion-reservas', desc: 'Estados, confirmación, cancelación y reembolsos', icon: 'refresh-cw' },
+  { label: 'Portal de aliados', href: '/ayuda/equipo/portal-aliados', desc: 'Gestión de recursos propios y liquidaciones', icon: 'users' },
+  { label: 'Sincronización de recursos', href: '/ayuda/equipo/sincronizacion', desc: 'Sync entre Strapi, app_reservas y marca_personal', icon: 'sync' },
+  { label: 'Pasarela de pagos', href: '/ayuda/equipo/pagos', desc: 'Integración Bold, webhooks y estados de pago', icon: 'credit-card' },
+  { label: 'Órdenes y pedidos', href: '/ayuda/equipo/ordenes', desc: 'Flujo de órdenes por carrito y WhatsApp', icon: 'package' },
+  { label: 'Configuración del sitio', href: '/ayuda/equipo/configuracion', desc: 'Variables de entorno y ajustes del sistema', icon: 'sliders' },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Cómo reservar una experiencia en Iwagé?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Navega a la sección de la marca (Naturaleza, Gestión, etc.), selecciona la experiencia o propiedad, elige fecha y hora en el widget de disponibilidad, y confirma tu reserva." }
+    },
+    {
+      "@type": "Question",
+      "name": "Cómo funciona el carrito de compras de Iwagé?",
+      "acceptedAnswer": { "@type": "Answer", "text": "El carrito unificado permite agregar productos, experiencias y reservas de todas las marcas del ecosistema. Al hacer checkout se genera una orden centralizada con pago en línea o coordinación por WhatsApp." }
+    }
+  ]
+};
+---
+
+<BaseLayout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden border-b border-border bg-surface-raised">
+    <div class="absolute inset-0 bg-gradient-to-br from-brand-muted/30 via-transparent to-accent-muted/20"></div>
+    <div class="relative max-w-4xl mx-auto px-6 py-16 md:py-24 text-center">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-accent mb-4">Centro de Ayuda</p>
+      <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary leading-tight">
+        Guía de la plataforma <span class="text-brand">Iwagé</span>
+      </h1>
+      <p class="mt-5 text-base md:text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+        Todo lo que necesitas saber sobre el ecosistema: cómo explorar, reservar, comprar y administrar contenido.
+      </p>
+
+      <!-- Search hint -->
+      <div class="mt-8 flex items-center justify-center gap-2 text-sm text-text-muted">
+        <Icon name="search" class="w-4 h-4" />
+        <span>Usa <kbd class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">Ctrl+K</kbd> para buscar en todo el sitio</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Two audience cards -->
+  <section class="max-w-5xl mx-auto px-6 py-12">
+    <div class="grid md:grid-cols-2 gap-6 mb-14">
+      <!-- Usuarios -->
+      <a href="/ayuda/usuarios/" class="group relative overflow-hidden rounded-2xl border border-border bg-surface-raised p-8 transition-all hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5">
+        <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-brand to-brand-light opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center">
+            <Icon name="user" class="w-6 h-6 text-brand" />
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-text-primary">Soy Usuario</h2>
+            <p class="text-xs text-text-muted">Clientes y visitantes del sitio</p>
+          </div>
+        </div>
+        <p class="text-sm text-text-secondary leading-relaxed">
+          Aprende a navegar el ecosistema, explorar marcas, hacer reservas, usar el carrito de compras y acceder a tu portal personal.
+        </p>
+        <span class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand group-hover:gap-3 transition-all">
+          Ver guías <Icon name="arrow-right" class="w-4 h-4" />
+        </span>
+      </a>
+
+      <!-- Equipo -->
+      <a href="/ayuda/equipo/" class="group relative overflow-hidden rounded-2xl border border-border bg-surface-raised p-8 transition-all hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5">
+        <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-accent to-accent-light opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 rounded-xl bg-accent-muted flex items-center justify-center">
+            <Icon name="settings" class="w-6 h-6 text-accent" />
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-text-primary">Soy Administrador</h2>
+            <p class="text-xs text-text-muted">Equipo interno y aliados</p>
+          </div>
+        </div>
+        <p class="text-sm text-text-secondary leading-relaxed">
+          Documentación técnica: gestión de contenido en Strapi, panel de reservas, sincronización de recursos, pagos y configuración.
+        </p>
+        <span class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-accent group-hover:gap-3 transition-all">
+          Ver documentación <Icon name="arrow-right" class="w-4 h-4" />
+        </span>
+      </a>
+    </div>
+
+    <!-- Quick links: Usuarios -->
+    <div class="mb-12">
+      <h2 class="text-sm font-mono uppercase tracking-widest text-accent mb-6">Guías para usuarios</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {usuarioArticles.map((a) => (
+          <a href={a.href} class="group flex flex-col gap-2 p-4 rounded-xl border border-border bg-surface-raised hover:border-brand/40 hover:shadow-md transition-all">
+            <Icon name={a.icon} class="w-5 h-5 text-brand" />
+            <span class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">{a.label}</span>
+            <span class="text-xs text-text-muted leading-relaxed">{a.desc}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- Quick links: Equipo -->
+    <div>
+      <h2 class="text-sm font-mono uppercase tracking-widest text-accent mb-6">Documentación para el equipo</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {equipoArticles.map((a) => (
+          <a href={a.href} class="group flex flex-col gap-2 p-4 rounded-xl border border-border bg-surface-raised hover:border-brand/40 hover:shadow-md transition-all">
+            <Icon name={a.icon} class="w-5 h-5 text-accent" />
+            <span class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">{a.label}</span>
+            <span class="text-xs text-text-muted leading-relaxed">{a.desc}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

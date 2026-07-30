@@ -1,8 +1,9 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 
-const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "clipboard-list"}, {"id": "menu", "label": "Menú", "icon": "coffee"}, {"id": "proveedores", "label": "Proveedores", "icon": "🌾"}, {"id": "visitas", "label": "Visitas", "icon": "📍"}];
+const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "clipboard-list"}, {"id": "menu", "label": "Menú", "icon": "coffee"}, {"id": "proveedores", "label": "Proveedores", "icon": "wheat"}, {"id": "visitas", "label": "Visitas", "icon": "map-pin"}];
 
 const FAQS = [{"pregunta": "¿Dónde queda Café Iwagé?", "respuesta": "Estamos en el corredor Ambalá, zona rural de Ibagué, Tolima. Coordenadas exactas y cómo llegar están en /cafe/contacto. Recomendamos reservar para grupos mayores a 6 personas.", "categoria": "visitas"}, {"pregunta": "¿Necesito reserva para visitar?", "respuesta": "Para grupos de 1-6 personas no es necesaria reserva. Para grupos mayores, eventos privados o catas guiadas, recomendamos reservar con 48h de anticipación por WhatsApp.", "categoria": "visitas"}, {"pregunta": "¿Tienen opciones vegetarianas/veganas?", "respuesta": "Sí. Nuestro menú incluye opciones basadas en ingredientes del territorio: frutas de la finca, panes artesanales, quesos locales y preparaciones de temporada. Cada ítem indica sus alérgenos.", "categoria": "menu"}, {"pregunta": "¿De dónde vienen los ingredientes?", "respuesta": "El 90% de nuestros ingredientes provienen de proveedores en un radio de 4km. Cada producto del menú nombra a su proveedor y finca de origen. Es nuestro compromiso con la economía circular local.", "categoria": "menu"}, {"pregunta": "¿Venden café para llevar?", "respuesta": "Sí. Tenemos café tostado en grano o molido de productores aliados del corredor Ambalá. Disponible en presentaciones de 250g y 500g. También hacemos envíos nacionales.", "categoria": "menu"}, {"pregunta": "¿Cómo me convierto en proveedor de Café Iwagé?", "respuesta": "Buscamos productores locales con prácticas sostenibles en un radio de 10km. Escríbenos con tu producto, volumen disponible y ubicación. Evaluamos calidad, trazabilidad y alineación con nuestra filosofía.", "categoria": "proveedores"}, {"pregunta": "¿Qué significa 'proveedor a menos de 4km'?", "respuesta": "Es nuestro estándar de proximidad: cada ingrediente principal viaja máximo 4km desde su origen hasta la cocina. Esto garantiza frescura, reduce huella de carbono y fortalece la economía del territorio.", "categoria": "proveedores"}];
 ---
@@ -11,7 +12,7 @@ const FAQS = [{"pregunta": "¿Dónde queda Café Iwagé?", "respuesta": "Estamos
   <!-- Hero -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-4xl mx-auto px-6 text-center">
-      <i data-lucide="coffee" class="w-8 h-8 block mb-4 mx-auto"></i>
+      <Icon name="coffee" class="w-8 h-8 block mb-4 mx-auto text-brand" />
       <h1 class="text-3xl md:text-4xl font-serif text-text-primary mb-3">Centro de Ayuda</h1>
       <p class="text-text-secondary max-w-lg mx-auto mb-8">Preguntas sobre nuestro menú, proveedores locales y visitas al café.</p>
       <!-- Search -->
@@ -22,7 +23,7 @@ const FAQS = [{"pregunta": "¿Dónde queda Café Iwagé?", "respuesta": "Estamos
           placeholder="Buscar pregunta..."
           class="w-full rounded-full border border-border bg-surface-raised px-5 py-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
         />
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm">🔍</span>
+        <Icon name="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
       </div>
     </div>
   </section>
@@ -36,7 +37,7 @@ const FAQS = [{"pregunta": "¿Dónde queda Café Iwagé?", "respuesta": "Estamos
           class={`cat-pill rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-all ${i === 0 ? 'bg-brand text-white' : 'bg-surface-sunken text-text-secondary hover:bg-brand-muted hover:text-brand'}`}
           data-cat={cat.id}
         >
-          {cat.icon} {cat.label}
+          <Icon name={cat.icon} class="w-4 h-4 inline align-middle mr-1.5" />{cat.label}
         </button>
       ))}
     </div>
@@ -49,7 +50,7 @@ const FAQS = [{"pregunta": "¿Dónde queda Café Iwagé?", "respuesta": "Estamos
         <details class="faq-item group bg-surface-raised rounded-xl border border-border overflow-hidden" data-cat={faq.categoria}>
           <summary class="flex items-center justify-between gap-4 px-6 py-4 cursor-pointer select-none hover:bg-brand-muted/30 transition-colors">
             <span class="text-sm font-medium text-text-primary">{faq.pregunta}</span>
-            <span class="text-text-muted group-open:rotate-180 transition-transform shrink-0">▾</span>
+            <Icon name="chevron-down" class="w-4 h-4 text-text-muted group-open:rotate-180 transition-transform shrink-0" />
           </summary>
           <div class="px-6 pb-5">
             <p class="text-sm text-text-secondary leading-relaxed">{faq.respuesta}</p>
@@ -60,7 +61,7 @@ const FAQS = [{"pregunta": "¿Dónde queda Café Iwagé?", "respuesta": "Estamos
 
     <!-- Empty state -->
     <div id="faq-empty" class="hidden text-center py-12">
-      <span class="text-3xl block mb-3">🤷</span>
+      <Icon name="help-circle" class="w-8 h-8 block mx-auto mb-3 text-text-muted" />
       <p class="text-text-secondary">No encontramos preguntas que coincidan.</p>
     </div>
   </section>
@@ -69,10 +70,16 @@ const FAQS = [{"pregunta": "¿Dónde queda Café Iwagé?", "respuesta": "Estamos
   <section class="bg-surface-sunken py-12">
     <div class="max-w-xl mx-auto px-6 text-center">
       <h2 class="text-xl font-bold text-text-primary mb-3">¿No encontraste tu respuesta?</h2>
-      <p class="text-text-secondary mb-6">Escríbenos directamente y te ayudamos en menos de 2 horas.</p>
-      <a href="/cafe/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
-        Contactar soporte <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
-      </a>
+      <p class="text-text-secondary mb-6">Consulta la guía de uso de la plataforma o escríbenos directamente y te ayudamos en menos de 2 horas.</p>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <a href="/ayuda/" class="inline-flex items-center gap-2 border border-brand text-brand rounded-full px-6 py-3 font-medium hover:bg-brand-muted/30 transition-all">
+          <Icon name="book-open" class="w-4 h-4" />
+          Guía de uso
+        </a>
+        <a href="/cafe/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+          Contactar soporte <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
+        </a>
+      </div>
     </div>
   </section>
 </BrandLayout>

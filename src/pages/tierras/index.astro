@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import { getPropiedadesDestacadas, getPropiedades, formatPrecio, formatArea, propiedadImagen, PERFILES_COMPRADOR, SELLOS_VAP } from '@/lib/tierras';
@@ -43,10 +44,10 @@ const CICLO_ECOSISTEMA = [
 ];
 
 const TICS = [
-  { icon: '🛰️', title: 'GPS Precisión', desc: 'Georreferenciación submétrica para linderos exactos' },
+  { icon: 'satellite', title: 'GPS Precisión', desc: 'Georreferenciación submétrica para linderos exactos' },
   { icon: 'camera', title: 'Foto Drone', desc: 'Imágenes aéreas de alta resolución' },
-  { icon: '🔄', title: 'Tour 360°', desc: 'Recorrido virtual interactivo' },
-  { icon: '📐', title: 'Modelo 3D', desc: 'Representación digital del terreno' },
+  { icon: 'refresh-cw', title: 'Tour 360°', desc: 'Recorrido virtual interactivo' },
+  { icon: 'ruler', title: 'Modelo 3D', desc: 'Representación digital del terreno' },
 ];
 ---
 
@@ -55,7 +56,7 @@ const TICS = [
   <!-- Hero -->
   <section class="relative min-h-[75vh] flex items-center justify-center overflow-hidden bg-[#0F120E]">
     <img
-      src="https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1600&q=80"
+      src="/images/hero-tierras.webp"
       alt="Paisaje rural del Tolima, montañas y tierras productivas"
       class="absolute inset-0 w-full h-full object-cover brightness-[0.7]"
       loading="eager"
@@ -72,10 +73,10 @@ const TICS = [
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="/tierras/propiedades" class="bg-[#52B788] text-[#0F120E] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#52B788]/90 hover:scale-105 transition-all shadow-lg">
-          🔍 Buscar Tierra
+          <Icon name="search" class="w-4 h-4 inline align-[-2px] mr-1.5" /> Buscar Tierra
         </a>
         <a href="/tierras/vender" class="bg-[#C8933E] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#C8933E]/90 hover:scale-105 transition-all shadow-lg">
-          🏷️ Vender mi Tierra
+          <Icon name="tag" class="w-4 h-4 inline align-[-2px] mr-1.5" /> Vender mi Tierra
         </a>
       </div>
       <!-- Trust bar -->
@@ -109,7 +110,7 @@ const TICS = [
     <div class="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
       <ScrollReveal>
         <a href="/tierras/comprar" class="group block bg-white rounded-2xl p-8 border border-gray-100 hover:border-[#52B788]/50 hover:shadow-xl transition-all h-full">
-          <span class="text-4xl block mb-4">🔍</span>
+          <span class="block mb-4"><Icon name="search" class="w-10 h-10 text-[#52B788]" /></span>
           <h3 class="text-xl font-bold text-[#1B4332] group-hover:text-[#52B788] transition-colors mb-3">Quiero comprar tierra</h3>
           <p class="text-sm text-gray-500 mb-5">
             Encuentra fincas, lotes y casas campestres con verificación técnica completa. Sin sorpresas legales, sin linderos fantasma, sin promesas vacías.
@@ -122,12 +123,12 @@ const TICS = [
               </li>
             ))}
           </ol>
-          <span class="inline-block text-sm font-bold text-[#52B788] group-hover:translate-x-1 transition-transform">Guía de compra <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></span>
+          <span class="inline-block text-sm font-bold text-[#52B788] group-hover:translate-x-1 transition-transform">Guía de compra <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></span>
         </a>
       </ScrollReveal>
       <ScrollReveal>
         <a href="/tierras/vender" class="group block bg-[#1B4332] rounded-2xl p-8 border border-[#1B4332] hover:shadow-xl transition-all h-full">
-          <span class="text-4xl block mb-4">🏷️</span>
+          <span class="block mb-4"><Icon name="tag" class="w-10 h-10 text-[#C8933E]" /></span>
           <h3 class="text-xl font-bold text-white group-hover:text-[#52B788] transition-colors mb-3">Quiero vender mi tierra</h3>
           <p class="text-sm text-white/60 mb-5">
             Radica tu predio y nosotros lo auditamos, lo producimos audiovisualmente y lo comercializamos ante compradores calificados. Precio justo, cero fricción.
@@ -140,7 +141,7 @@ const TICS = [
               </li>
             ))}
           </ol>
-          <span class="inline-block text-sm font-bold text-[#C8933E] group-hover:translate-x-1 transition-transform">Radicar mi predio <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></span>
+          <span class="inline-block text-sm font-bold text-[#C8933E] group-hover:translate-x-1 transition-transform">Radicar mi predio <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></span>
         </a>
       </ScrollReveal>
     </div>
@@ -162,17 +163,17 @@ const TICS = [
                   <img src={propiedadImagen(prop)!} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 ) : (
                   <div class="w-full h-full flex items-center justify-center bg-[#1B4332]/10">
-                    <i data-lucide="mountain" class="w-8 h-8"></i>
+                    <Icon name="mountain" class="w-8 h-8 text-[#1B4332]/40" />
                   </div>
                 )}
                 <div class="absolute top-3 left-3 flex gap-2">
                   <span class="bg-[#52B788] text-[#0F120E] text-[10px] font-bold px-2 py-1 rounded-full uppercase">{prop.tipo_propiedad.replace('_', ' ')}</span>
-                  {prop.sello_vap === 'oro' && <span class="bg-yellow-400 text-black text-[10px] font-bold px-2 py-1 rounded-full">🥇 VAP Oro</span>}
+                  {prop.sello_vap === 'oro' && <span class="bg-yellow-400 text-black text-[10px] font-bold px-2 py-1 rounded-full inline-flex items-center gap-1"><Icon name="medal" class="w-3 h-3 inline" /> VAP Oro</span>}
                 </div>
               </div>
               <div class="p-5">
                 <h3 class="font-bold text-[#1B4332] group-hover:text-[#52B788] transition-colors mb-1">{prop.titulo}</h3>
-                <p class="text-xs text-gray-500 mb-3">📍 {prop.ubicacion_municipio || 'Tolima'} {prop.distancia_centro_poblado ? `· ${prop.distancia_centro_poblado} km al centro` : ''}</p>
+                <p class="text-xs text-gray-500 mb-3"><Icon name="map-pin" class="w-3 h-3 inline align-[-1px] mr-0.5" />{prop.ubicacion_municipio || 'Tolima'} {prop.distancia_centro_poblado ? `· ${prop.distancia_centro_poblado} km al centro` : ''}</p>
                 <div class="flex items-center justify-between">
                   <span class="text-lg font-bold text-[#1B4332]">{formatPrecio(prop.precio, prop.moneda)}</span>
                   <span class="text-xs text-gray-500">{formatArea(prop)}</span>
@@ -184,7 +185,7 @@ const TICS = [
       </div>
       <div class="text-center mt-8">
         <a href="/tierras/propiedades" class="inline-block bg-[#1B4332] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#1B4332]/90 transition-all">
-          Ver todo el catálogo <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          Ver todo el catálogo <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
         </a>
       </div>
     </Section>
@@ -204,7 +205,7 @@ const TICS = [
         <ScrollReveal>
           <a href={etapa.href} class="group relative block bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#52B788]/40 hover:bg-white/10 transition-all h-full">
             <span class="absolute top-4 right-4 text-[10px] font-mono text-white/30">0{i + 1}</span>
-            <span class="text-3xl block mb-3">{etapa.icon}</span>
+            <span class="block mb-3"><Icon name={etapa.icon} class="w-8 h-8" style={`color: ${etapa.color}`} /></span>
             <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style={`color: ${etapa.color === '#52B788' ? '#52B788' : etapa.color}`}>{etapa.marca}</p>
             <h3 class="font-bold text-white group-hover:text-[#52B788] transition-colors mb-2">{etapa.titulo}</h3>
             <p class="text-xs text-white/50">{etapa.desc}</p>
@@ -223,7 +224,7 @@ const TICS = [
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:w-2/3">
           {TICS.map((tic) => (
             <div class="bg-white/5 rounded-xl p-4 border border-white/10">
-              <span class="text-2xl block mb-2">{tic.icon}</span>
+              <span class="block mb-2"><Icon name={tic.icon} class="w-6 h-6 text-[#52B788]" /></span>
               <h4 class="font-bold text-white text-sm mb-1">{tic.title}</h4>
               <p class="text-[11px] text-white/50">{tic.desc}</p>
             </div>
@@ -243,14 +244,14 @@ const TICS = [
           <strong>VAP = Verificación de Activos Rurales.</strong> Cada propiedad recibe un sello según su auditoría: títulos, linderos, agua y normativa.
         </p>
         <a href="/tierras/protocolo-vap" class="inline-block bg-[#1B4332] text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-[#1B4332]/90 transition-all">
-          Conocer el protocolo <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+          Conocer el protocolo <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
         </a>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:w-2/3">
         {SELLOS_VAP.map((sello) => (
           <ScrollReveal>
             <div class="text-center p-5 rounded-2xl border border-gray-100 hover:border-[#52B788]/40 hover:shadow-lg transition-all">
-              <span class="text-4xl block mb-2">{sello.icono}</span>
+              <span class="block mb-2"><Icon name={sello.icono} class="w-9 h-9 mx-auto text-[#C8933E]" /></span>
               <h3 class="font-bold text-[#1B4332] text-sm">{sello.label}</h3>
               <p class="text-[10px] font-bold uppercase text-[#52B788] tracking-wider mt-1">{sello.tagline}</p>
             </div>
@@ -271,17 +272,17 @@ const TICS = [
             El campo colombiano sufre de asimetría de información: el propietario no sabe cuánto vale su tierra y el comprador no confía. Iwagé elimina esa brecha.
           </p>
           <a href="/tierras/vender" class="inline-block bg-[#C8933E] text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-[#C8933E]/90 transition-all shadow-lg">
-            Radicar mi Predio <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+            Radicar mi Predio <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
           </a>
         </div>
         <div class="lg:w-1/2 space-y-4">
           {[
             { icon: 'shield', title: 'Auditoría VAP sin costo', desc: 'Verificamos títulos, linderos, agua y normativa. Tu predio sale al mercado con sello de certeza.' },
-            { icon: '🎬', title: 'Producción audiovisual profesional', desc: 'Fotografía con drone, tour 360° y ficha técnica. Tu propiedad se ve como merece.' },
-            { icon: '🎯', title: 'Difusión segmentada', desc: 'Conectamos tu predio con el perfil de comprador correcto: productivo, campestre, nómada, turístico o patrimonial.' },
+            { icon: 'clapperboard', title: 'Producción audiovisual profesional', desc: 'Fotografía con drone, tour 360° y ficha técnica. Tu propiedad se ve como merece.' },
+            { icon: 'target', title: 'Difusión segmentada', desc: 'Conectamos tu predio con el perfil de comprador correcto: productivo, campestre, nómada, turístico o patrimonial.' },
           ].map((item) => (
             <div class="flex items-start gap-4 bg-white/5 border border-white/10 rounded-xl p-5">
-              <span class="text-2xl shrink-0">{item.icon}</span>
+              <span class="shrink-0"><Icon name={item.icon} class="w-6 h-6 text-[#C8933E]" /></span>
               <div>
                 <h4 class="font-bold text-white text-sm mb-1">{item.title}</h4>
                 <p class="text-xs text-white/50">{item.desc}</p>
@@ -325,7 +326,7 @@ const TICS = [
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
       <a href="/tierras/herramientas/calculadora-notarial" class="bg-[#FAFAF7] p-6 rounded-2xl border border-gray-100 hover:border-[#52B788]/40 hover:shadow-lg transition-all flex items-center gap-5">
         <div class="w-14 h-14 bg-[#52B788]/10 rounded-xl flex items-center justify-center shrink-0">
-          <i data-lucide="calculator" class="w-5 h-5"></i>
+          <Icon name="calculator" class="w-5 h-5 text-[#52B788]" />
         </div>
         <div>
           <h4 class="font-bold text-[#1B4332]">Calculadora Notarial</h4>
@@ -334,7 +335,7 @@ const TICS = [
       </a>
       <a href="/tierras/herramientas/roi-calculator" class="bg-[#FAFAF7] p-6 rounded-2xl border border-gray-100 hover:border-[#52B788]/40 hover:shadow-lg transition-all flex items-center gap-5">
         <div class="w-14 h-14 bg-[#C8933E]/10 rounded-xl flex items-center justify-center shrink-0">
-          <span class="text-2xl">📈</span>
+          <span class="block"><Icon name="trending-up" class="w-6 h-6 text-[#C8933E]" /></span>
         </div>
         <div>
           <h4 class="font-bold text-[#1B4332]">Calculadora ROI Rural</h4>
@@ -348,7 +349,7 @@ const TICS = [
   <section class="py-16 bg-[#FAFAF7]">
     <div class="max-w-3xl mx-auto px-6">
       <div class="rounded-2xl p-10 md:p-14 text-center" style="background: linear-gradient(135deg, #1B4332 0%, #0F120E 100%)">
-        <i data-lucide="shield" class="w-8 h-8 block mb-4"></i>
+        <Icon name="shield" class="w-8 h-8 block mb-4 mx-auto text-[#52B788]" />
         <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">Tu próxima inversión rural merece certeza</h2>
         <p class="text-white/70 mb-8">No invertas en lo oscuro. Explora propiedades auditadas o radica la tuya para vender con transparencia.</p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">

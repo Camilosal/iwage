@@ -2,10 +2,11 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getCafeConfig } from '@/lib/cafe';
 
 const config = await getCafeConfig();
-const whatsapp = (config?.whatsapp ?? '573001234567').replace(/\+/g, '');
+const whatsapp = (config?.whatsapp ?? '573026693366').replace(/\+/g, '');
 ---
 
 <BrandLayout brand="cafe" title="Contacto · Café Iwagé" description="Escríbenos para visitas, suministro B2B o cualquier pregunta. Café Iwagé, corredor Ambalá, Ibagué, Tolima.">
@@ -29,36 +30,36 @@ const whatsapp = (config?.whatsapp ?? '573001234567').replace(/\+/g, '');
             <h2 class="text-lg font-semibold text-text-primary mb-3">Información</h2>
             <ul class="space-y-3 text-sm text-text-secondary">
               <li class="flex items-start gap-3">
-                <span class="text-accent">📍</span>
+                <span class="text-accent shrink-0 mt-0.5"><Icon name="map-pin" class="w-4 h-4" /></span>
                 <span>{config?.direccion ?? 'Corredor Ambalá, Ibagué, Tolima'}</span>
               </li>
               {config?.horario && (
                 <li class="flex items-start gap-3">
-                  <span class="text-accent">🕐</span>
+                  <span class="text-accent shrink-0 mt-0.5"><Icon name="clock" class="w-4 h-4" /></span>
                   <span class="whitespace-pre-line">{config.horario}</span>
                 </li>
               )}
               {!config?.horario && (
                 <li class="flex items-start gap-3">
-                  <span class="text-accent">🕐</span>
+                  <span class="text-accent shrink-0 mt-0.5"><Icon name="clock" class="w-4 h-4" /></span>
                   <span>Lunes a Sábado · 7:00 am – 5:00 pm</span>
                 </li>
               )}
               {config?.telefono && (
                 <li class="flex items-start gap-3">
-                  <span class="text-accent">📞</span>
+                  <span class="text-accent shrink-0 mt-0.5"><Icon name="phone" class="w-4 h-4" /></span>
                   <span>{config.telefono}</span>
                 </li>
               )}
               {config?.email && (
                 <li class="flex items-start gap-3">
-                  <span class="text-accent">✉️</span>
+                  <span class="text-accent"><Icon name="mail" class="w-4 h-4" /></span>
                   <a href={`mailto:${config.email}`} class="text-brand hover:text-accent transition-colors">{config.email}</a>
                 </li>
               )}
               {config?.instagram && (
                 <li class="flex items-start gap-3">
-                  <i data-lucide="camera" class="w-4 h-4 text-accent"></i>
+                  <Icon name="camera" class="w-4 h-4 text-accent" />
                   <span>{config.instagram}</span>
                 </li>
               )}
@@ -71,7 +72,7 @@ const whatsapp = (config?.whatsapp ?? '573001234567').replace(/\+/g, '');
               {config?.b2b_descripcion ?? 'Café de origen y miel de Angelita para restaurantes, hoteles y tiendas especializadas.'}
             </p>
             <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20información%20sobre%20suministro%20de%20café`} target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-5 py-2.5 text-sm font-medium hover:bg-accent-light transition-all">
-              <i data-lucide="message-circle" class="w-3.5 h-3.5 inline"></i> Cotizar por WhatsApp
+              <Icon name="message-circle" class="w-3.5 h-3.5 inline" /> Cotizar por WhatsApp
             </a>
           </div>
         </div>
@@ -86,21 +87,21 @@ const whatsapp = (config?.whatsapp ?? '573001234567').replace(/\+/g, '');
           </p>
           <div class="space-y-4">
             <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20visitar%20el%20café`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
-              <i data-lucide="coffee" class="w-5 h-5 text-brand shrink-0"></i>
+              <Icon name="coffee" class="w-5 h-5 text-brand shrink-0" />
               <div>
                 <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Planear una visita</p>
                 <p class="text-xs text-text-muted">Conoce el café y el meliponario</p>
               </div>
             </a>
             <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20información%20sobre%20suministro%20B2B`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
-              <span class="text-xl">🏪</span>
+              <span class="text-accent shrink-0"><Icon name="store" class="w-5 h-5" /></span>
               <div>
                 <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Suministro para mi negocio</p>
                 <p class="text-xs text-text-muted">Café y miel al por mayor</p>
               </div>
             </a>
             <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20el%20café`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
-              <span class="text-xl">❓</span>
+              <Icon name="help-circle" class="w-5 h-5 text-accent" />
               <div>
                 <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Otra pregunta</p>
                 <p class="text-xs text-text-muted">Lo que necesites saber</p>

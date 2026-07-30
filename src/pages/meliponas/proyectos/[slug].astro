@@ -1,6 +1,7 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import MediaGallery from '@/components/shared/MediaGallery.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getProyectoBySlug, TIPO_LABELS, ESTADO_LABELS, MODELO_CAJA_LABELS, SALUD_LABELS } from '@/lib/proyectos';
 import { renderMarkdown } from '@/lib/render-markdown';
 
@@ -51,7 +52,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
         </div>
         <h1 class="text-3xl md:text-4xl font-bold text-text-primary mb-2">{proyecto.nombre}</h1>
         <p class="flex items-center gap-2 text-text-secondary">
-          <i data-lucide="map-pin" class="w-4 h-4 text-text-muted"></i>
+          <Icon name="map-pin" class="w-4 h-4 text-text-muted" />
           {proyecto.ubicacion ?? [proyecto.vereda, proyecto.municipio, 'Tolima'].filter(Boolean).join(', ')}
         </p>
       </div>
@@ -93,7 +94,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
       <!-- Technical Sheet -->
       <div class="bg-surface-raised border border-border rounded-2xl p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
-          <i data-lucide="wrench" class="w-4 h-4"></i> Ficha Técnica
+          <Icon name="wrench" class="w-4 h-4" /> Ficha Técnica
         </h2>
         <dl class="space-y-4">
           <div class="flex justify-between">
@@ -150,7 +151,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
       <!-- Commercial Sheet -->
       <div class="bg-surface-raised border border-border rounded-2xl p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
-          <i data-lucide="briefcase" class="w-4 h-4"></i> Gestión Comercial
+          <Icon name="briefcase" class="w-4 h-4" /> Gestión Comercial
         </h2>
         <dl class="space-y-4">
           <div class="flex justify-between">
@@ -184,7 +185,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
             <ul class="space-y-1.5">
               {proyecto.servicios_incluidos.map((s) => (
                 <li class="flex items-center gap-2 text-sm text-text-secondary">
-                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-brand shrink-0"></i>
+                  <Icon name="check-circle-2" class="w-3.5 h-3.5 text-brand shrink-0" />
                   {s}
                 </li>
               ))}
@@ -196,14 +197,14 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
       <!-- Iwagé Model -->
       <div class="bg-surface-raised border border-border rounded-2xl p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
-          <i data-lucide="sparkles" class="w-4 h-4"></i> Modelo Iwagé
+          <Icon name="sparkles" class="w-4 h-4" /> Modelo Iwagé
         </h2>
         <div class="space-y-3">
           {iwageFeatures.map((f) => (
             <div class={`flex items-center gap-3 p-3 rounded-xl ${f.active ? 'bg-brand/5 border border-brand/20' : 'bg-surface-sunken opacity-50'}`}>
-              <i data-lucide={f.icon} class={`w-5 h-5 shrink-0 ${f.active ? 'text-brand' : 'text-text-muted'}`}></i>
+              <Icon name={f.icon} class={`w-5 h-5 shrink-0 ${f.active ? 'text-brand' : 'text-text-muted'}`} />
               <span class={`text-sm ${f.active ? 'text-text-primary font-medium' : 'text-text-muted'}`}>{f.label}</span>
-              {f.active && <i data-lucide="check" class="w-4 h-4 text-brand ml-auto"></i>}
+              {f.active && <Icon name="check" class="w-4 h-4 text-brand ml-auto" />}
             </div>
           ))}
         </div>
@@ -231,7 +232,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
       <!-- Production metrics -->
       <div class="bg-surface-raised border border-border rounded-2xl p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
-          <i data-lucide="trending-up" class="w-4 h-4"></i> Producción y Resultados
+          <Icon name="trending-up" class="w-4 h-4" /> Producción y Resultados
         </h2>
         <div class="grid grid-cols-2 gap-4">
           <div class="bg-surface-sunken rounded-xl p-4 text-center">
@@ -256,7 +257,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
       <!-- Social impact -->
       <div class="bg-surface-raised border border-border rounded-2xl p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-5 flex items-center gap-2">
-          <i data-lucide="heart-handshake" class="w-4 h-4"></i> Impacto Social
+          <Icon name="heart-handshake" class="w-4 h-4" /> Impacto Social
         </h2>
         <div class="grid grid-cols-2 gap-4">
           <div class="bg-surface-sunken rounded-xl p-4 text-center">
@@ -283,7 +284,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
     {proyecto.notas_tecnicas && (
       <div class="bg-surface-raised border border-border rounded-2xl p-6 mb-12">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-text-muted mb-4 flex items-center gap-2">
-          <i data-lucide="clipboard-list" class="w-4 h-4"></i> Notas Técnicas
+          <Icon name="clipboard-list" class="w-4 h-4" /> Notas Técnicas
         </h2>
         <div class="prose prose-sm dark:prose-invert max-w-none text-text-secondary">
           <Fragment set:html={renderMarkdown(proyecto.notas_tecnicas)} />
@@ -308,7 +309,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
       </p>
       <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-8 py-3.5 font-medium hover:bg-brand-light transition-all">
         Iniciar conversación
-        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        <Icon name="arrow-right" class="w-5 h-5" />
       </a>
     </div>
   </div>

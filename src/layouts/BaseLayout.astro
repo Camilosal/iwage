@@ -124,10 +124,23 @@ const { title, description } = Astro.props;
       });
     </script>
 
-    <script>
-      import { createIcons, icons } from 'lucide';
-      createIcons({ icons });
-      window.__lucideCreateIcons = () => createIcons({ icons });
+
+    <!-- Swetrix Analytics (self-hosted) -->
+    <script src="https://swetrix.org/swetrix.js" defer></script>
+    <script is:inline>
+      document.addEventListener('DOMContentLoaded', function() {
+        swetrix.init('4RwWYkPcU082', {
+          apiURL: 'https://analitica.camilosaldarriaga.com/backend/v1/log',
+        })
+        swetrix.trackViews()
+      })
     </script>
+    <noscript>
+      <img
+        src="https://analitica.camilosaldarriaga.com/backend/log/noscript?pid=4RwWYkPcU082"
+        alt=""
+        referrerpolicy="no-referrer-when-downgrade"
+      />
+    </noscript>
   </body>
 </html>

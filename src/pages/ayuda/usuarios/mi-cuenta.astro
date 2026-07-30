@@ -1,0 +1,111 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Mi Cuenta (portal de usuario)';
+---
+
+<WikiLayout title={title} activePath="/ayuda/usuarios/mi-cuenta">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/usuarios/" class="hover:text-brand transition-colors">Usuarios</a>
+    <span>/</span>
+    <span class="text-text-primary">Mi Cuenta</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Mi Cuenta &mdash; Portal de usuario</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Qué es Mi Cuenta</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        "Mi Cuenta" es tu portal personal en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">reservas.iwage.co/mi-cuenta</code>. Desde allí puedes gestionar tus reservas, ver tu historial de pedidos, actualizar tu perfil y (si eres aliado) administrar tus recursos y liquidaciones.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Registro e inicio de sesión</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Para acceder necesitas una cuenta. El registro es gratuito:
+      </p>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+        <li>Ve a <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">reservas.iwage.co/mi-cuenta/registro</code>.</li>
+        <li>Completa el formulario con tu nombre, email y contraseña.</li>
+        <li>Recibirás un correo de confirmación.</li>
+        <li>Inicia sesión en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/mi-cuenta/login</code>.</li>
+      </ol>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Si olvidaste tu contraseña, puedes recuperarla desde <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/mi-cuenta/recuperar</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Roles de usuario</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El portal tiene dos roles con diferentes permisos y vistas:
+      </p>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-sm font-bold text-text-primary mb-2">Cliente</p>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            Persona que hace reservas y compras. Ve sus propias reservas, pedidos y perfil.
+          </p>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-sm font-bold text-text-primary mb-2">Aliado</p>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            Proveedor de experiencias, alojamientos o servicios. Además de lo anterior, puede gestionar sus propios recursos, ver reservas de clientes y consultar liquidaciones.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Secciones del portal</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Sección</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Descripción</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Dashboard</td>
+              <td class="px-4 py-3">Resumen con tarjetas de reservas recientes, pedidos (cliente) o recursos (aliado).</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Mis reservas</td>
+              <td class="px-4 py-3">Lista completa de reservas con código, recurso, fecha, estado y total. Clic para ver detalle.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Mis pedidos</td>
+              <td class="px-4 py-3">Historial de órdenes de compra (solo cliente). Código, fecha, items, estado y total.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Perfil</td>
+              <td class="px-4 py-3">Datos personales, cambio de contraseña.</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-mono text-xs">Mis recursos</td>
+              <td class="px-4 py-3">Solo aliado: lista de recursos publicados, borradores y en revisión.</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-mono text-xs">Liquidaciones</td>
+              <td class="px-4 py-3">Solo aliado: reporte mensual de reservas generadas por sus recursos.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Seguridad</h2>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Las contraseñas se almacenan de forma segura (hash bcrypt).</li>
+        <li>Las sesiones usan tokens JWT con expiración.</li>
+        <li>La sección de autenticación tiene rate limiting (5 intentos por minuto) para prevenir fuerza bruta.</li>
+        <li>Los datos de cuenta nunca se cachean en el navegador.</li>
+      </ul>
+    </section>
+  </div>
+</WikiLayout>

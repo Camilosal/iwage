@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 /**
  * MediaGallery — Galería audiovisual reutilizable con lightbox.
  * Acepta URLs simples o objetos { url, tipo: 'imagen'|'video'|'360', titulo? }.
@@ -40,12 +42,12 @@ function ytEmbed(url: string) {
 <div class="rounded-2xl border border-border bg-surface-raised overflow-hidden" data-gallery-wrapper={gid}>
   <div class="px-6 py-4 border-b border-border flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <i data-lucide="images" class="w-5 h-5 text-brand"></i>
+      <Icon name="images" class="w-5 h-5 text-brand" />
       <h2 class="text-lg font-bold text-text-primary">{title}</h2>
       <span class="text-xs text-text-muted font-mono">{items.length} {items.length === 1 ? 'elemento' : 'elementos'}</span>
     </div>
     <button class="text-xs font-medium text-brand hover:underline flex items-center gap-1" data-gal-open="0">
-      <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Pantalla completa
+      <Icon name="maximize-2" class="w-3.5 h-3.5" /> Pantalla completa
     </button>
   </div>
 
@@ -60,13 +62,13 @@ function ytEmbed(url: string) {
         {item.tipo === 'video' ? (
           <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
             <span class="w-10 h-10 rounded-full bg-brand/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i data-lucide="play" class="w-5 h-5 text-white ml-0.5"></i>
+              <Icon name="play" class="w-5 h-5 text-white ml-0.5" />
             </span>
           </div>
         ) : item.tipo === '360' ? (
           <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
             <span class="w-10 h-10 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i data-lucide="rotate-3d" class="w-5 h-5 text-white"></i>
+              <Icon name="rotate-3d" class="w-5 h-5 text-white" />
             </span>
           </div>
         ) : (
@@ -90,7 +92,7 @@ function ytEmbed(url: string) {
 
   <!-- Close -->
   <button class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-gal-close aria-label="Cerrar">
-    <i data-lucide="x" class="w-6 h-6"></i>
+    <Icon name="x" class="w-6 h-6" />
   </button>
 
   <!-- Counter -->
@@ -108,10 +110,10 @@ function ytEmbed(url: string) {
 
   <!-- Navigation -->
   <button class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-gal-prev aria-label="Anterior">
-    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+    <Icon name="chevron-left" class="w-6 h-6" />
   </button>
   <button class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" data-gal-next aria-label="Siguiente">
-    <i data-lucide="chevron-right" class="w-6 h-6"></i>
+    <Icon name="chevron-right" class="w-6 h-6" />
   </button>
 
   <!-- Thumbnail strip -->

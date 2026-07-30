@@ -110,7 +110,7 @@ async function indexPaquetes(): Promise<KnowledgeChunk[]> {
         'paquete', 'tour', p.categoria || '', 'dias',
         ...(p.incluye || []).slice(0, 3),
       ].filter(Boolean).map(k => k.toLowerCase()),
-      url: `/naturaleza/paquetes/${p.slug}`,
+      url: `/naturaleza/programas/${p.slug}`,
       metadata: {
         precio_base: p.precio_base,
         duracion_dias: p.duracion_dias,

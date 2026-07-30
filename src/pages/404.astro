@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
 import { brandList } from '@/config/brands';
+import Icon from '@/components/shared/Icon.astro';
 
 const title = 'Página no encontrada · Iwagé';
 ---
@@ -31,7 +32,7 @@ const title = 'Página no encontrada · Iwagé';
   <body class="min-h-screen flex flex-col items-center justify-center bg-surface text-text-primary font-[Inter,system-ui,sans-serif] px-6">
 
     <div class="text-center max-w-lg">
-      <p class="text-7xl mb-6">🌿</p>
+      <Icon name="leaf" class="w-16 h-16 mx-auto mb-6 text-accent" />
       <h1 class="text-4xl font-extrabold tracking-tight mb-3">
         <span class="text-brand">404</span> — Página no encontrada
       </h1>
@@ -45,16 +46,16 @@ const title = 'Página no encontrada · Iwagé';
         {brandList.map((b) => (
           <a
             href={`/${b.slug}/`}
-            class="rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm font-medium text-text-secondary hover:border-brand/40 hover:text-brand transition-all"
+            class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-raised px-4 py-3 text-sm font-medium text-text-secondary hover:border-brand/40 hover:text-brand transition-all"
           >
-            {b.icon} {b.slug}
+            <Icon name={b.icon} class="w-4 h-4" /> {b.slug}
           </a>
         ))}
         <a
           href="/"
-          class="rounded-xl border border-dashed border-border px-4 py-3 text-sm font-medium text-text-muted hover:text-brand hover:border-brand/30 transition-all"
+          class="inline-flex items-center justify-center gap-2 rounded-xl border border-dashed border-border px-4 py-3 text-sm font-medium text-text-muted hover:text-brand hover:border-brand/30 transition-all"
         >
-          🌐 Inicio
+          <Icon name="globe" class="w-4 h-4" /> Inicio
         </a>
       </div>
 

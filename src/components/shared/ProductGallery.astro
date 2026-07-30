@@ -1,0 +1,187 @@
+---
+/**
+ * ProductGallery — Galería audiovisual hero para la ficha de producto.
+ *
+ * Patrón moderno de e-commerce: un visor principal grande + tira de miniaturas.
+ * Soporta imágenes, videos (YouTube/Vimeo embed) y recorridos 360°.
+ * El primer elemento se muestra por defecto; al hacer clic en una miniatura
+ * el visor principal cambia de medio (imagen / iframe de video / iframe 360).
+ *
+ * Props:
+ *  - items: GaleriaItem[]  → [{ url, tipo?: 'imagen'|'video'|'360', titulo? }]
+ *  - title: string         → texto alt / accesibilidad
+ */
+import type { GaleriaItem } from '@/lib/tienda';
+import Icon from '@/components/shared/Icon.astro';
+
+interface Props {
+  items: GaleriaItem[];
+  title?: string;
+}
+
+const { items: rawItems, title = 'Producto' } = Astro.props;
+
+// Normaliza y filtra items válidos
+const items: GaleriaItem[] = (rawItems || [])
+  .map((it) => ({ tipo: 'imagen' as const, ...it }))
+  .filter((it) => !!it.url);
+
+function isYouTube(url: string) {
+  return /youtube\.com|youtu\.be/.test(url);
+}
+function isVimeo(url: string) {
+  return /vimeo\.com/.test(url);
+}
+function embedUrl(url: string): string {
+  if (isYouTube(url)) {
+    const m = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+    return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+  }
+  if (isVimeo(url)) {
+    const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    return m ? `https://player.vimeo.com/video/${m[1]}` : url;
+  }
+  return url;
+}
+
+const first = items[0];
+// Id único por si hubiera más de una galería en la página
+const gid = `pg-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+{items.length > 0 && (
+  <div class="space-y-3" data-pg-wrapper={gid}>
+    <!-- Visor principal -->
+    <div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-sunken border border-border" data-pg-stage>
+      {first.tipo === 'imagen' ? (
+        <img
+          src={first.url}
+          alt={first.titulo || title}
+          class="w-full h-full object-cover"
+          data-pg-main-img
+        />
+      ) : (
+        <iframe
+          src={embedUrl(first.url)}
+          title={first.titulo || title}
+          class="w-full h-full"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          data-pg-main-iframe
+        ></iframe>
+      )}
+
+      <!-- Indicador de tipo sobre el visor -->
+      {first.tipo !== 'imagen' && (
+        <span class="absolute top-4 right-4 text-[10px] font-bold text-white bg-black/60 px-2.5 py-1 rounded-full uppercase tracking-wide">
+          {first.tipo === 'video' ? 'Video' : '360°'}
+        </span>
+      )}
+    </div>
+
+    <!-- Tira de miniaturas -->
+    {items.length > 1 && (
+      <div class="grid grid-cols-4 gap-2.5">
+        {items.map((item, i) => (
+          <button
+            type="button"
+            class:list={[
+              'relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 group cursor-pointer',
+              i === 0
+                ? 'border-brand ring-2 ring-brand/30'
+                : 'border-border hover:border-brand/50',
+            ]}
+            data-pg-thumb={String(i)}
+            data-active={i === 0 ? 'true' : 'false'}
+            aria-label={item.titulo || `${title} ${i + 1}`}
+          >
+            {item.tipo === 'imagen' ? (
+              <img
+                src={item.url}
+                alt=""
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+            ) : (
+              <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
+                <span class:list={[
+                  'w-9 h-9 rounded-full flex items-center justify-center',
+                  item.tipo === 'video' ? 'bg-brand/90' : 'bg-accent/90',
+                ]}>
+                  {item.tipo === 'video' ? <Icon name="play" class="w-4 h-4 text-white ml-0.5" /> : <Icon name="rotate-3d" class="w-4 h-4 text-white ml-0.5" />}
+                </span>
+              </div>
+            )}
+            {item.tipo !== 'imagen' && (
+              <span class="absolute bottom-1 right-1 text-[8px] font-bold text-white bg-black/60 px-1.5 py-0.5 rounded-full uppercase">
+                {item.tipo === 'video' ? '▶' : '360'}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+)}
+
+<!-- Datos + lógica de cambio de medio -->
+<script data-pg-items={gid} type="application/json" set:html={JSON.stringify(items.map((it) => ({ ...it, embed: it.tipo !== 'imagen' ? embedUrl(it.url) : it.url })))} />
+<script define:vars={{ gid }}>
+  (() => {
+    const wrapper = document.querySelector(`[data-pg-wrapper="${gid}"]`);
+    const scriptTag = document.querySelector(`[data-pg-items="${gid}"]`);
+    if (!wrapper || !scriptTag) return;
+
+    const items = JSON.parse(scriptTag.textContent || '[]');
+    const stage = wrapper.querySelector('[data-pg-stage]');
+    const thumbs = wrapper.querySelectorAll('[data-pg-thumb]');
+    if (!stage || items.length === 0) return;
+
+    let current = 0;
+
+    function render(idx) {
+      current = (idx + items.length) % items.length;
+      const item = items[current];
+
+      // Limpia el visor y detiene cualquier video en reproducción
+      stage.innerHTML = '';
+
+      if (item.tipo === 'imagen') {
+        const img = document.createElement('img');
+        img.src = item.url;
+        img.alt = item.titulo || '';
+        img.className = 'w-full h-full object-cover';
+        stage.appendChild(img);
+      } else {
+        const iframe = document.createElement('iframe');
+        iframe.src = item.embed;
+        iframe.title = item.titulo || '';
+        iframe.className = 'w-full h-full';
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', '');
+        stage.appendChild(iframe);
+
+        const badge = document.createElement('span');
+        badge.className = 'absolute top-4 right-4 text-[10px] font-bold text-white bg-black/60 px-2.5 py-1 rounded-full uppercase tracking-wide';
+        badge.textContent = item.tipo === 'video' ? 'Video' : '360°';
+        stage.appendChild(badge);
+      }
+
+      // Actualiza el estado activo de las miniaturas
+      thumbs.forEach((t, i) => {
+        const active = i === current;
+        t.setAttribute('data-active', String(active));
+        t.classList.toggle('border-brand', active);
+        t.classList.toggle('ring-2', active);
+        t.classList.toggle('ring-brand/30', active);
+        t.classList.toggle('border-border', !active);
+      });
+    }
+
+    thumbs.forEach((t) => {
+      t.addEventListener('click', () => render(parseInt(t.getAttribute('data-pg-thumb') || '0', 10)));
+    });
+  })();
+</script>

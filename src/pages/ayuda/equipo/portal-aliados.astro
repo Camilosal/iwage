@@ -1,0 +1,93 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Portal de aliados';
+---
+
+<WikiLayout title={title} activePath="/ayuda/equipo/portal-aliados">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/equipo/" class="hover:text-brand transition-colors">Equipo</a>
+    <span>/</span>
+    <span class="text-text-primary">Portal de aliados</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Portal de aliados</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Qué es el portal de aliados</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Los aliados (proveedores de experiencias, alojamientos o servicios) tienen un portal de autogestión en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">reservas.iwage.co/mi-cuenta</code>. Desde allí pueden administrar sus propios recursos sin necesidad de acceso al panel administrativo completo.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Registro de aliados</h2>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+        <li>El aliado se registra en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/mi-cuenta/registro</code> indicando que es proveedor/aliado.</li>
+        <li>El sistema le asigna el rol "aliado" automáticamente o un administrador lo aprueba.</li>
+        <li>Recibe credenciales de acceso al portal.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Funciones del aliado</h2>
+      <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-surface-sunken">
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Función</th>
+              <th class="text-left px-4 py-3 font-semibold text-text-primary">Descripción</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">Crear recursos</td>
+              <td class="px-4 py-3">El aliado puede crear nuevos recursos (experiencias, servicios) desde <code class="font-mono text-xs">/mi-cuenta/recursos/nuevo</code>. Los recursos nacen en estado "borrador" o "pendiente_aprobacion".</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">Editar recursos</td>
+              <td class="px-4 py-3">Puede editar sus propios recursos (nombre, descripción, precio, disponibilidad).</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">Cambiar estado</td>
+              <td class="px-4 py-3">Puede pausar o reactivar sus recursos (cambiar entre publicado/pausado).</td>
+            </tr>
+            <tr class="border-b border-border">
+              <td class="px-4 py-3 font-semibold">Ver reservas</td>
+              <td class="px-4 py-3">Ve las reservas hechas por clientes en sus recursos, con datos del cliente.</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-semibold">Liquidaciones</td>
+              <td class="px-4 py-3">Consulta reportes mensuales de las reservas generadas por sus recursos.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Ciclo de publicación de recursos</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Los recursos creados por aliados pasan por un proceso de moderación:
+      </p>
+      <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+        <li><strong>Borrador:</strong> el aliado está creando el recurso.</li>
+        <li><strong>Pendiente de aprobación:</strong> el aliado lo envía para revisión.</li>
+        <li><strong>Publicado:</strong> un administrador lo aprueba y queda visible para reservas.</li>
+        <li><strong>Rechazado:</strong> si no cumple los criterios, se rechaza con observaciones.</li>
+        <li><strong>Pausado:</strong> el aliado puede pausar temporalmente un recurso publicado.</li>
+      </ol>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        La moderación se realiza desde el panel admin: <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">POST /api/admin/recursos/{'{id}'}/moderar</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Límites de acceso</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        El aliado solo puede ver y editar sus propios recursos (filtrado por su ID de usuario). No tiene acceso al dashboard general, la lista de todos los clientes, ni las reservas de otros aliados. El middleware de autenticación valida el token JWT y restringe las rutas según el rol.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

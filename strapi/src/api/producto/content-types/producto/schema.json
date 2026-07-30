@@ -41,7 +41,20 @@
     "envio_gratis": { "type": "boolean", "default": false },
     "tiempo_entrega": { "type": "string" },
     "orden_minima": { "type": "integer", "default": 1 },
+    "familia": { "type": "string" },
+    "etiqueta_variacion": { "type": "string", "maxLength": 40 },
+    "eje_variacion": { "type": "string", "maxLength": 40 },
+    "diferenciadores": { "type": "json" },
+    "guia_uso": { "type": "json" },
+    "faq": { "type": "json" },
+    "ecosistema": { "type": "json" },
     "meta_title": { "type": "string", "maxLength": 70 },
-    "meta_description": { "type": "text", "maxLength": 160 }
+    "meta_description": { "type": "text", "maxLength": 160 },
+    "propiedades_gestion": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::propiedad-gestion.propiedad-gestion",
+      "inversedBy": "productos"
+    }
   }
 }

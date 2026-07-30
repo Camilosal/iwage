@@ -12,7 +12,7 @@ import {
 } from '../../lib/cart-store';
 
 const RESERVAS_API = import.meta.env.PUBLIC_RESERVAS_API || '';
-const WHATSAPP = '573001234567';
+const WHATSAPP = '573026693366';
 
 const BRAND_LABELS: Record<string, string> = {
   iwage_meliponas: 'Meliponas',
@@ -41,6 +41,10 @@ interface OrdenResponse {
   moneda: string;
   checkout_url: string | null;
   reservas: OrdenReservaOut[];
+  /** Canal de pago elegido ('online' | 'en_sitio'), null si no aplica pago */
+  metodo_pago?: string | null;
+  /** Mensaje de fallback cuando la pasarela de pago no responde (la orden queda registrada) */
+  pago_error?: string | null;
 }
 
 function groupKey(item: CartItem): string {
@@ -97,6 +101,8 @@ export default function UnifiedCart() {
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
+  // Canal de pago del checkout: online (Bold) o en el sitio
+  const [metodoPago, setMetodoPago] = useState<'online' | 'en_sitio'>('online');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OrdenResponse | null>(null);
@@ -161,7 +167,10 @@ export default function UnifiedCart() {
           recurso_slug: i.recurso_slug,
           cantidad_personas: i.cantidad,
           disponibilidad_id: i.disponibilidad_id || undefined,
+          fecha_checkin: i.fecha_checkin || undefined,
+          fecha_checkout: i.fecha_checkout || undefined,
         })),
+        metodo_pago: hasPaidItems ? metodoPago : undefined,
         origen_url: typeof window !== 'undefined' ? window.location.href : undefined,
       };
 
@@ -191,22 +200,46 @@ export default function UnifiedCart() {
     }
   };
 
-  // Confirmation screen for all-free orders
+  // Confirmation screen (all-free orders, en_sitio orders, or paid orders where the gateway failed)
   if (result && !result.checkout_url) {
+    const falloPago = !!result.pago_error;
+    const esEnSitio = !falloPago && result.metodo_pago === 'en_sitio';
     return (
       <>
         <div className="fixed inset-0 bg-black/40 z-[60]" onClick={() => setResult(null)} />
         <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-md bg-surface-raised rounded-2xl shadow-2xl z-[61] p-8 text-center">
-          <div className="mx-auto w-14 h-14 rounded-full bg-brand-muted flex items-center justify-center text-brand">
+          <div
+            className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center ${
+              falloPago ? 'bg-amber-100 text-amber-600' : 'bg-brand-muted text-brand'
+            }`}
+          >
             <IconCheck className="w-7 h-7" />
           </div>
-          <h3 className="mt-4 text-lg font-semibold text-text-primary">Itinerario confirmado</h3>
+          <h3 className="mt-4 text-lg font-semibold text-text-primary">
+            {falloPago ? 'Pedido registrado' : 'Itinerario confirmado'}
+          </h3>
           <p className="mt-2 text-sm text-text-secondary">
             Código: <strong className="text-text-primary">{result.codigo}</strong>
           </p>
           <p className="mt-1 text-sm text-text-muted">
-            {result.reservas.length} elemento(s) agendados. Te contactaremos por WhatsApp para coordinar los detalles.
+            {falloPago
+              ? result.pago_error
+              : esEnSitio
+                ? `${result.reservas.length} elemento(s) confirmados. Pagas al llegar: ${formatCOP(result.precio_total)} (tarjeta, QR, BreB, efectivo o transferencia). Te contactaremos por WhatsApp.`
+                : `${result.reservas.length} elemento(s) agendados. Te contactaremos por WhatsApp para coordinar los detalles.`}
           </p>
+          {falloPago && (
+            <a
+              href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
+                `Hola, acabo de hacer el pedido ${result.codigo} por ${formatCOP(result.precio_total)}. Quiero coordinar el pago.`
+              )}`}
+              target="_blank"
+              rel="noopener"
+              className="mt-4 block w-full rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-light transition-colors"
+            >
+              Coordinar pago por WhatsApp
+            </a>
+          )}
           <button
             onClick={() => {
               setResult(null);
@@ -307,9 +340,9 @@ export default function UnifiedCart() {
                                   +
                                 </button>
                               </div>
-                            ) : (
+                            ) : item.tipo_disponibilidad !== 'rango_fechas' ? (
                               <p className="text-xs text-text-muted mt-2">{item.cantidad} persona(s)</p>
-                            )}
+                            ) : null}
                           </div>
 
                           <button
@@ -354,6 +387,34 @@ export default function UnifiedCart() {
                 ) : (
                   <form onSubmit={handleCheckout} className="space-y-3">
                     {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+                    {hasPaidItems && (
+                      <div className="rounded-lg bg-surface-sunken p-3 space-y-1.5">
+                        <label className="flex cursor-pointer items-start gap-2">
+                          <input
+                            type="radio"
+                            name="metodo-pago-cart"
+                            checked={metodoPago === 'online'}
+                            onChange={() => setMetodoPago('online')}
+                            className="mt-0.5 accent-[#52B788]"
+                          />
+                          <span className="text-xs text-text-secondary">
+                            <strong className="text-text-primary">Pagar en línea.</strong> Pago seguro con Bold.
+                          </span>
+                        </label>
+                        <label className="flex cursor-pointer items-start gap-2">
+                          <input
+                            type="radio"
+                            name="metodo-pago-cart"
+                            checked={metodoPago === 'en_sitio'}
+                            onChange={() => setMetodoPago('en_sitio')}
+                            className="mt-0.5 accent-[#52B788]"
+                          />
+                          <span className="text-xs text-text-secondary">
+                            <strong className="text-text-primary">Pagar en el sitio.</strong> Tarjeta, QR, BreB, efectivo o transferencia al llegar.
+                          </span>
+                        </label>
+                      </div>
+                    )}
                     <input
                       type="text"
                       value={nombre}
@@ -385,7 +446,9 @@ export default function UnifiedCart() {
                       {loading
                         ? 'Procesando...'
                         : hasPaidItems
-                        ? `Pagar ${formatCOP(total)}`
+                        ? metodoPago === 'en_sitio'
+                          ? `Reservar ${formatCOP(total)} (pago en el sitio)`
+                          : `Pagar ${formatCOP(total)}`
                         : 'Confirmar itinerario'}
                     </button>
                     <button
@@ -399,7 +462,11 @@ export default function UnifiedCart() {
                       Volver
                     </button>
                     <p className="text-[11px] text-text-muted text-center">
-                      {hasPaidItems ? 'Pago seguro con Bold.' : 'Sin pago — coordinamos por WhatsApp.'}
+                      {hasPaidItems
+                        ? metodoPago === 'en_sitio'
+                          ? 'Pagas al llegar con tarjeta, QR, BreB, efectivo o transferencia.'
+                          : 'Pago seguro con Bold.'
+                        : 'Sin pago — coordinamos por WhatsApp.'}
                     </p>
                   </form>
                 )}

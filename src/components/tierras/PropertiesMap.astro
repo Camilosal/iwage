@@ -1,5 +1,18 @@
 ---
+import { icons } from 'lucide';
 import { formatPrecio } from '@/lib/tierras';
+
+function lucideSvg(name: string, cls = 'w-3.5 h-3.5 inline'): string {
+  const p = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, any[]>)[p];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]: [string, Record<string, any>]) =>
+    `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`
+  ).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${inner}</svg>`;
+}
+
+const ARROW_SVG = lucideSvg('arrow-right');
 
 interface Props {
   properties: any[];
@@ -58,7 +71,7 @@ const geoProps = properties.filter(p => p.ubicacion_latitud && p.ubicacion_longi
           <p style="font-weight:bold;font-size:13px;margin:0 0 4px;color:#1B4332;">${p.titulo}</p>
           <p style="font-size:11px;color:#666;margin:0 0 4px;">${p.tipo} · ${p.area}</p>
           <p style="font-size:14px;font-weight:bold;color:#52B788;margin:0 0 8px;">${p.precio}</p>
-          <a href="/tierras/propiedades/${p.slug}" style="display:block;text-align:center;background:#1B4332;color:white;padding:6px;border-radius:8px;font-size:11px;font-weight:bold;text-decoration:none;">Ver propiedad <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+          <a href="/tierras/propiedades/${p.slug}" style="display:block;text-align:center;background:#1B4332;color:white;padding:6px;border-radius:8px;font-size:11px;font-weight:bold;text-decoration:none;">Ver propiedad ${ARROW_SVG}</a>
         </div>
       `);
       bounds.push([p.lat, p.lng]);

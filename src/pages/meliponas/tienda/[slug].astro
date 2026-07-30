@@ -1,7 +1,9 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
-import MediaGallery from '@/components/shared/MediaGallery.astro';
-import { getProductoBySlug, getProductos, CATEGORIAS } from '@/lib/tienda';
+import ProductGallery from '@/components/shared/ProductGallery.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { getProductoBySlug, getProductos, getProductosPorFamilia, CATEGORIAS } from '@/lib/tienda';
+import type { GaleriaItem } from '@/lib/tienda';
 import { renderMarkdown } from '@/lib/render-markdown';
 import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
 import { SITE } from '@/config/site';
@@ -16,34 +18,88 @@ if (!producto) {
 const catalogo = await getCatalogo();
 const rec = resolveRecurso(catalogo, producto.slug, producto.nombre);
 
-// Related products from same category
+// Productos relacionados de la misma categoría
 const todosProductos = await getProductos({ categoria: producto.categoria });
 const relacionados = todosProductos.filter((p) => p.slug !== producto.slug).slice(0, 3);
+
+// ── Variaciones del producto (productos de la misma familia) ──
+const variaciones = producto.familia ? await getProductosPorFamilia(producto.familia) : [];
+const tieneVariaciones = variaciones.length > 1;
+const ejeVariacion = producto.eje_variacion ?? 'Presentación';
+
+// Payload ligero por variación para el cambio dinámico en el cliente.
+// Cada variación resuelve su propio recurso del catálogo (recurso_slug),
+// de modo que el botón de compra agregue la variación correcta al carrito.
+const variacionesData = tieneVariaciones
+  ? variaciones.map((v) => {
+      const vRec = resolveRecurso(catalogo, v.slug, v.nombre);
+      return {
+        slug: v.slug,
+        nombre: v.nombre,
+        precio: v.precio,
+        precio_comparativo: v.precio_comparativo,
+        presentacion: v.presentacion,
+        sku: v.sku,
+        stock_disponible: v.stock_disponible,
+        stock_cantidad: v.stock_cantidad,
+        orden_minima: v.orden_minima,
+        etiqueta: v.etiqueta_variacion ?? v.nombre,
+        imagen: v.imagen,
+        recurso_slug: vRec?.slug ?? `meliponas-${v.slug}`,
+        tipo: vRec?.tipo ?? 'producto',
+        tipo_disponibilidad: vRec?.tipo_disponibilidad ?? 'inmediato',
+        requiere_pago: vRec?.requiere_pago ?? true,
+        origen: vRec?.origen ?? 'iwage_meliponas',
+      };
+    })
+  : [];
 
 const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 const categoriaLabel = CATEGORIAS.find((c) => c.id === producto.categoria)?.label ?? producto.categoria;
 const descuento = producto.precio_comparativo ? Math.round((1 - producto.precio / producto.precio_comparativo) * 100) : null;
 
+// ── Galería audiovisual: imagen principal + galería ──
+const mediaItems: GaleriaItem[] = [
+  ...(producto.imagen ? [{ url: producto.imagen, tipo: 'imagen' as const, titulo: producto.nombre }] : []),
+  ...(producto.galeria ?? []),
+];
+
+// Secciones de contenido enriquecido (solo se renderizan si existen)
+const diferenciadores = producto.diferenciadores ?? [];
+const guiaUso = producto.guia_uso ?? [];
+const faq = producto.faq ?? [];
+const ecosistema = producto.ecosistema ?? [];
+
 // SEO
 const pageTitle = producto.meta_title ?? `${producto.nombre} · Tienda Iwagé Meliponario`;
 const pageDesc = producto.meta_description ?? producto.descripcion_corta ?? producto.descripcion?.slice(0, 160) ?? '';
 
-// Structured data for product
-const productJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": producto.nombre,
-  "description": producto.descripcion_corta ?? producto.descripcion,
-  "sku": producto.sku,
-  "brand": { "@type": "Brand", "name": "Iwagé Meliponario" },
-  "offers": {
-    "@type": "Offer",
-    "price": producto.precio,
-    "priceCurrency": "COP",
-    "availability": producto.stock_disponible ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-    "url": `https://iwage.co/meliponas/tienda/${producto.slug}`,
+// Datos estructurados (schema.org Product + FAQ)
+const productJsonLd: Record<string, any> = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: producto.nombre,
+  description: producto.descripcion_corta ?? producto.descripcion,
+  sku: producto.sku,
+  brand: { '@type': 'Brand', name: 'Iwagé Meliponario' },
+  offers: {
+    '@type': 'Offer',
+    price: producto.precio,
+    priceCurrency: 'COP',
+    availability: producto.stock_disponible ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    url: `https://iwage.co/meliponas/tienda/${producto.slug}`,
   },
 };
+if (faq.length > 0) {
+  productJsonLd.mainEntity = {
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({
+      '@type': 'Question',
+      name: f.pregunta,
+      acceptedAnswer: { '@type': 'Answer', text: f.respuesta },
+    })),
+  };
+}
 ---
 
 <BrandLayout title={pageTitle} description={pageDesc}>
@@ -59,176 +115,205 @@ const productJsonLd = {
       <span class="text-text-primary font-medium">{producto.nombre}</span>
     </nav>
 
-    <!-- Product main -->
+    <!-- ══ Hero: Galería + Caja de compra ══ -->
     <div class="grid lg:grid-cols-2 gap-10 lg:gap-14">
-      <!-- Image -->
-      <div class="space-y-4">
-        <div class="aspect-square rounded-2xl overflow-hidden bg-surface-sunken border border-border relative">
-          {producto.imagen ? (
-            <img src={producto.imagen} alt={producto.nombre} class="w-full h-full object-cover" />
-          ) : (
-            <div class="w-full h-full flex items-center justify-center text-text-muted">
-              <i data-lucide="package" class="w-24 h-24"></i>
-            </div>
-          )}
+      <!-- Galería audiovisual -->
+      <div>
+        <div class="relative">
           {producto.destacado && (
-            <span class="absolute top-4 left-4 bg-accent text-white text-sm font-medium rounded-full px-4 py-1.5">Destacado</span>
+            <span class="absolute top-4 left-4 z-10 bg-accent text-white text-sm font-medium rounded-full px-4 py-1.5 shadow-sm">Destacado</span>
           )}
           {descuento && (
-            <span class="absolute top-4 right-4 bg-red-500 text-white text-sm font-bold rounded-full px-3 py-1.5">-{descuento}%</span>
+            <span class="absolute top-4 right-4 z-10 bg-red-500 text-white text-sm font-bold rounded-full px-3 py-1.5 shadow-sm">-{descuento}%</span>
+          )}
+          {mediaItems.length > 0 ? (
+            <ProductGallery items={mediaItems} title={producto.nombre} />
+          ) : (
+            <div class="aspect-square rounded-2xl overflow-hidden bg-surface-sunken border border-border flex items-center justify-center text-text-muted">
+              <Icon name="package" class="w-24 h-24" />
+            </div>
           )}
         </div>
-        {producto.galeria && producto.galeria.length > 0 && (
-          <div class="mt-4">
-            <MediaGallery images={producto.galeria} title={producto.nombre} columns={4} />
-          </div>
-        )}
       </div>
 
-      <!-- Info & Order -->
+      <!-- Caja de compra -->
       <div class="flex flex-col">
         <div class="flex items-center gap-3 mb-3">
           <span class="text-xs font-medium uppercase tracking-wide text-brand bg-brand/10 rounded-full px-3 py-1">{categoriaLabel}</span>
-          {producto.sku && <span class="text-xs text-text-muted">SKU: {producto.sku}</span>}
+          <span id="sku-actual" class:list={['text-xs text-text-muted', !producto.sku && 'hidden']}>SKU: {producto.sku}</span>
         </div>
 
         <h1 class="text-3xl font-bold text-text-primary mb-3">{producto.nombre}</h1>
 
-        {producto.presentacion && (
-          <p class="text-sm text-text-muted mb-4">{producto.presentacion}</p>
-        )}
+        <p id="presentacion-actual" class:list={['text-sm text-text-muted mb-4', !producto.presentacion && 'hidden']}>{producto.presentacion}</p>
 
-        <!-- Price -->
-        <div class="flex items-baseline gap-3 mb-6">
-          <span class="text-3xl font-bold text-brand">{fmt.format(producto.precio)}</span>
-          {producto.precio_comparativo && (
-            <span class="text-lg text-text-muted line-through">{fmt.format(producto.precio_comparativo)}</span>
-          )}
-        </div>
-
-        <!-- Stock status -->
-        <div class="mb-6">
-          {producto.stock_disponible ? (
-            <p class="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-              <i data-lucide="check-circle" class="w-4 h-4"></i>
-              Disponible
-              {producto.stock_cantidad && <span class="text-text-muted">({producto.stock_cantidad} unidades)</span>}
+        <!-- Selector de variaciones (productos de la misma familia) -->
+        {tieneVariaciones && (
+          <div class="mb-5">
+            <p class="text-sm text-text-secondary mb-2.5">
+              {ejeVariacion}: <span id="eje-variacion-actual" class="font-semibold text-text-primary">{producto.etiqueta_variacion ?? producto.nombre}</span>
             </p>
-          ) : (
-            <p class="flex items-center gap-2 text-sm text-red-500">
-              <i data-lucide="x-circle" class="w-4 h-4"></i> Agotado temporalmente
-            </p>
-          )}
-        </div>
-
-        <!-- Description -->
-        {producto.descripcion && (
-          <div class="prose prose-sm dark:prose-invert max-w-none mb-6 text-text-secondary leading-relaxed">
-            <Fragment set:html={renderMarkdown(producto.descripcion)} />
+            <div class="flex flex-wrap gap-2" role="group" aria-label={`Variaciones de ${ejeVariacion}`}>
+              {variacionesData.map((v) => (
+                <button
+                  type="button"
+                  class:list={[
+                    'variacion-pill px-4 py-2 rounded-full border text-sm font-medium transition-all',
+                    v.slug === producto.slug
+                      ? 'border-brand bg-brand text-white shadow-sm'
+                      : 'border-border bg-surface-raised text-text-secondary hover:border-brand hover:text-brand',
+                    !v.stock_disponible && 'opacity-60',
+                  ]}
+                  data-variacion={v.slug}
+                  aria-pressed={v.slug === producto.slug ? 'true' : 'false'}
+                >
+                  {v.etiqueta}
+                  {!v.stock_disponible && <span class="sr-only"> (agotado)</span>}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        <!-- Delivery info -->
+        <!-- Precio -->
+        <div class="flex items-baseline gap-3 mb-6">
+          <span id="precio-actual" class="text-3xl font-bold text-brand">{fmt.format(producto.precio)}</span>
+          <span id="precio-comparativo" class:list={['text-lg text-text-muted line-through', !producto.precio_comparativo && 'hidden']}>{producto.precio_comparativo ? fmt.format(producto.precio_comparativo) : ''}</span>
+        </div>
+
+        <!-- Estado de stock (se alterna dinámicamente entre variaciones) -->
+        <div class="mb-6">
+          <p id="stock-disponible" class:list={['flex items-center gap-2 text-sm text-green-600 dark:text-green-400', !producto.stock_disponible && 'hidden']}>
+            <Icon name="check-circle" class="w-4 h-4" />
+            Disponible
+            <span id="stock-cantidad" class:list={['text-text-muted', !producto.stock_cantidad && 'hidden']}>{producto.stock_cantidad ? `(${producto.stock_cantidad} unidades)` : ''}</span>
+          </p>
+          <p id="stock-agotado" class:list={['flex items-center gap-2 text-sm text-red-500', producto.stock_disponible && 'hidden']}>
+            <Icon name="x-circle" class="w-4 h-4" /> Agotado temporalmente
+          </p>
+        </div>
+
+        <!-- Descripción corta -->
+        {producto.descripcion_corta && (
+          <p class="text-text-secondary leading-relaxed mb-6">{producto.descripcion_corta}</p>
+        )}
+
+        <!-- Sellos de confianza -->
+        <div class="grid grid-cols-3 gap-3 mb-8">
+          <div class="flex flex-col items-center text-center gap-1.5 bg-surface-sunken rounded-xl p-3">
+            <Icon name="qr-code" class="w-5 h-5 text-brand" />
+            <span class="text-[11px] leading-tight text-text-secondary">Trazabilidad por colmena y cosecha</span>
+          </div>
+          <div class="flex flex-col items-center text-center gap-1.5 bg-surface-sunken rounded-xl p-3">
+            <Icon name="truck" class="w-5 h-5 text-brand" />
+            <span class="text-[11px] leading-tight text-text-secondary">Envío a todo Colombia</span>
+          </div>
+          <div class="flex flex-col items-center text-center gap-1.5 bg-surface-sunken rounded-xl p-3">
+            <Icon name="flask-conical" class="w-5 h-5 text-brand" />
+            <span class="text-[11px] leading-tight text-text-secondary">Analizado en laboratorio</span>
+          </div>
+        </div>
+
+        <!-- Información de envío -->
         <div class="space-y-2 mb-8 text-sm text-text-secondary">
           {producto.tiempo_entrega && (
             <p class="flex items-center gap-2">
-              <i data-lucide="clock" class="w-4 h-4 text-text-muted"></i>
+              <Icon name="clock" class="w-4 h-4 text-text-muted" />
               Entrega: {producto.tiempo_entrega}
             </p>
           )}
           {producto.envio_gratis && (
             <p class="flex items-center gap-2 text-green-600 dark:text-green-400">
-              <i data-lucide="truck" class="w-4 h-4"></i> Envío gratis a todo Colombia
+              <Icon name="truck" class="w-4 h-4" /> Envío gratis a todo Colombia
             </p>
           )}
           {producto.peso_gramos && (
             <p class="flex items-center gap-2">
-              <i data-lucide="weight" class="w-4 h-4 text-text-muted"></i>
+              <Icon name="weight" class="w-4 h-4 text-text-muted" />
               Peso: {producto.peso_gramos >= 1000 ? `${(producto.peso_gramos / 1000).toFixed(1)} kg` : `${producto.peso_gramos} g`}
             </p>
           )}
           {producto.dimensiones && (
             <p class="flex items-center gap-2">
-              <i data-lucide="ruler" class="w-4 h-4 text-text-muted"></i>
+              <Icon name="ruler" class="w-4 h-4 text-text-muted" />
               Dimensiones: {producto.dimensiones}
             </p>
           )}
         </div>
 
-        <!-- Order section -->
+        <!-- Sección de pedido -->
         <div class="border-t border-border pt-6 mt-auto">
           <h3 class="text-sm font-semibold text-text-primary mb-4 uppercase tracking-wide">Hacer pedido</h3>
 
-          {producto.stock_disponible ? (
-            <div class="space-y-4">
-              <!-- Quantity selector -->
-              <div class="flex items-center gap-4">
-                <label class="text-sm text-text-secondary">Cantidad:</label>
-                <div class="flex items-center border border-border rounded-full overflow-hidden">
-                  <button id="qty-minus" type="button" class="w-10 h-10 flex items-center justify-center text-text-muted hover:bg-surface-sunken transition-colors" aria-label="Reducir cantidad">
-                    <i data-lucide="minus" class="w-4 h-4"></i>
-                  </button>
-                  <span id="qty-value" class="w-12 text-center text-sm font-semibold text-text-primary">{producto.orden_minima}</span>
-                  <button id="qty-plus" type="button" class="w-10 h-10 flex items-center justify-center text-text-muted hover:bg-surface-sunken transition-colors" aria-label="Aumentar cantidad">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                  </button>
-                </div>
-                <span id="qty-total" class="text-lg font-bold text-brand">{fmt.format(producto.precio * producto.orden_minima)}</span>
-              </div>
-
-              {producto.orden_minima > 1 && (
-                <p class="text-xs text-text-muted">Mínimo: {producto.orden_minima} unidades por pedido</p>
-              )}
-
-              <!-- Action buttons -->
-              <div class="flex flex-col sm:flex-row gap-3">
-                <button
-                  id="btn-add-cart"
-                  type="button"
-                  class="add-to-cart flex-1 bg-brand text-white font-medium rounded-full px-6 py-3.5 hover:bg-brand-light hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
-                  data-name={producto.nombre}
-                  data-price={producto.precio}
-                  data-slug={producto.slug}
-                  data-recurso-slug={rec?.slug ?? `meliponas-${producto.slug}`}
-                  data-tipo={rec?.tipo ?? 'producto'}
-                  data-tipo-disponibilidad={rec?.tipo_disponibilidad ?? 'inmediato'}
-                  data-requiere-pago={String(rec?.requiere_pago ?? true)}
-                  data-origen={rec?.origen ?? 'iwage_meliponas'}
-                  data-brand="meliponas"
-                >
-                  <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-                  Agregar al carrito
+          <!-- Formulario de pedido (visible si la variación seleccionada tiene stock) -->
+          <div id="pedido-form" class:list={['space-y-4', !producto.stock_disponible && 'hidden']}>
+            <!-- Selector de cantidad -->
+            <div class="flex items-center gap-4">
+              <label class="text-sm text-text-secondary">Cantidad:</label>
+              <div class="flex items-center border border-border rounded-full overflow-hidden">
+                <button id="qty-minus" type="button" class="w-10 h-10 flex items-center justify-center text-text-muted hover:bg-surface-sunken transition-colors" aria-label="Reducir cantidad">
+                  <Icon name="minus" class="w-4 h-4" />
                 </button>
-                <a
-                  id="btn-whatsapp"
-                  href="#"
-                  target="_blank"
-                  rel="noopener"
-                  class="flex-1 border-2 border-green-500 text-green-600 dark:text-green-400 font-medium rounded-full px-6 py-3.5 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center gap-2"
-                >
-                  <i data-lucide="message-circle" class="w-5 h-5"></i>
-                  Pedir por WhatsApp
-                </a>
+                <span id="qty-value" class="w-12 text-center text-sm font-semibold text-text-primary">{producto.orden_minima}</span>
+                <button id="qty-plus" type="button" class="w-10 h-10 flex items-center justify-center text-text-muted hover:bg-surface-sunken transition-colors" aria-label="Aumentar cantidad">
+                  <Icon name="plus" class="w-4 h-4" />
+                </button>
               </div>
-
-              <p class="text-xs text-text-muted text-center">
-                Pago contra entrega en Ibagué · Transferencia · Envío a todo Colombia
-              </p>
+              <span id="qty-total" class="text-lg font-bold text-brand">{fmt.format(producto.precio * producto.orden_minima)}</span>
             </div>
-          ) : (
-            <div class="bg-surface-sunken rounded-xl p-5 text-center">
-              <p class="text-sm text-text-secondary mb-3">Este producto está agotado temporalmente.</p>
+
+            <p id="pedido-minimo" class:list={['text-xs text-text-muted', producto.orden_minima <= 1 && 'hidden']}>Mínimo: {producto.orden_minima} unidades por pedido</p>
+
+            <!-- Botones de acción -->
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button
+                id="btn-add-cart"
+                type="button"
+                class="add-to-cart flex-1 bg-brand text-white font-medium rounded-full px-6 py-3.5 hover:bg-brand-light hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
+                data-name={producto.nombre}
+                data-price={producto.precio}
+                data-slug={producto.slug}
+                data-recurso-slug={rec?.slug ?? `meliponas-${producto.slug}`}
+                data-tipo={rec?.tipo ?? 'producto'}
+                data-tipo-disponibilidad={rec?.tipo_disponibilidad ?? 'inmediato'}
+                data-requiere-pago={String(rec?.requiere_pago ?? true)}
+                data-origen={rec?.origen ?? 'iwage_meliponas'}
+                data-brand="meliponas"
+              >
+                <Icon name="shopping-cart" class="w-5 h-5" />
+                Agregar al carrito
+              </button>
               <a
-                href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}?text=${encodeURIComponent(`¡Hola Iwagé! ¿Cuándo estará disponible nuevamente "${producto.nombre}"?`)}`}
+                id="btn-whatsapp"
+                href="#"
                 target="_blank"
                 rel="noopener"
-                class="inline-flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 hover:underline"
+                class="flex-1 border-2 border-green-500 text-green-600 dark:text-green-400 font-medium rounded-full px-6 py-3.5 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center gap-2"
               >
-                <i data-lucide="bell" class="w-4 h-4"></i>
-                Avísame cuando esté disponible
+                <Icon name="message-circle" class="w-5 h-5" />
+                Pedir por WhatsApp
               </a>
             </div>
-          )}
+
+            <p class="text-xs text-text-muted text-center">
+              Pago contra entrega en Ibagué · Transferencia · Envío a todo Colombia
+            </p>
+          </div>
+
+          <!-- Aviso de agotado (visible si la variación seleccionada no tiene stock) -->
+          <div id="pedido-agotado" class:list={['bg-surface-sunken rounded-xl p-5 text-center', producto.stock_disponible && 'hidden']}>
+            <p class="text-sm text-text-secondary mb-3">Este producto está agotado temporalmente.</p>
+            <a
+              id="btn-avisame"
+              href={`https://wa.me/${SITE.whatsapp.replace(/\+/g, '')}?text=${encodeURIComponent(`¡Hola Iwagé! ¿Cuándo estará disponible nuevamente "${producto.nombre}"?`)}`}
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 hover:underline"
+            >
+              <Icon name="bell" class="w-4 h-4" />
+              Avísame cuando esté disponible
+            </a>
+          </div>
         </div>
 
         <!-- Tags -->
@@ -242,7 +327,96 @@ const productJsonLd = {
       </div>
     </div>
 
-    <!-- Related products -->
+    <!-- ══ Descripción completa ══ -->
+    {producto.descripcion && (
+      <section class="mt-16 pt-10 border-t border-border">
+        <h2 class="text-xl font-bold text-text-primary mb-6">Descripción</h2>
+        <div class="prose prose-sm dark:prose-invert max-w-3xl text-text-secondary leading-relaxed">
+          <Fragment set:html={renderMarkdown(producto.descripcion)} />
+        </div>
+      </section>
+    )}
+
+    <!-- ══ Elementos clave / diferenciadores (máx. 3) ══ -->
+    {diferenciadores.length > 0 && (
+      <section class="mt-16 pt-10 border-t border-border">
+        <h2 class="text-xl font-bold text-text-primary mb-2">Por qué es diferente</h2>
+        <p class="text-sm text-text-secondary mb-8">Lo que hace único a este producto del meliponario</p>
+        <div class:list={['grid gap-4', diferenciadores.length === 1 ? 'sm:grid-cols-1 max-w-xl' : diferenciadores.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3']}>
+          {diferenciadores.map((d) => (
+            <div class="bg-surface-raised rounded-2xl border border-border p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+              <div class="w-11 h-11 rounded-xl bg-brand/10 flex items-center justify-center mb-4">
+                <Icon name={d.icono ?? 'star'} class="w-5 h-5 text-brand" />
+              </div>
+              <h3 class="font-semibold text-text-primary mb-2">{d.titulo}</h3>
+              <p class="text-sm text-text-secondary leading-relaxed">{d.descripcion}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- ══ Mini-guía de uso (máx. 4) ══ -->
+    {guiaUso.length > 0 && (
+      <section class="mt-16 pt-10 border-t border-border">
+        <h2 class="text-xl font-bold text-text-primary mb-2">Cómo usarlo</h2>
+        <p class="text-sm text-text-secondary mb-8">Guía rápida para aprovecharlo al máximo</p>
+        <div class:list={['grid gap-4', guiaUso.length === 1 ? 'sm:grid-cols-1 max-w-xl' : guiaUso.length === 2 ? 'sm:grid-cols-2' : guiaUso.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4']}>
+          {guiaUso.map((g, i) => (
+            <div class="relative bg-surface-raised rounded-2xl border border-border p-6">
+              <span class="absolute -top-3 -left-2 w-8 h-8 rounded-full bg-brand text-white text-sm font-bold flex items-center justify-center shadow-sm">{i + 1}</span>
+              <div class="mb-3">
+                <Icon name={g.icono ?? 'lightbulb'} class="w-6 h-6 text-accent" />
+              </div>
+              <h3 class="font-semibold text-text-primary mb-1.5">{g.titulo}</h3>
+              {g.descripcion && <p class="text-sm text-text-secondary leading-relaxed">{g.descripcion}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- ══ Preguntas frecuentes del producto ══ -->
+    {faq.length > 0 && (
+      <section class="mt-16 pt-10 border-t border-border">
+        <h2 class="text-xl font-bold text-text-primary mb-6">Preguntas frecuentes</h2>
+        <div class="max-w-3xl space-y-3">
+          {faq.map((f) => (
+            <details class="group bg-surface-raised rounded-2xl border border-border overflow-hidden">
+              <summary class="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer text-sm font-medium text-text-primary hover:bg-surface-sunken transition-colors [&::-webkit-details-marker]:hidden">
+                {f.pregunta}
+                <Icon name="chevron-down" class="w-4 h-4 text-text-muted shrink-0 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div class="px-5 pb-4 text-sm text-text-secondary leading-relaxed">
+                <Fragment set:html={renderMarkdown(f.respuesta)} />
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- ══ Conexión con el ecosistema Iwagé ══ -->
+    {ecosistema.length > 0 && (
+      <section class="mt-16 pt-10 border-t border-border">
+        <h2 class="text-xl font-bold text-text-primary mb-2">Ecosistema Iwagé</h2>
+        <p class="text-sm text-text-secondary mb-8">Este producto vive en otros espacios del territorio</p>
+        <div class:list={['grid gap-4', ecosistema.length === 1 ? 'sm:grid-cols-1 max-w-xl' : ecosistema.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3']}>
+          {ecosistema.map((e) => (
+            <a href={e.url} class="group bg-surface-raised rounded-2xl border border-border p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+              <div class="flex items-center gap-2 mb-3">
+                <Icon name={e.emoji ?? 'leaf'} class="w-5 h-5 text-accent" />
+                <span class="text-xs font-mono uppercase tracking-wider text-accent">{e.marca}</span>
+              </div>
+              <h3 class="font-semibold text-text-primary group-hover:text-brand transition-colors mb-2">{e.titulo}</h3>
+              <p class="text-xs text-text-secondary leading-relaxed">{e.descripcion}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- ══ Productos relacionados ══ -->
     {relacionados.length > 0 && (
       <section class="mt-16 pt-10 border-t border-border">
         <h2 class="text-xl font-bold text-text-primary mb-6">También en {categoriaLabel}</h2>
@@ -254,7 +428,7 @@ const productJsonLd = {
                   <img src={p.imagen} alt={p.nombre} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 ) : (
                   <div class="w-full h-full flex items-center justify-center text-text-muted">
-                    <i data-lucide="package" class="w-8 h-8"></i>
+                    <Icon name="package" class="w-8 h-8" />
                   </div>
                 )}
               </div>
@@ -269,42 +443,160 @@ const productJsonLd = {
     )}
   </div>
 
-  <!-- Quantity & WhatsApp logic -->
-  <script define:vars={{ precio: producto.precio, nombre: producto.nombre, ordenMinima: producto.orden_minima, whatsapp: SITE.whatsapp }}>
-    const qtyValue = document.getElementById('qty-value');
-    const qtyTotal = document.getElementById('qty-total');
-    const qtyMinus = document.getElementById('qty-minus');
-    const qtyPlus = document.getElementById('qty-plus');
-    const waBtn = document.getElementById('btn-whatsapp');
-    const addBtn = document.getElementById('btn-add-cart');
+  <!-- Datos de las variaciones para el cambio dinámico -->
+  <script id="variaciones-data" type="application/json" set:html={JSON.stringify(variacionesData)} />
 
-    let qty = ordenMinima;
-    const fmtPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+  <!-- Lógica de cantidad, WhatsApp y cambio dinámico de variación -->
+  <script define:vars={{ precioInicial: producto.precio, nombreInicial: producto.nombre, ordenMinimaInicial: producto.orden_minima, slugInicial: producto.slug, whatsapp: SITE.whatsapp, tieneVariaciones }}>
+    (() => {
+      const fmtPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+      const waLink = (msg) => `https://wa.me/${whatsapp.replace(/\+/g, '')}?text=${encodeURIComponent(msg)}`;
 
-    function updateQty() {
-      qtyValue.textContent = qty;
-      qtyTotal.textContent = fmtPrice(precio * qty);
-      // Update WhatsApp link
-      const msg = `¡Hola Iwagé! Quiero pedir:\n\n• ${nombre} ×${qty} — ${fmtPrice(precio * qty)}\n\n¿Cómo coordinamos la entrega?`;
-      waBtn.href = `https://wa.me/${whatsapp.replace(/\+/g, '')}?text=${encodeURIComponent(msg)}`;
-      // Update add-to-cart data
-      addBtn.dataset.qty = qty;
-    }
+      // Estado mutable de la variación seleccionada
+      const state = {
+        slug: slugInicial,
+        nombre: nombreInicial,
+        precio: precioInicial,
+        ordenMinima: ordenMinimaInicial,
+      };
+      let qty = state.ordenMinima;
 
-    qtyMinus?.addEventListener('click', () => {
-      if (qty > ordenMinima) { qty--; updateQty(); }
-    });
+      const qtyValue = document.getElementById('qty-value');
+      const qtyTotal = document.getElementById('qty-total');
+      const qtyMinus = document.getElementById('qty-minus');
+      const qtyPlus = document.getElementById('qty-plus');
+      const waBtn = document.getElementById('btn-whatsapp');
+      const addBtn = document.getElementById('btn-add-cart');
 
-    qtyPlus?.addEventListener('click', () => {
-      qty++;
+      function updateQty() {
+        if (!qtyValue || !qtyTotal) return;
+        qtyValue.textContent = qty;
+        qtyTotal.textContent = fmtPrice(state.precio * qty);
+        if (waBtn) {
+          waBtn.href = waLink(`¡Hola Iwagé! Quiero pedir:\n\n• ${state.nombre} ×${qty} — ${fmtPrice(state.precio * qty)}\n\n¿Cómo coordinamos la entrega?`);
+        }
+        if (addBtn) addBtn.dataset.qty = qty;
+      }
+
+      qtyMinus?.addEventListener('click', () => {
+        if (qty > state.ordenMinima) { qty--; updateQty(); }
+      });
+      qtyPlus?.addEventListener('click', () => { qty++; updateQty(); });
+
+      // ── Cambio dinámico de variación (sin recargar la página) ──
+      if (tieneVariaciones) {
+        const dataTag = document.getElementById('variaciones-data');
+        const variaciones = dataTag ? JSON.parse(dataTag.textContent || '[]') : [];
+        const el = (id) => document.getElementById(id);
+
+        function selectVariacion(slug) {
+          const v = variaciones.find((x) => x.slug === slug);
+          if (!v || v.slug === state.slug) return;
+
+          state.slug = v.slug;
+          state.nombre = v.nombre;
+          state.precio = v.precio;
+          state.ordenMinima = v.orden_minima || 1;
+          qty = state.ordenMinima;
+
+          // Precio y comparativo
+          const precioEl = el('precio-actual');
+          if (precioEl) precioEl.textContent = fmtPrice(v.precio);
+          const compEl = el('precio-comparativo');
+          if (compEl) {
+            compEl.textContent = v.precio_comparativo ? fmtPrice(v.precio_comparativo) : '';
+            compEl.classList.toggle('hidden', !v.precio_comparativo);
+          }
+
+          // SKU y presentación
+          const skuEl = el('sku-actual');
+          if (skuEl) {
+            skuEl.textContent = v.sku ? `SKU: ${v.sku}` : '';
+            skuEl.classList.toggle('hidden', !v.sku);
+          }
+          const presEl = el('presentacion-actual');
+          if (presEl) {
+            presEl.textContent = v.presentacion || '';
+            presEl.classList.toggle('hidden', !v.presentacion);
+          }
+
+          // Etiqueta de la variación actual
+          const ejeEl = el('eje-variacion-actual');
+          if (ejeEl) ejeEl.textContent = v.etiqueta;
+
+          // Estado de stock
+          const dispEl = el('stock-disponible');
+          if (dispEl) dispEl.classList.toggle('hidden', !v.stock_disponible);
+          const agotIndEl = el('stock-agotado');
+          if (agotIndEl) agotIndEl.classList.toggle('hidden', v.stock_disponible);
+          const cantEl = el('stock-cantidad');
+          if (cantEl) {
+            cantEl.textContent = v.stock_cantidad ? `(${v.stock_cantidad} unidades)` : '';
+            cantEl.classList.toggle('hidden', !v.stock_cantidad);
+          }
+
+          // Formulario de pedido vs. aviso de agotado
+          const formEl = el('pedido-form');
+          if (formEl) formEl.classList.toggle('hidden', !v.stock_disponible);
+          const agotFormEl = el('pedido-agotado');
+          if (agotFormEl) agotFormEl.classList.toggle('hidden', v.stock_disponible);
+
+          // Mínimo por pedido
+          const minEl = el('pedido-minimo');
+          if (minEl) {
+            minEl.textContent = `Mínimo: ${state.ordenMinima} unidades por pedido`;
+            minEl.classList.toggle('hidden', state.ordenMinima <= 1);
+          }
+
+          // Botón de carrito: apunta a la variación seleccionada (recurso_slug)
+          if (addBtn) {
+            addBtn.dataset.name = v.nombre;
+            addBtn.dataset.price = v.precio;
+            addBtn.dataset.slug = v.slug;
+            addBtn.dataset.recursoSlug = v.recurso_slug;
+            addBtn.dataset.tipo = v.tipo;
+            addBtn.dataset.tipoDisponibilidad = v.tipo_disponibilidad;
+            addBtn.dataset.requierePago = String(v.requiere_pago);
+            addBtn.dataset.origen = v.origen;
+          }
+
+          // Aviso "avísame" con el nombre de la variación seleccionada
+          const avisameEl = el('btn-avisame');
+          if (avisameEl) {
+            avisameEl.href = waLink(`¡Hola Iwagé! ¿Cuándo estará disponible nuevamente "${v.nombre}"?`);
+          }
+
+          // Imagen principal de la galería (si la variación tiene una propia)
+          const mainImg = document.querySelector('[data-pg-main-img]');
+          if (mainImg && v.imagen && mainImg.getAttribute('src') !== v.imagen) {
+            mainImg.setAttribute('src', v.imagen);
+          }
+
+          // Estado activo de los selectores
+          document.querySelectorAll('.variacion-pill').forEach((pill) => {
+            const activo = pill.getAttribute('data-variacion') === v.slug;
+            pill.setAttribute('aria-pressed', String(activo));
+            pill.classList.toggle('border-brand', activo);
+            pill.classList.toggle('bg-brand', activo);
+            pill.classList.toggle('text-white', activo);
+            pill.classList.toggle('shadow-sm', activo);
+            pill.classList.toggle('border-border', !activo);
+            pill.classList.toggle('bg-surface-raised', !activo);
+            pill.classList.toggle('text-text-secondary', !activo);
+          });
+
+          // URL compartible sin recargar la página
+          try { history.replaceState(null, '', `/meliponas/tienda/${v.slug}`); } catch (_) {}
+
+          updateQty();
+        }
+
+        document.querySelectorAll('.variacion-pill').forEach((pill) => {
+          pill.addEventListener('click', () => selectVariacion(pill.getAttribute('data-variacion')));
+        });
+      }
+
       updateQty();
-    });
-
-    // Override add-to-cart to respect quantity
-    addBtn?.addEventListener('click', () => {
-      addBtn.dataset.qty = qty;
-    });
-
-    updateQty();
+    })();
   </script>
 </BrandLayout>

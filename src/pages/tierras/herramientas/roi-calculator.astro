@@ -1,6 +1,26 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { icons } from 'lucide';
 export const prerender = true;
+
+function lucideSvg(name: string, className: string): string {
+  const pascal = name.replace(/(^|-)(\w)/g, (_, _s, c: string) => c.toUpperCase());
+  const node = (icons as Record<string, [string, Record<string, string | number>][] | undefined>)[pascal];
+  if (!node) return '';
+  const inner = node.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}" aria-hidden="true">${inner}</svg>`;
+}
+
+// SVGs pre-renderizados para el render del cliente (sin runtime de Lucide)
+const ROI_SVGS: Record<string, string> = {
+  tent: lucideSvg('tent', 'w-4 h-4 inline align-[-2px]'),
+  sprout: lucideSvg('sprout', 'w-4 h-4 inline align-[-2px]'),
+  beef: lucideSvg('beef', 'w-4 h-4 inline align-[-2px]'),
+  home: lucideSvg('home', 'w-4 h-4 inline align-[-2px]'),
+  'trending-up': lucideSvg('trending-up', 'w-4 h-4 inline align-[-2px]'),
+  flame: lucideSvg('flame', 'w-3.5 h-3.5 inline align-[-2px]'),
+};
 ---
 
 <BrandLayout brand="tierras" title="Calculadora ROI Rural · Iwagé Tierras" description="Compara el retorno de inversión de 5 modelos rurales: glamping, agricultura, ganadería, arriendo y valorización de tierra en el Tolima. Con tabla comparativa y periodo de recuperación.">
@@ -37,11 +57,11 @@ export const prerender = true;
             <!-- Scenario selector -->
             <h3 class="font-bold text-[#1B4332] mt-6 mb-3 text-sm">Escenario a detallar</h3>
             <div class="space-y-2" id="scenario-tabs">
-              <button data-scenario="turismo" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border-2 border-[#52B788] bg-[#52B788]/10 text-[#1B4332] transition-all">🏕️ Turismo / Glamping</button>
-              <button data-scenario="agricola" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all"><i data-lucide="sprout" class="w-4 h-4 inline"></i> Agricultura</button>
-              <button data-scenario="ganaderia" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all">🐄 Ganadería</button>
-              <button data-scenario="arriendo" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all">🏠 Arriendo Rural</button>
-              <button data-scenario="valorizacion" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all">📈 Valorización</button>
+              <button data-scenario="turismo" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border-2 border-[#52B788] bg-[#52B788]/10 text-[#1B4332] transition-all"><Icon name="tent" class="w-4 h-4 inline align-[-2px]" /> Turismo / Glamping</button>
+              <button data-scenario="agricola" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all"><Icon name="sprout" class="w-4 h-4 inline align-[-2px]" /> Agricultura</button>
+              <button data-scenario="ganaderia" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all"><Icon name="beef" class="w-4 h-4 inline align-[-2px]" /> Ganadería</button>
+              <button data-scenario="arriendo" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all"><Icon name="home" class="w-4 h-4 inline align-[-2px]" /> Arriendo Rural</button>
+              <button data-scenario="valorizacion" class="scenario-tab w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-[#52B788]/40 transition-all"><Icon name="trending-up" class="w-4 h-4 inline align-[-2px]" /> Valorización</button>
             </div>
 
             <!-- Dynamic inputs per scenario -->
@@ -57,7 +77,7 @@ export const prerender = true;
         <div class="lg:col-span-2">
           <!-- Empty state -->
           <div id="roi-empty" class="bg-white rounded-2xl p-12 border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center min-h-[400px]">
-            <span class="text-5xl mb-4">📊</span>
+            <Icon name="bar-chart-3" class="w-12 h-12 mb-4 text-[#52B788]" />
             <h3 class="text-lg font-bold text-[#1B4332] mb-2">Calcula tu retorno</h3>
             <p class="text-gray-500 text-sm max-w-xs">Ingresa los datos de tu propiedad y modelo de negocio para ver el retorno proyectado con tabla comparativa.</p>
           </div>
@@ -77,15 +97,15 @@ export const prerender = true;
               <div class="space-y-3">
                 <div class="flex justify-between items-center p-4 bg-[#52B788]/5 rounded-xl">
                   <div><p class="text-xs text-gray-500">Ingreso Bruto</p><p class="text-lg font-bold text-[#1B4332]" id="roi-ingreso">—</p></div>
-                  <i data-lucide="wallet" class="w-5 h-5"></i>
+                  <Icon name="wallet" class="w-5 h-5 text-[#1B4332]" />
                 </div>
                 <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl" id="roi-costos-row">
                   <div><p class="text-xs text-gray-500">Costos Operativos</p><p class="text-lg font-semibold text-gray-600" id="roi-costos">—</p></div>
-                  <i data-lucide="settings-2" class="w-5 h-5"></i>
+                  <Icon name="settings-2" class="w-5 h-5 text-gray-500" />
                 </div>
                 <div class="flex justify-between items-center p-4 bg-[#52B788]/10 rounded-xl border border-[#52B788]/20">
                   <div><p class="text-xs font-medium text-gray-600">Utilidad Neta</p><p class="text-xl font-bold text-[#52B788]" id="roi-utilidad">—</p></div>
-                  <span class="text-2xl">✅</span>
+                  <Icon name="check-circle" class="w-6 h-6 text-[#52B788]" />
                 </div>
               </div>
             </div>
@@ -93,14 +113,14 @@ export const prerender = true;
             <!-- Payback + Metrics -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 bg-[#52B788]/10 rounded-full flex items-center justify-center shrink-0"><span class="text-2xl">⏱️</span></div>
+                <div class="w-12 h-12 bg-[#52B788]/10 rounded-full flex items-center justify-center shrink-0"><Icon name="timer" class="w-6 h-6 text-[#1B4332]" /></div>
                 <div>
                   <p class="text-xs text-gray-500">Periodo de Recuperación</p>
                   <p class="text-2xl font-bold text-[#1B4332]" id="roi-payback">—</p>
                 </div>
               </div>
               <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
-                <div class="w-12 h-12 bg-[#52B788]/10 rounded-full flex items-center justify-center shrink-0"><span class="text-2xl">📐</span></div>
+                <div class="w-12 h-12 bg-[#52B788]/10 rounded-full flex items-center justify-center shrink-0"><Icon name="ruler" class="w-6 h-6 text-[#1B4332]" /></div>
                 <div>
                   <p class="text-xs text-gray-500">Inversión Total</p>
                   <p class="text-2xl font-bold text-[#1B4332]" id="roi-inversion-total">—</p>
@@ -132,7 +152,7 @@ export const prerender = true;
             <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm text-center">
               <h3 class="font-bold text-[#1B4332] mb-2">¿Listo para invertir en tierra rural?</h3>
               <p class="text-sm text-gray-500 mb-4">Te ayudamos a encontrar la propiedad ideal para tu modelo de negocio.</p>
-              <a href="/tierras/propiedades" class="inline-block px-8 py-3 bg-[#52B788] text-[#0F120E] rounded-full text-sm font-bold hover:bg-[#52B788]/90 transition-all">Ver Catálogo <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i></a>
+              <a href="/tierras/propiedades" class="inline-block px-8 py-3 bg-[#52B788] text-[#0F120E] rounded-full text-sm font-bold hover:bg-[#52B788]/90 transition-all">Ver Catálogo <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>
             </div>
           </div>
         </div>
@@ -140,14 +160,19 @@ export const prerender = true;
     </div>
   </section>
 
+  <script type="application/json" id="roi-icon-svgs" set:html={JSON.stringify(ROI_SVGS)}></script>
+
   <script>
     // ─── Scenario definitions ───
     interface ScenarioInput { key: string; label: string; value: string; suffix?: string; }
     interface ScenarioResult { ingreso: number; costos: number; utilidad: number; roi: number; payback: number; }
 
+    // SVGs de Lucide pre-renderizados en build (sin librería de iconos en runtime)
+    const SCENARIO_SVGS: Record<string, string> = JSON.parse(document.getElementById('roi-icon-svgs')?.textContent || '{}');
+
     const SCENARIOS: Record<string, { label: string; icon: string; inputs: ScenarioInput[]; calc: (v: Record<string, number>, total: number) => ScenarioResult }> = {
       turismo: {
-        label: 'Turismo / Glamping', icon: '🏕️',
+        label: 'Turismo / Glamping', icon: 'tent',
         inputs: [
           { key: 'tarifa', label: 'Tarifa por noche (COP)', value: '350000' },
           { key: 'ocupacion', label: 'Ocupación (%)', value: '45', suffix: '%' },
@@ -177,7 +202,7 @@ export const prerender = true;
         },
       },
       ganaderia: {
-        label: 'Ganadería', icon: '🐄',
+        label: 'Ganadería', icon: 'beef',
         inputs: [
           { key: 'animales', label: 'N° de animales', value: '30' },
           { key: 'precioAnimal', label: 'Precio por animal (COP)', value: '2500000' },
@@ -192,7 +217,7 @@ export const prerender = true;
         },
       },
       arriendo: {
-        label: 'Arriendo Rural', icon: '🏠',
+        label: 'Arriendo Rural', icon: 'home',
         inputs: [
           { key: 'canon', label: 'Canon mensual (COP)', value: '3500000' },
           { key: 'ocupacion', label: 'Ocupación (%)', value: '90', suffix: '%' },
@@ -206,7 +231,7 @@ export const prerender = true;
         },
       },
       valorizacion: {
-        label: 'Valorización Tierra', icon: '📈',
+        label: 'Valorización Tierra', icon: 'trending-up',
         inputs: [
           { key: 'pctAnual', label: 'Valorización anual esperada (%)', value: '10', suffix: '%' },
           { key: 'anos', label: 'Horizonte de inversión (años)', value: '5' },
@@ -290,11 +315,11 @@ export const prerender = true;
       const result = scenario.calc(inputs, total);
 
       // Render hero
-      document.getElementById('roi-scenario-label')!.textContent = `${scenario.icon} ${scenario.label}`;
+      document.getElementById('roi-scenario-label')!.innerHTML = `${SCENARIO_SVGS[scenario.icon] || ''} ${scenario.label}`;
       document.getElementById('roi-pct')!.textContent = result.roi.toFixed(1) + '%';
 
       const badge = document.getElementById('roi-badge')!;
-      if (result.roi >= 20) { badge.textContent = '🔥 Alto rendimiento'; badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#52B788]/20 text-[#52B788]'; }
+      if (result.roi >= 20) { badge.innerHTML = `${SCENARIO_SVGS.flame} Alto rendimiento`; badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#52B788]/20 text-[#52B788]'; }
       else if (result.roi >= 10) { badge.textContent = '✓ Buen rendimiento'; badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400'; }
       else { badge.textContent = '○ Rendimiento moderado'; badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-gray-500/20 text-gray-400'; }
 
@@ -316,7 +341,7 @@ export const prerender = true;
         const isActive = key === activeScenario;
         return `
           <tr class="border-b border-gray-50 ${isActive ? 'bg-[#52B788]/5' : ''}">
-            <td class="py-3 px-3 font-medium text-[#1B4332]">${s.icon} ${s.label}${isActive ? ' <span class="text-[10px] text-[#52B788] font-bold">●</span>' : ''}</td>
+            <td class="py-3 px-3 font-medium text-[#1B4332]">${SCENARIO_SVGS[s.icon] || ''} ${s.label}${isActive ? ' <span class="text-[10px] text-[#52B788] font-bold">●</span>' : ''}</td>
             <td class="py-3 px-3 text-right text-gray-600">${fmtCOP(r.ingreso)}</td>
             <td class="py-3 px-3 text-right font-semibold ${r.utilidad > 0 ? 'text-[#52B788]' : 'text-red-500'}">${fmtCOP(r.utilidad)}</td>
             <td class="py-3 px-3 text-right font-bold text-[#1B4332]">${r.roi.toFixed(1)}%</td>

@@ -1,29 +1,30 @@
 ---
 export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getBrand } from '@/config/brands';
 
-const waPhone = getBrand('naturaleza')?.whatsapp || '573001234567';
+const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 
 const RECURSOS = [
-  { titulo: 'Pon tu experiencia en Iwagé', desc: 'Aprende a crear y publicar tus experiencias turísticas en la plataforma.', icon: '🧭', color: 'bg-emerald-100', enlace: '/naturaleza/experiencias' },
-  { titulo: 'Conviértete en anfitrión', desc: 'Únete a la red de aliados Iwagé y comienza a generar ingresos.', icon: '👤', color: 'bg-blue-100', enlace: '/gestion/modelo-alianzas' },
-  { titulo: 'Gestiona tu glamping', desc: 'Todo sobre administración, precios y atención a huéspedes.', icon: '🏕️', color: 'bg-amber-100', enlace: '/gestion' },
-  { titulo: 'Escalafón de Anfitriones', desc: 'Conoce los niveles y cómo hacer crecer tu perfil.', icon: '📈', color: 'bg-purple-100', enlace: '/naturaleza/escalafon' },
+  { titulo: 'Pon tu experiencia en Iwagé', desc: 'Aprende a crear y publicar tus experiencias turísticas en la plataforma.', icon: 'compass', color: 'bg-emerald-100', enlace: '/naturaleza/experiencias' },
+  { titulo: 'Conviértete en anfitrión', desc: 'Únete a la red de aliados Iwagé y comienza a generar ingresos.', icon: 'user', color: 'bg-blue-100', enlace: '/gestion/modelo-alianzas' },
+  { titulo: 'Gestiona tu glamping', desc: 'Todo sobre administración, precios y atención a huéspedes.', icon: 'tent', color: 'bg-amber-100', enlace: '/gestion' },
+  { titulo: 'Escalafón de Anfitriones', desc: 'Conoce los niveles y cómo hacer crecer tu perfil.', icon: 'trending-up', color: 'bg-purple-100', enlace: '/naturaleza/escalafon' },
 ];
 
 const GUIAS = [
-  { titulo: 'Guía de Inicio', desc: 'Todo lo básico para empezar como anfitrión.', icon: '📖', enlaces: [{ label: 'Cómo crear tu perfil', url: '/naturaleza/anfitriones' }, { label: 'Tu primera experiencia', url: '/naturaleza/experiencias' }, { label: 'Subir fotos profesionales', url: '/ayuda' }] },
-  { titulo: 'Cómo Gestionar', desc: 'Administra reservas, pagos y comunicación.', icon: '📅', enlaces: [{ label: 'Gestionar reservas', url: '/gestion' }, { label: 'Política de cancelación', url: '/ayuda' }, { label: 'Precios dinámicos', url: '/gestion' }] },
-  { titulo: 'Mejorar tu Servicio', desc: 'Consejos para destacar y ganar reseñas.', icon: '⭐', enlaces: [{ label: 'Cómo conseguir 5 estrellas', url: '/ayuda' }, { label: 'Manejar reseñas negativas', url: '/ayuda' }, { label: 'Tips de hospitalidad', url: '/ayuda' }] },
+  { titulo: 'Guía de Inicio', desc: 'Todo lo básico para empezar como anfitrión.', icon: 'book-open', enlaces: [{ label: 'Cómo crear tu perfil', url: '/naturaleza/anfitriones' }, { label: 'Tu primera experiencia', url: '/naturaleza/experiencias' }, { label: 'Subir fotos profesionales', url: '/ayuda' }] },
+  { titulo: 'Cómo Gestionar', desc: 'Administra reservas, pagos y comunicación.', icon: 'calendar', enlaces: [{ label: 'Gestionar reservas', url: '/gestion' }, { label: 'Política de cancelación', url: '/ayuda' }, { label: 'Precios dinámicos', url: '/gestion' }] },
+  { titulo: 'Mejorar tu Servicio', desc: 'Consejos para destacar y ganar reseñas.', icon: 'star', enlaces: [{ label: 'Cómo conseguir 5 estrellas', url: '/ayuda' }, { label: 'Manejar reseñas negativas', url: '/ayuda' }, { label: 'Tips de hospitalidad', url: '/ayuda' }] },
 ];
 
 const BENEFICIOS = [
-  { titulo: 'Ingresos transparentes', desc: 'Sabes exactamente qué ganas. Sin sorpresas.', icon: '💰' },
-  { titulo: 'Capacitación gratuita', desc: 'Cursos de primeros auxilios, interpretación ambiental.', icon: '🎓' },
-  { titulo: 'Visibilidad garantizada', desc: 'Tu perfil en el directorio de Iwagé Naturaleza.', icon: '✨' },
-  { titulo: 'Comunidad activa', desc: 'Foro de anfitriones y reuniones mensuales.', icon: '👥' },
-  { titulo: 'Seguro básico', desc: 'Cobertura para incidentes durante experiencias.', icon: '🛡️' },
+  { titulo: 'Ingresos transparentes', desc: 'Sabes exactamente qué ganas. Sin sorpresas.', icon: 'coins' },
+  { titulo: 'Capacitación gratuita', desc: 'Cursos de primeros auxilios, interpretación ambiental.', icon: 'graduation-cap' },
+  { titulo: 'Visibilidad garantizada', desc: 'Tu perfil en el directorio de Iwagé Naturaleza.', icon: 'sparkles' },
+  { titulo: 'Comunidad activa', desc: 'Foro de anfitriones y reuniones mensuales.', icon: 'users' },
+  { titulo: 'Seguro básico', desc: 'Cobertura para incidentes durante experiencias.', icon: 'shield' },
 ];
 
 ---
@@ -43,7 +44,7 @@ const BENEFICIOS = [
       </p>
       <div class="flex flex-wrap gap-4">
         <a href="/naturaleza/se-anfitrion" class="inline-flex items-center gap-2 bg-[#40916C] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#2D5A27] transition-all">
-          👤 Convertirme en Anfitrión
+          <Icon name="user" class="w-4 h-4" /> Convertirme en Anfitrión
         </a>
         <a href="/naturaleza/escalafon" class="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-all border border-white/20">
           Ver Escalafón
@@ -57,13 +58,13 @@ const BENEFICIOS = [
     <div class="max-w-6xl mx-auto px-6">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { icon: '🏠', label: 'Pon tu experiencia', url: '/naturaleza/experiencias' },
-          { icon: '👥', label: 'Únete a la red', url: '/gestion/modelo-alianzas' },
-          { icon: '🛡️', label: 'Verificar Títulos', url: '/tierras/protocolo-vap' },
-          { icon: '📊', label: 'Dossier Técnico', url: '/tierras/lab' },
+          { icon: 'home', label: 'Pon tu experiencia', url: '/naturaleza/experiencias' },
+          { icon: 'users', label: 'Únete a la red', url: '/gestion/modelo-alianzas' },
+          { icon: 'shield', label: 'Verificar Títulos', url: '/tierras/protocolo-vap' },
+          { icon: 'bar-chart-2', label: 'Dossier Técnico', url: '/tierras/lab' },
         ].map((item) => (
           <a href={item.url} class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all text-center">
-            <span class="text-2xl block mb-2">{item.icon}</span>
+            <Icon name={item.icon} class="w-7 h-7 block mx-auto mb-2 text-white" />
             <p class="font-bold text-xs text-white">{item.label}</p>
           </a>
         ))}
@@ -81,7 +82,7 @@ const BENEFICIOS = [
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {RECURSOS.map((recurso) => (
           <a href={recurso.enlace} class="bg-white rounded-xl border border-[#EDE5D4] p-6 hover:shadow-lg transition-all group">
-            <div class={`w-12 h-12 rounded-xl ${recurso.color} flex items-center justify-center mb-4 text-2xl`}>{recurso.icon}</div>
+            <div class={`w-12 h-12 rounded-xl ${recurso.color} flex items-center justify-center mb-4`}><Icon name={recurso.icon} class="w-6 h-6" /></div>
             <h3 class="font-serif text-lg font-bold text-[#1a3009] mb-2">{recurso.titulo}</h3>
             <p class="text-sm text-gray-500 mb-4">{recurso.desc}</p>
             <span class="text-sm font-bold text-[#40916C] group-hover:underline">Ver más →</span>
@@ -101,7 +102,7 @@ const BENEFICIOS = [
       <div class="grid md:grid-cols-3 gap-6">
         {GUIAS.map((guia) => (
           <div class="bg-[#f8faf5] rounded-xl p-6">
-            <span class="text-2xl block mb-4">{guia.icon}</span>
+            <Icon name={guia.icon} class="w-7 h-7 block mb-4 text-[#40916C]" />
             <h3 class="font-serif text-lg font-bold text-[#1a3009] mb-2">{guia.titulo}</h3>
             <p class="text-xs text-gray-500 mb-4">{guia.desc}</p>
             <ul class="space-y-2">
@@ -125,7 +126,7 @@ const BENEFICIOS = [
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {BENEFICIOS.map((bene) => (
           <div class="bg-white rounded-xl border border-[#EDE5D4] p-5 flex items-start gap-4">
-            <span class="text-2xl shrink-0">{bene.icon}</span>
+            <Icon name={bene.icon} class="w-7 h-7 shrink-0 text-[#40916C]" />
             <div>
               <h3 class="font-bold text-[#1a3009] mb-1">{bene.titulo}</h3>
               <p class="text-xs text-gray-500">{bene.desc}</p>
@@ -140,15 +141,15 @@ const BENEFICIOS = [
   <section class="py-16 px-6 bg-white">
     <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
       <div class="bg-[#40916C]/5 rounded-2xl p-8 flex flex-col justify-center">
-        <span class="text-3xl mb-4">👥</span>
+        <Icon name="users" class="w-8 h-8 mb-4 text-[#40916C]" />
         <h3 class="font-serif text-xl font-bold text-[#1a3009] mb-3">Foro comunitario</h3>
         <p class="text-gray-500 text-sm mb-6">Conecta con otros anfitriones, comparte experiencias y participa en reuniones mensuales de la red.</p>
         <a href={`https://wa.me/${waPhone}?text=Hola, quiero unirme al foro de anfitriones`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-[#40916C] text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-[#2D5A27] transition-all w-fit">
-          💬 Unirse al foro
+          <Icon name="message-circle" class="w-4 h-4" /> Unirse al foro
         </a>
       </div>
       <div class="bg-[#0e1a08] rounded-2xl p-8 flex flex-col justify-center text-white">
-        <span class="text-3xl mb-4">🎓</span>
+        <Icon name="graduation-cap" class="w-8 h-8 mb-4 text-[#C8933E]" />
         <h3 class="font-serif text-xl font-bold mb-3">Clases gratuitas</h3>
         <p class="text-white/60 text-sm mb-6">Talleres mensuales sobre primeros auxilios, interpretación ambiental y mejores prácticas de hospitalidad.</p>
         <a href="/contacto" class="inline-flex items-center gap-2 bg-[#C8933E] text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-[#A67B32] transition-all w-fit">
@@ -161,7 +162,7 @@ const BENEFICIOS = [
   <!-- FAQ Link -->
   <section class="py-12 px-6 bg-[#f8faf5]">
     <div class="max-w-4xl mx-auto text-center">
-      <span class="text-3xl block mb-4">💬</span>
+      <Icon name="message-circle" class="w-8 h-8 block mx-auto mb-4 text-[#40916C]" />
       <h2 class="font-serif text-2xl text-[#1a3009] mb-3">¿Tienes dudas?</h2>
       <p class="text-gray-500 mb-6 max-w-md mx-auto">Encuentra respuestas a las preguntas más frecuentes de anfitriones en nuestro Centro de Ayuda.</p>
       <a href="/ayuda?category=anfitriones" class="inline-flex items-center gap-2 bg-[#40916C] text-white font-bold px-8 py-3.5 rounded-xl hover:bg-[#2D5A27] transition-all">
@@ -173,7 +174,7 @@ const BENEFICIOS = [
   <!-- CTA Final -->
   <section class="py-16 bg-[#0e1a08] text-white">
     <div class="max-w-4xl mx-auto px-6 text-center">
-      <span class="text-4xl block mb-6">🌱</span>
+      <Icon name="sprout" class="w-10 h-10 block mx-auto mb-6 text-brand" />
       <h2 class="font-serif text-2xl md:text-3xl mb-4">¿Listo para comenzar?</h2>
       <p class="text-white/60 mb-8 max-w-xl mx-auto">Únete a la red de anfitriones Iwagé y comienza a compartir tu territorio con el mundo.</p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -181,7 +182,7 @@ const BENEFICIOS = [
           Convertirme en Anfitrión
         </a>
         <a href={`https://wa.me/${waPhone}?text=Hola, me interesa ser anfitrión Iwagé`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/20 transition-all border border-white/20">
-          💬 Escribir por WhatsApp
+          <Icon name="message-circle" class="w-4 h-4" /> Escribir por WhatsApp
         </a>
       </div>
     </div>

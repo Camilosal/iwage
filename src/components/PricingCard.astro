@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/shared/Icon.astro';
+
 interface Props {
   tier: string;
   price: string;
@@ -20,7 +22,7 @@ const { tier, price, period, features, cta, href = '/contacto', featured = false
   <ul class="space-y-3 mb-8 flex-1">
     {features.map((feature) => (
       <li class="flex items-start gap-2 text-sm">
-        <i data-lucide="check" class={`w-4 h-4 mt-0.5 shrink-0 ${featured ? 'text-accent-light' : 'text-brand'}`}></i>
+        <Icon name="check" class={`w-4 h-4 mt-0.5 shrink-0 ${featured ? 'text-accent-light' : 'text-brand'}`} />
         <span class={featured ? 'text-white/80' : 'text-text-secondary'}>{feature}</span>
       </li>
     ))}

@@ -14,6 +14,7 @@ interface ResultData {
   duracion?: string;
   cupo_maximo_desc?: string;
   publicado?: boolean;
+  etiquetas_personalizadas?: { origen?: string } | null;
 }
 
 function parseDurationMinutes(dur?: string): number | null {
@@ -36,6 +37,9 @@ async function syncToReservas(result: ResultData): Promise<void> {
   if (!result.slug || !result.titulo) return;
   // Solo sincronizar experiencias publicadas
   if (result.publicado === false) return;
+  // Anti-eco: las experiencias espejo de recursos de aliados nacen en
+  // app_reservas; devolverlas duplicaría el recurso original.
+  if (result.etiquetas_personalizadas?.origen === 'app_reservas') return;
 
   const durMin = parseDurationMinutes(result.duracion);
   const capacidad = parseInt(result.cupo_maximo_desc || '') || 8;

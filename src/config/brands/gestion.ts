@@ -37,6 +37,7 @@ export const gestion: BrandConfig = {
       children: [
         { label: 'Bitácora', href: '/gestion/bitacora' },
         { label: 'Ayuda', href: '/gestion/ayuda' },
+        { label: 'Legal y Políticas', href: '/legal/' },
         { label: 'Contacto', href: '/gestion/contacto' },
       ],
     },
@@ -46,7 +47,7 @@ export const gestion: BrandConfig = {
     defaultDescription:
       'Reserva alojamientos rurales únicos en el Tolima y gestiona tu propiedad con expertos. Fincas, glamping, casas campestres y experiencias de territorio.',
   },
-  whatsapp: '573001234567',
+  whatsapp: '573026693366',
   instagram: '@iwage.gestion',
   icon: 'building-2',
 };

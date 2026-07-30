@@ -1,5 +1,6 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { getExperienciasDestacadas, getExperiencias, getAnfitriones, getPaquetes, experienciaImagen, anfitrionFoto, formatPrecioCOP, dificultadInfo, nivelInfo } from '@/lib/naturaleza';
 import { strapiImage } from '@/lib/strapi';
 
@@ -33,7 +34,7 @@ const guardianes = anfitrionesPool.filter((h) => !miradasSlugs.has(h.slug)).slic
 
 const CAMINOS = [
   {
-    icon: '🥾',
+    icon: 'footprints',
     title: 'Quiero vivir el territorio',
     desc: 'Experiencias guiadas por quienes han habitado esta tierra por generaciones. Elige tu anfitrión, reserva y déjate transformar.',
     pasos: ['Explora el catálogo de experiencias', 'Elige la mirada de tu anfitrión', 'Reserva en línea tu fecha', 'Vive y regenera el territorio'],
@@ -78,7 +79,7 @@ const CICLO_ECOSISTEMA = [
     color: '#2d5a8f',
   },
   {
-    icon: '☕',
+    icon: 'coffee',
     marca: 'Iwagé Café & Meliponas',
     titulo: 'Hazla productiva',
     desc: 'Café especial y polinización con meliponas para activar el potencial agropecuario de tu predio.',
@@ -88,9 +89,9 @@ const CICLO_ECOSISTEMA = [
 ];
 
 const OFERTA_BULLETS = [
-  { icon: '💰', title: 'Ingresos transparentes', desc: 'Sabes exactamente qué ganas por cada experiencia. Sin sorpresas ni letras pequeñas.' },
-  { icon: '🎓', title: 'Capacitación gratuita', desc: 'Primeros auxilios, interpretación ambiental y hospitalidad. Te formamos sin costo.' },
-  { icon: '✨', title: 'Visibilidad en la red', desc: 'Tu perfil y tu espacio en el directorio de Iwagé Naturaleza, ante viajeros calificados.' },
+  { icon: 'coins', title: 'Ingresos transparentes', desc: 'Sabes exactamente qué ganas por cada experiencia. Sin sorpresas ni letras pequeñas.' },
+  { icon: 'graduation-cap', title: 'Capacitación gratuita', desc: 'Primeros auxilios, interpretación ambiental y hospitalidad. Te formamos sin costo.' },
+  { icon: 'sparkles', title: 'Visibilidad en la red', desc: 'Tu perfil y tu espacio en el directorio de Iwagé Naturaleza, ante viajeros calificados.' },
 ];
 ---
 
@@ -99,7 +100,7 @@ const OFERTA_BULLETS = [
   <!-- Hero -->
   <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#0e1a08]">
     <img
-      src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1600&q=80"
+      src="/images/hero-naturaleza.webp"
       alt="Niebla sobre el bosque del Tolima"
       class="absolute inset-0 w-full h-full object-cover opacity-40"
       loading="eager"
@@ -120,10 +121,10 @@ const OFERTA_BULLETS = [
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
         <a href="/naturaleza/experiencias" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#4a7c23]/90 hover:scale-105 transition-all shadow-lg">
-          🥾 Vive una Experiencia
+          <Icon name="footprints" class="w-4 h-4 inline align-[-2px] mr-1" /> Vive una Experiencia
         </a>
         <a href="/naturaleza/se-anfitrion" class="bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#d4920a]/90 hover:scale-105 transition-all shadow-lg">
-          🌱 Sé Anfitrión o Presenta tu Espacio
+          <Icon name="sprout" class="w-4 h-4 inline align-[-2px] mr-1" /> Sé Anfitrión o Presenta tu Espacio
         </a>
       </div>
 
@@ -213,12 +214,12 @@ const OFERTA_BULLETS = [
                   <h3 class="text-lg font-semibold text-[#1a3009] mb-2 group-hover:text-[#4a7c23] transition-colors">{exp.titulo}</h3>
                   <p class="text-sm text-gray-600 line-clamp-2 mb-4">{exp.resumen}</p>
                   <div class="flex items-center justify-between text-xs text-gray-500">
-                    <span>⏱ {exp.duracion || '4-5 horas'}</span>
+                    <span class="inline-flex items-center gap-1"><Icon name="timer" class="w-3.5 h-3.5" /> {exp.duracion || '4-5 horas'}</span>
                     <span class="font-bold text-[#2d5016]">{formatPrecioCOP(exp.precio_desde)}</span>
                   </div>
                   <div class="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#f8faf5] text-[#4a7c23] font-medium">{diff.label}</span>
-                    {exp.ubicacion && <span class="text-[10px] text-gray-400">📍 {exp.ubicacion}</span>}
+                    {exp.ubicacion && <span class="text-[10px] text-gray-400 inline-flex items-center gap-1"><Icon name="map-pin" class="w-3 h-3" /> {exp.ubicacion}</span>}
                   </div>
                 </div>
               </a>
@@ -259,7 +260,7 @@ const OFERTA_BULLETS = [
                   {pkg.destacado && (
                     <span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#d4920a] text-white text-[10px] font-bold uppercase tracking-wider">Destacado</span>
                   )}
-                  <span class="absolute bottom-3 left-3 text-[10px] font-bold text-white bg-black/40 px-2 py-0.5 rounded">📅 {pkg.duracion_texto || `${pkg.duracion_dias} días`}</span>
+                  <span class="absolute bottom-3 left-3 text-[10px] font-bold text-white bg-black/40 px-2 py-0.5 rounded inline-flex items-center gap-1"><Icon name="calendar" class="w-3 h-3" /> {pkg.duracion_texto || `${pkg.duracion_dias} días`}</span>
                 </div>
                 <div class="p-5">
                   <h3 class="text-lg font-semibold text-[#1a3009] mb-1 group-hover:text-[#4a7c23] transition-colors">{pkg.titulo}</h3>
@@ -310,7 +311,7 @@ const OFERTA_BULLETS = [
                     <img src={anfitrionFoto(host)} alt={host.nombre} class="w-14 h-14 rounded-full object-cover ring-2 ring-[#d4920a]/30" loading="lazy" />
                     <div>
                       <h3 class="font-semibold text-white group-hover:text-[#d4920a] transition-colors">{host.nombre}</h3>
-                      <p class="text-[10px] text-white/50">{nivel.icono} {nivel.nombre} · {host.especialidad || 'Anfitrión local'}</p>
+                      <p class="text-[10px] text-white/50 inline-flex items-center gap-1"><Icon name={nivel.icono} class="w-3 h-3" /> {nivel.nombre} · {host.especialidad || 'Anfitrión local'}</p>
                     </div>
                   </div>
                   {junction?.enfoque_de_ruta && (
@@ -327,12 +328,12 @@ const OFERTA_BULLETS = [
       ) : (
         <div class="grid md:grid-cols-3 gap-6">
           {[
-            { icon: '🦅', enfoque: 'Mirada contemplativa', desc: 'El anfitrión que conoce cada mirador y detiene el tiempo frente al valle.' },
-            { icon: '🌾', enfoque: 'Mirada ancestral', desc: 'La guardiana que narra la historia de la tierra y sus saberes de siembra.' },
-            { icon: '🐝', enfoque: 'Mirada productiva', desc: 'El anfitrión que te muestra la finca viva: café, miel y bosque que producen.' },
+            { icon: 'bird', enfoque: 'Mirada contemplativa', desc: 'El anfitrión que conoce cada mirador y detiene el tiempo frente al valle.' },
+            { icon: 'wheat', enfoque: 'Mirada ancestral', desc: 'La guardiana que narra la historia de la tierra y sus saberes de siembra.' },
+            { icon: 'hexagon', enfoque: 'Mirada productiva', desc: 'El anfitrión que te muestra la finca viva: café, miel y bosque que producen.' },
           ].map((m) => (
             <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
-              <span class="text-3xl block mb-3">{m.icon}</span>
+              <span class="block mb-3"><Icon name={m.icon} class="w-8 h-8" /></span>
               <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4920a] mb-2">{m.enfoque}</p>
               <p class="text-sm text-white/70 font-serif italic leading-relaxed">“{m.desc}”</p>
             </div>
@@ -362,7 +363,7 @@ const OFERTA_BULLETS = [
         {CICLO_ECOSISTEMA.map((etapa, i) => (
           <a href={etapa.href} class="group relative block bg-white border border-gray-100 rounded-2xl p-6 hover:border-[#4a7c23]/40 hover:shadow-xl transition-all h-full">
             <span class="absolute top-4 right-4 text-[10px] font-mono text-gray-300">0{i + 1}</span>
-            <span class="text-3xl block mb-3">{etapa.icon}</span>
+            <span class="block mb-3"><Icon name={etapa.icon} class="w-8 h-8" /></span>
             <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style={`color: ${etapa.color}`}>{etapa.marca}</p>
             <h3 class="font-semibold text-[#1a3009] group-hover:text-[#4a7c23] transition-colors mb-2">{etapa.titulo}</h3>
             <p class="text-xs text-gray-500">{etapa.desc}</p>
@@ -390,7 +391,7 @@ const OFERTA_BULLETS = [
                 <h3 class="text-lg font-semibold text-white group-hover:text-[#d4920a] transition-colors">{host.nombre}</h3>
                 <p class="text-sm text-white/60 mt-1">{host.especialidad}</p>
                 <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs text-white/80">
-                  <span>{nivel.icono}</span>
+                  <Icon name={nivel.icono} class="w-4 h-4" />
                   <span>{nivel.nombre}</span>
                   <span class="text-[#d4920a]">★ {host.calificacion_promedio?.toFixed(1) || '5.0'}</span>
                 </div>
@@ -468,7 +469,7 @@ const OFERTA_BULLETS = [
   <section class="py-16 px-4 bg-[#0e1a08]">
     <div class="max-w-3xl mx-auto">
       <div class="rounded-3xl p-10 md:p-14 text-center border border-white/10" style="background: linear-gradient(135deg, #2d5016 0%, #0e1a08 100%)">
-        <span class="text-4xl block mb-4">🌿</span>
+        <Icon name="leaf" class="w-10 h-10 block mx-auto mb-4 text-brand" />
         <h2 class="text-2xl md:text-3xl font-light text-white mb-4">El territorio te está esperando</h2>
         <p class="text-white/70 mb-8">Vívelo como viajero o conviértelo en tu medio de vida como anfitrión.</p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
