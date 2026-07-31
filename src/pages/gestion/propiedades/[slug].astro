@@ -43,9 +43,33 @@ const description = prop.seo_descripcion || `Ficha de gestión de ${prop.titulo}
 // Productos locales recomendados (cross-selling con la tienda del meliponario)
 const productosRec = (prop.productos || []).filter((p) => p.stock_disponible).slice(0, 6);
 const fmtCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+// Schema: LodgingBusiness + Place with GeoCoordinates for "near me" searches
+const lodgingJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LodgingBusiness',
+  name: prop.titulo,
+  description: description,
+  url: `https://iwage.co/gestion/propiedades/${prop.slug}`,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: prop.ubicacion_municipio || 'Ibagué',
+    addressRegion: 'Tolima',
+    addressCountry: 'CO',
+  },
+  ...(prop.ubicacion_latitud && prop.ubicacion_longitud && {
+    geo: { '@type': 'GeoCoordinates', latitude: prop.ubicacion_latitud, longitude: prop.ubicacion_longitud },
+  }),
+  ...(prop.precio_noche && {
+    priceRange: `$${prop.precio_noche.toLocaleString('es-CO')} COP/noche`,
+  }),
+  ...(heroImg && { image: heroImg }),
+  containedInPlace: { '@type': 'AdministrativeArea', name: prop.ubicacion_municipio || 'Ibagué' },
+};
 ---
 
 <BrandLayout brand="gestion" title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(lodgingJsonLd)} />
 
   <!-- Breadcrumb -->
   <div class="bg-white border-b border-gray-100 px-4 py-3">

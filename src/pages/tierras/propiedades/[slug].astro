@@ -100,10 +100,33 @@ const jsonLd = {
   offers: prop.precio ? { '@type': 'Offer', price: prop.precio, priceCurrency: prop.moneda } : undefined,
   address: { '@type': 'PostalAddress', addressLocality: prop.ubicacion_municipio, addressRegion: prop.ubicacion_departamento, addressCountry: 'CO' },
 };
+
+// Place schema with GeoCoordinates for "near me" searches
+const placeJsonLd = (prop.ubicacion_latitud && prop.ubicacion_longitud) ? {
+  '@context': 'https://schema.org',
+  '@type': 'Place',
+  name: `${prop.titulo} — ${prop.ubicacion_municipio || 'Tolima'}`,
+  description: prop.seo_descripcion || `Propiedad rural en ${prop.ubicacion_municipio}, ${prop.ubicacion_departamento || 'Tolima'}`,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: prop.ubicacion_direccion || undefined,
+    addressLocality: prop.ubicacion_municipio,
+    addressRegion: prop.ubicacion_departamento || 'Tolima',
+    addressCountry: 'CO',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: prop.ubicacion_latitud,
+    longitude: prop.ubicacion_longitud,
+  },
+  ...(prop.area_hectareas && { maximumAttendeeCapacity: undefined }),
+  containedInPlace: { '@type': 'AdministrativeArea', name: prop.ubicacion_municipio || 'Ibagué' },
+} : null;
 ---
 
 <BrandLayout brand="tierras" title={`${prop.seo_titulo || prop.titulo} · Iwagé Tierras`} description={prop.seo_descripcion || prop.descripcion?.slice(0, 160) || `Propiedad rural en ${prop.ubicacion_municipio}, Tolima. Verificada con Protocolo VAP.`}>
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  {placeJsonLd && <script type="application/ld+json" set:html={JSON.stringify(placeJsonLd)} />}
 
   <!-- Breadcrumb -->
   <nav class="bg-white border-b border-gray-100 py-3">

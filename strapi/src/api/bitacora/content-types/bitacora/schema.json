@@ -43,7 +43,8 @@
         "naturaleza",
         "meliponas",
         "cafe",
-        "gestion"
+        "gestion",
+        "granja"
       ],
       "required": true,
       "default": "tierras"

@@ -20,11 +20,13 @@ const BRAND_LABELS: Record<string, string> = {
   iwage_naturaleza: 'Naturaleza',
   iwage_gestion: 'Gestión',
   iwage_tierras: 'Tierras',
+  iwage_granja: 'Granja',
   meliponas: 'Meliponas',
   cafe: 'Café',
   naturaleza: 'Naturaleza',
   gestion: 'Gestión',
   tierras: 'Tierras',
+  granja: 'Granja',
 };
 
 interface OrdenReservaOut {

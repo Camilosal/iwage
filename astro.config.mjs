@@ -2,7 +2,8 @@ import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
-import sitemap from '@astrojs/sitemap';
+// Sitemap: generado dinámicamente en src/pages/sitemap.xml.ts (incluye
+// contenido de Strapi); @astrojs/sitemap solo cubría rutas prerenderizadas.
 
 // Carga .env en process.env para desarrollo local (en Docker, docker-compose provee las variables).
 // No sobreescribe variables ya definidas en el entorno.
@@ -15,7 +16,6 @@ export default defineConfig({
     mode: 'standalone',
   }),
   integrations: [
-    sitemap(),
     react(),
   ],
   image: {

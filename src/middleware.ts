@@ -43,6 +43,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const response = await next();
 
+  // SEO endpoints (robots/sitemap) definen sus propios headers de cache
+  if (path === '/robots.txt' || path === '/sitemap.xml' || path === '/sitemap-index.xml') {
+    return response;
+  }
+
   // Never cache API mutations or admin
   if (path.startsWith('/api/') || path.startsWith('/admin')) {
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');

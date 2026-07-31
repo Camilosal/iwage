@@ -1,0 +1,168 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import ProductCard from '@/components/ProductCard.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { getProductos, agruparPorFamilia, CATEGORIAS_GRANJA } from '@/lib/tienda';
+import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
+
+const productos = await getProductos({ canal: 'online', marca: 'granja' });
+const catalogo = await getCatalogo();
+
+// Una card por familia: las variaciones (presentaciones/tamaños) se eligen en la ficha
+const agrupados = agruparPorFamilia(productos);
+
+// Pills solo para categorías con productos
+const categoriaLabel = new Map(CATEGORIAS_GRANJA.map((c) => [c.id, c.label]));
+const pills = CATEGORIAS_GRANJA.filter((c) => agrupados.some((g) => g.producto.categoria === c.id));
+---
+
+<BrandLayout
+  title="Tienda de la Granja · Iwagé Granja Autosustentable"
+  description="Productos frescos de la granja autosustentable Iwagé: huevos de gallina feliz, hortalizas de temporada, plántulas nativas, compost y visitas guiadas. Corredor Ambalá, Ibagué."
+>
+  <!-- Hero -->
+  <section class="bg-surface pt-12 pb-8">
+    <div class="max-w-6xl mx-auto px-6">
+      <SectionHeader
+        label="Tienda"
+        title="Productos de la granja"
+        subtitle="Cosecha de temporada, huevos, plántulas y abonos del sistema autosustentable. Todo lo que sale de la granja se documenta en la bitácora."
+      />
+    </div>
+  </section>
+
+  <!-- Shipping info -->
+  <div class="max-w-6xl mx-auto px-6 mb-8">
+    <div class="bg-accent-muted rounded-xl px-5 py-3 flex items-center gap-3">
+      <Icon name="sprout" class="w-5 h-5 text-accent shrink-0" />
+      <p class="text-sm text-text-secondary">
+        Entrega en Ibagué · Cosecha bajo pedido · Producción agroecológica del corredor Ambalá
+      </p>
+    </div>
+  </div>
+
+  <!-- Products -->
+  <Section class="!pt-0">
+    {agrupados.length === 0 ? (
+      <div class="text-center py-16">
+        <Icon name="sprout" class="w-12 h-12 text-text-muted mx-auto mb-4" />
+        <p class="text-text-secondary mb-2">La tienda de la granja está en preparación.</p>
+        <p class="text-sm text-text-muted">
+          Mientras tanto, visita la <a href="/meliponas/tienda" class="text-brand underline">tienda del meliponario</a> o
+          escríbenos por <a href="/granja/contacto" class="text-brand underline">contacto</a>.
+        </p>
+      </div>
+    ) : (
+      <>
+        <!-- Filtro por categoría (pills) -->
+        <div class="flex flex-wrap gap-2 mb-8" id="filtro-categorias">
+          <button
+            type="button"
+            class="filtro-pill"
+            data-categoria="todos"
+            aria-pressed="true"
+          >
+            Todos
+          </button>
+          {pills.map((c) => (
+            <button
+              type="button"
+              class="filtro-pill"
+              data-categoria={c.id}
+              aria-pressed="false"
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="grid-productos">
+          {agrupados.map((g, i) => {
+            const p = g.producto;
+            const rec = resolveRecurso(catalogo, p.slug, p.nombre);
+            return (
+            <div class="producto-item h-full" data-categoria={p.categoria}>
+              <ScrollReveal delay={i * 60} class="h-full">
+                <ProductCard
+                  name={g.nombre}
+                  description={p.descripcion_corta ?? p.descripcion ?? ''}
+                  price={g.precioDesde}
+                  presentation={g.numVariaciones > 1 ? g.etiquetas.join(' · ') : p.presentacion ?? undefined}
+                  image={p.imagen ?? undefined}
+                  destacado={p.destacado}
+                  slug={p.slug}
+                  precioComparativo={g.numVariaciones > 1 ? undefined : p.precio_comparativo}
+                  envioGratis={p.envio_gratis}
+                  stockDisponible={p.stock_disponible}
+                  recursoSlug={rec?.slug ?? `granja-${p.slug}`}
+                  tipo={rec?.tipo ?? 'producto'}
+                  tipoDisponibilidad={rec?.tipo_disponibilidad ?? 'inmediato'}
+                  requierePago={rec?.requiere_pago ?? true}
+                  origen={rec?.origen ?? 'iwage_granja'}
+                  brand="granja"
+                  categoriaLabel={categoriaLabel.get(p.categoria)}
+                  variaciones={g.numVariaciones}
+                  ejeVariacion={g.eje}
+                  precioDesde={g.numVariaciones > 1}
+                  basePath="/granja/tienda"
+                />
+              </ScrollReveal>
+            </div>
+            );
+          })}
+        </div>
+      </>
+    )}
+  </Section>
+</BrandLayout>
+
+<style>
+  .filtro-pill {
+    padding: 0.5rem 1.125rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    background: var(--color-surface-raised);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .filtro-pill:hover {
+    border-color: var(--color-brand);
+    color: var(--color-brand);
+  }
+  .filtro-pill[aria-pressed='true'] {
+    background: var(--color-brand);
+    border-color: var(--color-brand);
+    color: #fff;
+  }
+  .producto-item.oculto {
+    display: none;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var filtro = document.getElementById('filtro-categorias');
+    var items = document.querySelectorAll('#grid-productos .producto-item');
+    if (!filtro || items.length === 0) return;
+
+    filtro.addEventListener('click', function (e) {
+      var btn = e.target.closest('.filtro-pill');
+      if (!btn) return;
+      var cat = btn.getAttribute('data-categoria');
+
+      filtro.querySelectorAll('.filtro-pill').forEach(function (p) {
+        p.setAttribute('aria-pressed', String(p === btn));
+      });
+      items.forEach(function (item) {
+        var visible = cat === 'todos' || item.getAttribute('data-categoria') === cat;
+        item.classList.toggle('oculto', !visible);
+      });
+    });
+  })();
+</script>

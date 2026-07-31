@@ -35,6 +35,7 @@ export const gestion: BrandConfig = {
       label: 'Recursos',
       href: '/gestion/bitacora',
       children: [
+        { label: 'Nosotros', href: '/gestion/nosotros' },
         { label: 'Bitácora', href: '/gestion/bitacora' },
         { label: 'Ayuda', href: '/gestion/ayuda' },
         { label: 'Legal y Políticas', href: '/legal/' },

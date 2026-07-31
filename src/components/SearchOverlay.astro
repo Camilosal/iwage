@@ -19,7 +19,7 @@ function lucideSvg(name: string, className: string): string {
 const BRAND_SVG: Record<string, string> = {
   meliponas: lucideSvg('hexagon', 'w-3.5 h-3.5 inline'), cafe: lucideSvg('coffee', 'w-3.5 h-3.5 inline'),
   tierras: lucideSvg('mountain', 'w-3.5 h-3.5 inline'), naturaleza: lucideSvg('leaf', 'w-3.5 h-3.5 inline'),
-  gestion: lucideSvg('building-2', 'w-3.5 h-3.5 inline'), general: lucideSvg('sprout', 'w-3.5 h-3.5 inline'),
+  gestion: lucideSvg('building-2', 'w-3.5 h-3.5 inline'), granja: lucideSvg('sprout', 'w-3.5 h-3.5 inline'), general: lucideSvg('sprout', 'w-3.5 h-3.5 inline'),
 };
 const TYPE_SVG: Record<string, string> = {
   propiedad: lucideSvg('home', 'w-5 h-5 shrink-0 mt-0.5 text-brand'), propiedad_gestion: lucideSvg('key-round', 'w-5 h-5 shrink-0 mt-0.5 text-brand'),
@@ -70,6 +70,7 @@ const TYPE_SVG: Record<string, string> = {
         <button data-brand-filter="tierras" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="mountain" class="w-3.5 h-3.5 inline" /> Tierras</button>
         <button data-brand-filter="naturaleza" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="leaf" class="w-3.5 h-3.5 inline" /> Naturaleza</button>
         <button data-brand-filter="gestion" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="building-2" class="w-3.5 h-3.5 inline" /> Gestión</button>
+        <button data-brand-filter="granja" class="search-filter-btn shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"><Icon name="sprout" class="w-3.5 h-3.5 inline" /> Granja</button>
       </div>
 
       <!-- Results area -->
@@ -199,7 +200,7 @@ const TYPE_SVG: Record<string, string> = {
     const ICON_SVGS = JSON.parse(document.getElementById('search-icon-svgs')?.textContent || '{"brand":{},"type":{}}') as { brand: Record<string, string>; type: Record<string, string> };
 
     const BRAND_NAMES: Record<string, string> = {
-      meliponas: 'Meliponas', cafe: 'Café', tierras: 'Tierras', naturaleza: 'Naturaleza', gestion: 'Gestión', general: 'General',
+      meliponas: 'Meliponas', cafe: 'Café', tierras: 'Tierras', naturaleza: 'Naturaleza', gestion: 'Gestión', granja: 'Granja', general: 'General',
     };
 
     // ── Open / Close ─────────────────────────────────────────

@@ -5,7 +5,7 @@ import Footer from '@/components/Footer.astro';
 import ChatWidget from '@/components/ChatWidget.astro';
 import SearchOverlay from '@/components/SearchOverlay.astro';
 import UnifiedCart from '@/components/cart/UnifiedCart';
-import { GOOGLE, FACEBOOK, ANALYTICS_ENABLED } from '@/config/analytics';
+import { GOOGLE, FACEBOOK, SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
 
 interface Props {
   title: string;
@@ -22,7 +22,24 @@ const { title, description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={`https://iwage.co${Astro.url.pathname}`} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={`https://iwage.co${Astro.url.pathname}`} />
+    <meta property="og:site_name" content="Iwagé" />
+    <meta property="og:image" content="https://iwage.co/images/hero-meliponas.webp" />
+    <meta property="og:locale" content="es_CO" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://iwage.co/images/hero-meliponas.webp" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -126,21 +143,23 @@ const { title, description } = Astro.props;
 
 
     <!-- Swetrix Analytics (self-hosted) -->
-    <script src="https://swetrix.org/swetrix.js" defer></script>
-    <script is:inline>
-      document.addEventListener('DOMContentLoaded', function() {
-        swetrix.init('4RwWYkPcU082', {
-          apiURL: 'https://analitica.camilosaldarriaga.com/backend/v1/log',
-        })
-        swetrix.trackViews()
-      })
-    </script>
-    <noscript>
-      <img
-        src="https://analitica.camilosaldarriaga.com/backend/log/noscript?pid=4RwWYkPcU082"
-        alt=""
-        referrerpolicy="no-referrer-when-downgrade"
-      />
-    </noscript>
+    {ANALYTICS_ENABLED.swetrix && (
+      <>
+        <script src={SWETRIX.scriptSrc} defer></script>
+        <script is:inline define:vars={{ projectId: SWETRIX.projectId, apiURL: SWETRIX.apiURL }}>
+          document.addEventListener('DOMContentLoaded', function() {
+            swetrix.init(projectId, { apiURL: apiURL })
+            swetrix.trackViews()
+          })
+        </script>
+        <noscript>
+          <img
+            src={SWETRIX.noscriptURL}
+            alt=""
+            referrerpolicy="no-referrer-when-downgrade"
+          />
+        </noscript>
+      </>
+    )}
   </body>
 </html>

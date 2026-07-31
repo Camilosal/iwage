@@ -6,9 +6,21 @@ import Icon from '@/components/shared/Icon.astro';
 const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "clipboard"}, {"id": "renta", "label": "Renta Corta", "icon": "home"}, {"id": "operacion", "label": "Operación", "icon": "settings"}, {"id": "finanzas", "label": "Finanzas", "icon": "bar-chart-2"}, {"id": "alianzas", "label": "Alianzas", "icon": "handshake"}];
 
 const FAQS = [{"pregunta": "¿Qué incluye la gestión integral de Iwagé?", "respuesta": "Administración completa: marketing y publicación en plataformas (Airbnb, Booking), atención al huésped, limpieza y mantenimiento, gestión de precios dinámicos, reportes financieros mensuales y soporte 24/7.", "categoria": "operacion"}, {"pregunta": "¿Cuánto cuesta el property management?", "respuesta": "Cobramos entre 20-25% de los ingresos generados, dependiendo del tipo de propiedad y servicios requeridos. Sin ingresos, sin cobro. No hay costos fijos mensuales.", "categoria": "operacion"}, {"pregunta": "¿En qué plataformas publican mi propiedad?", "respuesta": "Airbnb, Booking.com, Vrbo y nuestro propio canal directo en iwage.co. Optimizamos títulos, fotos y precios para cada plataforma. El canal directo tiene 0% comisión de plataforma.", "categoria": "renta"}, {"pregunta": "¿Cómo manejan los precios?", "respuesta": "Usamos pricing dinámico basado en demanda, temporada, eventos locales y competencia. Ajustamos semanalmente para maximizar ocupación y tarifa promedio sin degradar la percepción de valor.", "categoria": "renta"}, {"pregunta": "¿Qué tipo de propiedades gestionan?", "respuesta": "Fincas productivas, casas campestres, segundas residencias, glampings y propiedades con potencial turístico en el Tolima. Evaluamos cada caso para determinar el modelo operativo óptimo.", "categoria": "renta"}, {"pregunta": "¿Cómo recibo mis ingresos?", "respuesta": "Transferencia bancaria mensual con reporte detallado: ingresos brutos, ocupación, tarifa promedio, deducciones (comisión, limpieza, mantenimiento) y neto a pagar. Acceso a dashboard en tiempo real.", "categoria": "finanzas"}, {"pregunta": "¿Qué rentabilidad puedo esperar?", "respuesta": "Depende de la propiedad, ubicación y temporada. En promedio, propiedades bien ubicadas en el Tolima generan 8-14% de rentabilidad anual sobre el valor del inmueble. Hacemos un análisis personalizado antes de firmar.", "categoria": "finanzas"}, {"pregunta": "¿Cómo funciona el modelo de alianzas?", "respuesta": "Para propietarios que no quieren vender pero sí monetizar: aportamos gestión, marketing y operación; el propietario aporta el inmueble. Repartimos ingresos según acuerdo (típicamente 70/30 propietario/gestor).", "categoria": "alianzas"}, {"pregunta": "¿Puedo usar mi propiedad cuando quiera?", "respuesta": "Sí. Bloqueamos las fechas que necesites sin costo. Solo pedimos 7 días de anticipación para reorganizar reservas existentes. Tu propiedad sigue siendo tuya.", "categoria": "alianzas"}];
+
+// FAQPage schema for rich snippets
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map(f => ({
+    '@type': 'Question',
+    name: f.pregunta,
+    acceptedAnswer: { '@type': 'Answer', text: f.respuesta },
+  })),
+};
 ---
 
 <BrandLayout brand="gestion" title="Centro de Ayuda · Iwagé Gestión" description="Preguntas frecuentes y soporte de Iwagé Gestión. Encuentra respuestas rápidas.">
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
   <!-- Hero -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-4xl mx-auto px-6 text-center">

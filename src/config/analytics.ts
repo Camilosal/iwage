@@ -72,9 +72,22 @@ export const SOCIAL = {
   twitterCardType: 'summary_large_image',
 } as const;
 
+// ─── Swetrix (self-hosted) ─────────────────────────────────────────────
+export const SWETRIX = {
+  /** Project ID */
+  projectId: '4RwWYkPcU082',
+  /** Self-hosted API endpoint */
+  apiURL: 'https://analitica.camilosaldarriaga.com/backend/v1/log',
+  /** Script source */
+  scriptSrc: 'https://swetrix.org/swetrix.js',
+  /** Noscript fallback pixel */
+  noscriptURL: 'https://analitica.camilosaldarriaga.com/backend/log/noscript?pid=4RwWYkPcU082',
+} as const;
+
 // ─── Flags de activación ───────────────────────────────────────────────
 // Controlar qué scripts se inyectan en producción
 export const ANALYTICS_ENABLED = {
   googleTag: import.meta.env.PROD,
   facebookPixel: import.meta.env.PROD,
+  swetrix: import.meta.env.PROD,
 } as const;

@@ -1,54 +1,147 @@
 # Iwagé — Ecosistema de Desarrollo Rural
 
 > Iwagé es un ecosistema de desarrollo rural en el corredor Ambalá, Ibagué, Tolima, Colombia.
-> Cinco líneas de acción conectadas por un mismo territorio: meliponicultura, café de origen,
-> inmobiliaria rural, turismo regenerativo y property management.
+> Seis líneas de acción conectadas por un mismo territorio: meliponicultura, café de origen,
+> inmobiliaria rural, turismo regenerativo, property management y granja autosustentable.
+
+## Fundador
+
+Manuel Camilo Saldarriaga Acosta es el creador y líder del Ecosistema Iwagé.
+Iwagé es la materialización del Eje 3 — El Propósito y el Hobby de su filosofía personal
+de los Tres Ejes, documentada en camilosaldarriaga.com.
+
+- Nombre completo: Manuel Camilo Saldarriaga Acosta
+- Rol: Fundador de Iwagé Ecosistema
+- Sitio personal: https://camilosaldarriaga.com
+- LinkedIn: https://www.linkedin.com/in/camilosaldarriaga
+- Ubicación: Ibagué, Tolima, Colombia
+- Filosofía: Los Tres Ejes (Eje 1: Ingresos, Eje 2: La Familia, Eje 3: El Propósito y el Hobby)
 
 ## Estructura del sitio
 
-- `/` — Hub del ecosistema (overview de las 5 marcas)
-- `/meliponas/` — Meliponario & Biotecnología Nativa (miel de Angelita, cajas INPA/AF, polinización)
-- `/cafe/` — Café de Origen (café especial del Tolima, trazabilidad, perfiles de taza)
-- `/tierras/` — Inmobiliaria Rural (propiedades, fincas, lotes, proyectos de tierra)
-- `/naturaleza/` — Turismo Regenerativo (experiencias, anfitriones, paquetes, escalafón)
-- `/gestion/` — Property Management (renta corta, finca productiva, segunda residencia)
-- `/blog/` — Bitácora unificada (guías, territorio, técnica)
+- `/` — Hub del ecosistema (overview de las 6 marcas)
+- `/meliponas/` — Meliponario & Biotecnología Nativa
+- `/cafe/` — Café de Origen
+- `/tierras/` — Inmobiliaria Rural
+- `/naturaleza/` — Turismo Regenerativo
+- `/gestion/` — Property Management
+- `/granja/` — Granja Autosustentable
+- `/meliponas/bitacora` — Publicaciones del Meliponario
+- `/cafe/bitacora` — Publicaciones de Café
+- `/tierras/bitacora` — Publicaciones de Tierras
+- `/naturaleza/bitacora` — Publicaciones de Naturaleza
+- `/gestion/bitacora` — Publicaciones de Gestión
+- `/granja/bitacora` — Publicaciones de la Granja (bitácora del sistema)
+- `/meliponas/tienda` — Tienda online (miel, cajas, kits)
+- `/meliponas/polinizacion` — Servicio de polinización gestionada
+- `/meliponas/proyectos` — Diseño e instalación de meliponarios
+- `/tierras/propiedades` — Listado de propiedades rurales
+- `/naturaleza/experiencias` — Experiencias de turismo regenerativo
+- `/naturaleza/anfitriones` — Guías y guardianes del territorio
+- `/gestion/propiedades` — Propiedades gestionadas
+- `/granja/sistema` — Mapa del sistema autosustentable (subsistemas)
+- `/granja/tienda` — Tienda de la granja (cosecha, huevos, plántulas, compost)
+- `/granja/visitas` — Visitas guiadas a la granja con reserva online
+- `/legal/` — Políticas legales y términos
 
 ## Marcas y verticales
 
 ### Iwagé Meliponario (`/meliponas/`)
-Miel de Tetragonisca angustula (abeja Angelita) del corredor Ambalá.
-Cajas tecnificadas INPA y AF en nogal cafetero. Polinización gestionada.
+Conservación y cría de abejas nativas sin aguijón (Tetragonisca angustula, abeja Angelita)
+en el corredor Ambalá, Ibagué, Tolima. Producción de miel de Angelita con trazabilidad
+por lote y colmena. Cajas tecnificadas INPA y AF en nogal cafetero. Servicio de
+polinización gestionada para cultivos (aguacate, café, mora, maracuyá, cítricos).
+Diseño e instalación de meliponarios para colegios (PRAE), fincas, centros turísticos.
 Asistencia técnica en meliponicultura.
+
+Productos principales:
+- Miel de abeja Angelita (T. angustula) — 100% pura, con trazabilidad QR
+- Cajas INPA y AF en nogal cafetero
+- Kits de iniciación en meliponicultura
+- Servicio de polinización para cultivos
 
 ### Iwagé Café (`/cafe/`)
 Café especial de origen Tolima. Trazabilidad por finca y lote.
-Perfiles de taza, métodos de beneficio, venta directa.
+Perfiles de taza documentados, métodos de beneficio controlados.
+Venta directa al consumidor y B2B. Menú de preparaciones.
+Proveedores seleccionados por calidad de taza y prácticas sostenibles.
 
 ### Iwagé Tierras (`/tierras/`)
 Inmobiliaria rural especializada en el Tolima. Fincas productivas,
 lotes campestres, proyectos de desarrollo territorial.
+Perfiles de comprador (productivo, patrimonial, turístico, especulativo, campestre).
+Sistema VAP (Verificación, Análisis, Proyección) para evaluación de propiedades.
+Calculadoras de inversión y simuladores financieros.
 
 ### Iwagé Naturaleza (`/naturaleza/`)
-Turismo regenerativo con anfitriones locales. Experiencias sensoriales,
-sistema de escalafón (5 niveles), dificultad progresiva (7 niveles).
-Paquetes y programas de inmersión.
+Turismo regenerativo con anfitriones locales en el corredor Ambalá.
+Experiencias sensoriales conectadas con el territorio: avistamiento de aves,
+recorridos de miel, inmersiones cafeteras, caminatas por senderos ancestrales.
+Sistema de escalafón (5 niveles), dificultad progresiva (7 niveles).
+Paquetes y programas de inmersión territorial.
 
 ### Iwagé Gestión (`/gestion/`)
 Property management rural: administración de segunda residencia,
-operación de renta corta (Airbnb), gestión de finca productiva,
-desarrollo de operación turística, modelo de alianzas.
+operación de renta corta (Airbnb/Booking), gestión de finca productiva,
+desarrollo de operación turística para propietarios.
+Modelo de alianzas con rentabilidad justa para el propietario.
+Plataforma propia para reservas, reportes y trazabilidad en tiempo real.
+
+### Iwagé Granja (`/granja/`)
+Granja autosustentable peri-urbana en el corredor Ambalá, Ibagué — sistema en
+construcción documentado en abierto. Subsistemas integrados: agroecosistema
+productivo, bio-refinería doméstica (compostaje monitoreado), gestión hídrica
+de ciclo cerrado con captación de lluvia, energía solar off-grid, gemelo
+digital con Home Assistant y sensores ESP32, climatización pasiva y meliponario
+como subsistema vivo. La bitácora publica costos reales, marco regulatorio,
+modelo financiero y guías para replicar el modelo.
+
+Productos y servicios:
+- Canasta de hortalizas de temporada (agroecológicas)
+- Huevos de gallina feliz (pastoreo rotativo)
+- Plántulas nativas y flora melífera
+- Compost madurado con trazabilidad de lote
+- Visita guiada a la granja (reserva online, grupos de máx. 10)
+
+## Territorio
+
+- Ubicación principal: Corredor Ambalá, Ibagué, Tolima, Colombia
+- Región: Piedemonte de la Cordillera Central
+- Contexto: Territorio ancestral Pijao
+- Altitud: 1.200-1.800 msnm (zona cafetera y de bosque subtropical)
+- Biodiversidad: Más de 12 km de corredor biológico activo
 
 ## Datos de contacto
 
-- Ubicación: Corredor Ambalá, Ibagué, Tolima, Colombia
-- WhatsApp: +57 300 123 4567
+- Email: hola@iwage.co
+- WhatsApp: +57 302 669 3366
 - Instagram: @iwage.meliponario
+- Sitio web: https://iwage.co
+- Sitio del fundador: https://camilosaldarriaga.com
+
+## Cifras clave
+
+- 120+ colmenas activas de abejas nativas
+- 50+ propiedades en portafolio (Tierras + Gestión)
+- 6 líneas de acción integradas
+- 12 km de corredor biológico
+- 76+ publicaciones en bitácora (guías técnicas, territorio, sostenibilidad)
 
 ## Notas técnicas
 
-- Sitio construido con Astro 7 (SSR) + Tailwind CSS v4
+- Sitio construido con Astro (SSR) + Tailwind CSS v4
 - CMS: Strapi v5 (headless)
 - Cache: Redis + stale-while-revalidate
 - Cada marca tiene su propia paleta de colores y navegación
-- JSON-LD: Organization con subOrganization por marca
+- JSON-LD: Organization + Person (founder) + Article (bitácora)
+- Structured data: Schema.org Organization, Person, Article, WebSite
+- Open Graph y Twitter Cards en todas las páginas
+- Sitemap dinámico en /sitemap.xml (188+ URLs)
+- robots.txt con referencia a sitemap
+
+## Relación con camilosaldarriaga.com
+
+El sitio personal de Manuel Camilo (camilosaldarriaga.com) documenta su filosofía
+de los Tres Ejes. Iwagé es la implementación práctica del Eje 3 (El Propósito y el Hobby):
+un ecosistema donde la productividad se alinea con la conservación del territorio,
+la identidad cultural Pijao y la generación de economía local sin extractivismo.

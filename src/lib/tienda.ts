@@ -54,7 +54,9 @@ export interface Producto {
   precio: number;
   precio_comparativo: number | null;
   presentacion: string | null;
-  categoria: 'miel' | 'caja' | 'kit' | 'asistencia' | 'accesorio' | 'propoleo' | 'ceras';
+  categoria: 'miel' | 'caja' | 'kit' | 'asistencia' | 'accesorio' | 'propoleo' | 'ceras' | 'cosecha' | 'huevos' | 'plantas' | 'abono' | 'experiencia';
+  /** Marca dueña del producto ('meliponas' por defecto; 'granja' para la tienda de la granja). */
+  marca?: 'meliponas' | 'granja';
   imagen: string | null;
   galeria: GaleriaItem[] | null;
   stock_disponible: boolean;
@@ -83,7 +85,7 @@ export interface Producto {
   meta_description: string | null;
 }
 
-export type CategoriaSlug = 'miel' | 'caja' | 'kit' | 'asistencia' | 'accesorio' | 'propoleo' | 'ceras';
+export type CategoriaSlug = 'miel' | 'caja' | 'kit' | 'asistencia' | 'accesorio' | 'propoleo' | 'ceras' | 'cosecha' | 'huevos' | 'plantas' | 'abono' | 'experiencia';
 
 export const CATEGORIAS: { id: CategoriaSlug; label: string }[] = [
   { id: 'miel', label: 'Miel' },
@@ -93,6 +95,16 @@ export const CATEGORIAS: { id: CategoriaSlug; label: string }[] = [
   { id: 'accesorio', label: 'Accesorios' },
   { id: 'propoleo', label: 'Propóleo' },
   { id: 'ceras', label: 'Ceras' },
+];
+
+/** Categorías propias de la tienda de la Granja Autosustentable. */
+export const CATEGORIAS_GRANJA: { id: CategoriaSlug; label: string }[] = [
+  { id: 'cosecha', label: 'Cosecha' },
+  { id: 'huevos', label: 'Huevos' },
+  { id: 'plantas', label: 'Plantas' },
+  { id: 'abono', label: 'Abonos' },
+  { id: 'miel', label: 'Miel' },
+  { id: 'experiencia', label: 'Experiencias' },
 ];
 
 // ── Fallback seed data (used when Strapi is down) ──────
@@ -128,6 +140,7 @@ function normalizeProducto(raw: any): Producto {
     precio_comparativo: raw.precio_comparativo ?? null,
     presentacion: raw.presentacion ?? null,
     categoria: raw.categoria,
+    marca: raw.marca ?? 'meliponas',
     imagen: raw.imagen ? strapiImage(raw.imagen) : null,
     galeria: Array.isArray(raw.galeria)
       ? raw.galeria.map((g: any) =>
@@ -161,10 +174,11 @@ function normalizeProducto(raw: any): Producto {
 
 // ── Public API ─────────────────────────────────────────
 
-/** Get all published products, optionally filtered by category and channel */
+/** Get all published products, optionally filtered by category, channel and brand */
 export async function getProductos(opts?: {
   categoria?: CategoriaSlug;
   canal?: 'online' | 'local';
+  marca?: 'meliponas' | 'granja';
 }): Promise<Producto[]> {
   try {
     const filters: Record<string, any> = {};
@@ -174,6 +188,12 @@ export async function getProductos(opts?: {
         { canal_venta: { $eq: opts.canal } },
         { canal_venta: { $eq: 'ambos' } },
       ];
+    }
+    if (opts?.marca === 'granja') {
+      filters.marca = { $eq: 'granja' };
+    } else if (opts?.marca === 'meliponas') {
+      // Productos históricos sin marca cuentan como meliponas
+      filters.$and = [{ $or: [{ marca: { $eq: 'meliponas' } }, { marca: { $null: true } }] }];
     }
 
     const res = await strapiFetch<Producto>('productos', {
@@ -193,6 +213,7 @@ export async function getProductos(opts?: {
     let items = FALLBACK_PRODUCTOS;
     if (opts?.categoria) items = items.filter((p) => p.categoria === opts.categoria);
     if (opts?.canal) items = items.filter((p) => p.canal_venta === opts.canal || p.canal_venta === 'ambos');
+    if (opts?.marca) items = items.filter((p) => (p.marca ?? 'meliponas') === opts.marca);
     return items;
   }
 }
@@ -227,8 +248,8 @@ export async function getProductoSlugs(): Promise<string[]> {
 }
 
 /** Group products by category for the tienda page */
-export async function getProductosPorCategoria(canal?: 'online' | 'local'): Promise<Record<string, Producto[]>> {
-  const productos = await getProductos({ canal });
+export async function getProductosPorCategoria(canal?: 'online' | 'local', marca?: 'meliponas' | 'granja'): Promise<Record<string, Producto[]>> {
+  const productos = await getProductos({ canal, marca });
   const grouped: Record<string, Producto[]> = {};
   for (const p of productos) {
     if (!grouped[p.categoria]) grouped[p.categoria] = [];

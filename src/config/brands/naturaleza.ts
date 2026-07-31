@@ -42,6 +42,7 @@ export const naturaleza: BrandConfig = {
       label: 'Recursos',
       href: '/naturaleza/bitacora',
       children: [
+        { label: 'Nosotros', href: '/naturaleza/nosotros' },
         { label: 'Bitácora', href: '/naturaleza/bitacora' },
         { label: 'Ayuda', href: '/naturaleza/ayuda' },
         { label: 'Legal y Políticas', href: '/legal/' },

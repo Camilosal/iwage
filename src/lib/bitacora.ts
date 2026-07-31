@@ -20,7 +20,7 @@ export interface EntradaBitacora {
   publishedAt: string;
 }
 
-export type Marca = 'tierras' | 'naturaleza' | 'meliponas' | 'cafe' | 'gestion';
+export type Marca = 'tierras' | 'naturaleza' | 'meliponas' | 'cafe' | 'gestion' | 'granja';
 
 /** Fetch all published articles for a specific brand */
 export async function getBitacoraByMarca(

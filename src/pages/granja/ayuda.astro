@@ -1,0 +1,164 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
+
+const CATEGORIES = [
+  { id: 'todos', label: 'Todos', icon: 'clipboard-list' },
+  { id: 'visitas', label: 'Visitas', icon: 'map-pin' },
+  { id: 'productos', label: 'Productos', icon: 'sprout' },
+  { id: 'sistema', label: 'El sistema', icon: 'cpu' },
+  { id: 'replicar', label: 'Replicar', icon: 'book-open' },
+];
+
+const FAQS = [
+  { pregunta: '¿Cómo reservo una visita guiada a la granja?', respuesta: 'Desde la página de Visitas puedes ver la disponibilidad en línea, elegir fecha y pagar en línea o en sitio. También puedes reservar por WhatsApp. Los grupos son de máximo 10 personas y el recorrido dura unas 2 horas.', categoria: 'visitas' },
+  { pregunta: '¿Dónde queda la granja y cómo llego?', respuesta: 'Estamos en el corredor Ambalá, zona peri-urbana de Ibagué, Tolima. Al confirmar tu reserva te enviamos la ubicación exacta y las indicaciones de acceso por WhatsApp.', categoria: 'visitas' },
+  { pregunta: '¿Las visitas sirven para colegios o grupos académicos?', respuesta: 'Sí. Adaptamos el recorrido a proyectos escolares (PRAE), universidades y grupos técnicos interesados en agua, energía solar, compostaje o gemelos digitales. Escríbenos por contacto para coordinar grupos grandes.', categoria: 'visitas' },
+  { pregunta: '¿Qué productos vende la granja?', respuesta: 'Cosecha de temporada (hortalizas), huevos de gallina feliz, plántulas nativas, compost madurado y experiencias como la visita guiada. Todo se produce dentro del sistema agroecológico y se documenta en la bitácora.', categoria: 'productos' },
+  { pregunta: '¿Hacen entregas a domicilio?', respuesta: 'Entregamos en Ibagué bajo pedido. La cosecha se corta el mismo día de la entrega para garantizar frescura. Para otros municipios, consulta disponibilidad por WhatsApp antes de comprar.', categoria: 'productos' },
+  { pregunta: '¿Los productos son certificados orgánicos?', respuesta: 'Producimos con prácticas agroecológicas sin agroquímicos de síntesis, y cada afirmación es rastreable en nuestra bitácora y sensores. No manejamos aún sello de certificación orgánica formal; preferimos trazabilidad abierta a etiquetas.', categoria: 'productos' },
+  { pregunta: '¿Qué es el "gemelo digital" de la granja?', respuesta: 'Es la réplica digital del sistema físico: sensores ESP32 y Home Assistant miden agua, energía, clima y compost en tiempo real. Esos datos alimentan las decisiones de manejo y los artículos de la bitácora.', categoria: 'sistema' },
+  { pregunta: '¿La granja está 100% desconectada de las redes?', respuesta: 'La energía es 100% solar off-grid y el agua opera en ciclo cerrado con captación de lluvia. El sistema está en construcción por fases: la bitácora documenta qué está operando y qué viene en camino.', categoria: 'sistema' },
+  { pregunta: '¿Puedo replicar este modelo en mi predio?', respuesta: 'Ese es el propósito de documentar todo en abierto. Empieza por el artículo ancla del sistema en la bitácora, que enlaza las guías de cada subsistema con costos y aprendizajes reales. Si necesitas acompañamiento, escríbenos.', categoria: 'replicar' },
+  { pregunta: '¿Publican los costos reales del proyecto?', respuesta: 'Sí. La bitácora incluye el modelo financiero de la granja peri-urbana, la estrategia de financiación por fases y análisis de viabilidad técnica y económica con números reales, no estimaciones de catálogo.', categoria: 'replicar' },
+];
+
+// FAQPage schema for rich snippets
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map(f => ({
+    '@type': 'Question',
+    name: f.pregunta,
+    acceptedAnswer: { '@type': 'Answer', text: f.respuesta },
+  })),
+};
+---
+
+<BrandLayout brand="granja" title="Centro de Ayuda · Iwagé Granja Autosustentable" description="Preguntas frecuentes sobre la granja autosustentable Iwagé: visitas guiadas, productos de la granja, el sistema y cómo replicar el modelo.">
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+  <!-- Hero -->
+  <section class="bg-surface pt-12 pb-8">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <Icon name="sprout" class="w-10 h-10 block mx-auto mb-4 text-brand" />
+      <h1 class="text-3xl md:text-4xl font-serif text-text-primary mb-3">Centro de Ayuda</h1>
+      <p class="text-text-secondary max-w-lg mx-auto mb-8">Dudas sobre visitas, productos de la granja, el sistema autosustentable y cómo replicarlo.</p>
+      <!-- Search -->
+      <div class="max-w-md mx-auto relative">
+        <input
+          type="search"
+          id="faq-search"
+          placeholder="Buscar pregunta..."
+          class="w-full rounded-full border border-border bg-surface-raised px-5 py-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
+        />
+        <Icon name="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Category filter -->
+  <div class="max-w-4xl mx-auto px-6 mb-8">
+    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2 justify-center flex-wrap">
+      {CATEGORIES.map((cat, i) => (
+        <button
+          type="button"
+          class={`cat-pill rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-all ${i === 0 ? 'bg-brand text-white' : 'bg-surface-sunken text-text-secondary hover:bg-brand-muted hover:text-brand'}`}
+          data-cat={cat.id}
+        >
+          <Icon name={cat.icon} class="w-4 h-4 inline align-middle mr-1.5" />{cat.label}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- FAQ List -->
+  <section class="max-w-3xl mx-auto px-6 pb-20">
+    <div id="faq-list" class="space-y-3">
+      {FAQS.map(faq => (
+        <details class="faq-item group bg-surface-raised rounded-xl border border-border overflow-hidden" data-cat={faq.categoria}>
+          <summary class="flex items-center justify-between gap-4 px-6 py-4 cursor-pointer select-none hover:bg-brand-muted/30 transition-colors">
+            <span class="text-sm font-medium text-text-primary">{faq.pregunta}</span>
+            <Icon name="chevron-down" class="w-4 h-4 text-text-muted group-open:rotate-180 transition-transform shrink-0" />
+          </summary>
+          <div class="px-6 pb-5">
+            <p class="text-sm text-text-secondary leading-relaxed">{faq.respuesta}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+
+    <!-- Empty state -->
+    <div id="faq-empty" class="hidden text-center py-12">
+      <Icon name="help-circle" class="w-8 h-8 block mx-auto mb-3 text-text-muted" />
+      <p class="text-text-secondary">No encontramos preguntas que coincidan.</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-surface-sunken py-12">
+    <div class="max-w-xl mx-auto px-6 text-center">
+      <h2 class="text-xl font-bold text-text-primary mb-3">¿No encontraste tu respuesta?</h2>
+      <p class="text-text-secondary mb-6">Consulta la guía de uso de la plataforma o escríbenos directamente y te ayudamos en menos de 2 horas.</p>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <a href="/ayuda/" class="inline-flex items-center gap-2 border border-brand text-brand rounded-full px-6 py-3 font-medium hover:bg-brand-muted/30 transition-all">
+          <Icon name="book-open" class="w-4 h-4" />
+          Guía de uso
+        </a>
+        <a href="/granja/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+          Contactar soporte →
+        </a>
+      </div>
+    </div>
+  </section>
+</BrandLayout>
+
+<script>
+  const searchInput = document.getElementById('faq-search') as HTMLInputElement;
+  const pills = document.querySelectorAll('.cat-pill');
+  const items = document.querySelectorAll('.faq-item');
+  const emptyState = document.getElementById('faq-empty') as HTMLElement;
+  let activeCat = 'todos';
+
+  function filterFaqs() {
+    const query = searchInput.value.toLowerCase().trim();
+    let visible = 0;
+    items.forEach((item) => {
+      const el = item as HTMLElement;
+      const cat = el.getAttribute('data-cat') || '';
+      const text = el.textContent?.toLowerCase() || '';
+      const matchCat = activeCat === 'todos' || cat === activeCat;
+      const matchSearch = !query || text.includes(query);
+      if (matchCat && matchSearch) {
+        el.style.display = '';
+        visible++;
+      } else {
+        el.style.display = 'none';
+      }
+    });
+    emptyState.classList.toggle('hidden', visible > 0);
+  }
+
+  searchInput?.addEventListener('input', filterFaqs);
+
+  pills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      activeCat = pill.getAttribute('data-cat') || 'todos';
+      pills.forEach((p) => {
+        p.classList.remove('bg-brand', 'text-white');
+        p.classList.add('bg-surface-sunken', 'text-text-secondary');
+      });
+      pill.classList.add('bg-brand', 'text-white');
+      pill.classList.remove('bg-surface-sunken', 'text-text-secondary');
+      filterFaqs();
+    });
+  });
+
+  // URL param support
+  const params = new URLSearchParams(window.location.search);
+  const catParam = params.get('category');
+  if (catParam) {
+    const target = document.querySelector(`.cat-pill[data-cat="${catParam}"]`) as HTMLElement;
+    target?.click();
+  }
+</script>

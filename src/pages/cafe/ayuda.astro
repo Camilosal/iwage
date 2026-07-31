@@ -6,9 +6,21 @@ import Icon from '@/components/shared/Icon.astro';
 const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "clipboard-list"}, {"id": "menu", "label": "Menú", "icon": "coffee"}, {"id": "proveedores", "label": "Proveedores", "icon": "wheat"}, {"id": "visitas", "label": "Visitas", "icon": "map-pin"}];
 
 const FAQS = [{"pregunta": "¿Dónde queda Café Iwagé?", "respuesta": "Estamos en el corredor Ambalá, zona rural de Ibagué, Tolima. Coordenadas exactas y cómo llegar están en /cafe/contacto. Recomendamos reservar para grupos mayores a 6 personas.", "categoria": "visitas"}, {"pregunta": "¿Necesito reserva para visitar?", "respuesta": "Para grupos de 1-6 personas no es necesaria reserva. Para grupos mayores, eventos privados o catas guiadas, recomendamos reservar con 48h de anticipación por WhatsApp.", "categoria": "visitas"}, {"pregunta": "¿Tienen opciones vegetarianas/veganas?", "respuesta": "Sí. Nuestro menú incluye opciones basadas en ingredientes del territorio: frutas de la finca, panes artesanales, quesos locales y preparaciones de temporada. Cada ítem indica sus alérgenos.", "categoria": "menu"}, {"pregunta": "¿De dónde vienen los ingredientes?", "respuesta": "El 90% de nuestros ingredientes provienen de proveedores en un radio de 4km. Cada producto del menú nombra a su proveedor y finca de origen. Es nuestro compromiso con la economía circular local.", "categoria": "menu"}, {"pregunta": "¿Venden café para llevar?", "respuesta": "Sí. Tenemos café tostado en grano o molido de productores aliados del corredor Ambalá. Disponible en presentaciones de 250g y 500g. También hacemos envíos nacionales.", "categoria": "menu"}, {"pregunta": "¿Cómo me convierto en proveedor de Café Iwagé?", "respuesta": "Buscamos productores locales con prácticas sostenibles en un radio de 10km. Escríbenos con tu producto, volumen disponible y ubicación. Evaluamos calidad, trazabilidad y alineación con nuestra filosofía.", "categoria": "proveedores"}, {"pregunta": "¿Qué significa 'proveedor a menos de 4km'?", "respuesta": "Es nuestro estándar de proximidad: cada ingrediente principal viaja máximo 4km desde su origen hasta la cocina. Esto garantiza frescura, reduce huella de carbono y fortalece la economía del territorio.", "categoria": "proveedores"}];
+
+// FAQPage schema for rich snippets
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map(f => ({
+    '@type': 'Question',
+    name: f.pregunta,
+    acceptedAnswer: { '@type': 'Answer', text: f.respuesta },
+  })),
+};
 ---
 
 <BrandLayout brand="cafe" title="Centro de Ayuda · Café Iwagé" description="Preguntas frecuentes y soporte de Café Iwagé. Encuentra respuestas rápidas.">
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
   <!-- Hero -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-4xl mx-auto px-6 text-center">

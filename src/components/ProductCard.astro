@@ -26,13 +26,15 @@ interface Props {
   ejeVariacion?: string | null;
   /** Muestra el precio como "Desde $X" (familias con varios precios). */
   precioDesde?: boolean;
+  /** Ruta base de la tienda para el enlace de la card (default: /meliponas/tienda). */
+  basePath?: string;
 }
-const { name, description, price, presentation, image, destacado = false, slug, precioComparativo, envioGratis = false, stockDisponible = true, recursoSlug, tipo = 'producto', tipoDisponibilidad = 'inmediato', requierePago = true, origen = 'iwage_meliponas', brand = 'meliponas', categoriaLabel, variaciones = 1, ejeVariacion = null, precioDesde = false } = Astro.props;
+const { name, description, price, presentation, image, destacado = false, slug, precioComparativo, envioGratis = false, stockDisponible = true, recursoSlug, tipo = 'producto', tipoDisponibilidad = 'inmediato', requierePago = true, origen = 'iwage_meliponas', brand = 'meliponas', categoriaLabel, variaciones = 1, ejeVariacion = null, precioDesde = false, basePath = '/meliponas/tienda' } = Astro.props;
 const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 const formattedPrice = fmt.format(price);
 const descuento = precioComparativo ? Math.round((1 - price / precioComparativo) * 100) : null;
 const tieneVariaciones = variaciones > 1;
-const href = slug ? `/meliponas/tienda/${slug}` : undefined;
+const href = slug ? `${basePath}/${slug}` : undefined;
 
 /** Plural en minúsculas del eje de variación: Presentación → presentaciones, Tamaño → tamaños. */
 function pluralEje(eje: string | null): string {

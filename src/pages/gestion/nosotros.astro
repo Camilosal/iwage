@@ -1,0 +1,195 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
+
+const valores = [
+  { icon: 'shield', title: 'Confianza', desc: 'Tu propiedad es tu patrimonio. La tratamos como propia.' },
+  { icon: 'bar-chart-2', title: 'Rentabilidad justa', desc: 'Modelos de alianza que benefician al propietario, no solo al operador.' },
+  { icon: 'map-pin', title: 'Territorio', desc: 'Gestionamos donde vivimos. Cada propiedad es parte de nuestra comunidad.' },
+  { icon: 'settings', title: 'Tecnología', desc: 'Plataforma propia para reservas, reportes y trazabilidad en tiempo real.' },
+];
+
+const timeline = [
+  { year: '2024', event: 'Primeras propiedades gestionadas bajo modelo de alianza. Renta corta piloto.' },
+  { year: '2025', event: 'Modelos diversificados: segunda residencia, finca productiva y operación turística.' },
+  { year: '2026', event: 'Plataforma propia de gestión. Red de propietarios activos en el corredor Ambalá.' },
+];
+---
+
+<BrandLayout brand="gestion" title="Nosotros · Iwagé Gestión" description="Conoce la historia de Iwagé Gestión: administración de propiedades rurales con modelo de alianza, transparencia y tecnología en el Tolima.">
+  <!-- Hero -->
+  <section class="bg-[#0c1520] text-white py-20 md:py-28 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-[#52B788]/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
+    <div class="max-w-5xl mx-auto px-6 relative z-10">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="w-12 h-[1px] bg-[#52B788]"></span>
+        <span class="text-[#52B788] text-xs font-bold uppercase tracking-[0.4em]">Quiénes Somos</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-serif leading-tight mb-6">
+        Tu propiedad,<br/><span class="italic text-[#52B788]">nuestro compromiso</span>
+      </h1>
+      <p class="text-xl text-white/60 font-light max-w-2xl leading-relaxed">
+        Gestionamos propiedades rurales con un modelo de alianza, no de intermediación.
+        Tu patrimonio crece mientras el territorio se beneficia.
+      </p>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <Section>
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <SectionHeader label="Historia" title="Por qué existimos" />
+        <div class="space-y-5 text-text-secondary leading-relaxed">
+          <p>
+            Iwagé Gestión nació de una frustración: propietarios rurales con fincas hermosas que no
+            saben cómo rentabilizarlas sin perder el alma del lugar, y operadores turísticos que
+            exprimen la propiedad sin devolver valor al territorio.
+          </p>
+          <p>
+            Creamos un modelo de alianza donde el propietario participa de las decisiones, recibe
+            reportes transparentes y puede desvincularse cuando quiera. No somos administradores:
+            somos socios estratégicos.
+          </p>
+          <p>
+            Desde el corredor Ambalá operamos renta corta, segunda residencia, fincas productivas y
+            experiencias turísticas con la misma filosofía: que la propiedad sea un activo vivo que
+            beneficie a su dueño y a la comunidad.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Conexión personal -->
+  <Section bg="sunken">
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <div class="space-y-5 text-text-secondary leading-relaxed">
+          <p>
+            Mi conexión con la gestión de propiedades rurales comenzó al ver cómo las fincas de mi
+            propia familia se deterioraban por falta de un modelo sostenible. Hoy, este proyecto es mi
+            forma de demostrar que una propiedad rural puede ser rentable sin extractivismo y sin perder
+            su identidad.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Ecosistema Iwagé -->
+  <Section>
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <div class="bg-surface-raised rounded-2xl border border-border p-8">
+          <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Ecosistema Iwagé</p>
+          <p class="text-text-secondary leading-relaxed">
+            Este proyecto es parte del <strong class="text-text-primary">Ecosistema Iwagé</strong>, una iniciativa
+            liderada por Manuel Camilo Saldarriaga Acosta como materialización del Eje 3 — El Propósito
+            y el Hobby de su filosofía de los Tres Ejes. Conoce más sobre esta visión en
+            <a href="https://camilosaldarriaga.com" target="_blank" rel="noopener" class="text-brand underline hover:text-brand-light transition-colors">camilosaldarriaga.com</a>.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Values -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader label="Valores" title="Lo que nos define" align="center" />
+    </ScrollReveal>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      {valores.map((v, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
+              <Icon name={v.icon} class="w-6 h-6" />
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{v.title}</h3>
+            <p class="text-sm text-text-secondary">{v.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Timeline -->
+  <Section>
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <SectionHeader label="Trayectoria" title="Nuestro camino" />
+        <div class="relative">
+          <div class="absolute left-2 top-0 bottom-0 w-px bg-border"></div>
+          <div class="space-y-8">
+            {timeline.map((t) => (
+              <div class="relative flex gap-6">
+                <div class="relative z-10 w-4 h-4 rounded-full bg-brand border-4 border-surface shrink-0 mt-1"></div>
+                <div>
+                  <p class="font-mono text-sm text-accent font-medium">{t.year}</p>
+                  <p class="text-sm text-text-secondary">{t.event}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="sunken" class="text-center">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-2xl font-bold text-text-primary mb-4 font-display">¿Tienes una propiedad rural?</h2>
+      <p class="text-text-secondary mb-8">Hablemos de cómo hacerla rentable sin perder su esencia.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/gestion/propietarios" class="px-8 py-3 bg-brand text-white rounded-full font-medium text-sm hover:bg-brand-light transition-colors">
+          Modelos de alianza
+        </a>
+        <a href="/gestion/contacto" class="px-8 py-3 border-2 border-brand text-brand rounded-full font-medium text-sm hover:bg-brand hover:text-white transition-all">
+          Contactar
+        </a>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Enlaces cruzados del ecosistema -->
+  <Section class="!py-12">
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6 text-center">Explora el ecosistema Iwagé</p>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <a href="/meliponas/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🐝</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Meliponario</span>
+            <span class="text-xs text-text-muted">Abejas nativas</span>
+          </a>
+          <a href="/cafe/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">☕</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Café</span>
+            <span class="text-xs text-text-muted">Café de especialidad</span>
+          </a>
+          <a href="/tierras/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🌱</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Tierras</span>
+            <span class="text-xs text-text-muted">Inmobiliaria rural</span>
+          </a>
+          <a href="/naturaleza/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🌿</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Naturaleza</span>
+            <span class="text-xs text-text-muted">Turismo regenerativo</span>
+          </a>
+          <a href="/granja/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🚜</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Granja</span>
+            <span class="text-xs text-text-muted">Sistema autosustentable</span>
+          </a>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+</BrandLayout>

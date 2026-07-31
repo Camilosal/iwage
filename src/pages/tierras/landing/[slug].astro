@@ -31,7 +31,20 @@ export async function getStaticPaths() {
   }
 }
 
-const { page } = Astro.props;
+// En modo SSR getStaticPaths no aplica: se resuelve la landing por slug en runtime.
+let { page } = Astro.props;
+if (!page) {
+  try {
+    const res = await strapiFetch<SEOLanding>('seo-landings', {
+      filters: { slug: { $eq: Astro.params.slug }, publicado: { $eq: true } },
+      pagination: { pageSize: 1 },
+      ttl: 3600,
+    });
+    page = res.data?.[0];
+  } catch {
+    page = undefined;
+  }
+}
 if (!page) return Astro.redirect('/tierras/propiedades', 302);
 ---
 

@@ -49,6 +49,38 @@ const config = await getCafeConfig();
     </div>
   </Section>
 
+  <!-- Conexión personal -->
+  <Section>
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <div class="prose prose-lg text-text-secondary leading-relaxed space-y-5">
+          <p>
+            El café es la excusa perfecta para entender el territorio. Cada taza cuenta la historia de
+            una finca, de una familia y de un suelo que cuidamos con obsesión. No es un negocio, es un
+            legado.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Ecosistema Iwagé -->
+  <Section bg="sunken">
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <div class="bg-surface-raised rounded-2xl border border-border p-8">
+          <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Ecosistema Iwagé</p>
+          <p class="text-text-secondary leading-relaxed">
+            Este proyecto es parte del <strong class="text-text-primary">Ecosistema Iwagé</strong>, una iniciativa
+            liderada por Manuel Camilo Saldarriaga Acosta como materialización del Eje 3 — El Propósito
+            y el Hobby de su filosofía de los Tres Ejes. Conoce más sobre esta visión en
+            <a href="https://camilosaldarriaga.com" target="_blank" rel="noopener" class="text-brand underline hover:text-brand-light transition-colors">camilosaldarriaga.com</a>.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
   <!-- Values -->
   <Section bg="sunken">
     <div class="max-w-4xl mx-auto">
@@ -95,6 +127,42 @@ const config = await getCafeConfig();
       <a href="/cafe/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
         Escríbenos
       </a>
+    </div>
+  </Section>
+
+  <!-- Enlaces cruzados del ecosistema -->
+  <Section class="!py-12">
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6 text-center">Explora el ecosistema Iwagé</p>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <a href="/meliponas/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🐝</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Meliponario</span>
+            <span class="text-xs text-text-muted">Abejas nativas</span>
+          </a>
+          <a href="/tierras/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🌱</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Tierras</span>
+            <span class="text-xs text-text-muted">Inmobiliaria rural</span>
+          </a>
+          <a href="/naturaleza/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🌿</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Naturaleza</span>
+            <span class="text-xs text-text-muted">Turismo regenerativo</span>
+          </a>
+          <a href="/gestion/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🏡</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Gestión</span>
+            <span class="text-xs text-text-muted">Gestión de propiedades</span>
+          </a>
+          <a href="/granja/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🚜</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Granja</span>
+            <span class="text-xs text-text-muted">Sistema autosustentable</span>
+          </a>
+        </div>
+      </ScrollReveal>
     </div>
   </Section>
 </BrandLayout>

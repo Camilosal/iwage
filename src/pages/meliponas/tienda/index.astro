@@ -9,7 +9,7 @@ import { SEO } from '@/config/site';
 import { getProductos, agruparPorFamilia, CATEGORIAS } from '@/lib/tienda';
 import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
 
-const productos = await getProductos({ canal: 'online' });
+const productos = await getProductos({ canal: 'online', marca: 'meliponas' });
 const catalogo = await getCatalogo();
 
 // Una card por familia: las variaciones (presentaciones/tamaños) se eligen en la ficha

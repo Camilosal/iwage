@@ -1,0 +1,195 @@
+---
+export const prerender = true;
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
+
+const valores = [
+  { icon: 'leaf', title: 'Regeneración', desc: 'Cada experiencia deja el territorio mejor de lo que lo encontró.' },
+  { icon: 'users', title: 'Comunidad', desc: 'Los anfitriones son los verdaderos guardianes del territorio.' },
+  { icon: 'compass', title: 'Autenticidad', desc: 'Nada escenificado. Lo que vives es lo que el territorio vive cada día.' },
+  { icon: 'sprout', title: 'Impacto medible', desc: 'Cada experiencia genera métricas reales de biodiversidad y bienestar local.' },
+];
+
+const timeline = [
+  { year: '2023', event: 'Primeras experiencias piloto con familias del corredor Ambalá.' },
+  { year: '2024', event: 'Certificación de primeros anfitriones. Modelo de turismo regenerativo.' },
+  { year: '2025', event: 'Escalafón de anfitriones, programas multi-día y alianzas con operadores conscientes.' },
+  { year: '2026', event: 'Plataforma unificada, clasificación de experiencias y red de impacto territorial.' },
+];
+---
+
+<BrandLayout brand="naturaleza" title="Nosotros · Iwagé Naturaleza" description="Conoce la historia de Iwagé Naturaleza: turismo regenerativo, anfitriones locales y experiencias que transforman el territorio del Tolima.">
+  <!-- Hero -->
+  <section class="bg-[#0e1a08] text-white py-20 md:py-28 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-[#d4920a]/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
+    <div class="max-w-5xl mx-auto px-6 relative z-10">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="w-12 h-[1px] bg-[#d4920a]"></span>
+        <span class="text-[#d4920a] text-xs font-bold uppercase tracking-[0.4em]">Quiénes Somos</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-serif leading-tight mb-6">
+        Turismo que <span class="italic text-[#d4920a]">regenera</span>
+      </h1>
+      <p class="text-xl text-white/60 font-light max-w-2xl leading-relaxed">
+        No somos una agencia de viajes. Somos una red de anfitriones locales que comparten su
+        territorio, su sabiduría y su vida cotidiana con quienes quieren vivirla — no consumirla.
+      </p>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <Section>
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <SectionHeader label="Historia" title="De dónde venimos" />
+        <div class="space-y-5 text-text-secondary leading-relaxed">
+          <p>
+            Iwagé Naturaleza nació cuando comprendimos que el turismo convencional extrae del territorio
+            más de lo que le devuelve. Los paisajes se consumen, las comunidades se desplazan y la
+            biodiversidad retrocede.
+          </p>
+          <p>
+            Decidimos invertir la ecuación: cada experiencia que ofrecemos deja el territorio en mejor
+            estado. Los anfitriones son familias rurales que conocen cada sendero, cada ave y cada planta
+            medicinal. No contratamos guías: acompañamos guardianes del territorio.
+          </p>
+          <p>
+            El corredor Ambalá, en el corazón del Tolima, es nuestro laboratorio vivo. Aquí confluyen
+            aves migratorias, bosques de niebla, cafetales ancestrales y la sabiduría del pueblo Pijao.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Conexión personal -->
+  <Section bg="sunken">
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <div class="space-y-5 text-text-secondary leading-relaxed">
+          <p>
+            Mi conexión con el turismo regenerativo comenzó al entender que los visitantes no buscan un
+            hotel: buscan una historia. Las familias del corredor Ambalá tienen historias que ningún
+            resort puede ofrecer. Mi labor es ser el puente entre esos dos mundos, sin que ninguno de
+            los dos se desnaturalice.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Ecosistema Iwagé -->
+  <Section>
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <div class="bg-surface-raised rounded-2xl border border-border p-8">
+          <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Ecosistema Iwagé</p>
+          <p class="text-text-secondary leading-relaxed">
+            Este proyecto es parte del <strong class="text-text-primary">Ecosistema Iwagé</strong>, una iniciativa
+            liderada por Manuel Camilo Saldarriaga Acosta como materialización del Eje 3 — El Propósito
+            y el Hobby de su filosofía de los Tres Ejes. Conoce más sobre esta visión en
+            <a href="https://camilosaldarriaga.com" target="_blank" rel="noopener" class="text-brand underline hover:text-brand-light transition-colors">camilosaldarriaga.com</a>.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- Values -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader label="Valores" title="Lo que nos define" align="center" />
+    </ScrollReveal>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      {valores.map((v, i) => (
+        <ScrollReveal delay={i * 80}>
+          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center h-full">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
+              <Icon name={v.icon} class="w-6 h-6" />
+            </div>
+            <h3 class="text-base font-semibold text-text-primary mb-2">{v.title}</h3>
+            <p class="text-sm text-text-secondary">{v.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Timeline -->
+  <Section>
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <SectionHeader label="Trayectoria" title="Nuestro camino" />
+        <div class="relative">
+          <div class="absolute left-2 top-0 bottom-0 w-px bg-border"></div>
+          <div class="space-y-8">
+            {timeline.map((t) => (
+              <div class="relative flex gap-6">
+                <div class="relative z-10 w-4 h-4 rounded-full bg-brand border-4 border-surface shrink-0 mt-1"></div>
+                <div>
+                  <p class="font-mono text-sm text-accent font-medium">{t.year}</p>
+                  <p class="text-sm text-text-secondary">{t.event}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="sunken" class="text-center">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-2xl font-bold text-text-primary mb-4 font-display">¿Quieres ser parte?</h2>
+      <p class="text-text-secondary mb-8">Como anfitrión, viajero consciente o aliado — hay espacio para ti.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/naturaleza/experiencias" class="px-8 py-3 bg-brand text-white rounded-full font-medium text-sm hover:bg-brand-light transition-colors">
+          Explorar experiencias
+        </a>
+        <a href="/naturaleza/se-anfitrion" class="px-8 py-3 border-2 border-brand text-brand rounded-full font-medium text-sm hover:bg-brand hover:text-white transition-all">
+          Sé anfitrión
+        </a>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Enlaces cruzados del ecosistema -->
+  <Section class="!py-12">
+    <div class="max-w-3xl mx-auto">
+      <ScrollReveal>
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6 text-center">Explora el ecosistema Iwagé</p>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <a href="/meliponas/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🐝</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Meliponario</span>
+            <span class="text-xs text-text-muted">Abejas nativas</span>
+          </a>
+          <a href="/cafe/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">☕</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Café</span>
+            <span class="text-xs text-text-muted">Café de especialidad</span>
+          </a>
+          <a href="/tierras/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🌱</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Tierras</span>
+            <span class="text-xs text-text-muted">Inmobiliaria rural</span>
+          </a>
+          <a href="/gestion/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🏡</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Gestión</span>
+            <span class="text-xs text-text-muted">Gestión de propiedades</span>
+          </a>
+          <a href="/granja/nosotros" class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-accent hover:bg-surface-raised transition-all text-center">
+            <span class="text-2xl">🚜</span>
+            <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Granja</span>
+            <span class="text-xs text-text-muted">Sistema autosustentable</span>
+          </a>
+        </div>
+      </ScrollReveal>
+    </div>
+  </Section>
+</BrandLayout>

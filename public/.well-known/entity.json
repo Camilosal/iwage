@@ -7,7 +7,7 @@
       "name": "Iwagé",
       "alternateName": "Iwage",
       "url": "https://iwage.co",
-      "description": "Ecosistema de desarrollo rural en el corredor Ambalá, Ibagué, Tolima, Colombia. Cinco líneas de acción: meliponicultura, café de origen, inmobiliaria rural, turismo regenerativo y property management.",
+      "description": "Ecosistema de desarrollo rural en el corredor Ambalá, Ibagué, Tolima, Colombia. Seis líneas de acción: meliponicultura, café de origen, inmobiliaria rural, turismo regenerativo, property management y granja autosustentable.",
       "foundingLocation": {
         "@type": "Place",
         "name": "Corredor Ambalá, Ibagué, Tolima, Colombia"
@@ -31,7 +31,10 @@
         "Property management",
         "Agricultura regenerativa",
         "Polinización gestionada",
-        "Biodiversidad nativa"
+        "Biodiversidad nativa",
+        "Granja autosustentable",
+        "Agroecología",
+        "Energía solar off-grid"
       ],
       "subOrganization": [
         {
@@ -68,6 +71,13 @@
           "name": "Iwagé Gestión",
           "url": "https://iwage.co/gestion/",
           "description": "Property management rural: segunda residencia, renta corta, finca productiva, operación turística, alianzas."
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://iwage.co/granja/#organization",
+          "name": "Iwagé Granja",
+          "url": "https://iwage.co/granja/",
+          "description": "Granja autosustentable peri-urbana en construcción: agroecosistema, bio-refinería, gestión hídrica de ciclo cerrado, energía solar off-grid y gemelo digital, documentados en abierto."
         }
       ]
     },
@@ -78,6 +88,31 @@
       "name": "Iwagé",
       "publisher": { "@id": "https://iwage.co/#organization" },
       "inLanguage": "es-CO"
+    },
+    {
+      "@type": "Person",
+      "@id": "https://iwage.co/#founder",
+      "name": "Manuel Camilo Saldarriaga Acosta",
+      "url": "https://camilosaldarriaga.com",
+      "sameAs": [
+        "https://camilosaldarriaga.com",
+        "https://www.linkedin.com/in/camilosaldarriaga",
+        "https://iwage.co"
+      ],
+      "jobTitle": "Fundador",
+      "worksFor": { "@id": "https://iwage.co/#organization" },
+      "knowsAbout": [
+        "Meliponicultura",
+        "Tetragonisca angustula",
+        "Desarrollo rural",
+        "Turismo regenerativo",
+        "Café de especialidad",
+        "Inmobiliaria rural",
+        "Property management",
+        "Corredor Ambalá",
+        "Tolima Colombia"
+      ],
+      "description": "Emprendedor rural y fundador del Ecosistema Iwagé. Lidera cinco líneas de acción en el corredor Ambalá, Ibagué, como materialización del Eje 3 — El Propósito y el Hobby de su filosofía de los Tres Ejes."
     }
   ]
 }

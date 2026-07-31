@@ -7,12 +7,26 @@ import SearchOverlay from '@/components/SearchOverlay.astro';
 import UnifiedCart from '@/components/cart/UnifiedCart';
 import { getBrandFromPath, defaultBrand } from '@/config/brands';
 import type { BrandConfig } from '@/config/brands/types';
-import { GOOGLE, FACEBOOK, ANALYTICS_ENABLED } from '@/config/analytics';
+import { GOOGLE, FACEBOOK, SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
+
+interface ArticleMeta {
+  title: string;
+  description: string;
+  datePublished: string;
+  dateModified?: string;
+  author?: string;
+  image?: string;
+  section?: string;
+  wordCount?: number;
+}
 
 interface Props {
   title?: string;
   description?: string;
   brand?: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  article?: ArticleMeta;
 }
 
 const props = Astro.props;
@@ -26,19 +40,41 @@ const brandConfig: BrandConfig = brandSlug
 const title = props.title ?? brandConfig.seo.defaultTitle;
 const description = props.description ?? brandConfig.seo.defaultDescription;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://iwage.co');
+const ogType = props.ogType ?? 'website';
+const ogImage = props.ogImage ?? `https://iwage.co/images/hero-${brandConfig.slug === 'meliponas' ? 'meliponas' : brandConfig.slug}.webp`;
 
-// Structured data: Organization with parentOrganization
-const jsonLd = {
+// Founder Person (reused across schemas)
+const founderPerson = {
+  "@type": "Person",
+  "@id": "https://iwage.co/#founder",
+  "name": "Manuel Camilo Saldarriaga Acosta",
+  "url": "https://camilosaldarriaga.com",
+  "sameAs": [
+    "https://camilosaldarriaga.com",
+    "https://www.linkedin.com/in/camilosaldarriaga",
+    "https://iwage.co"
+  ],
+  "jobTitle": "Fundador",
+  "worksFor": { "@id": "https://iwage.co/#organization" },
+  "knowsAbout": [
+    "Meliponicultura", "Desarrollo rural", "Turismo regenerativo",
+    "Café de especialidad", "Inmobiliaria rural", "Property management"
+  ]
+};
+
+// Structured data: Organization with founder + parentOrganization
+const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "@id": `https://iwage.co/${brandConfig.slug}/#organization`,
   "name": brandConfig.name,
   "url": `https://iwage.co/${brandConfig.slug}/`,
   "description": brandConfig.seo.defaultDescription,
+  "founder": { "@id": "https://iwage.co/#founder" },
   "parentOrganization": {
     "@id": "https://iwage.co/#organization",
     "@type": "Organization",
-    "name": "Iwagé",
+    "name": "Iwagé Ecosistema",
     "url": "https://iwage.co"
   },
   "address": {
@@ -48,6 +84,78 @@ const jsonLd = {
     "addressCountry": "CO"
   }
 };
+
+// ── BreadcrumbList (auto-generated from URL path) ──
+const BRAND_LABELS: Record<string, string> = {
+  meliponas: 'Meliponario', cafe: 'Café', tierras: 'Tierras',
+  naturaleza: 'Naturaleza', gestion: 'Gestión', granja: 'Granja',
+};
+const SECTION_LABELS: Record<string, string> = {
+  tienda: 'Tienda', nosotros: 'Nosotros', bitacora: 'Bitácora',
+  propiedades: 'Propiedades', experiencias: 'Experiencias',
+  anfitriones: 'Anfitriones', programas: 'Programas',
+  proyectos: 'Proyectos', polinizacion: 'Polinización',
+  trazabilidad: 'Trazabilidad', ayuda: 'Ayuda', contacto: 'Contacto',
+  landing: 'Landings', perfiles: 'Perfiles', herramientas: 'Herramientas',
+  'se-anfitrion': 'Sé Anfitrión', impacto: 'Impacto',
+  sistema: 'Sistema', visitas: 'Visitas',
+};
+
+function buildBreadcrumb(pathname: string): Array<{ name: string; url: string }> {
+  const segments = pathname.replace(/\/$/, '').split('/').filter(Boolean);
+  if (segments.length === 0) return [];
+  const crumbs: Array<{ name: string; url: string }> = [
+    { name: 'Inicio', url: 'https://iwage.co/' },
+  ];
+  let path = '';
+  for (let i = 0; i < segments.length; i++) {
+    path += `/${segments[i]}`;
+    const seg = segments[i];
+    const label = BRAND_LABELS[seg] || SECTION_LABELS[seg] || seg.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    crumbs.push({ name: label, url: `https://iwage.co${path}` });
+  }
+  return crumbs;
+}
+
+const breadcrumbItems = buildBreadcrumb(Astro.url.pathname);
+const breadcrumbJsonLd = breadcrumbItems.length > 1 ? {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": breadcrumbItems.map((item, idx) => ({
+    "@type": "ListItem",
+    "position": idx + 1,
+    "name": item.name,
+    "item": item.url,
+  })),
+} : null;
+
+// Combined JSON-LD graph (Organization + Person + Breadcrumb + optional Article)
+const jsonLdGraph: Record<string, any>[] = [orgJsonLd, { "@context": "https://schema.org", ...founderPerson }];
+if (breadcrumbJsonLd) jsonLdGraph.push(breadcrumbJsonLd);
+
+// Article structured data (for bitácora pages)
+if (props.article) {
+  const a = props.article;
+  jsonLdGraph.push({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": a.title,
+    "description": a.description,
+    "datePublished": a.datePublished,
+    ...(a.dateModified && { "dateModified": a.dateModified }),
+    "author": {
+      "@type": "Person",
+      "name": a.author || "Manuel Camilo Saldarriaga Acosta",
+      "url": "https://camilosaldarriaga.com"
+    },
+    "publisher": { "@id": `https://iwage.co/${brandConfig.slug}/#organization` },
+    ...(a.image && { "image": a.image }),
+    ...(a.section && { "articleSection": a.section }),
+    ...(a.wordCount && { "wordCount": a.wordCount }),
+    "mainEntityOfPage": canonicalURL.href,
+    "inLanguage": "es-CO"
+  });
+}
 
 ---
 
@@ -62,14 +170,32 @@ const jsonLd = {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL.href} />
     <meta property="og:site_name" content="Iwagé" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="es_CO" />
+    {props.article && (
+      <>
+        <meta property="article:published_time" content={props.article.datePublished} />
+        {props.article.dateModified && <meta property="article:modified_time" content={props.article.dateModified} />}
+        {props.article.section && <meta property="article:section" content={props.article.section} />}
+        <meta property="article:author" content="https://camilosaldarriaga.com" />
+      </>
+    )}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
     <!-- Structured Data -->
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {jsonLdGraph.map((item) => (
+      <script type="application/ld+json" set:html={JSON.stringify(item)} />
+    ))}
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -173,6 +299,26 @@ const jsonLd = {
         }, 1200);
       });
     </script>
+
+    <!-- Swetrix Analytics (self-hosted) -->
+    {ANALYTICS_ENABLED.swetrix && (
+      <>
+        <script src={SWETRIX.scriptSrc} defer></script>
+        <script is:inline define:vars={{ projectId: SWETRIX.projectId, apiURL: SWETRIX.apiURL }}>
+          document.addEventListener('DOMContentLoaded', function() {
+            swetrix.init(projectId, { apiURL: apiURL })
+            swetrix.trackViews()
+          })
+        </script>
+        <noscript>
+          <img
+            src={SWETRIX.noscriptURL}
+            alt=""
+            referrerpolicy="no-referrer-when-downgrade"
+          />
+        </noscript>
+      </>
+    )}
 
   </body>
 </html>

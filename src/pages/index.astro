@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
 import { brandList } from '@/config/brands';
+import { SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
 import SearchOverlay from '@/components/SearchOverlay.astro';
 import UnifiedCart from '@/components/cart/UnifiedCart';
 import Icon from '@/components/shared/Icon.astro';
@@ -19,9 +20,11 @@ const stats = [
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "Iwagé",
+  "@id": "https://iwage.co/#organization",
+  "name": "Iwagé Ecosistema",
   "description": "Ecosistema de desarrollo rural en el Tolima, Colombia",
   "url": "https://iwage.co",
+  "founder": { "@id": "https://iwage.co/#founder" },
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Ibagué",
@@ -34,6 +37,26 @@ const jsonLd = {
     "url": `https://iwage.co/${b.slug}/`,
     "description": b.seo.defaultDescription,
   })),
+};
+
+const founderJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": "https://iwage.co/#founder",
+  "name": "Manuel Camilo Saldarriaga Acosta",
+  "url": "https://camilosaldarriaga.com",
+  "sameAs": [
+    "https://camilosaldarriaga.com",
+    "https://www.linkedin.com/in/camilosaldarriaga",
+    "https://iwage.co"
+  ],
+  "jobTitle": "Fundador",
+  "worksFor": { "@id": "https://iwage.co/#organization" },
+  "knowsAbout": [
+    "Meliponicultura", "Desarrollo rural", "Turismo regenerativo",
+    "Café de especialidad", "Inmobiliaria rural", "Property management",
+    "Tetragonisca angustula", "Corredor Ambalá"
+  ]
 };
 ---
 
@@ -51,10 +74,18 @@ const jsonLd = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content="https://iwage.co/" />
     <meta property="og:site_name" content="Iwagé" />
+    <meta property="og:image" content="https://iwage.co/images/hero-ecosistema.webp" />
+    <meta property="og:locale" content="es_CO" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://iwage.co/images/hero-ecosistema.webp" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(founderJsonLd)} />
 
     <!-- Theme init (no flash) -->
     <script is:inline>
@@ -219,5 +250,25 @@ const jsonLd = {
     </script>
     <SearchOverlay />
     <UnifiedCart client:only="react" />
+
+    <!-- Swetrix Analytics (self-hosted) -->
+    {ANALYTICS_ENABLED.swetrix && (
+      <>
+        <script src={SWETRIX.scriptSrc} defer></script>
+        <script is:inline define:vars={{ projectId: SWETRIX.projectId, apiURL: SWETRIX.apiURL }}>
+          document.addEventListener('DOMContentLoaded', function() {
+            swetrix.init(projectId, { apiURL: apiURL })
+            swetrix.trackViews()
+          })
+        </script>
+        <noscript>
+          <img
+            src={SWETRIX.noscriptURL}
+            alt=""
+            referrerpolicy="no-referrer-when-downgrade"
+          />
+        </noscript>
+      </>
+    )}
   </body>
 </html>

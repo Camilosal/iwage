@@ -6,9 +6,21 @@ import Icon from '@/components/shared/Icon.astro';
 const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "clipboard-list"}, {"id": "productos", "label": "Productos", "icon": "hexagon"}, {"id": "tecnico", "label": "Técnico", "icon": "wrench"}, {"id": "polinizacion", "label": "Polinización", "icon": "flower-2"}, {"id": "pedidos", "label": "Pedidos", "icon": "package"}];
 
 const FAQS = [{"pregunta": "¿Qué es la miel de Angelita?", "respuesta": "Es la miel producida por Tetragonisca angustula, una abeja sin aguijón nativa. Tiene mayor humedad (22-25%), menor viscosidad y un perfil de sabor más complejo que la miel convencional, con notas cítricas y florales.", "categoria": "productos"}, {"pregunta": "¿Cómo conservo la miel de Angelita?", "respuesta": "Refrigeración constante (4-8°C) para preservar sus propiedades enzimáticas. A diferencia de la miel de Apis, la miel de Angelita puede fermentar a temperatura ambiente por su mayor contenido de humedad.", "categoria": "productos"}, {"pregunta": "¿Qué diferencia hay entre cajas INPA y AF?", "respuesta": "INPA: diseño modular con pisos separados, ideal para producción de miel, más fácil de cosechar. AF: diseño compacto de un solo cuerpo, ideal para observación y educación, más fácil de transportar.", "categoria": "tecnico"}, {"pregunta": "¿Cuántas colmenas necesito para empezar?", "respuesta": "Recomendamos iniciar con 3-5 colonias para aprender el manejo sin riesgo. Una colonia establecida produce entre 1-2 litros de miel al año en condiciones del piedemonte tolimense.", "categoria": "tecnico"}, {"pregunta": "¿Hacen asistencia técnica a domicilio?", "respuesta": "Sí. Ofrecemos visitas técnicas en Ibagué y municipios cercanos del corredor Ambalá. Para zonas más alejadas, coordinamos jornadas grupales. La primera visita de diagnóstico es gratuita.", "categoria": "tecnico"}, {"pregunta": "¿Qué es la polinización gestionada?", "respuesta": "Es el servicio de ubicar colmenas de abejas nativas en cultivos para mejorar rendimiento y calidad de frutos. A diferencia de Apis, las meliponas no dañan flores delicadas y son más eficientes en cultivos de invernadero.", "categoria": "polinizacion"}, {"pregunta": "¿Qué cultivos se benefician de polinización con meliponas?", "respuesta": "Tomate, pimentón, fresa, uchuva, café, aguacate y frutales en general. En invernadero, la mejora de rendimiento puede ser del 20-40% vs polinización manual.", "categoria": "polinizacion"}, {"pregunta": "¿Hacen envíos a todo Colombia?", "respuesta": "Sí. Envíos refrigerados a todo el país con transportadoras especializadas. El costo varía según destino. Pedidos superiores a $150.000 tienen envío gratis dentro del Tolima.", "categoria": "pedidos"}, {"pregunta": "¿Cuánto tarda un pedido?", "respuesta": "Preparamos tu pedido en 1-2 días hábiles. El envío toma 2-4 días adicionales dependiendo del destino. Recibirás número de rastreo por WhatsApp.", "categoria": "pedidos"}];
+
+// FAQPage schema for rich snippets
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map(f => ({
+    '@type': 'Question',
+    name: f.pregunta,
+    acceptedAnswer: { '@type': 'Answer', text: f.respuesta },
+  })),
+};
 ---
 
 <BrandLayout brand="meliponas" title="Centro de Ayuda · Iwagé Meliponario" description="Preguntas frecuentes y soporte de Iwagé Meliponario. Encuentra respuestas rápidas.">
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
   <!-- Hero -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-4xl mx-auto px-6 text-center">

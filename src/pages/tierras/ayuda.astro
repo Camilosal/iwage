@@ -6,9 +6,21 @@ import Icon from '@/components/shared/Icon.astro';
 const CATEGORIES = [{"id": "todos", "label": "Todos", "icon": "clipboard-list"}, {"id": "vap", "label": "Protocolo VAP", "icon": "shield"}, {"id": "compra", "label": "Compra", "icon": "home"}, {"id": "venta", "label": "Venta", "icon": "wallet"}, {"id": "legal", "label": "Legal", "icon": "scale"}];
 
 const FAQS = [{"pregunta": "¿Qué es el Protocolo VAP?", "respuesta": "El VAP (Verificación de Autenticidad Predial) es nuestro sistema propietario de auditoría que evalúa la seguridad jurídica, ambiental y productiva de cada predio. Consta de 5 fases: documentación, inspección física, análisis jurídico, evaluación ambiental y dictamen final.", "categoria": "vap"}, {"pregunta": "¿Qué significan los sellos Oro, Plata y Bronce?", "respuesta": "Oro: predio con 100% de cumplimiento en las 5 fases. Plata: cumplimiento entre 80-99% con observaciones menores. Bronce: cumplimiento entre 60-79% con condiciones específicas a resolver.", "categoria": "vap"}, {"pregunta": "¿Cuánto cuesta la verificación VAP?", "respuesta": "La verificación VAP no tiene costo para el comprador. El vendedor asume un costo que se descuenta de la comisión de venta. Si el predio no pasa, no se publica.", "categoria": "vap"}, {"pregunta": "¿Cuánto tarda el proceso VAP?", "respuesta": "El proceso completo toma entre 15 y 30 días hábiles dependiendo de la complejidad del predio y la disponibilidad de documentos.", "categoria": "vap"}, {"pregunta": "¿Cómo busco propiedades disponibles?", "respuesta": "Explora el catálogo en /tierras/propiedades con filtros por municipio, área, uso y rango de precio. Cada propiedad incluye ficha técnica completa, fotografías y resultado VAP.", "categoria": "compra"}, {"pregunta": "¿Puedo visitar un predio antes de comprar?", "respuesta": "Sí. Coordinamos visitas acompañadas con nuestro equipo territorial. La visita incluye recorrido por linderos, presentación del informe VAP y contexto del vecindario rural.", "categoria": "compra"}, {"pregunta": "¿Iwagé financia compras?", "respuesta": "No somos entidad financiera, pero asesoramos en estructuración de créditos rurales con aliados (Banco Agrario, Finagro) y facilitamos acuerdos de pago directo con vendedores cuando aplica.", "categoria": "compra"}, {"pregunta": "¿Cómo publico mi propiedad en Iwagé?", "respuesta": "Contáctanos por WhatsApp o el formulario de Vender. Nuestro equipo agenda una visita, inicia el proceso VAP y si el predio aprueba, se publica con fotografía profesional y narrativa personalizada.", "categoria": "venta"}, {"pregunta": "¿Cuánto cobra Iwagé por vender mi propiedad?", "respuesta": "La comisión estándar es del 3-5% sobre el valor de venta, significativamente menor al mercado tradicional (6-10%). Incluye: verificación VAP, fotografía profesional, marketing digital, acompañamiento notarial y cierre.", "categoria": "venta"}, {"pregunta": "¿Qué documentos necesito para vender?", "respuesta": "Certificado de tradición y libertad (vigencia < 30 días), escritura pública, paz y salvo predial, cédula del propietario, y si aplica: licencia ambiental, concepto de uso de suelo y RUT.", "categoria": "venta"}, {"pregunta": "¿Cómo sé si un predio tiene problemas jurídicos?", "respuesta": "El Protocolo VAP incluye un estudio de títulos completo: verificación de tradición, gravámenes, embargos, litigios y afectaciones. Publicamos el resultado con total transparencia.", "categoria": "legal"}, {"pregunta": "¿Qué es el acompañamiento notarial?", "respuesta": "Te acompañamos en todo el proceso de escrituración: revisión de minuta, coordinación con notaría, verificación de paz y salvos, y registro de la escritura en la Oficina de Instrumentos Públicos.", "categoria": "legal"}];
+
+// FAQPage schema for rich snippets
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map(f => ({
+    '@type': 'Question',
+    name: f.pregunta,
+    acceptedAnswer: { '@type': 'Answer', text: f.respuesta },
+  })),
+};
 ---
 
 <BrandLayout brand="tierras" title="Centro de Ayuda · Iwagé Tierras" description="Preguntas frecuentes y soporte de Iwagé Tierras. Encuentra respuestas rápidas.">
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
   <!-- Hero -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-4xl mx-auto px-6 text-center">

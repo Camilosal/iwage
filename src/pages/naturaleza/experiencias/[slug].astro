@@ -82,8 +82,15 @@ const jsonLd = {
   description: exp.resumen,
   image: heroImg,
   touristType: exp.categoria,
-  location: exp.ubicacion ? { '@type': 'Place', name: exp.ubicacion } : undefined,
-  offers: exp.precio_desde ? { '@type': 'Offer', price: exp.precio_desde, priceCurrency: 'COP' } : undefined,
+  location: exp.ubicacion ? {
+    '@type': 'Place',
+    name: exp.ubicacion,
+    ...(exp.ubicacion_latitud && exp.ubicacion_longitud && {
+      geo: { '@type': 'GeoCoordinates', latitude: exp.ubicacion_latitud, longitude: exp.ubicacion_longitud },
+      address: { '@type': 'PostalAddress', addressLocality: exp.ciudad_referencia || 'Ibagué', addressRegion: 'Tolima', addressCountry: 'CO' },
+    }),
+  } : undefined,
+  offers: exp.precio_desde ? { '@type': 'Offer', price: exp.precio_desde, priceCurrency: 'COP', availability: 'https://schema.org/InStock' } : undefined,
 };
 ---
 

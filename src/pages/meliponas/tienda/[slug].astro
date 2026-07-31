@@ -81,14 +81,22 @@ const productJsonLd: Record<string, any> = {
   name: producto.nombre,
   description: producto.descripcion_corta ?? producto.descripcion,
   sku: producto.sku,
+  url: `https://iwage.co/meliponas/tienda/${producto.slug}`,
+  ...(producto.imagen && { image: producto.imagen }),
   brand: { '@type': 'Brand', name: 'Iwagé Meliponario' },
+  ...(producto.categoria && { category: categoriaLabel }),
   offers: {
     '@type': 'Offer',
     price: producto.precio,
     priceCurrency: 'COP',
     availability: producto.stock_disponible ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     url: `https://iwage.co/meliponas/tienda/${producto.slug}`,
+    seller: { '@type': 'Organization', name: 'Iwagé Meliponario', url: 'https://iwage.co/meliponas/' },
+    ...(producto.envio_gratis && { shippingDetails: { '@type': 'OfferShippingDetails', shippingRate: { '@type': 'MonetaryAmount', value: 0, currency: 'COP' } } }),
+    ...(producto.tiempo_entrega && { deliveryLeadTime: { '@type': 'QuantitativeValue', value: producto.tiempo_entrega } }),
+    ...(producto.precio_comparativo && { priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0] }),
   },
+  ...(producto.peso_gramos && { weight: { '@type': 'QuantitativeValue', value: producto.peso_gramos, unitCode: 'GRM' } }),
 };
 if (faq.length > 0) {
   productJsonLd.mainEntity = {

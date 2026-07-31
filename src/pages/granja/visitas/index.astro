@@ -1,0 +1,133 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
+import BookingWidget from '@/components/reservas/BookingWidget';
+import { getBrand } from '@/config/brands';
+
+const brand = getBrand('granja')!;
+const waPhone = brand.whatsapp;
+const waReservar = `https://wa.me/${waPhone}?text=${encodeURIComponent('Hola, quiero reservar una visita guiada a la granja Iwagé')}`;
+
+const PRECIO_VISITA = 45000;
+const CUPO_MAXIMO = 10;
+
+const recorrido = [
+  { icon: 'droplets', title: 'Gestión hídrica', desc: 'Captación de lluvia y ciclo cerrado de agua en operación.' },
+  { icon: 'sun', title: 'Sistema solar off-grid', desc: 'Paneles, baterías y el tablero que alimenta toda la granja.' },
+  { icon: 'flask-conical', title: 'Bio-refinería', desc: 'Compostaje y ciclos de nutrientes: aquí nada es basura.' },
+  { icon: 'sprout', title: 'Agroecosistema', desc: 'Huerta, agroforestería y animales en producción integrada.' },
+  { icon: 'cpu', title: 'Gemelo digital', desc: 'Home Assistant y sensores ESP32 midiendo el sistema en vivo.' },
+  { icon: 'hexagon', title: 'Meliponario', desc: 'Abejas nativas sin aguijón y cata de miel de Angelita.' },
+];
+
+const incluye = [
+  'Recorrido guiado de ~2 horas por todos los subsistemas',
+  'Cata de miel de abejas nativas Angelita',
+  'Acceso al panel del gemelo digital en tiempo real',
+  'Refrigerio con productos de la granja',
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TouristAttraction',
+  name: 'Visita guiada · Granja Autosustentable Iwagé',
+  description: 'Recorrido guiado por la granja autosustentable Iwagé en el corredor Ambalá, Ibagué: gestión hídrica, solar off-grid, bio-refinería, agroecosistema, gemelo digital y meliponario.',
+  url: 'https://iwage.co/granja/visitas/',
+  address: { '@type': 'PostalAddress', addressLocality: 'Ibagué', addressRegion: 'Tolima', addressCountry: 'CO' },
+  isAccessibleForFree: false,
+};
+---
+
+<BrandLayout
+  brand="granja"
+  title="Visitas guiadas · Iwagé Granja Autosustentable"
+  description="Reserva una visita guiada a la granja autosustentable Iwagé en Ibagué: recorre el sistema hídrico, solar, la bio-refinería, el agroecosistema, el gemelo digital y el meliponario."
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <!-- Hero -->
+  <section class="bg-surface pt-12 pb-8">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Visitas</p>
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text-primary mb-4">
+        Conoce el sistema en persona
+      </h1>
+      <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+        Un recorrido guiado de ~2 horas por la granja autosustentable: verás cada subsistema funcionando, los datos en vivo del gemelo digital y probarás lo que produce el sistema.
+      </p>
+    </div>
+  </section>
+
+  <Section class="!pt-6">
+    <div class="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
+      <!-- Recorrido -->
+      <div>
+        <h2 class="text-xl font-bold text-text-primary mb-6">Qué verás en el recorrido</h2>
+        <div class="grid sm:grid-cols-2 gap-4 mb-10">
+          {recorrido.map((r, i) => (
+            <ScrollReveal delay={i * 60}>
+              <div class="flex items-start gap-3 bg-surface-raised rounded-xl border border-border p-4 h-full">
+                <div class="w-10 h-10 rounded-lg bg-brand-muted flex items-center justify-center text-brand shrink-0">
+                  <Icon name={r.icon} class="w-5 h-5" />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-text-primary mb-0.5">{r.title}</p>
+                  <p class="text-xs text-text-secondary leading-relaxed">{r.desc}</p>
+                </div>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+
+        <h2 class="text-xl font-bold text-text-primary mb-4">La visita incluye</h2>
+        <ul class="space-y-2.5 mb-10">
+          {incluye.map((item) => (
+            <li class="flex items-start gap-2.5 text-sm text-text-secondary">
+              <Icon name="check-circle" class="w-4 h-4 text-brand mt-0.5 shrink-0" />
+              {item}
+            </li>
+          ))}
+        </ul>
+
+        <div class="bg-surface-sunken rounded-2xl p-6 space-y-3 text-sm text-text-secondary">
+          <p class="flex items-center gap-2"><Icon name="map-pin" class="w-4 h-4 text-brand shrink-0" /> Corredor Ambalá, Ibagué, Tolima. Ubicación exacta al confirmar la reserva.</p>
+          <p class="flex items-center gap-2"><Icon name="clock" class="w-4 h-4 text-brand shrink-0" /> Duración: ~2 horas · Grupos de máximo {CUPO_MAXIMO} personas.</p>
+          <p class="flex items-center gap-2"><Icon name="users" class="w-4 h-4 text-brand shrink-0" /> Apta para familias, colegios y proyectos que quieran replicar el modelo.</p>
+        </div>
+      </div>
+
+      <!-- Booking sidebar -->
+      <aside class="lg:sticky lg:top-24">
+        <div class="p-6 rounded-2xl bg-surface-raised shadow-lg border border-border">
+          <div class="text-center mb-4">
+            <span class="text-3xl font-bold text-brand">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(PRECIO_VISITA)}</span>
+            <p class="text-xs text-text-muted mt-1">por persona</p>
+          </div>
+          <div id="booking-widget">
+            <BookingWidget
+              client:visible
+              recursoSlug="granja-visita-guiada"
+              recursoNombre="Visita guiada a la granja autosustentable"
+              precioBase={PRECIO_VISITA}
+              capacidadMaxima={CUPO_MAXIMO}
+              requierePago={true}
+              origen="iwage_granja"
+            />
+          </div>
+          <div class="mt-3 pt-3 border-t border-border">
+            <a
+              href={waReservar}
+              target="_blank"
+              rel="noopener"
+              class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-brand/20 text-brand text-center text-xs font-bold uppercase tracking-wider hover:bg-brand-muted/40 transition-colors"
+            >
+              <Icon name="message-circle" class="w-4 h-4" /> Reservar por WhatsApp
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </Section>
+</BrandLayout>

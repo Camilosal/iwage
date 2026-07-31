@@ -4,6 +4,7 @@ import { cafe } from './cafe';
 import { tierras } from './tierras';
 import { naturaleza } from './naturaleza';
 import { gestion } from './gestion';
+import { granja } from './granja';
 
 export type { BrandConfig, BrandColors, BrandFonts, BrandNavItem, BrandSEO } from './types';
 
@@ -14,6 +15,7 @@ export const brands: Record<string, BrandConfig> = {
   tierras,
   naturaleza,
   gestion,
+  granja,
 };
 
 /** Ordered list for ecosystem hub display */
@@ -23,6 +25,7 @@ export const brandList: BrandConfig[] = [
   tierras,
   naturaleza,
   gestion,
+  granja,
 ];
 
 /** Get brand config by slug */

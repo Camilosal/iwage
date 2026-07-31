@@ -19,8 +19,13 @@
     "presentacion": { "type": "string" },
     "categoria": {
       "type": "enumeration",
-      "enum": ["miel", "caja", "kit", "asistencia", "accesorio", "propoleo", "ceras"],
+      "enum": ["miel", "caja", "kit", "asistencia", "accesorio", "propoleo", "ceras", "cosecha", "huevos", "plantas", "abono", "experiencia"],
       "required": true
+    },
+    "marca": {
+      "type": "enumeration",
+      "enum": ["meliponas", "granja"],
+      "default": "meliponas"
     },
     "imagen": { "type": "string" },
     "galeria": { "type": "json" },

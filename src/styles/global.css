@@ -103,6 +103,22 @@
   --color-dark-text: #e0eaf5;
 }
 
+[data-brand="granja"] {
+  --color-brand: #5b4a2f;
+  --color-brand-light: #7a6340;
+  --color-brand-dark: #3e321f;
+  --color-brand-muted: #f0ebe0;
+  --color-accent: #c06b2f;
+  --color-accent-light: #e69551;
+  --color-accent-muted: #faeadd;
+  --color-surface: #faf9f6;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f0ede6;
+  --color-dark-bg: #211c14;
+  --color-dark-surface: #2d261b;
+  --color-dark-text: #f0ebe0;
+}
+
 /* ─── Dark mode overrides ─── */
 .dark {
   --color-brand: #4a9b76;

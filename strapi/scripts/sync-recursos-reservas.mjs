@@ -327,8 +327,10 @@ async function syncCafeMenu() {
 
 async function syncProductosMeliponas() {
   console.log('\n🐝 iwage_meliponas: productos');
+  // Solo productos de la marca meliponas (o sin marca, por compatibilidad)
   const items = await strapiGetAll(IWAGE_STRAPI, 'productos',
-    ['nombre', 'slug', 'precio', 'categoria', 'stock_disponible', 'presentacion']);
+    ['nombre', 'slug', 'precio', 'categoria', 'stock_disponible', 'presentacion', 'marca'],
+    '&filters[$or][0][marca][$eq]=meliponas&filters[$or][1][marca][$null]=true');
 
   let count = 0;
   for (const prod of items) {
@@ -376,6 +378,41 @@ async function syncServicioPolinizacion() {
     metadata: { cultivos: ['café', 'aguacate', 'mora', 'tomate', 'uchuva', 'cacao'] },
   });
   if (result) { console.log(`  ✓ Servicio de Polinización (${result.action})`); return 1; }
+  return 0;
+}
+
+// ── Sync: iwage_granja (visita guiada) ───────────────────
+
+async function syncVisitaGranja() {
+  console.log('\n🚜 iwage_granja: visita guiada');
+  // Recurso único de la granja autosustentable (slots con cupo y pago online)
+  const result = await syncRecurso({
+    nombre: 'Visita guiada a la granja autosustentable',
+    slug: 'granja-visita-guiada',
+    tipo: 'experiencia',
+    origen: 'iwage_granja',
+    origen_slug: 'granja-visita-guiada',
+    requiere_pago: true,
+    precio_base: 45000,
+    moneda: 'COP',
+    capacidad_maxima: 10,
+    duracion_minutos: 120,
+    tipo_disponibilidad: 'slot_horario',
+    config_disponibilidad: {
+      dias_semana: [5, 6, 7],
+      hora_apertura: '08:00',
+      hora_cierre: '16:00',
+      duracion_slot_minutos: 120,
+      intervalo_entre_slots_minutos: 60,
+      capacidad_por_slot: 10,
+      anticipacion_minima_horas: 24,
+      max_reservas_por_cliente: 2,
+      bloqueos: [],
+    },
+    url_publica: 'https://iwage.co/granja/visitas',
+    metadata: { subsistemas: ['agua', 'solar', 'bio-refinería', 'agroecosistema', 'gemelo digital', 'meliponario'] },
+  });
+  if (result) { console.log(`  ✓ Visita guiada a la granja (${result.action})`); return 1; }
   return 0;
 }
 
@@ -528,6 +565,7 @@ async function main() {
     cafe_menu: await syncCafeMenu(),
     meliponas_productos: await syncProductosMeliponas(),
     meliponas_polinizacion: await syncServicioPolinizacion(),
+    granja_visita: await syncVisitaGranja(),
     espacios_servicios: await syncServiciosEspaciosPlus(),
     espacios_modelos: await syncModelosVivienda(),
     espacios_productos: await syncProductosEspaciosPlus(),
@@ -539,7 +577,7 @@ async function main() {
   console.log(`   naturaleza: exp=${results.experiencias} pkg=${results.paquetes}`);
   console.log(`   gestion=${results.propiedades_gestion} tierras=${results.propiedades_tierras}`);
   console.log(`   marca_personal=${results.servicios_marca}`);
-  console.log(`   cafe=${results.cafe_menu} meliponas=${results.meliponas_productos + results.meliponas_polinizacion}`);
+  console.log(`   cafe=${results.cafe_menu} meliponas=${results.meliponas_productos + results.meliponas_polinizacion} granja=${results.granja_visita}`);
   console.log(`   espacios_plus: svc=${results.espacios_servicios} modelos=${results.espacios_modelos} prod=${results.espacios_productos}`);
   console.log(`   complementos=${results.complementos}`);
 }
