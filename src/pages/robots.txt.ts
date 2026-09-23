@@ -13,12 +13,8 @@ Allow: /
 # Sitemap
 Sitemap: ${base}/sitemap.xml
 
-# Crawl-delay for politeness
-Crawl-delay: 1
-
 # Block API and internal routes
 Disallow: /api/
-Disallow: /_astro/
 Disallow: /admin
 `;
 

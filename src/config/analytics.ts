@@ -37,7 +37,7 @@ export const GOOGLE = {
   merchantCenterId: '5791057335',
 
   /** Search Console property registrada */
-  searchConsoleProperty: 'https://tienda.iwage.co/',
+  searchConsoleProperty: 'https://iwage.co/',
 } as const;
 
 // ─── Facebook / Meta ───────────────────────────────────────────────────

@@ -83,7 +83,6 @@ const STATIC_PAGES: Array<[path: string, priority: number, changefreq: SitemapUr
   // Gestión
   ['/gestion/', 0.9, 'daily'],
   ['/gestion/alojamientos', 0.8, 'weekly'],
-  ['/gestion/propiedades', 0.8, 'weekly'],
   ['/gestion/experiencias', 0.7, 'weekly'],
   ['/gestion/propietarios', 0.7, 'monthly'],
   ['/gestion/propietarios/modelo-alianzas', 0.6, 'monthly'],
@@ -100,6 +99,7 @@ const STATIC_PAGES: Array<[path: string, priority: number, changefreq: SitemapUr
   ['/granja/sistema', 0.8, 'weekly'],
   ['/granja/tienda', 0.9, 'daily'],
   ['/granja/visitas', 0.8, 'weekly'],
+  ['/granja/experimentos', 0.8, 'daily'],
   ['/granja/bitacora', 0.8, 'daily'],
   ['/granja/nosotros', 0.6, 'monthly'],
   ['/granja/ayuda', 0.5, 'monthly'],
@@ -151,6 +151,7 @@ interface SlugEntry {
 async function fetchAllSlugs(
   endpoint: string,
   filters?: Record<string, any>,
+  failed?: string[],
 ): Promise<SlugEntry[]> {
   const out: SlugEntry[] = [];
   try {
@@ -174,8 +175,11 @@ async function fetchAllSlugs(
       if (page * pageSize >= total || items.length === 0) break;
       page += 1;
     }
-  } catch {
-    // Strapi no disponible: se omite la colección (el sitemap sigue sirviendo lo demás)
+  } catch (err) {
+    // Strapi no disponible: se omite la colección (el sitemap sigue sirviendo lo demás),
+    // pero queda registrado para que la ruta no cache un resultado incompleto.
+    failed?.push(endpoint);
+    console.error(`[sitemap] no se pudo cargar ${endpoint}:`, err instanceof Error ? err.message : err);
   }
   return out;
 }
@@ -201,9 +205,11 @@ function toUrls(
 }
 
 /** Recolecta todas las URLs públicas del sitio (rutas relativas). */
-export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
+export async function collectSitemapUrls(): Promise<{ urls: SitemapUrl[]; failed: string[] }> {
+  const failed: string[] = [];
   const [
     bitacoras,
+    experimentos,
     productos,
     proyectos,
     cultivos,
@@ -214,19 +220,23 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
     paquetes,
     landings,
   ] = await Promise.all([
-    fetchAllSlugs('bitacoras'),
-    fetchAllSlugs('productos'),
-    fetchAllSlugs('proyecto-meliponarios'),
+    fetchAllSlugs('bitacoras', void 0, failed),
+    fetchAllSlugs('experimentos', void 0, failed),
+    fetchAllSlugs('productos', void 0, failed),
+    fetchAllSlugs('proyecto-meliponarios', void 0, failed),
     // Cultivos: getCultivos() replica la página (incluye fallback a datos semilla)
     getCultivos()
       .then((cs) => cs.filter((c) => c.slug).map((c) => ({ slug: c.slug }) as SlugEntry))
-      .catch(() => [] as SlugEntry[]),
-    fetchAllSlugs('propiedades', { publicado: { $eq: true } }),
-    fetchAllSlugs('propiedades-gestion', { publicado: { $eq: true } }),
-    fetchAllSlugs('experiencias', { publicado: { $eq: true } }),
-    fetchAllSlugs('anfitriones', { publicado: { $eq: true } }),
-    fetchAllSlugs('paquetes', { activo: { $eq: true } }),
-    fetchAllSlugs('seo-landings', { publicado: { $eq: true } }),
+      .catch(() => {
+        failed.push('cultivos');
+        return [] as SlugEntry[];
+      }),
+    fetchAllSlugs('propiedades', { publicado: { $eq: true } }, failed),
+    fetchAllSlugs('propiedades-gestion', { publicado: { $eq: true } }, failed),
+    fetchAllSlugs('experiencias', { publicado: { $eq: true } }, failed),
+    fetchAllSlugs('anfitriones', { publicado: { $eq: true } }, failed),
+    fetchAllSlugs('paquetes', { activo: { $eq: true } }, failed),
+    fetchAllSlugs('seo-landings', { publicado: { $eq: true } }, failed),
   ]);
 
   const urls: SitemapUrl[] = STATIC_PAGES.map(([path, priority, changefreq]) => ({
@@ -247,22 +257,27 @@ export async function collectSitemapUrls(): Promise<SitemapUrl[]> {
     ...toUrls(proyectos, '/meliponas/proyectos', 0.7),
     ...toUrls(cultivos, '/meliponas/polinizacion', 0.7),
     ...toUrls(propiedades, '/tierras/propiedades', 0.8),
-    ...toUrls(propiedadesGestion, '/gestion/propiedades', 0.7),
+    ...toUrls(propiedadesGestion, '/gestion/alojamientos', 0.7),
     ...toUrls(experiencias, '/naturaleza/experiencias', 0.8),
     ...toUrls(anfitriones, '/naturaleza/anfitriones', 0.7),
     ...toUrls(paquetes, '/naturaleza/programas', 0.7),
     ...toUrls(landings, '/tierras/landing', 0.6, 'monthly'),
-    // Bitácoras: la URL depende de la marca de cada entrada
+    // Bitácoras: la URL depende de la marca de cada entrada (granja usa experimentos)
     ...toUrls(
       bitacoras,
       (e) => (e.marca && MARCAS_BITACORA.has(e.marca) ? `/${e.marca}/bitacora` : null),
       0.6,
     ),
+    // Experimentos Granja
+    ...toUrls(experimentos, '/granja/experimentos', 0.7),
   );
 
   // Deduplicar por loc conservando la primera aparición
   const seen = new Set<string>();
-  return urls.filter((u) => (seen.has(u.loc) ? false : (seen.add(u.loc), true)));
+  return {
+    urls: urls.filter((u) => (seen.has(u.loc) ? false : (seen.add(u.loc), true))),
+    failed,
+  };
 }
 
 function escapeXml(value: string): string {

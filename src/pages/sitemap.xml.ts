@@ -16,9 +16,14 @@ export const GET: APIRoute = async () => {
   let xml = await cacheGet<string>(CACHE_KEY);
 
   if (!xml) {
-    const urls = await collectSitemapUrls();
+    const { urls, failed } = await collectSitemapUrls();
     xml = renderSitemapXml(SITE.url, urls);
-    await cacheSet(CACHE_KEY, xml, CACHE_TTL_SECONDS);
+    // Si algún origen falló el sitemap sale incompleto: no conviene dejarlo
+    // servido una hora entera, así que se cachea solo un minuto.
+    await cacheSet(CACHE_KEY, xml, failed.length > 0 ? 60 : CACHE_TTL_SECONDS);
+    if (failed.length > 0) {
+      console.error(`[sitemap] incompleto — colecciones fallidas: ${failed.join(', ')}`);
+    }
   }
 
   return new Response(xml, {

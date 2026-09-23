@@ -27,6 +27,7 @@ interface Props {
   ogImage?: string;
   ogType?: 'website' | 'article';
   article?: ArticleMeta;
+  noindex?: boolean;
 }
 
 const props = Astro.props;
@@ -42,6 +43,7 @@ const description = props.description ?? brandConfig.seo.defaultDescription;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://iwage.co');
 const ogType = props.ogType ?? 'website';
 const ogImage = props.ogImage ?? `https://iwage.co/images/hero-${brandConfig.slug === 'meliponas' ? 'meliponas' : brandConfig.slug}.webp`;
+const robots = props.noindex ? 'noindex, follow' : 'index, follow';
 
 // Founder Person (reused across schemas)
 const founderPerson = {
@@ -167,6 +169,7 @@ if (props.article) {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL.href} />
+    <meta name="robots" content={robots} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Open Graph -->

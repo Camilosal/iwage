@@ -29,7 +29,7 @@ function normalizeSearch(a: EntradaBitacora): string {
 }
 ---
 
-<BrandLayout brand={BRAND} title={BRAND_TITLE} description={BRAND_DESC}>
+<BrandLayout brand={BRAND} title={BRAND_TITLE} description={BRAND_DESC} noindex={articulos.length === 0}>
   <!-- Header -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-7xl mx-auto px-6">
