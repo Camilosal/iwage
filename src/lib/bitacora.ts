@@ -17,6 +17,7 @@ export interface EntradaBitacora {
   fecha: string | null;
   marca: string;
   destacado: boolean;
+  subsistema: string | null;
   publishedAt: string;
 }
 

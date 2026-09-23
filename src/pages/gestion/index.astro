@@ -1,47 +1,44 @@
 ---
-export const prerender = true;
-
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
 import AlojamientoCard from '@/components/gestion/AlojamientoCard.astro';
 import { getPropiedadesGestionDestacadas, TIPOS_GESTION } from '@/lib/gestion';
+import { getHeroBySlug } from '@/lib/heroes';
 
-const destacadas = await getPropiedadesGestionDestacadas(6);
+const destacadas = await getPropiedadesGestionDestacadas(8);
+const hero = await getHeroBySlug('/gestion');
 ---
 
 <BrandLayout brand="gestion" title="Iwagé Gestión · Alojamientos Rurales & Property Management · Tolima" description="Reserva alojamientos rurales únicos en el Tolima o gestiona tu propiedad con expertos. Fincas, glamping, casas campestres y experiencias de territorio.">
 
-  <!-- Hero with dual CTA -->
-  <section class="relative min-h-[80vh] flex items-center overflow-hidden bg-[#0c1520]">
-    <img src="/images/hero-gestion.webp" alt="Territorio rural del Tolima" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
-    <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
-    <div class="relative z-10 max-w-6xl mx-auto px-4 w-full">
-      <div class="max-w-3xl">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-2 h-2 rounded-full bg-[#52B788] animate-pulse"></div>
-          <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Iwagé Gestión</span>
-        </div>
-        <h1 class="text-5xl lg:text-7xl font-light text-white leading-tight mb-6">
-          El Tolima te <span class="font-serif italic text-[#52B788]">espera.</span>
-        </h1>
-        <p class="text-xl text-white/70 leading-relaxed mb-10 max-w-2xl">
-          Alojamientos rurales gestionados profesionalmente y experiencias de territorio. O si tienes una propiedad, la hacemos productiva por ti.
-        </p>
-
-        <!-- Dual CTA -->
-        <div class="flex flex-col sm:flex-row gap-4">
-          <a href="/gestion/alojamientos" class="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-[#52B788] text-[#0c1520] text-sm font-bold uppercase tracking-wider hover:bg-[#7fc4a2] transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            Busco alojamiento
-          </a>
-          <a href="/gestion/propietarios" class="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full border-2 border-white/30 text-white text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:border-white/50 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-            Tengo una propiedad
-          </a>
+  <!-- Hero -->
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Iwagé Gestión"
+    />
+  ) : (
+    <section class="relative min-h-[80vh] flex items-center overflow-hidden bg-[#0c1520]">
+      <img src="/images/hero-gestion.webp" alt="" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
+      <div class="relative z-10 max-w-6xl mx-auto px-4 w-full">
+        <div class="max-w-3xl">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-2 h-2 rounded-full bg-[#52B788] animate-pulse"></div>
+            <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Iwagé Gestión</span>
+          </div>
+          <h1 class="text-5xl lg:text-7xl font-light text-white leading-tight mb-6">El Tolima te <span class="font-serif italic text-[#52B788]">espera.</span></h1>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  )}
 
   <!-- Featured properties (guest-facing) -->
   <section class="py-16 px-4 bg-[#f8f9fb]">
@@ -57,8 +54,8 @@ const destacadas = await getPropiedadesGestionDestacadas(6);
       </div>
 
       {destacadas.length > 0 ? (
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {destacadas.slice(0, 6).map((prop) => (
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {destacadas.slice(0, 8).map((prop) => (
             <AlojamientoCard prop={prop} />
           ))}
         </div>

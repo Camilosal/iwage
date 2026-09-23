@@ -79,6 +79,21 @@ const proveedores = [
   { nombre: 'Cacao El Espinal', producto: 'Cacao fino de aroma', ubicacion: 'El Espinal', distancia_km: 38, historia: 'La excepción a nuestra regla de 4 km. Cacao fino de aroma del valle del Magdalena, fermentado 5 días.', orden: 3 },
 ];
 
+const historiaVisitantes = [
+  // Fauna
+  { titulo: 'El colibrí de garganta azul', categoria: 'fauna', icono: 'bird', texto_corto: 'Aparece cada mañana a las 6:40. Primero al limoncillo de la entrada, luego al guamo del costado.', texto_largo: 'Es un Chlorostilbon mellisugus, colibrí esmeralda. Lleva tres temporadas anidando en las heliconias del corredor. No le asusta la gente: se acerca al vaso mientras tomas café y te mira fijo, como evaluando si tu mesa tiene más néctar que la suya.', orden: 1 },
+  { titulo: 'Las angelitas del techo', categoria: 'fauna', icono: 'bug', texto_corto: 'Una colonia de Tetragonisca angustula se instaló en el alero del café hace dos años.', texto_largo: 'No pican. Producen miel que usamos en el signature "Miel de Angelita con café". Los clientes las señalan como si fueran mascotas del local. Un día un niño preguntó: "¿son abejas buenas?" — y sí, lo son. Polinizan el cafetal y el guamo en un radio de 300 metros.', orden: 2 },
+  { titulo: 'El carpintero que llegó en enero', categoria: 'fauna', icono: 'bird', texto_corto: 'Un carpintero dorado empezó a percutir el poste de guadua del jardín en enero de 2025.', texto_largo: 'Nadie sabe si anidó o solo estaba marcando territorio. Lo cierto es que cada mañana repite su ritmo: tres golpes, pausa, dos golpes, pausa. Los clientes del desayuno ya lo conocen. Algunos le pusieron nombre: Don Tres-Dos.', orden: 3 },
+  // Flora
+  { titulo: 'El guamo centinela', categoria: 'flora', icono: 'tree-pine', texto_corto: 'Tiene más de 40 años. Da sombra a la mitad del jardín y flores dulces de diciembre a marzo.', texto_largo: 'Es un Inga spectabilis. Sus vainas contienen una pulpa blanca que los clientes prueban cuando caen al suelo. Las abejas angelitas y los colibríes dependen de él. Cuando florece, el café huele diferente: más dulce, más denso. Es el árbol que marca las estaciones del territorio.', orden: 1 },
+  { titulo: 'Las aromáticas del corredor', categoria: 'flora', icono: 'leaf', texto_corto: 'Hierbabuena, limoncillo, albahaca morada y flor de guamo. Todas crecen a menos de 50 metros de la barra.', texto_largo: 'Las usamos frescas en las infusiones de la carta "Aromática de flora nativa". La hierbabuena crece sin control en la zona húmeda; el limoncillo lo plantó Don Manuel hace tres años; la albahaca morada llegó como experimento y se quedó porque los clientes la piden. Cada infusión tiene el sabor exacto del jardín.', orden: 2 },
+  { titulo: 'El cafetal de sombra', categoria: 'flora', icono: 'trees', texto_corto: 'Las matas de café crecen bajo el dosel del guamo y los plátanos. No es café de sol.', texto_largo: 'Es un café Caturra sembrado a 1.400 m.s.n.m. por la familia Cardona. Madura lento, produce menos pero con más densidad. Las cerezas se cosechan a mano cuando están completamente rojas. El cafetal no es solo producción: es el hábitat de las 32 especies de aves que visitan el jardín.', orden: 3 },
+  // Personas
+  { titulo: 'Doña Nelly y la receta del pandebono', categoria: 'personas', icono: 'heart-handshake', texto_corto: 'Llegó un martes de mercado. Probó el pan de yuca y dijo: "así no se hace, pero está rico".', texto_largo: 'Doña Nelly tiene 74 años y vende almojábanas en el mercado de Ibagué desde hace 40. Nos enseñó que el almidón de yuca del Espinal no se amasa igual si hace frío. Su receta no es la nuestra, pero nos dio permiso de llamarlo "Pan de yuca estilo Doña Nelly". Ahora viene cada quince días y siempre pide un café pequeño.', orden: 1 },
+  { titulo: 'El ingeniero que se quedó a vivir', categoria: 'personas', icono: 'laptop', texto_corto: 'Vino de Bogotá un fin de semana con su laptop. Se quedó tres meses.', texto_largo: 'Andrés trabaja remoto para una startup de logística. Llegó al café un sábado, pidió un espresso, abrió su computador y no se fue hasta el cierre. Al lunes siguiente ya tenía mesa fija. Ahora vive en Cajamarca, viene al café cada mañana y paga la renta con lo que ahorra de no vivir en Bogotá. Dice que el wifi funciona bien y que el café le cambia el día.', orden: 2 },
+  { titulo: 'Los niños de la vereda', categoria: 'personas', icono: 'users', texto_corto: 'Cada sábado llegan 4 o 5 niños de la vereda El Carmen. Piden chocolate y se llevan las cáscaras de cacao.', texto_largo: 'No tienen más de 10 años. Llegan caminando desde la finca de sus padres, algunos descalzos. Piden chocolate con leche de La Cumbre y se sientan en el suelo a dibujar. Las cáscaras de cacao se las llevan para compostar en sus huertas escolares. Un día uno de ellos preguntó: "¿ustedes también son de aquí?" — y sí, también somos de aquí.', orden: 3 },
+];
+
 // ── Seed Logic ─────────────────────────────────────────
 
 async function seed() {
@@ -130,6 +145,24 @@ async function seed() {
       }
     } catch (e) {
       console.error(`  ✗ ${prov.nombre}:`, e.message);
+    }
+  }
+
+  // 4. Historias Visitantes
+  console.log('\n→ Seeding historia-visitantes...');
+  for (const h of historiaVisitantes) {
+    try {
+      const existing = await api('GET', `historia-visitantes?filters[titulo][$eq]=${encodeURIComponent(h.titulo)}`);
+      if (existing.data?.length > 0) {
+        const docId = existing.data[0].documentId;
+        await api('PUT', `historia-visitantes/${docId}`, { data: h });
+        console.log(`  ✓ Updated: ${h.titulo}`);
+      } else {
+        await api('POST', 'historia-visitantes', { data: h });
+        console.log(`  ✓ Created: ${h.titulo}`);
+      }
+    } catch (e) {
+      console.error(`  ✗ ${h.titulo}:`, e.message);
     }
   }
 

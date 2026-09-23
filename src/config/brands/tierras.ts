@@ -2,8 +2,8 @@ import type { BrandConfig } from './types';
 
 export const tierras: BrandConfig = {
   slug: 'tierras',
-  name: 'Iwagé Tierras',
-  tagline: 'Inmobiliaria Rural con Conocimiento Territorial',
+  name: 'Tierras',
+  tagline: 'Inmobiliaria Rural & Valoración VAP',
   colors: {
     brand: '#1B4332',
     brandLight: '#52B788',

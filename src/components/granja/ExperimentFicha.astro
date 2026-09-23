@@ -1,0 +1,109 @@
+---
+/**
+ * ExperimentFicha — Plantilla estándar de ficha de experimento para Granja.
+ *
+ * Renderiza las 6 secciones del laboratorio vivo:
+ *   Origen · Hipótesis · Proceso · Resultado · Lección · Servicio derivado
+ *
+ * Acepta un Experimento con campos estructurados (origen, hipotesis, proceso,
+ * resultado, leccion, servicio_derivado) y renderiza cada sección como tarjeta
+ * individual.
+ */
+import Icon from '@/components/shared/Icon.astro';
+import { renderMarkdown } from '@/lib/render-markdown';
+import { formatFecha, SECTIONS } from '@/lib/granja-experimentos';
+import type { Experimento } from '@/lib/granja-experimentos';
+
+interface Props {
+  experimento: Experimento;
+  subsistema?: string | null;
+}
+
+const { experimento, subsistema } = Astro.props;
+
+// ── Subsystem metadata ──
+const SUBSISTEMA_META: Record<string, { label: string; icon: string; estado: string }> = {
+  'gestion-hidrica': { label: 'Gestión hídrica', icon: 'droplets', estado: 'operando' },
+  'energia': { label: 'Energía', icon: 'zap', estado: 'operando' },
+  'biorefineria-domestica': { label: 'Bio-refinería doméstica', icon: 'flask-conical', estado: 'construccion' },
+  'agroecosistema-productivo': { label: 'Agroecosistema productivo', icon: 'sprout', estado: 'construccion' },
+  'gemelo-digital': { label: 'Gemelo digital', icon: 'cpu', estado: 'operando' },
+  'bioarquitectura': { label: 'Bioarquitectura', icon: 'home', estado: 'diseno' },
+};
+
+const estadoConfig: Record<string, { label: string; class: string }> = {
+  idea: { label: 'Idea', class: 'bg-gray-100 text-gray-600' },
+  en_curso: { label: 'En curso', class: 'bg-blue-100 text-blue-700' },
+  con_resultados: { label: 'Con resultados', class: 'bg-amber-100 text-amber-700' },
+  validado: { label: 'Validado', class: 'bg-emerald-100 text-emerald-700' },
+  descartado: { label: 'Descartado', class: 'bg-red-100 text-red-600' },
+};
+
+const subMeta = subsistema ? SUBSISTEMA_META[subsistema] : null;
+const subEstado = subMeta ? estadoConfig[subMeta.estado] : null;
+
+// ── Active sections (only those with content) ──
+const activeSections = SECTIONS.filter(s => {
+  const content = (experimento as any)[s.field] as string | null;
+  return content && content.trim().length > 0;
+});
+
+// Word count
+const allText = activeSections.map(s => (experimento as any)[s.field] || '').join(' ');
+const wordCount = allText ? allText.split(/\s+/).length : 0;
+---
+
+{activeSections.length > 0 ? (
+  /* ── Structured experiment ficha ── */
+  <div class="space-y-6">
+    <!-- Experiment metadata banner -->
+    <div class="bg-surface-sunken rounded-xl border border-border p-5 flex flex-wrap items-center gap-4 text-sm">
+      {subMeta && (
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center text-brand">
+            <Icon name={subMeta.icon} class="w-4 h-4" />
+          </div>
+          <div>
+            <p class="text-xs text-text-muted">Subsistema</p>
+            <p class="font-medium text-text-primary">{subMeta.label}</p>
+          </div>
+        </div>
+      )}
+      {subEstado && (
+        <span class={`inline-block text-[10px] font-bold uppercase tracking-wide rounded-full px-2.5 py-0.5 ${subEstado.class}`}>
+          {subEstado.label}
+        </span>
+      )}
+      <div class="flex items-center gap-3 ml-auto text-xs text-text-muted">
+        {experimento.fecha && <time>{formatFecha(experimento.fecha)}</time>}
+        {experimento.tiempo_lectura && <span>{experimento.tiempo_lectura} min lectura</span>}
+        <span>{wordCount.toLocaleString('es-CO')} palabras</span>
+      </div>
+    </div>
+
+    <!-- Section cards -->
+    {activeSections.map((section) => {
+      const content = (experimento as any)[section.field] as string;
+      return (
+        <div class="bg-surface-raised rounded-xl border border-border overflow-hidden">
+          <div class="flex items-center gap-3 px-5 py-3 border-b border-border bg-surface-sunken">
+            <div class="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center text-brand shrink-0">
+              <Icon name={section.icon} class="w-4 h-4" />
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-text-primary">{section.heading}</h3>
+              <p class="text-[11px] text-text-muted">{section.desc}</p>
+            </div>
+          </div>
+          <div class="px-5 py-4 article-body" set:html={renderMarkdown(content)}></div>
+        </div>
+      );
+    })}
+  </div>
+) : (
+  /* ── Placeholder when no sections have content ── */
+  <div class="text-center py-12 bg-surface-raised rounded-2xl border border-border">
+    <Icon name="file-text" class="w-10 h-10 block mx-auto mb-4 text-text-muted" />
+    <p class="text-text-secondary">Las secciones de este experimento estarán disponibles próximamente.</p>
+  </div>
+)}

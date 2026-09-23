@@ -82,6 +82,12 @@ export const ICONO_DEFAULT = 'flower-2';
 
 // ── Mapper ─────────────────────────────────────────────
 function mapCultivo(raw: any): CultivoPolinizacion {
+  const galeria = Array.isArray(raw.galeria)
+    ? raw.galeria.map((g: any) =>
+        typeof g === 'string' ? { url: strapiImage(g) ?? g, tipo: 'imagen' as const } : { ...g, url: strapiImage(g.url) ?? g.url }
+      )
+    : null;
+
   return {
     id: raw.id,
     documentId: raw.documentId,
@@ -90,12 +96,8 @@ function mapCultivo(raw: any): CultivoPolinizacion {
     nombre_cientifico: raw.nombre_cientifico ?? null,
     familia_botanica: raw.familia_botanica ?? null,
     icono: raw.icono ?? null,
-    imagen: strapiImage(raw.imagen) ?? raw.imagen ?? null,
-    galeria: Array.isArray(raw.galeria)
-      ? raw.galeria.map((g: any) =>
-          typeof g === 'string' ? { url: strapiImage(g) ?? g, tipo: 'imagen' as const } : { ...g, url: strapiImage(g.url) ?? g.url }
-        )
-      : null,
+    imagen: strapiImage(raw.imagen) ?? raw.imagen ?? (galeria?.[0]?.url ?? null),
+    galeria,
     descripcion: raw.descripcion ?? null,
     descripcion_corta: raw.descripcion_corta ?? null,
     rendimiento: raw.rendimiento ?? null,
@@ -145,7 +147,9 @@ export async function getCultivos(opts?: { destacado?: boolean }): Promise<Culti
       sort: ['nombre:asc'],
       pagination: { pageSize: 50 },
     });
-    return (res.data || []).map(mapCultivo);
+    const mapped = (res.data || []).map(mapCultivo);
+    if (mapped.length > 0) return mapped;
+    return SEED_CULTIVOS.filter((c) => c.activo && (!opts?.destacado || c.destacado));
   } catch {
     return SEED_CULTIVOS.filter((c) => c.activo && (!opts?.destacado || c.destacado));
   }
@@ -159,7 +163,8 @@ export async function getCultivoBySlug(slug: string): Promise<CultivoPolinizacio
       pagination: { pageSize: 1 },
     });
     const item = res.data?.[0];
-    return item ? mapCultivo(item) : null;
+    if (item) return mapCultivo(item);
+    return SEED_CULTIVOS.find((c) => c.slug === slug) ?? null;
   } catch {
     return SEED_CULTIVOS.find((c) => c.slug === slug) ?? null;
   }

@@ -52,6 +52,23 @@
     "destacado": {
       "type": "boolean",
       "default": false
+    },
+    "subsistema": {
+      "type": "enumeration",
+      "enum": [
+        "gestion-hidrica",
+        "energia",
+        "biorefineria-domestica",
+        "agroecosistema-productivo",
+        "gemelo-digital",
+        "bioarquitectura"
+      ]
+    },
+    "experimento": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::experimento.experimento",
+      "inversedBy": "bitacoras"
     }
   }
 }

@@ -4,48 +4,60 @@ import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 // Mapa del sistema autosustentable (basado en el artículo ancla N-035:
 // "Sistema autosustentable Iwagé: mapa de un proyecto en construcción").
 const subsistemas = [
   {
+    slug: 'gestion-hidrica',
     icon: 'droplets',
     title: 'Gestión hídrica de ciclo cerrado',
     desc: 'Captación de lluvia, tratamiento y reutilización de aguas grises. El agua se gana con hábitos, no solo con infraestructura.',
+    estado: 'operando',
     articulos: [
       { titulo: 'Gestión hídrica de ciclo cerrado', slug: 'gestion-hidrica' },
     ],
   },
   {
-    icon: 'sun',
-    title: 'Energía solar off-grid',
-    desc: 'Sistema fotovoltaico autónomo dimensionado desde el consumo real: sin red, con todo lo que la granja necesita.',
+    slug: 'energia',
+    icon: 'zap',
+    title: 'Energía',
+    desc: 'Generación de energía para la granja — sistema solar off-grid como primera etapa, sin limitarse a él.',
+    estado: 'operando',
     articulos: [
       { titulo: 'Sistema solar off-grid', slug: 'solar-offgrid' },
     ],
   },
   {
+    slug: 'biorefineria-domestica',
     icon: 'flask-conical',
     title: 'Bio-refinería doméstica',
     desc: 'Nada que sale se considera basura: compostaje, biodigestión y ciclos de nutrientes cerrados dentro del predio.',
+    estado: 'construccion',
     articulos: [
       { titulo: 'La bio-refinería doméstica', slug: 'biorefineria-domestica' },
       { titulo: 'Compostaje rural: cerrar el ciclo de nutrientes', slug: 'compostaje-rural-como-cerrar-el-ciclo-de-nutrientes-en-la-finca' },
     ],
   },
   {
+    slug: 'agroecosistema-productivo',
     icon: 'sprout',
     title: 'Agroecosistema productivo',
     desc: 'Tres formas de cultivar integradas: huerta intensiva, agroforestería y producción animal en sinergia.',
+    estado: 'construccion',
     articulos: [
       { titulo: 'El agroecosistema productivo', slug: 'agroecosistema-productivo' },
       { titulo: 'El cuaderno de campo', slug: 'cuaderno-campo' },
     ],
   },
   {
+    slug: 'gemelo-digital',
     icon: 'cpu',
     title: 'Gemelo digital',
     desc: 'Home Assistant, sensores ESP32 y edge computing rural: cada subsistema medido, registrado y trazable.',
+    estado: 'operando',
     articulos: [
       { titulo: 'Home Assistant y el gemelo digital', slug: 'home-assistant' },
       { titulo: 'Edge computing rural con ESP32', slug: 'edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable' },
@@ -53,58 +65,62 @@ const subsistemas = [
     ],
   },
   {
+    slug: 'bioarquitectura',
     icon: 'home',
-    title: 'Bioarquitectura y climatización',
-    desc: 'Construcción adaptada al terreno y climatización pasiva: confort sin consumo energético adicional.',
+    title: 'Bioarquitectura',
+    desc: 'Materiales no convencionales, técnicas de bioconstrucción, climatización pasiva, control de olores y ruido, neuroarquitectura y permacultura arquitectónica.',
+    estado: 'diseno',
     articulos: [
       { titulo: 'Bioarquitectura en pendiente y en plano', slug: 'bioarquitectura-terrenos' },
       { titulo: 'Climatización pasiva y gestión de olores', slug: 'climatizacion-olores' },
     ],
   },
-  {
-    icon: 'hexagon',
-    title: 'Meliponario',
-    desc: 'Las abejas nativas como primer subsistema vivo modelado: polinización, miel y datos del ecosistema.',
-    articulos: [
-      { titulo: 'Meliponario Iwagé: subsistema vivo', slug: 'meliponario-iwage-subsistema-vivo' },
-    ],
-  },
-  {
-    icon: 'scale',
-    title: 'Marco regulatorio y finanzas',
-    desc: 'Lo que exige la ley colombiana y el modelo financiero real de una granja peri-urbana por fases.',
-    articulos: [
-      { titulo: 'Marco regulatorio en Colombia', slug: 'marco-regulatorio' },
-      { titulo: 'Granja peri-urbana: modelo financiero', slug: 'granja-peri-urbana' },
-      { titulo: 'Viabilidad técnica y financiera', slug: 'viabilidad-practica' },
-      { titulo: 'Financiación por fases', slug: 'estrategia-de-financiacion-por-fases-escalar-sin-pedir-capital-antes-de-tener-ev' },
-    ],
-  },
 ];
+
+const estadoConfig: Record<string, { label: string; class: string }> = {
+  idea: { label: 'Idea', class: 'bg-gray-100 text-gray-600' },
+  diseno: { label: 'Diseño', class: 'bg-blue-100 text-blue-700' },
+  construccion: { label: 'En construcción', class: 'bg-amber-100 text-amber-700' },
+  operando: { label: 'Operando', class: 'bg-emerald-100 text-emerald-700' },
+};
+
+const hero = await getHeroBySlug('/granja/sistema');
 ---
 
 <BrandLayout
   brand="granja"
   title="El Sistema · Iwagé Granja Autosustentable"
-  description="Mapa del sistema autosustentable Iwagé: gestión hídrica, solar off-grid, bio-refinería, agroecosistema, gemelo digital, bioarquitectura, meliponario y modelo financiero."
+  description="Mapa del sistema autosustentable Iwagé: gestión hídrica, energía, bio-refinería, agroecosistema, gemelo digital y bioarquitectura — con estado de cada subsistema y documentación abierta."
 >
-  <!-- Hero -->
-  <section class="bg-surface pt-12 pb-8">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">El Sistema</p>
-      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text-primary mb-4">
-        Mapa de un proyecto en construcción
-      </h1>
-      <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
-        La granja no es una colección de tecnologías: es un organismo donde cada subsistema alimenta a los demás. Este es el mapa completo, con la documentación abierta de cada componente.
-      </p>
-      <div class="mt-6">
-        <a href="/granja/bitacora/sistema-autosustentable-ancla" class="inline-flex items-center gap-2 text-brand font-medium hover:gap-3 transition-all">
-          Leer el artículo ancla del sistema →
-        </a>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Granja Autosustentable · Tolima"
+    />
+  ) : (
+    <header class="bg-surface pt-12 pb-8">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">El Sistema</p>
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text-primary mb-4">
+          Mapa de un proyecto en construcción
+        </h1>
+        <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+          La granja no es una colección de tecnologías: es un organismo donde cada subsistema alimenta a los demás. Este es el mapa completo, con la documentación abierta de cada componente.
+        </p>
+        <div class="mt-6">
+          <a href="/granja/experimentos" class="inline-flex items-center gap-2 text-brand font-medium hover:gap-3 transition-all">
+            Explorar experimentos del sistema →
+          </a>
+        </div>
       </div>
-    </div>
-  </section>
+    </header>
+  )}
 
   <!-- Subsistemas -->
   <Section>
@@ -117,14 +133,23 @@ const subsistemas = [
                 <Icon name={s.icon} class="w-6 h-6" />
               </div>
               <div>
-                <h2 class="text-lg font-semibold text-text-primary mb-1">{s.title}</h2>
+                <div class="flex items-center gap-2 mb-1">
+                  <h2 class="text-lg font-semibold text-text-primary">{s.title}</h2>
+                  <span class={`inline-block text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${estadoConfig[s.estado].class}`}>
+                    {estadoConfig[s.estado].label}
+                  </span>
+                </div>
                 <p class="text-sm text-text-secondary leading-relaxed">{s.desc}</p>
               </div>
             </div>
             <div class="mt-auto pt-4 border-t border-border space-y-2">
-              <p class="text-[11px] font-mono uppercase tracking-widest text-text-muted">Bitácora del subsistema</p>
+              <a href={`/granja/sistema/${s.slug}`} class="group flex items-center gap-2 text-sm font-medium text-brand hover:gap-3 transition-all mb-2">
+                <Icon name="layers" class="w-4 h-4 shrink-0" />
+                Ver página del subsistema →
+              </a>
+              <p class="text-[11px] font-mono uppercase tracking-widest text-text-muted">Experimentos del subsistema</p>
               {s.articulos.map((a) => (
-                <a href={`/granja/bitacora/${a.slug}`} class="group flex items-center gap-2 text-sm text-text-secondary hover:text-brand transition-colors">
+                <a href={`/granja/experimentos/${a.slug}`} class="group flex items-center gap-2 text-sm text-text-secondary hover:text-brand transition-colors">
                   <Icon name="file-text" class="w-4 h-4 text-text-muted group-hover:text-brand transition-colors shrink-0" />
                   <span class="line-clamp-1">{a.titulo}</span>
                 </a>
@@ -143,15 +168,15 @@ const subsistemas = [
         <SectionHeader
           label="Conócelo en persona"
           title="El sistema se entiende caminándolo"
-          subtitle="Agenda una visita guiada y recorre cada subsistema en funcionamiento, o prueba lo que produce en la tienda."
+          subtitle="Agenda una visita guiada y recorre cada subsistema en funcionamiento, o explora los servicios derivados del laboratorio vivo."
           align="center"
         />
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="/granja/visitas" class="inline-flex items-center justify-center gap-2 bg-brand text-white rounded-full px-8 py-4 font-medium hover:bg-brand-light hover:scale-[1.02] transition-all">
             Reservar visita guiada →
           </a>
-          <a href="/granja/tienda" class="inline-flex items-center justify-center gap-2 border border-border rounded-full px-8 py-4 font-medium text-text-primary hover:border-brand hover:text-brand transition-all">
-            Ir a la tienda
+          <a href="/granja/servicios" class="inline-flex items-center justify-center gap-2 border border-border rounded-full px-8 py-4 font-medium text-text-primary hover:border-brand hover:text-brand transition-all">
+            Ver servicios
           </a>
         </div>
       </div>

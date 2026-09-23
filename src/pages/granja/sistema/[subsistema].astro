@@ -1,0 +1,260 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { getExperimentosBySubsistema, formatFecha } from '@/lib/granja-experimentos';
+import type { Experimento } from '@/lib/granja-experimentos';
+import { getBrand } from '@/config/brands';
+
+const brand = getBrand('granja')!;
+
+// ── Subsystem registry (aligned with doc: 6 subsistemas) ──
+const SUBSYSTEMS: Record<string, {
+  icon: string;
+  title: string;
+  description: string;
+  estado: string;
+  articulos: { titulo: string; slug: string }[];
+}> = {
+  'gestion-hidrica': {
+    icon: 'droplets',
+    title: 'Gestión hídrica',
+    description: 'Captación de agua lluvia, tratamiento y reutilización de aguas grises. El agua se gana con hábitos, no solo con infraestructura. Este subsistema busca operar en ciclo cerrado: cada litro que entra al predio se trata, se reutiliza y se mide.',
+    estado: 'operando',
+    articulos: [
+      { titulo: 'Gestión hídrica de ciclo cerrado', slug: 'gestion-hidrica' },
+    ],
+  },
+  'energia': {
+    icon: 'zap',
+    title: 'Energía',
+    description: 'Generación de energía para la granja. El sistema solar off-grid es la primera etapa, pero el subsistema no se limita a él: incluye dimensionamiento desde el consumo real, almacenamiento en baterías y el tablero que alimenta toda la granja.',
+    estado: 'operando',
+    articulos: [
+      { titulo: 'Sistema solar off-grid', slug: 'solar-offgrid' },
+    ],
+  },
+  'biorefineria-domestica': {
+    icon: 'flask-conical',
+    title: 'Bio-refinería doméstica',
+    description: 'Nada que sale se considera basura. Este subsistema agrupa compostaje, biodigestión y ciclos de nutrientes cerrados dentro del predio. Cada residuo orgánico se convierte en recurso para el agroecosistema.',
+    estado: 'construccion',
+    articulos: [
+      { titulo: 'La bio-refinería doméstica', slug: 'biorefineria-domestica' },
+      { titulo: 'Compostaje rural: cerrar el ciclo de nutrientes', slug: 'compostaje-rural-como-cerrar-el-ciclo-de-nutrientes-en-la-finca' },
+    ],
+  },
+  'agroecosistema-productivo': {
+    icon: 'sprout',
+    title: 'Agroecosistema productivo',
+    description: 'Tres formas de cultivar integradas: huerta intensiva, agroforestería y producción animal en sinergia. El agroecosistema es donde el agua, la energía y los nutrientes se convierten en alimento.',
+    estado: 'construccion',
+    articulos: [
+      { titulo: 'El agroecosistema productivo', slug: 'agroecosistema-productivo' },
+      { titulo: 'El cuaderno de campo', slug: 'cuaderno-campo' },
+    ],
+  },
+  'gemelo-digital': {
+    icon: 'cpu',
+    title: 'Gemelo digital',
+    description: 'Home Assistant, sensores ESP32 y edge computing rural: cada subsistema medido, registrado y trazable. Los datos alimentan las decisiones de manejo y los artículos de la bitácora.',
+    estado: 'operando',
+    articulos: [
+      { titulo: 'Home Assistant y el gemelo digital', slug: 'home-assistant' },
+      { titulo: 'Edge computing rural con ESP32', slug: 'edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable' },
+      { titulo: 'ESG sin greenwashing', slug: 'esg-sin-greenwashing' },
+    ],
+  },
+  'bioarquitectura': {
+    icon: 'home',
+    title: 'Bioarquitectura',
+    description: 'Materiales no convencionales, técnicas de bioconstrucción, climatización pasiva, control de olores y ruido, neuroarquitectura y permacultura arquitectónica. Construcción adaptada al terreno y confort sin consumo energético adicional.',
+    estado: 'diseno',
+    articulos: [
+      { titulo: 'Bioarquitectura en pendiente y en plano', slug: 'bioarquitectura-terrenos' },
+      { titulo: 'Climatización pasiva y gestión de olores', slug: 'climatizacion-olores' },
+    ],
+  },
+};
+
+const estadoConfig: Record<string, { label: string; class: string }> = {
+  idea: { label: 'Idea', class: 'bg-gray-100 text-gray-600' },
+  diseno: { label: 'Diseño', class: 'bg-blue-100 text-blue-700' },
+  construccion: { label: 'En construcción', class: 'bg-amber-100 text-amber-700' },
+  operando: { label: 'Operando', class: 'bg-emerald-100 text-emerald-700' },
+};
+
+// ── Resolve current subsystem ──
+const { subsistema: slug } = Astro.params;
+const subsystem = slug ? SUBSYSTEMS[slug] : undefined;
+
+if (!subsystem) {
+  return Astro.redirect('/granja/sistema');
+}
+
+// Fetch experiments for this subsystem
+const experiments = await getExperimentosBySubsistema(slug, { pageSize: 20 });
+
+// Also resolve linked articles by slug (from hardcoded references) for fallback
+const { data: allArticles } = await import('@/lib/bitacora').then(m => m.getBitacoraByMarca('granja' as any, { pageSize: 100 }));
+const articleMap = new Map<string, any>();
+allArticles.forEach((a: any) => articleMap.set(a.slug, a));
+const linkedArticles = subsystem.articulos
+  .map((ref) => articleMap.get(ref.slug) || null)
+  .filter((a: any) => a !== null);
+
+// Other subsystems for cross-navigation
+const otherSubsystems = Object.entries(SUBSYSTEMS)
+  .filter(([key]) => key !== slug)
+  .map(([key, s]) => ({ slug: key, ...s }));
+
+const estado = estadoConfig[subsystem.estado];
+const pageTitle = `${subsystem.title} · El Sistema · Iwagé Granja`;
+const pageDesc = `${subsystem.description} Estado: ${estado.label}. Experimentos documentados en el laboratorio vivo.`;
+---
+
+<BrandLayout brand="granja" title={pageTitle} description={pageDesc}>
+  <!-- Hero -->
+  <section class="bg-surface pt-12 pb-8">
+    <div class="max-w-4xl mx-auto px-6">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 flex items-center gap-2 text-sm text-text-muted">
+        <a href="/granja/" class="hover:text-brand transition-colors">Inicio</a>
+        <span>/</span>
+        <a href="/granja/sistema" class="hover:text-brand transition-colors">El sistema</a>
+        <span>/</span>
+        <span class="text-text-secondary">{subsystem.title}</span>
+      </nav>
+
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-14 h-14 rounded-xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
+          <Icon name={subsystem.icon} class="w-7 h-7" />
+        </div>
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-text-primary">{subsystem.title}</h1>
+            <span class={`inline-block text-xs font-bold uppercase tracking-wide rounded-full px-3 py-1 ${estado.class}`}>
+              {estado.label}
+            </span>
+          </div>
+          <p class="text-lg text-text-secondary leading-relaxed">{subsystem.description}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experiment fichas -->
+  <Section>
+    <SectionHeader
+      label="Laboratorio Vivo"
+      title={`Experimentos de ${subsystem.title.toLowerCase()}`}
+      subtitle={`Fichas abiertas: origen, proceso y resultado de cada experimento en ${subsystem.title.toLowerCase()}.`}
+    />
+
+    {experiments.length > 0 ? (
+      <div class="space-y-6">
+        {experiments.map((exp, i) => (
+          <ScrollReveal delay={i * 80}>
+            <a href={`/granja/experimentos/${exp.slug}`} class="group block bg-surface-raised rounded-2xl border border-border p-6 md:p-8 shadow-sm hover:shadow-md hover:border-brand/30 transition-all">
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-brand-muted flex items-center justify-center text-brand shrink-0">
+                    <Icon name="flask-conical" class="w-5 h-5" />
+                  </div>
+                  <h3 class="text-lg font-semibold text-text-primary group-hover:text-brand transition-colors">{exp.titulo}</h3>
+                </div>
+              </div>
+              {exp.extracto && (
+                <p class="text-sm text-text-secondary leading-relaxed mb-4">{exp.extracto}</p>
+              )}
+              <div class="flex items-center gap-4 text-xs text-text-muted">
+                {exp.fecha && <time>{formatFecha(exp.fecha)}</time>}
+                {exp.tiempo_lectura && <span>{exp.tiempo_lectura} min lectura</span>}
+                <span class="ml-auto text-brand font-medium group-hover:gap-2 inline-flex items-center gap-1 transition-all">
+                  Leer ficha →
+                </span>
+              </div>
+            </a>
+          </ScrollReveal>
+        ))}
+      </div>
+    ) : linkedArticles.length > 0 ? (
+      <div class="space-y-6">
+        {linkedArticles.map((article: any, i: number) => (
+          <ScrollReveal delay={i * 80}>
+            <a href={`/granja/experimentos/${article.slug}`} class="group block bg-surface-raised rounded-2xl border border-border p-6 md:p-8 shadow-sm hover:shadow-md hover:border-brand/30 transition-all">
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-brand-muted flex items-center justify-center text-brand shrink-0">
+                    <Icon name="file-text" class="w-5 h-5" />
+                  </div>
+                  <h3 class="text-lg font-semibold text-text-primary group-hover:text-brand transition-colors">{article.titulo}</h3>
+                </div>
+                {article.categoria && (
+                  <span class="hidden sm:inline-block bg-brand-muted text-brand text-xs font-medium rounded-full px-2.5 py-0.5 shrink-0">
+                    {article.categoria}
+                  </span>
+                )}
+              </div>
+              {article.extracto && (
+                <p class="text-sm text-text-secondary leading-relaxed mb-4">{article.extracto}</p>
+              )}
+              <div class="flex items-center gap-4 text-xs text-text-muted">
+                {article.fecha && <time>{formatFecha(article.fecha)}</time>}
+                {article.tiempo_lectura && <span>{article.tiempo_lectura} min lectura</span>}
+                <span class="ml-auto text-brand font-medium group-hover:gap-2 inline-flex items-center gap-1 transition-all">
+                  Leer ficha →
+                </span>
+              </div>
+            </a>
+          </ScrollReveal>
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-12 bg-surface-raised rounded-2xl border border-border">
+        <Icon name="file-text" class="w-10 h-10 block mx-auto mb-4 text-text-muted" />
+        <p class="text-text-secondary mb-2">Aún no hay fichas de experimento documentadas para este subsistema.</p>
+        <p class="text-sm text-text-muted">La documentación se publicará en la bitácora conforme avance el experimento.</p>
+      </div>
+    )}
+  </Section>
+
+  <!-- Other subsystems -->
+  <Section bg="sunken" class="!py-12">
+    <ScrollReveal>
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6 text-center">Otros subsistemas</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {otherSubsystems.map((s) => (
+          <a href={`/granja/sistema/${s.slug}`} class="group flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-brand/30 hover:bg-surface-raised transition-all text-center h-full">
+            <div class="w-10 h-10 rounded-lg bg-brand-muted flex items-center justify-center text-brand group-hover:bg-brand group-hover:text-white transition-colors">
+              <Icon name={s.icon} class="w-5 h-5" />
+            </div>
+            <span class="text-sm font-medium text-text-primary group-hover:text-brand transition-colors leading-tight">{s.title}</span>
+            <span class={`inline-block text-[9px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${estadoConfig[s.estado].class}`}>
+              {estadoConfig[s.estado].label}
+            </span>
+          </a>
+        ))}
+      </div>
+    </ScrollReveal>
+  </Section>
+
+  <!-- CTA -->
+  <Section class="!py-12">
+    <ScrollReveal>
+      <div class="text-center max-w-xl mx-auto">
+        <p class="text-text-secondary mb-6">Conoce cada subsistema en funcionamiento con una visita guiada por la granja.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/granja/visitas" class="inline-flex items-center justify-center gap-2 bg-brand text-white rounded-full px-8 py-4 font-medium hover:bg-brand-light hover:scale-[1.02] transition-all">
+            Reservar visita guiada →
+          </a>
+          <a href="/granja/sistema" class="inline-flex items-center justify-center gap-2 border border-border rounded-full px-8 py-4 font-medium text-text-primary hover:border-brand hover:text-brand transition-all">
+            Ver el mapa completo
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

@@ -13,6 +13,7 @@ import {
 
 const RESERVAS_API = import.meta.env.PUBLIC_RESERVAS_API || '';
 const WHATSAPP = '573026693366';
+const REUTILABLE_KEY = 'iwage_reutilizable';
 
 const BRAND_LABELS: Record<string, string> = {
   iwage_meliponas: 'Meliponas',
@@ -108,19 +109,37 @@ export default function UnifiedCart() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OrdenResponse | null>(null);
+  const [reutilizable, setReutilizable] = useState(() => {
+    try { return localStorage.getItem(REUTILABLE_KEY) === '1'; } catch { return false; }
+  });
 
   const refresh = useCallback(() => setItems(getCart()), []);
 
   useEffect(() => {
     refresh();
     const handler = () => refresh();
+    // Cualquier CTA de la página puede abrir el carrito despachando este evento.
+    const openCartHandler = () => setOpen(true);
     window.addEventListener(CART_EVENT, handler);
-    return () => window.removeEventListener(CART_EVENT, handler);
+    window.addEventListener('iwage:open-cart', openCartHandler);
+    return () => {
+      window.removeEventListener(CART_EVENT, handler);
+      window.removeEventListener('iwage:open-cart', openCartHandler);
+    };
   }, [refresh]);
 
   const count = getCount(items);
   const total = getTotal(items);
   const hasPaidItems = items.some((i) => i.requiere_pago);
+
+  // Descuento reutilizable: 15% en bebidas del café
+  const eligibleItems = items.filter(i =>
+    (i.brand === 'cafe' || i.origen === 'iwage_cafe') && i.tipo === 'pedido_cafe' && i.requiere_pago
+  );
+  const descuentoReutilizable = reutilizable
+    ? Math.round(eligibleItems.reduce((s, i) => s + i.precio * i.cantidad, 0) * 0.15)
+    : 0;
+  const totalConDescuento = total - descuentoReutilizable;
 
   // Group items by brand for display
   const groups = items.reduce<Record<string, CartItem[]>>((acc, item) => {
@@ -144,7 +163,7 @@ export default function UnifiedCart() {
           i.requiere_pago ? formatCOP(i.precio * i.cantidad) : 'Gratis'
         }`
     );
-    const msg = `¡Hola Iwagé! Quiero hacer un pedido:\n\n${lines.join('\n')}\n\nTotal: ${formatCOP(total)}`;
+    const msg = `¡Hola Iwagé! Quiero hacer un pedido:\n\n${lines.join('\n')}\n\nTotal: ${formatCOP(totalConDescuento)}${descuentoReutilizable > 0 ? ` (incluye 15% desc. vaso reutilizable: -${formatCOP(descuentoReutilizable)})` : ''}`;
     return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
   };
 
@@ -174,6 +193,7 @@ export default function UnifiedCart() {
         })),
         metodo_pago: hasPaidItems ? metodoPago : undefined,
         origen_url: typeof window !== 'undefined' ? window.location.href : undefined,
+        descuento_reutilizable: descuentoReutilizable > 0 ? descuentoReutilizable : undefined,
       };
 
       const res = await fetch(`${RESERVAS_API}/api/ordenes`, {
@@ -272,7 +292,7 @@ export default function UnifiedCart() {
               </span>
             </span>
             <span className="text-base font-bold">
-              {total > 0 ? formatCOP(total) : `${count} item(s)`}
+              {totalConDescuento > 0 ? formatCOP(totalConDescuento) : `${count} item(s)`}
             </span>
             <span className="text-sm font-semibold opacity-90 border-l border-white/30 pl-3">
               {hasPaidItems ? 'Pagar' : 'Ver itinerario'}
@@ -369,6 +389,36 @@ export default function UnifiedCart() {
                   <span className="text-lg font-bold text-text-primary">{formatCOP(total)}</span>
                 </div>
 
+                {/* Trae tu reutilizable — 15% desc. en bebidas */}
+                {eligibleItems.length > 0 && (
+                  <label className="flex items-center gap-3 cursor-pointer group p-2.5 rounded-xl bg-surface-sunken hover:bg-surface-sunken/80 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={reutilizable}
+                      onChange={() => {
+                        const next = !reutilizable;
+                        setReutilizable(next);
+                        try { localStorage.setItem(REUTILABLE_KEY, next ? '1' : '0'); } catch {}
+                      }}
+                      className="w-4 h-4 accent-[#52B788] shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-text-primary leading-snug">Traje mi vaso/taza reutilizable</p>
+                      <p className="text-[11px] text-text-muted leading-snug">15% de descuento en bebidas del café</p>
+                    </div>
+                    {descuentoReutilizable > 0 && (
+                      <span className="text-sm font-bold text-brand shrink-0">-{formatCOP(descuentoReutilizable)}</span>
+                    )}
+                  </label>
+                )}
+
+                {descuentoReutilizable > 0 && (
+                  <div className="flex justify-between items-center pt-1">
+                    <span className="text-sm font-medium text-brand">Total con descuento</span>
+                    <span className="text-lg font-bold text-brand">{formatCOP(totalConDescuento)}</span>
+                  </div>
+                )}
+
                 {!checkout ? (
                   <div className="space-y-2">
                     <button
@@ -449,8 +499,8 @@ export default function UnifiedCart() {
                         ? 'Procesando...'
                         : hasPaidItems
                         ? metodoPago === 'en_sitio'
-                          ? `Reservar ${formatCOP(total)} (pago en el sitio)`
-                          : `Pagar ${formatCOP(total)}`
+                          ? `Reservar ${formatCOP(totalConDescuento)} (pago en el sitio)`
+                          : `Pagar ${formatCOP(totalConDescuento)}`
                         : 'Confirmar itinerario'}
                     </button>
                     <button

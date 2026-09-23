@@ -6,6 +6,7 @@ import Icon from '@/components/shared/Icon.astro';
 const CATEGORIES = [
   { id: 'todos', label: 'Todos', icon: 'clipboard-list' },
   { id: 'visitas', label: 'Visitas', icon: 'map-pin' },
+  { id: 'servicios', label: 'Servicios', icon: 'presentation' },
   { id: 'productos', label: 'Productos', icon: 'sprout' },
   { id: 'sistema', label: 'El sistema', icon: 'cpu' },
   { id: 'replicar', label: 'Replicar', icon: 'book-open' },
@@ -22,6 +23,10 @@ const FAQS = [
   { pregunta: '¿La granja está 100% desconectada de las redes?', respuesta: 'La energía es 100% solar off-grid y el agua opera en ciclo cerrado con captación de lluvia. El sistema está en construcción por fases: la bitácora documenta qué está operando y qué viene en camino.', categoria: 'sistema' },
   { pregunta: '¿Puedo replicar este modelo en mi predio?', respuesta: 'Ese es el propósito de documentar todo en abierto. Empieza por el artículo ancla del sistema en la bitácora, que enlaza las guías de cada subsistema con costos y aprendizajes reales. Si necesitas acompañamiento, escríbenos.', categoria: 'replicar' },
   { pregunta: '¿Publican los costos reales del proyecto?', respuesta: 'Sí. La bitácora incluye el modelo financiero de la granja peri-urbana, la estrategia de financiación por fases y análisis de viabilidad técnica y económica con números reales, no estimaciones de catálogo.', categoria: 'replicar' },
+  { pregunta: '¿Qué servicios ofrece la granja?', respuesta: 'Los servicios se derivan de experimentos validados en campo, en orden de madurez: visita guiada (disponible), taller puntual (próximamente), servicio de implementación (próximamente) y curso estructurado (futuro). Cada servicio requiere que el experimento detrás haya sido validado de forma consistente.', categoria: 'servicios' },
+  { pregunta: '¿Cuándo estarán disponibles los talleres?', respuesta: 'Los talleres se activan cuando al menos un experimento del subsistema tiene resultados repetibles documentados en la bitácora. Puedes registrar tu interés desde /granja/servicios y te avisaremos cuando haya fecha confirmada.', categoria: 'servicios' },
+  { pregunta: '¿Puedo contratar acompañamiento para replicar el sistema en mi predio?', respuesta: 'El servicio de implementación se activará cuando haya al menos un subsistema completamente validado y documentado. Mientras tanto, puedes empezar por la visita guiada para conocer el sistema en persona, o escribirnos por contacto para evaluar tu caso.', categoria: 'servicios' },
+  { pregunta: '¿Habrá cursos estructurados?', respuesta: 'Sí, cuando existan al menos 3 talleres con demanda recurrente se consolidarán en un curso estructurado. Es el modelo de Milkwood y Wheaton Labs. El archivo de la bitácora es el activo que sostendrá el curso.', categoria: 'servicios' },
 ];
 
 // FAQPage schema for rich snippets

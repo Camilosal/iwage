@@ -1,74 +1,104 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const RECETAS_URL = 'https://recetas.iwage.co';
+
+const hero = await getHeroBySlug('/cafe/recetas');
 ---
 
-<BrandLayout brand="cafe" title="Recetas · Café Iwagé" description="Recetario digital de Café Iwagé: preparaciones, métodos de extracción y experimentos con café de origen del corredor Ambalá.">
-  <!-- Header compacto -->
-  <section class="bg-dark-bg text-dark-text">
-    <div class="max-w-6xl mx-auto px-6 py-8 md:py-10 text-center">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-2">Café Iwagé</p>
-      <h1 class="text-2xl md:text-3xl font-bold tracking-tight font-display">Recetas</h1>
-      <p class="mt-3 text-dark-text/60 max-w-xl mx-auto text-sm md:text-base">
-        Nuestro recetario digital: métodos de extracción, preparaciones y experimentos para sacarle todo al café de origen.
-      </p>
-    </div>
-  </section>
+<BrandLayout brand="cafe" title="Recetario · Café Iwagé" description="Recetario digital de Café Iwagé: métodos de extracción, preparaciones, maridajes y experimentos con café de origen del corredor Ambalá, Ibagué.">
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Café Iwagé"
+    />
+  ) : (
+    <header class="bg-dark-bg text-dark-text">
+      <div class="max-w-4xl mx-auto px-6 py-12 md:py-16 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Café Iwagé</p>
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Recetario</h1>
+        <p class="mt-4 text-dark-text/60 max-w-xl mx-auto text-base md:text-lg leading-relaxed">
+          Métodos de extracción, preparaciones y experimentos para sacarle todo al café de origen. Una guía interactiva con recetas paso a paso, variables de molienda, ratios y tiempos.
+        </p>
+      </div>
+    </header>
+  )}
 
-  <!-- Web-app de recetas incrustada -->
+  <!-- CTA principal -->
   <section class="bg-surface">
-    <div class="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
-      <div id="recetas-wrapper" class="relative w-full overflow-hidden rounded-2xl border border-border bg-white shadow-sm" style="height: min(88vh, 1000px); min-height: 600px;">
-        <!-- Estado de carga -->
-        <div id="recetas-loading" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-surface">
-          <Icon name="book-open" class="w-10 h-10 animate-pulse text-brand" />
-          <div class="flex items-center gap-2 text-sm text-text-secondary">
-            <Icon name="loader-circle" class="w-4 h-4 animate-spin text-accent" />
-            Cargando el recetario…
+    <div class="max-w-4xl mx-auto px-6 py-10 md:py-14">
+      <div class="bg-surface-raised rounded-2xl border border-border p-8 md:p-12 text-center">
+        <div class="flex justify-center mb-5">
+          <div class="w-16 h-16 rounded-2xl bg-brand/10 flex items-center justify-center">
+            <Icon name="book-open" class="w-8 h-8 text-brand" />
           </div>
         </div>
-
-        <iframe
-          id="recetas-frame"
-          src={RECETAS_URL}
-          title="Recetas · Café Iwagé"
-          class="absolute inset-0 h-full w-full border-0"
-          allow="clipboard-write"
-          referrerpolicy="strict-origin-when-cross-origin"
-          loading="eager"
-        ></iframe>
-      </div>
-
-      <!-- Fallback si el navegador bloquea el marco -->
-      <div class="mt-4 flex flex-col items-center gap-2 text-center">
-        <p class="text-xs text-text-muted">
-          ¿No carga el recetario?
-          <a href={RECETAS_URL} target="_blank" rel="noopener" class="text-brand font-medium underline underline-offset-2 hover:text-accent transition-colors">
-            Ábrelo en una pestaña nueva
-          </a>
+        <h2 class="text-xl md:text-2xl font-bold font-display text-text-primary mb-3">
+          Explora el recetario interactivo
+        </h2>
+        <p class="text-text-secondary max-w-lg mx-auto mb-8 text-sm md:text-base leading-relaxed">
+          Filtrados, espresso, horno, chocolates, tés y bebidas frías. Cada receta incluye pasos detallados, variables de preparación y accesorios necesarios. Disponible como web-app independiente.
+        </p>
+        <a
+          href={RECETAS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2.5 bg-brand text-white font-semibold rounded-full px-8 py-3.5 text-sm md:text-base hover:bg-brand-light transition-colors shadow-sm"
+        >
+          <Icon name="book-open" class="w-5 h-5" />
+          Abrir recetario
+          <Icon name="external-link" class="w-4 h-4 opacity-60" />
+        </a>
+        <p class="mt-4 text-xs text-text-muted">
+          Se abre en una pestaña nueva · recetas.iwage.co
         </p>
       </div>
     </div>
   </section>
-</BrandLayout>
 
-<script>
-  // Ocultar el estado de carga cuando la web-app termine de cargar
-  const frame = document.getElementById('recetas-frame') as HTMLIFrameElement | null;
-  const loading = document.getElementById('recetas-loading');
-  if (frame && loading) {
-    frame.addEventListener('load', () => {
-      loading.classList.add('opacity-0', 'pointer-events-none', 'transition-opacity', 'duration-300');
-      setTimeout(() => loading.remove(), 350);
-    });
-    // Red de seguridad: si a los 12s no ha cargado, se muestra igual el marco
-    setTimeout(() => {
-      if (document.body.contains(loading)) {
-        loading.classList.add('opacity-0', 'pointer-events-none', 'transition-opacity', 'duration-300');
-        setTimeout(() => loading.remove(), 350);
-      }
-    }, 12000);
-  }
-</script>
+  <!-- Categorías destacadas -->
+  <section class="bg-surface-sunken">
+    <div class="max-w-4xl mx-auto px-6 py-10 md:py-12">
+      <h2 class="text-lg md:text-xl font-bold font-display text-text-primary text-center mb-8">
+        Categorías disponibles
+      </h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {[
+          { icon: 'cup-soda', label: 'Filtrados', desc: 'V60, Chemex, Prensa Francesa' },
+          { icon: 'coffee', label: 'Espresso', desc: 'Máquina de espresso clásica' },
+          { icon: 'cake-slice', label: 'Panadería', desc: 'Recetas de horno con café' },
+          { icon: 'candy', label: 'Chocolates', desc: 'Cacao y origen' },
+          { icon: 'leaf', label: 'Té y Aromáticas', desc: 'Infusiones y blends' },
+          { icon: 'glass-water', label: 'Bebidas Frías', desc: 'Cold brew, frappés, tónicos' },
+        ].map((cat) => (
+          <div class="bg-surface-raised rounded-xl border border-border p-4 md:p-5">
+            <Icon name={cat.icon} class="w-6 h-6 text-accent mb-2" />
+            <p class="font-semibold text-text-primary text-sm">{cat.label}</p>
+            <p class="text-xs text-text-muted mt-1">{cat.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="text-center mt-8">
+        <a
+          href={RECETAS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 text-brand font-medium text-sm hover:text-accent transition-colors"
+        >
+          Ver todas las recetas
+          <Icon name="arrow-right" class="w-4 h-4" />
+        </a>
+      </div>
+    </div>
+  </section>
+</BrandLayout>

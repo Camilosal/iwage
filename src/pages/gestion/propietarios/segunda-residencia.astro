@@ -1,27 +1,44 @@
 ---
-export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
+
+const hero = await getHeroBySlug('/gestion/propietarios/segunda-residencia');
 ---
 
 <BrandLayout brand="gestion" title="Segunda Residencia · Iwagé Gestión" description="Administración de segunda residencia campestre en el Tolima. Mantenimiento preventivo, supervisión de personal, informes fotográficos mensuales. Tu refugio siempre impecable.">
 
   <!-- Banner -->
   <div class="bg-[#52B788]/10 border-b border-[#52B788]/20 px-4 py-3 text-center">
-    <p class="text-sm text-[#122640]">Conoce las residencias que supervisamos → <a href="/gestion/propiedades?tipo=segunda_residencia" class="font-bold text-[#2d5a8f] underline hover:text-[#52B788]">Ver portafolio</a></p>
+    <p class="text-sm text-[#122640]">Conoce las residencias que supervisamos → <a href="/gestion/alojamientos?tipo=segunda_residencia" class="font-bold text-[#2d5a8f] underline hover:text-[#52B788]">Ver portafolio</a></p>
   </div>
 
-  <section class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
-    <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1600&q=80" alt="Casa campestre segunda residencia" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
-    <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
-    <div class="relative z-10 max-w-6xl mx-auto px-4">
-      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Segunda Residencia</span>
-      <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
-        Tu refugio, <span class="font-serif italic text-[#52B788]">siempre impecable.</span>
-      </h1>
-      <p class="text-xl text-white/70 max-w-2xl">Tranquilidad absoluta para propietarios ausentes. Supervisamos que tu casa campestre esté segura, mantenida y lista para cuando llegues.</p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Segunda Residencia"
+      align="left"
+    />
+  ) : (
+    <header class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
+      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1600&q=80" alt="Casa campestre segunda residencia" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
+      <div class="relative z-10 max-w-6xl mx-auto px-4">
+        <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Segunda Residencia</span>
+        <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
+          Tu refugio, <span class="font-serif italic text-[#52B788]">siempre impecable.</span>
+        </h1>
+        <p class="text-xl text-white/70 max-w-2xl">Tranquilidad absoluta para propietarios ausentes. Supervisamos que tu casa campestre esté segura, mantenida y lista para cuando llegues.</p>
+      </div>
+    </header>
+  )}
 
   <section class="py-16 px-4 bg-[#f8f9fb]">
     <div class="max-w-5xl mx-auto">

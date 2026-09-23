@@ -3,6 +3,8 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getExperiencias, experienciaImagen, formatPrecioCOP, dificultadInfo, CATEGORIAS, TIPOS_EXPERIENCIA } from '@/lib/naturaleza';
 import ExperienciasMap from '@/components/naturaleza/ExperienciasMap.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const url = new URL(Astro.request.url);
 const categoria = url.searchParams.get('categoria') || '';
@@ -25,6 +27,8 @@ const { data: experiencias, total, pageSize } = await getExperiencias({
 const totalPages = Math.ceil(total / pageSize);
 const activeFilters = [categoria, dificultad?.toString(), tipo, search].filter(Boolean).length;
 
+const hero = await getHeroBySlug('/naturaleza/experiencias');
+
 function buildUrl(overrides: Record<string, string>) {
   const params = new URLSearchParams(url.search);
   Object.entries(overrides).forEach(([k, v]) => {
@@ -36,14 +40,25 @@ function buildUrl(overrides: Record<string, string>) {
 ---
 
 <BrandLayout brand="naturaleza" title="Experiencias · Iwagé Naturaleza" description="Catálogo de experiencias de turismo regenerativo en el Tolima. Filtra por categoría, dificultad y ubicación.">
-
-  <!-- Header -->
-  <section class="pt-28 pb-8 px-4 bg-[#0e1a08]">
-    <div class="max-w-6xl mx-auto text-center">
-      <h1 class="text-4xl lg:text-5xl font-light text-white mb-4">Experiencias</h1>
-      <p class="text-white/60 max-w-xl mx-auto">Caminatas sensoriales, avistamiento, retiros y días de campo guiados por anfitriones locales.</p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Agencia de Turismo Rural · Tolima"
+    />
+  ) : (
+    <header class="pt-28 pb-8 px-4 bg-[#0e1a08]">
+      <div class="max-w-6xl mx-auto text-center">
+        <h1 class="text-4xl lg:text-5xl font-light text-white mb-4">Experiencias</h1>
+        <p class="text-white/60 max-w-xl mx-auto">Caminatas sensoriales, avistamiento, retiros y días de campo guiados por anfitriones locales.</p>
+      </div>
+    </header>
+  )}
 
   <!-- Filters -->
   <section class="sticky top-16 z-30 bg-[#f8faf5]/95 backdrop-blur border-b border-gray-200 py-4 px-4">

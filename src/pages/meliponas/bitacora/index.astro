@@ -3,6 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import BitacoraSidebar from '@/components/brand/BitacoraSidebar.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
+import { strapiImage } from '@/lib/strapi';
 import type { EntradaBitacora } from '@/lib/bitacora';
 
 const BRAND = 'meliponas';
@@ -61,31 +62,42 @@ function normalizeSearch(a: EntradaBitacora): string {
                 data-fecha={post.fecha || ''}
                 data-lectura={String(post.tiempo_lectura || 0)}
               >
-                <a href={`/${BRAND}/bitacora/${post.slug}`} class="block bg-surface-raised rounded-xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-brand/30 transition-all h-full">
-                  <div class="flex items-center gap-2 mb-3 flex-wrap">
-                    {post.destacado && (
-                      <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5">
-                        ★ Destacado
-                      </span>
-                    )}
-                    {post.categoria && (
-                      <span class="inline-block bg-brand-muted text-brand text-xs font-medium rounded-full px-2.5 py-0.5">
-                        {post.categoria}
-                      </span>
-                    )}
-                  </div>
-                  <h2 class="text-base font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors line-clamp-2">
-                    {post.titulo}
-                  </h2>
-                  <p class="text-sm text-text-secondary leading-relaxed mb-4 line-clamp-3">{post.extracto}</p>
-                  <div class="flex items-center gap-2 text-xs text-text-muted mt-auto">
-                    <span>{formatFecha(post.fecha)}</span>
-                    {post.tiempo_lectura && (
-                      <>
-                        <span class="w-1 h-1 rounded-full bg-text-muted"></span>
-                        <span>{post.tiempo_lectura} min</span>
-                      </>
-                    )}
+                <a href={`/${BRAND}/bitacora/${post.slug}`} class="block bg-surface-raised rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-brand/30 transition-all h-full overflow-hidden">
+                  {post.imagen ? (
+                    <div class="h-40 overflow-hidden">
+                      <img src={strapiImage(post.imagen)} alt={post.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                    </div>
+                  ) : (
+                    <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">
+                      <Icon name={ICON} class="w-8 h-8 opacity-40 text-brand" />
+                    </div>
+                  )}
+                  <div class="p-5">
+                    <div class="flex items-center gap-2 mb-3 flex-wrap">
+                      {post.destacado && (
+                        <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5">
+                          ★ Destacado
+                        </span>
+                      )}
+                      {post.categoria && (
+                        <span class="inline-block bg-brand-muted text-brand text-xs font-medium rounded-full px-2.5 py-0.5">
+                          {post.categoria}
+                        </span>
+                      )}
+                    </div>
+                    <h2 class="text-base font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors line-clamp-2">
+                      {post.titulo}
+                    </h2>
+                    <p class="text-sm text-text-secondary leading-relaxed mb-4 line-clamp-3">{post.extracto}</p>
+                    <div class="flex items-center gap-2 text-xs text-text-muted mt-auto">
+                      <span>{formatFecha(post.fecha)}</span>
+                      {post.tiempo_lectura && (
+                        <>
+                          <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+                          <span>{post.tiempo_lectura} min</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </a>
               </article>

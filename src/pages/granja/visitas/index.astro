@@ -5,6 +5,8 @@ import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
 import BookingWidget from '@/components/reservas/BookingWidget';
 import { getBrand } from '@/config/brands';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const brand = getBrand('granja')!;
 const waPhone = brand.whatsapp;
@@ -12,6 +14,8 @@ const waReservar = `https://wa.me/${waPhone}?text=${encodeURIComponent('Hola, qu
 
 const PRECIO_VISITA = 45000;
 const CUPO_MAXIMO = 10;
+
+const hero = await getHeroBySlug('/granja/visitas');
 
 const recorrido = [
   { icon: 'droplets', title: 'Gestión hídrica', desc: 'Captación de lluvia y ciclo cerrado de agua en operación.' },
@@ -47,18 +51,30 @@ const jsonLd = {
 >
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-  <!-- Hero -->
-  <section class="bg-surface pt-12 pb-8">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Visitas</p>
-      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text-primary mb-4">
-        Conoce el sistema en persona
-      </h1>
-      <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
-        Un recorrido guiado de ~2 horas por la granja autosustentable: verás cada subsistema funcionando, los datos en vivo del gemelo digital y probarás lo que produce el sistema.
-      </p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Granja Autosustentable · Tolima"
+    />
+  ) : (
+    <header class="bg-surface pt-12 pb-8">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Visitas</p>
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text-primary mb-4">
+          Conoce el sistema en persona
+        </h1>
+        <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+          Un recorrido guiado de ~2 horas por la granja autosustentable: verás cada subsistema funcionando, los datos en vivo del gemelo digital y probarás lo que produce el sistema.
+        </p>
+      </div>
+    </header>
+  )}
 
   <Section class="!pt-6">
     <div class="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
@@ -129,5 +145,39 @@ const jsonLd = {
         </div>
       </aside>
     </div>
+  </Section>
+
+  <!-- Service ladder: what comes after the visit -->
+  <Section bg="sunken" class="!py-12">
+    <ScrollReveal>
+      <div class="max-w-3xl mx-auto">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6 text-center">Después de la visita</p>
+        <p class="text-sm text-text-secondary text-center mb-8 max-w-xl mx-auto">
+          La visita guiada es el primer paso. Si te interesa profundizar, estos son los siguientes niveles de servicio que se derivan del laboratorio vivo:
+        </p>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div class="bg-surface-raised rounded-xl border border-border p-5 text-center">
+            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 text-sm font-bold mx-auto mb-3">2</div>
+            <h3 class="text-sm font-semibold text-text-primary mb-1">Taller puntual</h3>
+            <p class="text-xs text-text-secondary leading-relaxed">Sesión práctica sobre un experimento ya validado. Próximamente.</p>
+          </div>
+          <div class="bg-surface-raised rounded-xl border border-border p-5 text-center">
+            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 text-sm font-bold mx-auto mb-3">3</div>
+            <h3 class="text-sm font-semibold text-text-primary mb-1">Implementación</h3>
+            <p class="text-xs text-text-secondary leading-relaxed">Acompañamiento para replicar un subsistema en tu predio. Próximamente.</p>
+          </div>
+          <div class="bg-surface-raised rounded-xl border border-border p-5 text-center">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-sm font-bold mx-auto mb-3">4</div>
+            <h3 class="text-sm font-semibold text-text-primary mb-1">Curso estructurado</h3>
+            <p class="text-xs text-text-secondary leading-relaxed">Programa formativo con múltiples talleres consolidados. Futuro.</p>
+          </div>
+        </div>
+        <div class="text-center mt-6">
+          <a href="/granja/servicios" class="inline-flex items-center gap-2 text-brand font-medium text-sm hover:gap-3 transition-all">
+            Ver todos los servicios →
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
   </Section>
 </BrandLayout>

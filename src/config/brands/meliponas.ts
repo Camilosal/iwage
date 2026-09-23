@@ -3,8 +3,8 @@ import { SIMULADOR_URL, INTRANET_URL } from '../tools';
 
 export const meliponas: BrandConfig = {
   slug: 'meliponas',
-  name: 'Iwagé Meliponario',
-  tagline: 'Meliponario & Biotecnología Nativa',
+  name: 'Meliponario',
+  tagline: 'Miel Nativa & Biotecnología',
   colors: {
     brand: '#2d4a3e',
     brandLight: '#3d6354',

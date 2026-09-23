@@ -1,28 +1,44 @@
 ---
-export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
+
+const hero = await getHeroBySlug('/gestion/propietarios/renta-corta');
 ---
 
 <BrandLayout brand="gestion" title="Renta Corta (Airbnb) · Iwagé Gestión" description="Gestión integral de renta corta en Airbnb, Booking y Vrbo. Revenue management, hospitalidad 24/7, limpieza profesional. Tu propiedad generando ingresos sin esfuerzo.">
 
   <!-- Banner -->
   <div class="bg-[#52B788]/10 border-b border-[#52B788]/20 px-4 py-3 text-center">
-    <p class="text-sm text-[#122640]">Conoce las propiedades que operamos en renta corta → <a href="/gestion/propiedades?tipo=renta_corta" class="font-bold text-[#2d5a8f] underline hover:text-[#52B788]">Ver portafolio</a></p>
+    <p class="text-sm text-[#122640]">Conoce las propiedades que operamos en renta corta → <a href="/gestion/alojamientos?tipo=renta_corta" class="font-bold text-[#2d5a8f] underline hover:text-[#52B788]">Ver portafolio</a></p>
   </div>
 
-  <!-- Hero -->
-  <section class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
-    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80" alt="Propiedad de renta corta" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
-    <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
-    <div class="relative z-10 max-w-6xl mx-auto px-4">
-      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Renta Corta</span>
-      <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
-        Tu propiedad <span class="font-serif italic text-[#52B788]">generando ingresos.</span>
-      </h1>
-      <p class="text-xl text-white/70 max-w-2xl">Gestionamos tu Airbnb y plataformas de arriendo temporal. Tú recibes las utilidades, nosotros nos encargamos de todo lo demás.</p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Renta Corta"
+      align="left"
+    />
+  ) : (
+    <header class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
+      <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80" alt="Propiedad de renta corta" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
+      <div class="relative z-10 max-w-6xl mx-auto px-4">
+        <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Renta Corta</span>
+        <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
+          Tu propiedad <span class="font-serif italic text-[#52B788]">generando ingresos.</span>
+        </h1>
+        <p class="text-xl text-white/70 max-w-2xl">Gestionamos tu Airbnb y plataformas de arriendo temporal. Tú recibes las utilidades, nosotros nos encargamos de todo lo demás.</p>
+      </div>
+    </header>
+  )}
 
   <!-- Benefits -->
   <section class="py-16 px-4 bg-[#f8f9fb]">

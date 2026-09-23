@@ -63,8 +63,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     const llmResult = await callLLM(messages, {
       temperature: 0.7,
-      maxTokens: 400,
-      timeout: 20_000,
+      maxTokens: 2000,
+      timeout: 45_000,
     });
 
     const reply = llmResult.content || 'Disculpa, no pude procesar tu consulta. Intenta reformular tu pregunta.';

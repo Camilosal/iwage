@@ -1,7 +1,9 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
-export const prerender = true;
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
+
 
 const NIVELES = [
   {
@@ -93,29 +95,43 @@ const jsonLd = {
     acceptedAnswer: { '@type': 'Answer', text: `${n.descripcion} Esfuerzo: ${n.esfuerzo}. Duración: ${n.duracion}. Edad mínima: ${n.edad}.` },
   })),
 };
+
+const hero = await getHeroBySlug('/naturaleza/clasificacion');
 ---
 
 <BrandLayout brand="naturaleza" title="Clasificación de Dificultad · Iwagé Naturaleza" description="Sistema de 6 niveles de dificultad para experiencias de ecoturismo en el Tolima. Desde caminatas pasivas hasta alta montaña. Encuentra tu nivel ideal.">
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-  <!-- Hero -->
-  <section class="bg-[#0e1a08] text-white py-14 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-20 bg-gradient-to-br from-[#4a7c23]/30 to-transparent"></div>
-    <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
-      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#7bc74d] mb-3">Sistema de Clasificación</p>
-      <h1 class="text-3xl md:text-5xl font-light mb-4">6 Niveles de <span class="font-serif italic text-[#7bc74d]">Dificultad</span></h1>
-      <p class="text-white/60 max-w-xl mx-auto">Cada experiencia Iwagé está clasificada para que elijas con confianza. Desde contemplación pasiva hasta retos de alta montaña.</p>
-      
-      <!-- Level quick nav -->
-      <div class="flex flex-wrap justify-center gap-2 mt-8">
-        {NIVELES.map(n => (
-          <a href={`#nivel-${n.level}`} class="w-10 h-10 rounded-full flex items-center justify-center border border-white/20 hover:border-white/60 hover:scale-110 transition-all" title={`Nivel ${n.level}: ${n.nombre}`}>
-            <Icon name={n.icono} class="w-5 h-5" />
-          </a>
-        ))}
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Agencia de Turismo Rural · Tolima"
+    />
+  ) : (
+    <header class="bg-[#0e1a08] text-white py-14 relative overflow-hidden">
+      <div class="absolute inset-0 opacity-20 bg-gradient-to-br from-[#4a7c23]/30 to-transparent"></div>
+      <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#7bc74d] mb-3">Sistema de Clasificación</p>
+        <h1 class="text-3xl md:text-5xl font-light mb-4">6 Niveles de <span class="font-serif italic text-[#7bc74d]">Dificultad</span></h1>
+        <p class="text-white/60 max-w-xl mx-auto">Cada experiencia Iwagé está clasificada para que elijas con confianza. Desde contemplación pasiva hasta retos de alta montaña.</p>
+        
+        <!-- Level quick nav -->
+        <div class="flex flex-wrap justify-center gap-2 mt-8">
+          {NIVELES.map(n => (
+            <a href={`#nivel-${n.level}`} class="w-10 h-10 rounded-full flex items-center justify-center border border-white/20 hover:border-white/60 hover:scale-110 transition-all" title={`Nivel ${n.level}: ${n.nombre}`}>
+              <Icon name={n.icono} class="w-5 h-5" />
+            </a>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
+    </header>
+  )}
 
   <!-- Levels -->
   <section class="bg-[#FAFAF7] py-12">

@@ -1,7 +1,8 @@
 ---
-export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const TOOLS = [
   {
@@ -39,28 +40,41 @@ const STRATEGIC = [
   { label: 'Seguridad Jurídica', desc: 'Estudio exhaustivo de títulos para garantizar inversiones libres de riesgos legales.' },
   { label: 'Proyección Geo-Espacial', desc: 'Identificación de áreas con mayor potencial de valorización por infraestructura.' },
 ];
+
+const hero = await getHeroBySlug('/tierras/lab');
 ---
 
 <BrandLayout brand="tierras" title="Iwagé Lab & Data · Inteligencia Rural" description="Herramientas de precisión, análisis de retorno y datos de valorización en tiempo real para inversores inteligentes.">
-
-  <!-- Premium Hero -->
-  <section class="relative pt-28 pb-20 overflow-hidden bg-[#1A1E18]">
-    <div class="absolute inset-0 bg-gradient-to-br from-[#1A1E18]/95 via-[#1A1E18]/80 to-[#40916C]/20"></div>
-    <div class="max-w-6xl mx-auto px-6 relative z-10">
-      <div class="max-w-3xl">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-2 h-2 rounded-full bg-[#C8933E] animate-pulse"></div>
-          <span class="text-xs font-bold tracking-[0.4em] text-[#C8933E] uppercase">Iwagé Lab & Data</span>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Inmobiliaria Rural · Tolima"
+    />
+  ) : (
+    <header class="relative pt-28 pb-20 overflow-hidden bg-[#1A1E18]">
+      <div class="absolute inset-0 bg-gradient-to-br from-[#1A1E18]/95 via-[#1A1E18]/80 to-[#40916C]/20"></div>
+      <div class="max-w-6xl mx-auto px-6 relative z-10">
+        <div class="max-w-3xl">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-2 h-2 rounded-full bg-[#C8933E] animate-pulse"></div>
+            <span class="text-xs font-bold tracking-[0.4em] text-[#C8933E] uppercase">Iwagé Lab & Data</span>
+          </div>
+          <h1 class="text-4xl lg:text-6xl font-light text-white leading-tight mb-8">
+            Inteligencia <span class="font-serif italic text-[#C8933E]">Rural.</span>
+          </h1>
+          <p class="text-xl text-white/70 leading-relaxed max-w-2xl font-light">
+            Hemos digitalizado el campo del Tolima. Accede a herramientas de precisión, análisis de retorno y datos de valorización en tiempo real para inversores inteligentes.
+          </p>
         </div>
-        <h1 class="text-4xl lg:text-6xl font-light text-white leading-tight mb-8">
-          Inteligencia <span class="font-serif italic text-[#C8933E]">Rural.</span>
-        </h1>
-        <p class="text-xl text-white/70 leading-relaxed max-w-2xl font-light">
-          Hemos digitalizado el campo del Tolima. Accede a herramientas de precisión, análisis de retorno y datos de valorización en tiempo real para inversores inteligentes.
-        </p>
       </div>
-    </div>
-  </section>
+    </header>
+  )}
 
   <!-- Tools Grid -->
   <section class="py-16 px-6 bg-[#FAF8F5]">

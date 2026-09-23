@@ -5,6 +5,7 @@ import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
+import { SITE_METRICS } from '@/config/site-metrics';
 
 const valores = [
   { icon: 'leaf', title: 'Territorio', desc: 'Todo nace del piedemonte tolimense y su biodiversidad.' },
@@ -18,7 +19,7 @@ const timeline = [
   { year: '2022', event: 'Diseño del modelo INPA adaptado al nogal cafetero local.' },
   { year: '2023', event: 'Primer proyecto PRAE con colegio rural. 4 colmenas educativas.' },
   { year: '2024', event: 'Lanzamiento de la tienda y servicio de polinización gestionada.' },
-  { year: '2025', event: '120+ colmenas activas, 6 proyectos y trazabilidad por lote con QR.' },
+  { year: '2025', event: `${SITE_METRICS.colmenasActivas}+ ${SITE_METRICS.colmenasActivasLabel.toLowerCase()}, 6 proyectos y trazabilidad por lote con QR.` },
 ];
 
 const equipo = [

@@ -71,7 +71,7 @@ export default function BookingWidget({
 
   const handleAddToCart = () => {
     if (slots.length > 0 && !selectedSlot) {
-      setError('Selecciona un horario para agregar al carrito.');
+      setError('Selecciona un horario para agregar pedido.');
       return;
     }
     setError(null);
@@ -291,7 +291,7 @@ export default function BookingWidget({
         disabled={addedToCart}
         className="w-full rounded-lg bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-70"
       >
-        {addedToCart ? '✓ Agregado al carrito' : 'Agregar al carrito'}
+        {addedToCart ? '✓ Pedido agregado' : 'Agregar pedido'}
       </button>
 
       {/* Secondary: direct reservation + payment */}

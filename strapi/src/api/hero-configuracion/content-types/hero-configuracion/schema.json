@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "hero_configuracions",
+  "info": {
+    "singularName": "hero-configuracion",
+    "pluralName": "hero-configuracions",
+    "displayName": "Hero Configuración",
+    "description": "Hero sections para cada página del sitio. Una entrada por ruta."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "pagina": {
+      "type": "string",
+      "required": true,
+      "configurable": false
+    },
+    "slug_ruta": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "titulo": {
+      "type": "string",
+      "required": true
+    },
+    "subtitulo": {
+      "type": "text"
+    },
+    "imagen": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "cta_primario_texto": {
+      "type": "string"
+    },
+    "cta_primario_url": {
+      "type": "string"
+    },
+    "cta_secundario_texto": {
+      "type": "string"
+    },
+    "cta_secundario_url": {
+      "type": "string"
+    },
+    "color_overlay": {
+      "type": "string",
+      "default": "from-black/50 via-black/40 to-black/70"
+    },
+    "orden": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

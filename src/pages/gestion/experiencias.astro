@@ -1,9 +1,13 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 import { getExperienciasGestion, CATEGORIAS_EXPERIENCIA } from '@/lib/gestion';
 
 export const prerender = false;
+
+const hero = await getHeroBySlug('/gestion/experiencias');
 
 const url = new URL(Astro.request.url);
 const categoriaFilter = url.searchParams.get('categoria') || '';
@@ -17,20 +21,33 @@ function fmtPrecio(n: number): string {
 
 <BrandLayout brand="gestion" title="Experiencias de Territorio · Iwagé Gestión" description="Complementa tu alojamiento con experiencias de naturaleza, café, meliponas y territorio en el Tolima. Actividades guiadas por anfitriones locales.">
 
-  <!-- Hero -->
-  <section class="relative py-16 md:py-20 px-4 overflow-hidden bg-[#0c1520]">
-    <img src="https://images.unsplash.com/photo-1499696010180-025ef6e1a8f9?w=1600&q=80" alt="Experiencias de naturaleza en el Tolima" class="absolute inset-0 w-full h-full object-cover opacity-30" loading="eager" />
-    <div class="absolute inset-0 bg-gradient-to-t from-[#0c1520] via-[#0c1520]/60 to-transparent"></div>
-    <div class="relative z-10 max-w-5xl mx-auto text-center">
-      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Experiencias</span>
-      <h1 class="text-4xl lg:text-5xl font-light text-white mt-3 mb-4">
-        Complementa tu <span class="font-serif italic text-[#52B788]">estadía</span>
-      </h1>
-      <p class="text-white/60 max-w-xl mx-auto">
-        Nuestros alojamientos están conectados con experiencias de naturaleza, café y territorio. Vive el Tolima de forma auténtica.
-      </p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Experiencias"
+      align="center"
+    />
+  ) : (
+    <header class="relative py-16 md:py-20 px-4 overflow-hidden bg-[#0c1520]">
+      <img src="https://images.unsplash.com/photo-1499696010180-025ef6e1a8f9?w=1600&q=80" alt="Experiencias de naturaleza en el Tolima" class="absolute inset-0 w-full h-full object-cover opacity-30" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-t from-[#0c1520] via-[#0c1520]/60 to-transparent"></div>
+      <div class="relative z-10 max-w-5xl mx-auto text-center">
+        <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Experiencias</span>
+        <h1 class="text-4xl lg:text-5xl font-light text-white mt-3 mb-4">
+          Complementa tu <span class="font-serif italic text-[#52B788]">estadía</span>
+        </h1>
+        <p class="text-white/60 max-w-xl mx-auto">
+          Nuestros alojamientos están conectados con experiencias de naturaleza, café y territorio. Vive el Tolima de forma auténtica.
+        </p>
+      </div>
+    </header>
+  )}
 
   <!-- Filter chips: tipo de experiencia -->
   <section class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 py-4 px-4">

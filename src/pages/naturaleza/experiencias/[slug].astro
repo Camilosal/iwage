@@ -599,7 +599,7 @@ const jsonLd = {
                   {alojamientosRecomendados.map((pg) => {
                     const tipo = pg.tipo_alojamiento ? tipoAlojamientoInfo(pg.tipo_alojamiento) : null;
                     return (
-                      <a href={`/gestion/propiedades/${pg.slug}`} class="aloja-card block p-5 rounded-xl bg-white border border-gray-100 hover:border-[#4a7c23]/40 hover:shadow-md transition-all">
+                      <a href={`/gestion/alojamientos/${pg.slug}`} class="aloja-card block p-5 rounded-xl bg-white border border-gray-100 hover:border-[#4a7c23]/40 hover:shadow-md transition-all">
                         <div class="flex items-center gap-2 mb-3">
                           <span class="w-9 h-9 rounded-lg bg-[#4a7c23]/10 flex items-center justify-center shrink-0">
                             <Icon name={tipo?.icon || 'bed-double'} class="w-4 h-4 text-[#4a7c23]" />
@@ -651,7 +651,7 @@ const jsonLd = {
               ))}
               {/* Managed properties (Gestión) que no son alojamientos reservables */}
               {otrasGestion.map((pg) => (
-                <a href={`/gestion/propiedades/${pg.slug}`} class="eco-card block p-4 rounded-xl bg-white border border-gray-100 hover:border-[#2d5a8f]/30 hover:shadow-md transition-all">
+                <a href={`/gestion/alojamientos/${pg.slug}`} class="eco-card block p-4 rounded-xl bg-white border border-gray-100 hover:border-[#2d5a8f]/30 hover:shadow-md transition-all">
                   <div class="flex items-center gap-2 mb-2">
                     <span class="text-lg"><Icon name="key-round" class="w-5 h-5 text-[#2d5a8f]" /></span>
                     <span class="text-[9px] font-bold uppercase tracking-wider text-[#2d5a8f] bg-[#2d5a8f]/5 px-2 py-0.5 rounded-full">Gestionada · Gestión</span>

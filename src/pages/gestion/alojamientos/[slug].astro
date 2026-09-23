@@ -20,7 +20,7 @@ const { slug } = Astro.params;
 const prop = await getPropiedadGestionBySlug(slug!);
 
 if (!prop) {
-  return Astro.redirect('/gestion/propiedades');
+  return Astro.redirect('/gestion/alojamientos');
 }
 
 // Fechas y huéspedes propagados desde la búsqueda (pre-llenan el widget)
@@ -50,7 +50,7 @@ const lodgingJsonLd = {
   '@type': 'LodgingBusiness',
   name: prop.titulo,
   description: description,
-  url: `https://iwage.co/gestion/propiedades/${prop.slug}`,
+  url: `https://iwage.co/gestion/alojamientos/${prop.slug}`,
   address: {
     '@type': 'PostalAddress',
     addressLocality: prop.ubicacion_municipio || 'Ibagué',
@@ -76,7 +76,7 @@ const lodgingJsonLd = {
     <div class="max-w-6xl mx-auto flex items-center gap-2 text-xs text-gray-400">
       <a href="/gestion" class="hover:text-[#52B788]">Gestión</a>
       <span>/</span>
-      <a href="/gestion/propiedades" class="hover:text-[#52B788]">Propiedades</a>
+      <a href="/gestion/alojamientos" class="hover:text-[#52B788]">Alojamientos</a>
       <span>/</span>
       <span class="text-[#122640] font-medium">{prop.titulo}</span>
     </div>

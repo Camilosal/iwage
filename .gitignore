@@ -26,3 +26,7 @@ pnpm-debug.log*
 
 # qoder IDE
 .qoder/
+
+# capturas de depuración en la raíz y originales sin procesar (el sitio sirve .webp)
+/*.png
+public/images/cafe-menu/*.png

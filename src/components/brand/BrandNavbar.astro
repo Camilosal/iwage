@@ -17,15 +17,15 @@ function isActive(href: string): boolean {
 ---
 
 <header class="sticky top-0 z-50 border-b border-border bg-surface/90 backdrop-blur-md">
-  <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+  <nav class="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 py-3">
     <!-- Brand logo -->
-    <a href={`/${brand.slug}/`} class="flex items-center gap-3 group">
-      <Icon name={brand.icon} class="w-7 h-7 text-brand" />
-      <div class="flex flex-col">
-        <span class="font-bold tracking-wide text-text-primary group-hover:text-brand transition-colors">
+    <a href={`/${brand.slug}/`} class="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
+      <Icon name={brand.icon} class="w-6 h-6 sm:w-7 sm:h-7 text-brand shrink-0" />
+      <div class="flex flex-col min-w-0">
+        <span class="font-bold tracking-wide text-text-primary group-hover:text-brand transition-colors text-sm sm:text-base leading-tight truncate">
           {brand.name}
         </span>
-        <span class="font-mono text-[9px] uppercase tracking-widest text-text-muted">
+        <span class="font-mono text-[9px] uppercase tracking-wider text-text-muted leading-tight truncate max-w-[130px] sm:max-w-none">
           {brand.tagline}
         </span>
       </div>
@@ -88,7 +88,7 @@ function isActive(href: string): boolean {
     </div>
 
     <!-- Icon actions + Mobile toggle -->
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
       <!-- Search -->
       <button
         data-search-trigger
@@ -98,15 +98,6 @@ function isActive(href: string): boolean {
       >
         <Icon name="search" class="w-5 h-5" />
       </button>
-      <!-- Contact -->
-      <a
-        href={`/${brand.slug}/contacto`}
-        class="p-2 rounded-lg text-text-secondary hover:text-brand hover:bg-brand-muted/50 transition-colors"
-        aria-label="Contactar"
-        title="Contactar"
-      >
-        <Icon name="mail" class="w-5 h-5" />
-      </a>
       <!-- Portal Mi Cuenta (cliente / aliado) -->
       <a
         href={PORTAL_URL}

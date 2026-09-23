@@ -1,0 +1,249 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { getHistoriasVisitantes, historiaImagen, type HistoriaVisitante } from '@/lib/cafe';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
+
+const historias = await getHistoriasVisitantes();
+
+const hero = await getHeroBySlug('/cafe/visitantes');
+
+// Fallback hardcoded stories when CMS is empty
+const FALLBACK: Record<string, { titulo: string; icono: string; texto_corto: string; texto_largo: string }[]> = {
+  fauna: [
+    {
+      titulo: 'El colibrí de garganta azul',
+      icono: 'bird',
+      texto_corto: 'Aparece cada mañana a las 6:40. Primero al limoncillo de la entrada, luego al guamo del costado.',
+      texto_largo: 'Es un Chlorostilbon mellisugus, colibrí esmeralda. Lleva tres temporadas anidando en las heliconias del corredor. No le asusta la gente: se acerca al vaso mientras tomas café y te mira fijo, como evaluando si tu mesa tiene más néctar que la suya.',
+    },
+    {
+      titulo: 'Las angelitas del techo',
+      icono: 'bug',
+      texto_corto: 'Una colonia de Tetragonisca angustula se instaló en el alero del café hace dos años.',
+      texto_largo: 'No pican. Producen miel que usamos en el signature "Miel de Angelita con café". Los clientes las señalan como si fueran mascotas del local. Un día un niño preguntó: "¿son abejas buenas?" — y sí, lo son. Polinizan el cafetal y el guamo en un radio de 300 metros.',
+    },
+    {
+      titulo: 'El carpintero que llegó en enero',
+      icono: 'bird',
+      texto_corto: 'Un carpintero dorado empezó a percutir el poste de guadua del jardín en enero de 2025.',
+      texto_largo: 'Nadie sabe si anidó o solo estaba marcando territorio. Lo cierto es que cada mañana repite su ritmo: tres golpes, pausa, dos golpes, pausa. Los clientes del desayuno ya lo conocen. Algunos le pusieron nombre: Don Tres-Dos.',
+    },
+  ],
+  flora: [
+    {
+      titulo: 'El guamo centinela',
+      icono: 'tree-pine',
+      texto_corto: 'Tiene más de 40 años. Da sombra a la mitad del jardín y flores dulces de diciembre a marzo.',
+      texto_largo: 'Es un Inga spectabilis. Sus vainas contienen una pulpa blanca que los clientes prueban cuando caen al suelo. Las abejas angelitas y los colibríes dependen de él. Cuando florece, el café huele diferente: más dulce, más denso. Es el árbol que marca las estaciones del territorio.',
+    },
+    {
+      titulo: 'Las aromáticas del corredor',
+      icono: 'leaf',
+      texto_corto: 'Hierbabuena, limoncillo, albahaca morada y flor de guamo. Todas crecen a menos de 50 metros de la barra.',
+      texto_largo: 'Las usamos frescas en las infusiones de la carta "Aromática de flora nativa". La hierbabuena crece sin control en la zona húmeda; el limoncillo lo plantó Don Manuel hace tres años; la albahaca morada llegó como experimento y se quedó porque los clientes la piden. Cada infusión tiene el sabor exacto del jardín.',
+    },
+    {
+      titulo: 'El cafetal de sombra',
+      icono: 'trees',
+      texto_corto: 'Las matas de café crecen bajo el dosel del guamo y los plátanos. No es café de sol.',
+      texto_largo: 'Es un café Caturra sembrado a 1.400 m.s.n.m. por la familia Cardona. Madura lento, produce menos pero con más densidad. Las cerezas se cosechan a mano cuando están completamente rojas. El cafetal no es solo producción: es el hábitat de las 32 especies de aves que visitan el jardín.',
+    },
+  ],
+  personas: [
+    {
+      titulo: 'Doña Nelly y la receta del pandebono',
+      icono: 'heart-handshake',
+      texto_corto: 'Llegó un martes de mercado. Probó el pan de yuca y dijo: "así no se hace, pero está rico".',
+      texto_largo: 'Doña Nelly tiene 74 años y vende almojábanas en el mercado de Ibagué desde hace 40. Nos enseñó que el almidón de yuca del Espinal no se amasa igual si hace frío. Su receta no es la nuestra, pero nos dio permiso de llamarlo "Pan de yuca estilo Doña Nelly". Ahora viene cada quince días y siempre pide un café pequeño.',
+    },
+    {
+      titulo: 'El ingeniero que se quedó a vivir',
+      icono: 'laptop',
+      texto_corto: 'Vino de Bogotá un fin de semana con su laptop. Se quedó tres meses.',
+      texto_largo: 'Andrés trabaja remoto para una startup de logística. Llegó al café un sábado, pidió un espresso, abrió su computador y no se fue hasta el cierre. Al lunes siguiente ya tenía mesa fija. Ahora vive en Cajamarca, viene al café cada mañana y paga la renta con lo que ahorra de no vivir en Bogotá. Dice que el wifi funciona bien y que el café le cambia el día.',
+    },
+    {
+      titulo: 'Los niños de la vereda',
+      icono: 'users',
+      texto_corto: 'Cada sábado llegan 4 o 5 niños de la vereda El Carmen. Piden chocolate y se llevan las cáscaras de cacao.',
+      texto_largo: 'No tienen más de 10 años. Llegan caminando desde la finca de sus padres, algunos descalzos. Piden chocolate con leche de La Cumbre y se sientan en el suelo a dibujar. Las cáscaras de cacao se las llevan para compostar en sus huertas escolares. Un día uno de ellos preguntó: "¿ustedes también son de aquí?" — y sí, también somos de aquí.',
+    },
+  ],
+};
+
+// Merge CMS data with fallback: use CMS if available, else fallback
+function getHistorias(categoria: 'fauna' | 'flora' | 'personas') {
+  const cms = historias.filter(h => h.categoria === categoria);
+  if (cms.length > 0) return cms.map(h => ({
+    titulo: h.titulo,
+    icono: h.icono || defaultIcon(categoria),
+    texto_corto: h.texto_corto,
+    texto_largo: h.texto_largo,
+    imagen: historiaImagen(h),
+  }));
+  return FALLBACK[categoria].map(h => ({ ...h, imagen: null }));
+}
+
+function defaultIcon(cat: string): string {
+  return cat === 'fauna' ? 'bird' : cat === 'flora' ? 'tree-pine' : 'users';
+}
+
+const faunaHistorias = getHistorias('fauna');
+const floraHistorias = getHistorias('flora');
+const personasHistorias = getHistorias('personas');
+---
+
+<BrandLayout brand="cafe" title="Visitantes · Café Iwagé" description="Fauna, flora y personas reales que pasan por el café. Historias del corredor Ambalá que no aparecen en el menú.">
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Café Iwagé"
+    />
+  ) : (
+    <header class="bg-dark-bg text-dark-text">
+      <div class="max-w-6xl mx-auto px-6 py-12 md:py-16 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Café Iwagé</p>
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Visitantes</h1>
+        <p class="mt-4 text-dark-text/60 max-w-xl mx-auto">
+          El café no es solo lo que servimos. Es también quién pasa por aquí: los que vuelan, los que crecen y los que se sientan a la mesa.
+        </p>
+      </div>
+    </header>
+  )}
+
+  <!-- Fauna -->
+  <Section>
+    <ScrollReveal>
+      <div id="fauna" class="scroll-mt-24">
+        <SectionHeader
+          label="Fauna"
+          title="Los que vuelan y aparecen sin avisar"
+          subtitle="El corredor Ambalá es un pasillo biológico. El café queda en la mitad."
+        />
+      </div>
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {faunaHistorias.map((h, i) => (
+        <ScrollReveal delay={i * 100}>
+          <article class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all h-full flex flex-col">
+            {h.imagen ? (
+              <img src={h.imagen} alt={h.titulo} class="w-full h-44 object-cover" loading="lazy" />
+            ) : (
+              <div class="w-full h-44 bg-brand-muted/40 flex items-center justify-center">
+                <Icon name={h.icono} class="w-12 h-12 text-brand/40" />
+              </div>
+            )}
+            <div class="p-5 flex flex-col flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <Icon name={h.icono} class="w-5 h-5 text-brand shrink-0" />
+                <h3 class="text-base font-semibold text-text-primary">{h.titulo}</h3>
+              </div>
+              <p class="text-sm text-text-secondary leading-relaxed mb-2">{h.texto_corto}</p>
+              <p class="text-sm text-text-muted leading-relaxed italic mt-auto">{h.texto_largo}</p>
+            </div>
+          </article>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Flora -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <div id="flora" class="scroll-mt-24">
+        <SectionHeader
+          label="Flora"
+          title="Lo que crece alrededor y termina en la taza"
+          subtitle="No compramos ingredientes de catálogo. Todo tiene raíz en el territorio."
+        />
+      </div>
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {floraHistorias.map((h, i) => (
+        <ScrollReveal delay={i * 100}>
+          <article class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all h-full flex flex-col">
+            {h.imagen ? (
+              <img src={h.imagen} alt={h.titulo} class="w-full h-44 object-cover" loading="lazy" />
+            ) : (
+              <div class="w-full h-44 bg-brand-muted/40 flex items-center justify-center">
+                <Icon name={h.icono} class="w-12 h-12 text-brand/40" />
+              </div>
+            )}
+            <div class="p-5 flex flex-col flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <Icon name={h.icono} class="w-5 h-5 text-brand shrink-0" />
+                <h3 class="text-base font-semibold text-text-primary">{h.titulo}</h3>
+              </div>
+              <p class="text-sm text-text-secondary leading-relaxed mb-2">{h.texto_corto}</p>
+              <p class="text-sm text-text-muted leading-relaxed italic mt-auto">{h.texto_largo}</p>
+            </div>
+          </article>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Personas -->
+  <Section>
+    <ScrollReveal>
+      <div id="personas" class="scroll-mt-24">
+        <SectionHeader
+          label="Personas"
+          title="Los que se sientan a la mesa"
+          subtitle="Vecinos, viajeros y aliados. Cada uno deja algo más que una propina."
+        />
+      </div>
+    </ScrollReveal>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {personasHistorias.map((h, i) => (
+        <ScrollReveal delay={i * 100}>
+          <article class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all h-full flex flex-col">
+            {h.imagen ? (
+              <img src={h.imagen} alt={h.titulo} class="w-full h-44 object-cover" loading="lazy" />
+            ) : (
+              <div class="w-full h-44 bg-brand-muted/40 flex items-center justify-center">
+                <Icon name={h.icono} class="w-12 h-12 text-brand/40" />
+              </div>
+            )}
+            <div class="p-5 flex flex-col flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <Icon name={h.icono} class="w-5 h-5 text-brand shrink-0" />
+                <h3 class="text-base font-semibold text-text-primary">{h.titulo}</h3>
+              </div>
+              <p class="text-sm text-text-secondary leading-relaxed mb-2">{h.texto_corto}</p>
+              <p class="text-sm text-text-muted leading-relaxed italic mt-auto">{h.texto_largo}</p>
+            </div>
+          </article>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- CTA -->
+  <Section bg="sunken" class="!py-12">
+    <div class="max-w-2xl mx-auto text-center">
+      <p class="text-sm text-text-secondary leading-relaxed mb-6">
+        Estas historias son solo las que conocemos. Cada sábado alguien nuevo se sienta, pide algo y deja una razón para volver. Si tienes una historia, cuéntala.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="/cafe/menu" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-6 py-3 font-medium hover:bg-accent-light transition-all text-sm">
+          Ver el menú <Icon name="arrow-right" class="w-4 h-4" />
+        </a>
+        <a href="/cafe/proveedores" class="inline-flex items-center gap-2 border border-border text-text-secondary rounded-full px-6 py-3 font-medium hover:border-brand/40 hover:text-brand transition-all text-sm">
+          Nuestros proveedores
+        </a>
+      </div>
+    </div>
+  </Section>
+</BrandLayout>

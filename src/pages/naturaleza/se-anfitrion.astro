@@ -1,9 +1,11 @@
 ---
-export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 import { getBrand } from '@/config/brands';
 
+const hero = await getHeroBySlug('/naturaleza/se-anfitrion');
 const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 
 const CAMINOS = [
@@ -65,36 +67,59 @@ const FAQS = [
 
 <BrandLayout brand="naturaleza" title="Sé Anfitrión o Presenta tu Espacio · Iwagé Naturaleza" description="Convierte tu tierra, finca o conocimiento en una experiencia de la red Iwagé. Radicación sin compromiso, capacitación gratuita y reservas en línea.">
 
-  <!-- Hero -->
-  <section class="relative min-h-[70vh] flex items-center overflow-hidden bg-[#0e1a08]">
-    <img
-      src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
-      alt="Campesino en el territorio del Tolima"
-      class="absolute inset-0 w-full h-full object-cover opacity-30"
-      loading="eager"
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Para la comunidad local"
+      align="center"
+      extra={`
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button type="button" data-goto-tipo="ser_anfitrion" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#4a7c23]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 inline align-[-2px] mr-1"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> Quiero ser anfitrión
+          </button>
+          <button type="button" data-goto-tipo="presentar_espacio" class="bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#d4920a]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 inline align-[-2px] mr-1"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Quiero presentar mi espacio
+          </button>
+        </div>
+      `}
     />
-    <div class="absolute inset-0 bg-gradient-to-b from-[#0e1a08]/70 via-transparent to-[#0e1a08]"></div>
-    <div class="relative z-10 max-w-4xl mx-auto px-6 py-24 text-center">
-      <div class="flex items-center justify-center gap-3 mb-6">
-        <div class="w-2 h-2 rounded-full bg-[#d4920a] animate-pulse"></div>
-        <span class="text-xs font-bold tracking-[0.4em] text-[#d4920a] uppercase">Para la comunidad local</span>
+  ) : (
+    <header class="relative min-h-[70vh] flex items-center overflow-hidden bg-[#0e1a08]">
+      <img
+        src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
+        alt="Campesino en el territorio del Tolima"
+        class="absolute inset-0 w-full h-full object-cover opacity-30"
+        loading="eager"
+      />
+      <div class="absolute inset-0 bg-gradient-to-b from-[#0e1a08]/70 via-transparent to-[#0e1a08]"></div>
+      <div class="relative z-10 max-w-4xl mx-auto px-6 py-24 text-center">
+        <div class="flex items-center justify-center gap-3 mb-6">
+          <div class="w-2 h-2 rounded-full bg-[#d4920a] animate-pulse"></div>
+          <span class="text-xs font-bold tracking-[0.4em] text-[#d4920a] uppercase">Para la comunidad local</span>
+        </div>
+        <h1 class="text-4xl lg:text-6xl font-light text-white leading-tight mb-6">
+          Convierte tu tierra en<br/><span class="font-serif italic text-[#d4920a]">experiencia</span>
+        </h1>
+        <p class="text-lg lg:text-xl text-white/70 leading-relaxed mb-10 max-w-2xl mx-auto">
+          El territorio te necesita como anfitrión. Si tienes una finca, un predio o un saber territorial, la red Iwagé lo convierte en ingresos, visibilidad y regeneración.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button type="button" data-goto-tipo="ser_anfitrion" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#4a7c23]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
+            <Icon name="compass" class="w-4 h-4 inline align-[-2px] mr-1" /> Quiero ser anfitrión
+          </button>
+          <button type="button" data-goto-tipo="presentar_espacio" class="bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#d4920a]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
+            <Icon name="home" class="w-4 h-4 inline align-[-2px] mr-1" /> Quiero presentar mi espacio
+          </button>
+        </div>
       </div>
-      <h1 class="text-4xl lg:text-6xl font-light text-white leading-tight mb-6">
-        Convierte tu tierra en<br/><span class="font-serif italic text-[#d4920a]">experiencia</span>
-      </h1>
-      <p class="text-lg lg:text-xl text-white/70 leading-relaxed mb-10 max-w-2xl mx-auto">
-        El territorio te necesita como anfitrión. Si tienes una finca, un predio o un saber territorial, la red Iwagé lo convierte en ingresos, visibilidad y regeneración.
-      </p>
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <button type="button" data-goto-tipo="ser_anfitrion" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#4a7c23]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
-          <Icon name="compass" class="w-4 h-4 inline align-[-2px] mr-1" /> Quiero ser anfitrión
-        </button>
-        <button type="button" data-goto-tipo="presentar_espacio" class="bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#d4920a]/90 hover:scale-105 transition-all shadow-lg cursor-pointer">
-          <Icon name="home" class="w-4 h-4 inline align-[-2px] mr-1" /> Quiero presentar mi espacio
-        </button>
-      </div>
-    </div>
-  </section>
+    </header>
+  )}
 
   <!-- Two Paths -->
   <section class="py-16 px-4 bg-[#f8faf5]">

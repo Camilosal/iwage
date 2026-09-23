@@ -7,13 +7,22 @@ import FeatureCard from '@/components/FeatureCard.astro';
 import StatGrid from '@/components/StatGrid.astro';
 import TestimonialCard from '@/components/TestimonialCard.astro';
 import BitacoraCard from '@/components/BitacoraCard.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import Hero from '@/components/Hero.astro';
+import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
+import { getProyectos } from '@/lib/proyectos';
+import { SITE_METRICS } from '@/config/site-metrics';
+import { getBitacoraByMarca } from '@/lib/bitacora';
+import { getHeroBySlug } from '@/lib/heroes';
+
+const hero = await getHeroBySlug('/meliponas');
 
 const stats = [
-  { value: '120+', label: 'Colmenas activas' },
-  { value: '4', label: 'Modelos de caja' },
-  { value: '12 km', label: 'Flora nativa' },
-  { value: '100%', label: 'Trazable por lote' },
+  { value: `${SITE_METRICS.colmenasActivas}+`, label: SITE_METRICS.colmenasActivasLabel },
+  { value: String(SITE_METRICS.modelosCaja), label: 'Modelos de caja' },
+  { value: `${SITE_METRICS.kmFloraNativa} km`, label: 'Flora nativa' },
+  { value: SITE_METRICS.trazabilidadPorLote, label: 'Trazable por lote' },
 ];
 
 const features = [
@@ -58,73 +67,60 @@ const testimonials = [
   },
 ];
 
-const bitacoraPosts = [
-  {
-    title: 'Guía completa de la miel de Tetragonisca angustula',
-    excerpt: 'Todo lo que necesitas saber sobre la miel de abejas Angelita: propiedades, cosecha, conservación y usos.',
-    category: 'Guías',
-    date: '15 May 2025',
-    readTime: '8',
-    href: '/meliponas/bitacora/guia-miel-angelita',
-  },
-  {
-    title: 'Flora melífera del corredor Ambalá',
-    excerpt: 'Las 12 especies nativas que alimentan nuestras colmenas y por qué el territorio importa.',
-    category: 'Territorio',
-    date: '02 May 2025',
-    readTime: '6',
-    href: '/meliponas/bitacora/flora-melifera-ambala',
-  },
-  {
-    title: 'Cajas INPA vs AF: cuál elegir para tu meliponario',
-    excerpt: 'Comparativa técnica de los dos modelos de caja más usados en meliponicultura colombiana.',
-    category: 'Técnica',
-    date: '20 Abr 2025',
-    readTime: '5',
-    href: '/meliponas/bitacora/cajas-inpa-vs-af',
-  },
-];
+const { data: bitacoraPosts } = await getBitacoraByMarca('meliponas', { pageSize: 4 });
+
+// Proyectos: 4 priorizados (destacados) o los últimos 4
+const proyectos = await getProyectos();
+const proyectosHome = proyectos
+  .sort((a, b) => {
+    if (a.destacado !== b.destacado) return b.destacado ? 1 : -1;
+    return (b.orden ?? 0) - (a.orden ?? 0);
+  })
+  .slice(0, 4);
+
+// Coordenadas del meliponario base (Ibagué, Tolima) - gestionables desde Strapi en futuro
+const meliponarioLocation = {
+  lat: 4.4389,
+  lng: -75.2322,
+  nombre: 'Meliponario Base Iwagé',
+  direccion: 'Vereda El Carmen, Ibagué, Tolima',
+  zoom: 14,
+};
 ---
 
 <BrandLayout brand="meliponas" title={SEO.home.title} description={SEO.home.description}>
   <!-- Hero -->
-  <section class="relative overflow-hidden bg-surface">
-    <img
-      src="/images/hero-meliponas.webp"
-      alt="Meliponario en el piedemonte tolimense"
-      class="absolute inset-0 h-full w-full object-cover"
-      loading="eager"
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Meliponario · Ibagué, Tolima"
     />
-    <div class="absolute inset-0 bg-gradient-to-br from-surface/80 via-surface/70 to-surface/85"></div>
-    <div class="relative max-w-4xl mx-auto px-6 py-20 md:py-28 text-center">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Meliponario · Ibagué, Tolima</p>
-      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-text-primary leading-tight">
-        Biotecnología<br />
-        <span class="text-brand">Nativa</span>
-      </h1>
-      <p class="mt-6 text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl mx-auto">
-        Miel de abejas Angelita, polinización gestionada y proyectos de impacto desde el piedemonte tolimense.
-      </p>
-      <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/meliponas/tienda" class="inline-flex items-center justify-center gap-2 bg-brand text-white rounded-full px-8 py-4 font-medium hover:bg-brand-light hover:scale-[1.02] transition-all shadow-lg shadow-brand/20">
-          Explorar tienda →
-        </a>
-        <a href="/meliponas/proyectos" class="inline-flex items-center justify-center gap-2 border border-border rounded-full px-8 py-4 font-medium text-text-primary hover:border-brand hover:text-brand transition-all">
-          Ver proyectos
-        </a>
+  ) : (
+    <section class="relative overflow-hidden bg-surface">
+      <img src="/images/hero-meliponas.webp" alt="" class="absolute inset-0 h-full w-full object-cover" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-br from-surface/80 via-surface/70 to-surface/85"></div>
+      <div class="relative max-w-3xl mx-auto px-6 py-16 md:py-20 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Meliponario · Ibagué, Tolima</p>
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text-primary leading-tight">Biotecnología<br /><span class="text-brand">Nativa</span></h1>
       </div>
-    </div>
-  </section>
+    </section>
+  )}
 
-  <!-- Trust bar -->
-  <Section bg="sunken" class="!py-10 md:!py-12">
+  <!-- Trust bar - ancho completo como header, compacto -->
+  <Section bg="sunken" width="7xl" compact class="!py-6 md:!py-8">
     <ScrollReveal>
       <StatGrid stats={stats} />
     </ScrollReveal>
   </Section>
 
-  <!-- Features -->
-  <Section>
+  <!-- Features: Tres líneas de acción -->
+  <Section width="7xl" compact>
     <ScrollReveal>
       <SectionHeader
         label="Qué hacemos"
@@ -142,8 +138,73 @@ const bitacoraPosts = [
     </div>
   </Section>
 
+  <!-- Banda inmersiva: Conoce el meliponario (debajo de Tres líneas de acción) -->
+  <Section width="7xl" compact class="!py-10">
+    <ScrollReveal>
+      <div class="text-center mb-8">
+        <span class="font-mono text-xs uppercase tracking-widest text-accent">Experiencia</span>
+        <h2 class="mt-2 text-2xl md:text-3xl font-bold text-text-primary">Conoce el meliponario</h2>
+        <p class="mt-3 text-base md:text-lg text-text-secondary max-w-xl mx-auto">
+          Sumérgete en el día a día de nuestras colmenas: sonido, vuelo y territorio.
+        </p>
+      </div>
+      <div class="relative rounded-2xl overflow-hidden bg-surface-sunken border border-border" id="meliponario-immersive">
+        {/*
+        <video
+          autoplay
+          muted
+          loop
+          playsinline
+          webkit-playsinline
+          preload="metadata"
+          poster="/images/galeria/proyecto-ambala-1.webp"
+          class="w-full h-[50vh] max-h-[400px] object-cover"
+        >
+          <source src="/videos/meliponario.webm" type="video/webm" />
+          <source src="/videos/meliponario.mp4" type="video/mp4" />
+        </video>
+        */}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-1 p-1">
+          {proyectosHome.slice(0, 4).map((p) => (
+            <a
+              href={`/meliponas/proyectos/${p.slug}`}
+              class="relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:ring-offset-surface"
+              aria-label={`Ver proyecto: ${p.nombre}`}
+            >
+              {p.imagen ? (
+                <img
+                  src={p.imagen}
+                  alt={p.nombre}
+                  class="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
+                  width="400"
+                  height="400"
+                />
+              ) : (
+                <div class="w-full aspect-square bg-brand-muted/30 flex items-center justify-center">
+                  <Icon name="flower-2" class="w-10 h-10 text-brand/40" />
+                </div>
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="absolute bottom-3 left-3 right-3 text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0">
+                {p.nombre}
+              </span>
+            </a>
+          ))}
+        </div>
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm text-white">
+          <span class="font-mono text-xs uppercase tracking-wider">Explorar proyectos</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+
   <!-- Testimonials -->
-  <Section bg="dark">
+  <Section bg="dark" width="7xl" compact>
     <ScrollReveal>
       <SectionHeader label="Testimonios" title="Lo que dicen de nosotros" dark align="center" />
     </ScrollReveal>
@@ -156,36 +217,101 @@ const bitacoraPosts = [
     </div>
   </Section>
 
-  <!-- Bitácora preview -->
-  <Section>
+  <!-- Proyectos destacados - fix imagen -->
+  <Section width="7xl" compact>
     <ScrollReveal>
-      <SectionHeader label="Bitácora" title="Conocimiento abierto" subtitle="Guías técnicas, flora nativa y territorio Pijao." />
+      <SectionHeader label="Proyectos" title="Instalaciones recientes" subtitle="Meliponarios educativos, productivos y turísticos en el Tolima." align="center" />
     </ScrollReveal>
-    <div class="grid md:grid-cols-3 gap-6">
-      {bitacoraPosts.map((post, i) => (
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {proyectosHome.map((p, i) => (
         <ScrollReveal delay={i * 100}>
-          <BitacoraCard {...post} />
+          <ProjectCard
+            title={p.nombre}
+            location={p.ubicacion ?? ''}
+            type={p.tipo}
+            status={p.estado}
+            description={p.descripcion_corta ?? p.descripcion ?? ''}
+            colmenas={p.colmenas ?? undefined}
+            image={p.galeria?.[0]?.url ?? p.imagen}
+            slug={p.slug}
+            iot={p.iot_activo}
+            trazabilidad={p.trazabilidad_qr}
+          />
         </ScrollReveal>
       ))}
     </div>
-    <div class="mt-10 text-center">
+    <div class="mt-8 text-center">
+      <a href="/meliponas/proyectos" class="inline-flex items-center gap-2 text-brand font-medium hover:gap-3 transition-all">
+        Ver todos los proyectos →
+      </a>
+    </div>
+  </Section>
+
+  <!-- Bitácora preview - 4 tarjetas en fila -->
+  <Section width="7xl" compact>
+    <ScrollReveal>
+      <SectionHeader label="Bitácora" title="Conocimiento abierto" subtitle="Guías técnicas, flora nativa y territorio Pijao." align="center" />
+    </ScrollReveal>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {bitacoraPosts.map((post, i) => (
+        <ScrollReveal delay={i * 100}>
+          <BitacoraCard
+            title={post.titulo}
+            excerpt={post.extracto ?? ''}
+            category={post.categoria ?? 'General'}
+            date={post.fecha ?? ''}
+            readTime={String(post.tiempo_lectura ?? 5)}
+            href={`/meliponas/bitacora/${post.slug}`}
+            image={post.imagen ?? undefined}
+          />
+        </ScrollReveal>
+      ))}
+    </div>
+    <div class="mt-8 text-center">
       <a href="/meliponas/bitacora" class="inline-flex items-center gap-2 text-brand font-medium hover:gap-3 transition-all">
         Ver todos los artículos →
       </a>
     </div>
   </Section>
 
-  <!-- Final CTA -->
-  <Section bg="dark" class="!py-14">
+  <!-- Mapa de localización -->
+  <Section id="ubicacion" width="7xl" compact>
     <ScrollReveal>
-      <div class="text-center max-w-2xl mx-auto">
-        <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-dark-text mb-4">
+      <SectionHeader label="Ubicación" title="Dónde estamos" subtitle="Visítanos en el piedemonte tolimense. Coordenadas gestionables desde Strapi." align="center" />
+    </ScrollReveal>
+    <div class="relative rounded-2xl overflow-hidden bg-surface-sunken border border-border aspect-[16/9]">
+      <iframe
+        src={`https://www.openstreetmap.org/export/embed.html?bbox=${meliponarioLocation.lng - 0.02}%2C${meliponarioLocation.lat - 0.015}%2C${meliponarioLocation.lng + 0.02}%2C${meliponarioLocation.lat + 0.015}&layer=mapnik&marker=${meliponarioLocation.lat}%2C${meliponarioLocation.lng}`}
+        class="absolute inset-0 w-full h-full border-0"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        title={`Ubicación: ${meliponarioLocation.nombre}`}
+        allowfullscreen
+      ></iframe>
+      <div class="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-dark-bg/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
+        <h3 class="font-semibold text-text-primary">{meliponarioLocation.nombre}</h3>
+        <p class="text-sm text-text-secondary mt-1">{meliponarioLocation.direccion}</p>
+        <div class="mt-2 flex flex-wrap gap-2 text-xs text-text-muted">
+          <span>📍 {meliponarioLocation.lat.toFixed(4)}, {meliponarioLocation.lng.toFixed(4)}</span>
+          <a href={`https://www.openstreetmap.org/?mlat=${meliponarioLocation.lat}&mlon=${meliponarioLocation.lng}#map=${meliponarioLocation.zoom}/${meliponarioLocation.lat}/${meliponarioLocation.lng}`} target="_blank" rel="noopener" class="text-brand hover:underline">
+            Ver en OpenStreetMap →
+          </a>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Final CTA -->
+  <Section bg="dark" width="7xl" compact class="!py-10">
+    <ScrollReveal>
+      <div class="text-center">
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-dark-text mb-4">
           ¿Listo para empezar?
         </h2>
-        <p class="text-dark-text/60 mb-8">
+        <p class="text-dark-text/60 mb-8 max-w-lg mx-auto">
           Cuéntanos qué tienes en mente. Respondemos en menos de 24 horas.
         </p>
-        <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light hover:scale-[1.02] transition-all">
+        <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-3.5 font-medium hover:bg-accent-light hover:scale-[1.02] transition-all">
           Hablemos →
         </a>
       </div>

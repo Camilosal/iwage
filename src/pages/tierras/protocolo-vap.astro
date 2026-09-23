@@ -4,20 +4,36 @@ import Icon from '@/components/shared/Icon.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import { SELLOS_VAP } from '@/lib/tierras';
-export const prerender = true;
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
+
+
+const hero = await getHeroBySlug('/tierras/protocolo-vap');
 ---
 
 <BrandLayout brand="tierras" title="Protocolo VAP · Iwagé Tierras" description="Verificación de Activos Rurales: el protocolo de auditoría técnica que verifica títulos, linderos, agua y normativa antes de publicar cualquier propiedad.">
-
-  <section class="bg-[#0F120E] text-white py-14 md:py-20">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">Transparencia Radical</p>
-      <h1 class="text-3xl md:text-5xl font-bold mb-4">Protocolo <span class="text-[#52B788]">VAP</span></h1>
-      <p class="text-white/70 text-lg max-w-2xl mx-auto">
-        <strong class="text-white">VAP = Verificación de Activos Rurales.</strong> Nuestro protocolo único de auditoría técnica que verifica títulos, linderos, agua y normativa antes de publicar cualquier propiedad.
-      </p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Inmobiliaria Rural · Tolima"
+    />
+  ) : (
+    <header class="bg-[#0F120E] text-white py-14 md:py-20">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">Transparencia Radical</p>
+        <h1 class="text-3xl md:text-5xl font-bold mb-4">Protocolo <span class="text-[#52B788]">VAP</span></h1>
+        <p class="text-white/70 text-lg max-w-2xl mx-auto">
+          <strong class="text-white">VAP = Verificación de Activos Rurales.</strong> Nuestro protocolo único de auditoría técnica que verifica títulos, linderos, agua y normativa antes de publicar cualquier propiedad.
+        </p>
+      </div>
+    </header>
+  )}
 
   <!-- 4 Ejes -->
   <Section class="bg-white">

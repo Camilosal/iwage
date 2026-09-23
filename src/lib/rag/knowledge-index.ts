@@ -3,7 +3,7 @@
  * Defines the structure for searchable knowledge chunks across all brands.
  */
 
-export type Brand = 'meliponas' | 'cafe' | 'tierras' | 'naturaleza' | 'gestion' | 'general';
+export type Brand = 'meliponas' | 'cafe' | 'tierras' | 'naturaleza' | 'gestion' | 'granja' | 'general';
 
 export type ContentType =
   | 'propiedad'
@@ -17,6 +17,15 @@ export type ContentType =
   | 'proveedor'
   | 'lote_miel'
   | 'proyecto'
+  | 'cultivo_polinizacion'
+  | 'iniciativa'
+  | 'complemento'
+  | 'historia_visitante'
+  | 'pilar_estandar'
+  | 'etapa_proyecto'
+  | 'subsistema_granja'
+  | 'visita_granja'
+  | 'servicio_granja'
   | 'servicio'
   | 'pagina';
 

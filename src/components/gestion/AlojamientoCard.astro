@@ -25,7 +25,7 @@ const fechasQS = [
   checkout && `checkout=${encodeURIComponent(checkout)}`,
   huespedes && `huespedes=${encodeURIComponent(huespedes)}`,
 ].filter(Boolean).join('&');
-const href = `/gestion/propiedades/${prop.slug}${fechasQS ? `?${fechasQS}` : ''}`;
+const href = `/gestion/alojamientos/${prop.slug}${fechasQS ? `?${fechasQS}` : ''}`;
 ---
 
 <a href={href} class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#52B788]/40 hover:shadow-xl transition-all duration-300">

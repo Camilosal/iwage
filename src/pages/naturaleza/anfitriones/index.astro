@@ -2,20 +2,35 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getAnfitriones, anfitrionFoto, nivelInfo } from '@/lib/naturaleza';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const { data: anfitriones, total } = await getAnfitriones(1, 30);
+
+const hero = await getHeroBySlug('/naturaleza/anfitriones');
 ---
 
 <BrandLayout brand="naturaleza" title="Anfitriones · Iwagé Naturaleza" description="Directorio de anfitriones locales y guardianes del territorio en el Tolima. Guías certificados con arraigo ancestral.">
-
-  <!-- Header -->
-  <section class="pt-28 pb-12 px-4 bg-[#0e1a08]">
-    <div class="max-w-6xl mx-auto text-center">
-      <span class="text-xs font-bold tracking-[0.4em] text-[#d4920a] uppercase">Guardianes del territorio</span>
-      <h1 class="text-4xl lg:text-5xl font-light text-white mt-4 mb-4">Nuestros anfitriones</h1>
-      <p class="text-white/60 max-w-xl mx-auto">Cada anfitrión es una mirada distinta del territorio: guardián con años de arraigo, conocimiento ancestral y su propia forma de mostrarte la misma tierra.</p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Agencia de Turismo Rural · Tolima"
+    />
+  ) : (
+    <header class="pt-28 pb-12 px-4 bg-[#0e1a08]">
+      <div class="max-w-6xl mx-auto text-center">
+        <span class="text-xs font-bold tracking-[0.4em] text-[#d4920a] uppercase">Guardianes del territorio</span>
+        <h1 class="text-4xl lg:text-5xl font-light text-white mt-4 mb-4">Nuestros anfitriones</h1>
+        <p class="text-white/60 max-w-xl mx-auto">Cada anfitrión es una mirada distinta del territorio: guardián con años de arraigo, conocimiento ancestral y su propia forma de mostrarte la misma tierra.</p>
+      </div>
+    </header>
+  )}
 
   <!-- Grid -->
   <section class="py-12 px-4 bg-[#f8faf5] min-h-[50vh]">

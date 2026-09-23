@@ -9,10 +9,10 @@ const { quote, name, role, location } = Astro.props;
 const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 ---
 
-<div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm border-l-4 border-l-accent">
-  <p class="text-base text-text-secondary leading-relaxed italic mb-6">"{quote}"</p>
-  <div class="flex items-center gap-3">
-    <div class="w-10 h-10 rounded-full bg-brand-muted flex items-center justify-center text-brand font-semibold text-sm">
+<div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm border-l-4 border-l-accent h-full flex flex-col">
+  <p class="text-base text-text-secondary leading-relaxed italic mb-6 flex-1 line-clamp-4">"{quote}"</p>
+  <div class="flex items-center gap-3 mt-auto">
+    <div class="w-10 h-10 rounded-full bg-brand-muted flex items-center justify-center text-brand font-semibold text-sm shrink-0">
       {initials}
     </div>
     <div>

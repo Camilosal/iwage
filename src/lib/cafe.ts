@@ -92,6 +92,7 @@ export interface Proveedor {
   id: number;
   documentId: string;
   nombre: string;
+  slug: string | null;
   producto: string | null;
   ubicacion: string | null;
   distancia_km: number | null;
@@ -113,6 +114,20 @@ export interface Proveedor {
   experiencias?: ProveedorExperiencia[];
   propiedades?: ProveedorPropiedad[];
   propiedades_gestion?: ProveedorPropiedadGestion[];
+}
+
+export interface HistoriaVisitante {
+  id: number;
+  documentId: string;
+  titulo: string;
+  slug: string | null;
+  categoria: 'fauna' | 'flora' | 'personas';
+  texto_corto: string;
+  texto_largo: string;
+  imagen: { url: string } | null;
+  icono: string | null;
+  orden: number;
+  destacado: boolean;
 }
 
 // ── Queries ────────────────────────────────────────────
@@ -177,19 +192,100 @@ export async function getProveedores(): Promise<Proveedor[]> {
 
 // ── Helpers ────────────────────────────────────────────
 
+export async function getHistoriasVisitantes(categoria?: string): Promise<HistoriaVisitante[]> {
+  try {
+    const filters: Record<string, any> = {};
+    if (categoria) filters.categoria = { $eq: categoria };
+
+    const res = await strapiFetch<HistoriaVisitante>('historia-visitantes', {
+      ttl: CACHE_TTL.list,
+      populate: ['imagen'],
+      filters: Object.keys(filters).length > 0 ? filters : undefined,
+      sort: ['orden:asc', 'titulo:asc'],
+      pagination: { pageSize: 50 },
+    });
+    return (res.data ?? []).map((h) => ({
+      ...h,
+      destacado: h.destacado === true,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export function historiaImagen(h: HistoriaVisitante): string | null {
+  return strapiImage(h.imagen?.url);
+}
+
+// ── Helpers ────────────────────────────────────────────
+
 export const CATEGORIAS_MENU = [
-  { slug: 'cafe', label: 'Café', icon: '☕' },
-  { slug: 'signature', label: 'Signature', icon: '✨' },
-  { slug: 'panaderia', label: 'Panadería', icon: '🥐' },
-  { slug: 'infusion', label: 'Infusiones', icon: '🌿' },
-  { slug: 'frio', label: 'Fríos', icon: '🧊' },
-  { slug: 'acompanamiento', label: 'Acompañamientos', icon: '🍫' },
+  { slug: 'cafe', label: 'Café', icon: 'coffee' },
+  { slug: 'signature', label: 'Signature', icon: 'sparkles' },
+  { slug: 'panaderia', label: 'Panadería', icon: 'croissant' },
+  { slug: 'infusion', label: 'Infusiones', icon: 'leaf' },
+  { slug: 'frio', label: 'Fríos', icon: 'snowflake' },
+  { slug: 'acompanamiento', label: 'Acompañamientos', icon: 'candy' },
 ] as const;
 
+// Mapping of item families/names to local image paths (fallback when Strapi has no image)
+const LOCAL_IMAGES: Record<string, string> = {
+  'cafe-ambala': '/images/cafe-menu/cafe-origen-ambala.webp',
+  'espresso': '/images/cafe-menu/espresso-doble.webp',
+  'miel-cafe': '/images/cafe-menu/miel-angelita-cafe.webp',
+  'latte-miel': '/images/cafe-menu/latte-miel-canela.webp',
+  'aromatica-flora': '/images/cafe-menu/aromatica-flora-nativa.webp',
+  'cold-brew': '/images/cafe-menu/cold-brew-ambala.webp',
+  'chocolate-local': '/images/cafe-menu/chocolate-cacao-local.webp',
+  'pan-yuca': '/images/cafe-menu/pan-yuca-miel.webp',
+  'queso-cumbre': '/images/cafe-menu/queso-cumbre-arepa.webp',
+  'promo-duos': '/images/cafe-menu/promo-duos-perfectos.webp',
+};
+
 export function itemImage(item: ItemMenu): string | null {
-  return strapiImage(item.imagen?.url);
+  // First try Strapi image
+  const strapiImg = strapiImage(item.imagen?.url);
+  if (strapiImg) return strapiImg;
+  
+  // Fall back to local images based on familia or nombre
+  if (item.familia && LOCAL_IMAGES[item.familia]) {
+    return LOCAL_IMAGES[item.familia];
+  }
+  
+  // Try matching by nombre (for items without familia)
+  const nombre = (item.nombre || '').toLowerCase();
+  if (nombre.includes('café de origen') || nombre.includes('cafe de origen') || nombre.includes('ambalá') || nombre.includes('ambala')) {
+    return LOCAL_IMAGES['cafe-ambala'];
+  }
+  if (nombre.includes('espresso')) return LOCAL_IMAGES['espresso'];
+  if (nombre.includes('miel') && nombre.includes('café')) return LOCAL_IMAGES['miel-cafe'];
+  if (nombre.includes('miel') && nombre.includes('cafe')) return LOCAL_IMAGES['miel-cafe'];
+  if (nombre.includes('latte') && nombre.includes('miel')) return LOCAL_IMAGES['latte-miel'];
+  if (nombre.includes('aromática') || nombre.includes('aromatica')) return LOCAL_IMAGES['aromatica-flora'];
+  if (nombre.includes('cold brew')) return LOCAL_IMAGES['cold-brew'];
+  if (nombre.includes('chocolate')) return LOCAL_IMAGES['chocolate-local'];
+  if (nombre.includes('pan de yuca')) return LOCAL_IMAGES['pan-yuca'];
+  if (nombre.includes('queso')) return LOCAL_IMAGES['queso-cumbre'];
+  
+  return null;
 }
 
 export function proveedorFoto(p: Proveedor): string | null {
   return strapiImage(p.foto?.url);
+}
+
+/**
+ * Icono representativo según el producto del proveedor.
+ * Se usa como placeholder cuando no hay foto cargada en Strapi.
+ */
+export function proveedorIcono(p: { producto?: string | null; nombre?: string }): string {
+  const txt = `${p.nombre ?? ''} ${p.producto ?? ''}`.toLowerCase();
+  if (txt.includes('miel') || txt.includes('angelita') || txt.includes('melipon')) return 'hexagon';
+  if (txt.includes('café') || txt.includes('cafe')) return 'coffee';
+  if (txt.includes('leche') || txt.includes('queso')) return 'milk';
+  if (txt.includes('cacao') || txt.includes('chocolate')) return 'gift';
+  if (txt.includes('pan') || txt.includes('panader')) return 'croissant';
+  if (txt.includes('fruta') || txt.includes('verdura') || txt.includes('hortal')) return 'apple';
+  if (txt.includes('hierba') || txt.includes('planta') || txt.includes('infus')) return 'leaf';
+  return 'sprout';
 }

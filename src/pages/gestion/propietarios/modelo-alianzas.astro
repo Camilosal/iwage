@@ -1,25 +1,41 @@
 ---
-export const prerender = true;
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 import { getPropiedadesGestion } from '@/lib/gestion';
 
+const hero = await getHeroBySlug('/gestion/propietarios/modelo-alianzas');
 const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'activa', pageSize: 1 });
 ---
 
 <BrandLayout brand="gestion" title="Modelo de Alianzas · Iwagé Gestión" description="Alianzas estratégicas con propietarios rurales en el Tolima. Modelo de co-gestión transparente: tú pones la tierra, nosotros la operación. Compartimos resultados.">
 
-  <section class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
-    <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1600&q=80" alt="Alianza colaborativa rural" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
-    <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
-    <div class="relative z-10 max-w-6xl mx-auto px-4">
-      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Modelo de Alianzas</span>
-      <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
-        Tu tierra + nuestra operación = <span class="font-serif italic text-[#52B788]">resultados.</span>
-      </h1>
-      <p class="text-xl text-white/70 max-w-2xl">No necesitas invertir en operación. Ponemos el equipo, la tecnología y la experiencia comercial. Tú mantienes la propiedad y compartimos los resultados.</p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Modelo de Alianzas"
+      align="left"
+    />
+  ) : (
+    <header class="relative min-h-[60vh] flex items-center overflow-hidden bg-[#0c1520]">
+      <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1600&q=80" alt="Alianza colaborativa rural" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-r from-[#0c1520] via-[#0c1520]/70 to-transparent"></div>
+      <div class="relative z-10 max-w-6xl mx-auto px-4">
+        <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Modelo de Alianzas</span>
+        <h1 class="text-5xl lg:text-6xl font-light text-white leading-tight mt-4 mb-6">
+          Tu tierra + nuestra operación = <span class="font-serif italic text-[#52B788]">resultados.</span>
+        </h1>
+        <p class="text-xl text-white/70 max-w-2xl">No necesitas invertir en operación. Ponemos el equipo, la tecnología y la experiencia comercial. Tú mantienes la propiedad y compartimos los resultados.</p>
+      </div>
+    </header>
+  )}
 
   <!-- How it works -->
   <section class="py-16 px-4 bg-[#f8f9fb]">
@@ -81,7 +97,7 @@ const { total: propiedadesActivas } = await getPropiedadesGestion({ estado: 'act
           ? `Actualmente operamos ${propiedadesActivas} propiedad${propiedadesActivas !== 1 ? 'es' : ''} bajo estos modelos en el Tolima.`
           : 'Estamos construyendo nuestro portafolio de propiedades gestionadas en el Tolima.'}
       </p>
-      <a href="/gestion/propiedades" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
+      <a href="/gestion/alojamientos" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#1e3a5f] text-white text-sm font-bold hover:bg-[#2d5a8f] transition-colors">
         Ver portafolio de propiedades <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
       </a>
     </div>

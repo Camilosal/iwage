@@ -2,8 +2,8 @@ import type { BrandConfig } from './types';
 
 export const granja: BrandConfig = {
   slug: 'granja',
-  name: 'Iwagé Granja',
-  tagline: 'Granja Autosustentable · Sistema en Construcción',
+  name: 'Granja',
+  tagline: 'Agroecosistema & Laboratorio Vivo',
   colors: {
     brand: '#5b4a2f',
     brandLight: '#7a6340',
@@ -18,17 +18,23 @@ export const granja: BrandConfig = {
     mono: "'JetBrains Mono', ui-monospace, monospace",
   },
   nav: [
-    { label: 'Tienda', href: '/granja/tienda' },
-    { label: 'Sistema', href: '/granja/sistema' },
+    {
+      label: 'El sistema',
+      href: '/granja/sistema',
+      children: [
+        { label: 'Subsistemas', href: '/granja/sistema' },
+        { label: 'Experimentos', href: '/granja/experimentos' },
+      ],
+    },
     { label: 'Visitas', href: '/granja/visitas' },
+    { label: 'Servicios', href: '/granja/servicios' },
+    { label: 'Tienda', href: '/granja/tienda' },
     {
       label: 'Recursos',
-      href: '/granja/bitacora',
+      href: '/granja/nosotros',
       children: [
-        { label: 'Bitácora', href: '/granja/bitacora' },
         { label: 'Quiénes Somos', href: '/granja/nosotros' },
         { label: 'Ayuda', href: '/granja/ayuda' },
-        { label: 'Legal y Políticas', href: '/legal/' },
         { label: 'Contacto', href: '/granja/contacto' },
       ],
     },

@@ -3,9 +3,11 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getMenuItems, CATEGORIAS_MENU, itemImage } from '@/lib/cafe';
+import { getMenuItems, getCafeConfig, CATEGORIAS_MENU, itemImage } from '@/lib/cafe';
 import type { ItemMenu } from '@/lib/cafe';
 import { icons } from 'lucide';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 // Serializa un icono Lucide a SVG inline (build-time, zero runtime)
 function lucideSvg(name: string, className: string): string {
@@ -17,6 +19,9 @@ function lucideSvg(name: string, className: string): string {
 }
 
 const allItems = await getMenuItems();
+const cafeConfig = await getCafeConfig();
+const whatsapp = (cafeConfig?.whatsapp ?? '573026693366').replace(/\+/g, '');
+const whatsappMsg = encodeURIComponent('¡Hola Iwagé! Quiero hacer un pedido en el café.');
 
 // ── Helpers de variaciones ──
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -65,31 +70,31 @@ const grouped = CATEGORIAS_MENU.map(cat => ({
 // Fallback if Strapi is empty
 const fallbackItems: ItemMenu[] = [
   // ── Café de origen Ambalá (familia: cafe-ambala, eje: Tamaño) ──
-  { id: 1, documentId: '1', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-pequeno', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$5.500', destacado: true, categoria: 'cafe', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Pequeño · 8 oz', eje_variacion: 'Tamaño' },
-  { id: 2, documentId: '2', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-mediano', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: false, categoria: 'cafe', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Mediano · 12 oz', eje_variacion: 'Tamaño' },
-  { id: 3, documentId: '3', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-grande', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$7.500', destacado: false, categoria: 'cafe', imagen: null, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Grande · 16 oz', eje_variacion: 'Tamaño' },
+  { id: 1, documentId: '1', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-pequeno', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$5.500', destacado: true, categoria: 'cafe', imagen: { url: '/images/cafe-menu/cafe-origen-ambala.webp' }, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Pequeño · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 2, documentId: '2', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-mediano', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: false, categoria: 'cafe', imagen: { url: '/images/cafe-menu/cafe-origen-ambala.webp' }, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Mediano · 12 oz', eje_variacion: 'Tamaño' },
+  { id: 3, documentId: '3', nombre: 'Café de origen Ambalá', slug: 'cafe-ambala-grande', descripcion: 'Notas de panela y cítricos', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Tueste medio, cuerpo redondo.', tags: ['Origen único', 'Tueste medio'], precio: '$7.500', destacado: false, categoria: 'cafe', imagen: { url: '/images/cafe-menu/cafe-origen-ambala.webp' }, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'cafe-ambala', etiqueta_variacion: 'Grande · 16 oz', eje_variacion: 'Tamaño' },
   // ── Espresso (sin variaciones) ──
-  { id: 4, documentId: '4', nombre: 'Espresso doble', slug: null, descripcion: 'Doble shot, cuerpo medio', historia: 'Doble shot de nuestro blend house. Cuerpo medio, final dulce.', tags: ['Clásico'], precio: '$5.000', destacado: false, categoria: 'cafe', imagen: null, orden: 4, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 4, documentId: '4', nombre: 'Espresso doble', slug: null, descripcion: 'Doble shot, cuerpo medio', historia: 'Doble shot de nuestro blend house. Cuerpo medio, final dulce.', tags: ['Clásico'], precio: '$5.000', destacado: false, categoria: 'cafe', imagen: { url: '/images/cafe-menu/espresso-doble.webp' }, orden: 4, disponible: true, temporada: false, nota_disponibilidad: null },
   // ── Signature: Miel con café (familia: miel-cafe, eje: Tamaño) ──
-  { id: 5, documentId: '5', nombre: 'Miel de Angelita con café', slug: 'miel-cafe-8oz', descripcion: 'Dulzor natural sin azúcar', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, categoria: 'signature', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'miel-cafe', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
-  { id: 6, documentId: '6', nombre: 'Miel de Angelita con café', slug: 'miel-cafe-12oz', descripcion: 'Dulzor natural sin azúcar', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$11.000', destacado: false, categoria: 'signature', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'miel-cafe', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  { id: 5, documentId: '5', nombre: 'Miel de Angelita con café', slug: 'miel-cafe-8oz', descripcion: 'Dulzor natural sin azúcar', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, categoria: 'signature', imagen: { url: '/images/cafe-menu/miel-angelita-cafe.webp' }, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'miel-cafe', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 6, documentId: '6', nombre: 'Miel de Angelita con café', slug: 'miel-cafe-12oz', descripcion: 'Dulzor natural sin azúcar', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$11.000', destacado: false, categoria: 'signature', imagen: { url: '/images/cafe-menu/miel-angelita-cafe.webp' }, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'miel-cafe', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
   // ── Signature: Latte de miel y canela (familia: latte-miel, eje: Tamaño) ──
-  { id: 7, documentId: '7', nombre: 'Latte de miel y canela', slug: 'latte-miel-8oz', descripcion: 'Leche de la Finca La Cumbre', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$9.500', destacado: true, categoria: 'signature', imagen: null, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'latte-miel', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
-  { id: 8, documentId: '8', nombre: 'Latte de miel y canela', slug: 'latte-miel-12oz', descripcion: 'Leche de la Finca La Cumbre', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$11.500', destacado: false, categoria: 'signature', imagen: null, orden: 4, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'latte-miel', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  { id: 7, documentId: '7', nombre: 'Latte de miel y canela', slug: 'latte-miel-8oz', descripcion: 'Leche de la Finca La Cumbre', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$9.500', destacado: true, categoria: 'signature', imagen: { url: '/images/cafe-menu/latte-miel-canela.webp' }, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'latte-miel', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 8, documentId: '8', nombre: 'Latte de miel y canela', slug: 'latte-miel-12oz', descripcion: 'Leche de la Finca La Cumbre', historia: 'Leche de la Finca La Cumbre, espresso doble, miel de Angelita y canela del Huila.', tags: ['Signature', 'Caliente'], precio: '$11.500', destacado: false, categoria: 'signature', imagen: { url: '/images/cafe-menu/latte-miel-canela.webp' }, orden: 4, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'latte-miel', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
   // ── Aromática de flora nativa (familia: aromatica-flora, eje: Sabor) ──
-  { id: 9, documentId: '9', nombre: 'Aromática de flora nativa', slug: 'aromatica-hierbabuena', descripcion: 'Hierbas del corredor biológico', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Hierbabuena', eje_variacion: 'Sabor' },
-  { id: 10, documentId: '10', nombre: 'Aromática de flora nativa', slug: 'aromatica-limoncillo', descripcion: 'Hierbas del corredor biológico', historia: 'Infusión de limoncillo fresco del corredor. Cítrico, refrescante, digestivo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Limoncillo', eje_variacion: 'Sabor' },
-  { id: 11, documentId: '11', nombre: 'Aromática de flora nativa', slug: 'aromatica-guamo', descripcion: 'Hierbas del corredor biológico', historia: 'Flor de guamo recolectada en el corredor. Floral, suave, aromática.', tags: ['Sin cafeína', 'Floral'], precio: '$6.000', destacado: false, categoria: 'infusion', imagen: null, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Flor de guamo', eje_variacion: 'Sabor' },
+  { id: 9, documentId: '9', nombre: 'Aromática de flora nativa', slug: 'aromatica-hierbabuena', descripcion: 'Hierbas del corredor biológico', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', imagen: { url: '/images/cafe-menu/aromatica-flora-nativa.webp' }, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Hierbabuena', eje_variacion: 'Sabor' },
+  { id: 10, documentId: '10', nombre: 'Aromática de flora nativa', slug: 'aromatica-limoncillo', descripcion: 'Hierbas del corredor biológico', historia: 'Infusión de limoncillo fresco del corredor. Cítrico, refrescante, digestivo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, categoria: 'infusion', imagen: { url: '/images/cafe-menu/aromatica-flora-nativa.webp' }, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Limoncillo', eje_variacion: 'Sabor' },
+  { id: 11, documentId: '11', nombre: 'Aromática de flora nativa', slug: 'aromatica-guamo', descripcion: 'Hierbas del corredor biológico', historia: 'Flor de guamo recolectada en el corredor. Floral, suave, aromática.', tags: ['Sin cafeína', 'Floral'], precio: '$6.000', destacado: false, categoria: 'infusion', imagen: { url: '/images/cafe-menu/aromatica-flora-nativa.webp' }, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'aromatica-flora', etiqueta_variacion: 'Flor de guamo', eje_variacion: 'Sabor' },
   // ── Cold brew Ambalá (familia: cold-brew, eje: Tamaño) ──
-  { id: 12, documentId: '12', nombre: 'Cold brew Ambalá', slug: 'cold-brew-8oz', descripcion: 'Extracción en frío 18h', historia: 'Extracción en frío durante 18 horas con café de cosecha reciente. Suave, dulce, refrescante.', tags: ['Extracción 18h', 'Edición cosecha'], precio: '$8.000', destacado: false, categoria: 'frio', imagen: null, orden: 1, disponible: true, temporada: true, nota_disponibilidad: null, familia: 'cold-brew', etiqueta_variacion: 'Vaso · 8 oz', eje_variacion: 'Tamaño' },
-  { id: 13, documentId: '13', nombre: 'Cold brew Ambalá', slug: 'cold-brew-16oz', descripcion: 'Extracción en frío 18h', historia: 'Extracción en frío durante 18 horas con café de cosecha reciente. Suave, dulce, refrescante.', tags: ['Extracción 18h', 'Edición cosecha'], precio: '$11.000', destacado: false, categoria: 'frio', imagen: null, orden: 2, disponible: true, temporada: true, nota_disponibilidad: null, familia: 'cold-brew', etiqueta_variacion: 'Grande · 16 oz', eje_variacion: 'Tamaño' },
+  { id: 12, documentId: '12', nombre: 'Cold brew Ambalá', slug: 'cold-brew-8oz', descripcion: 'Extracción en frío 18h', historia: 'Extracción en frío durante 18 horas con café de cosecha reciente. Suave, dulce, refrescante.', tags: ['Extracción 18h', 'Edición cosecha'], precio: '$8.000', destacado: false, categoria: 'frio', imagen: { url: '/images/cafe-menu/cold-brew-ambala.webp' }, orden: 1, disponible: true, temporada: true, nota_disponibilidad: null, familia: 'cold-brew', etiqueta_variacion: 'Vaso · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 13, documentId: '13', nombre: 'Cold brew Ambalá', slug: 'cold-brew-16oz', descripcion: 'Extracción en frío 18h', historia: 'Extracción en frío durante 18 horas con café de cosecha reciente. Suave, dulce, refrescante.', tags: ['Extracción 18h', 'Edición cosecha'], precio: '$11.000', destacado: false, categoria: 'frio', imagen: { url: '/images/cafe-menu/cold-brew-ambala.webp' }, orden: 2, disponible: true, temporada: true, nota_disponibilidad: null, familia: 'cold-brew', etiqueta_variacion: 'Grande · 16 oz', eje_variacion: 'Tamaño' },
   // ── Chocolate de cacao local (familia: chocolate-local, eje: Tamaño) ──
-  { id: 14, documentId: '14', nombre: 'Chocolate de cacao local', slug: 'chocolate-8oz', descripcion: 'Cacao de El Espinal', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, categoria: 'acompanamiento', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'chocolate-local', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
-  { id: 15, documentId: '15', nombre: 'Chocolate de cacao local', slug: 'chocolate-12oz', descripcion: 'Cacao de El Espinal', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$9.000', destacado: false, categoria: 'acompanamiento', imagen: null, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'chocolate-local', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
+  { id: 14, documentId: '14', nombre: 'Chocolate de cacao local', slug: 'chocolate-8oz', descripcion: 'Cacao de El Espinal', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, categoria: 'acompanamiento', imagen: { url: '/images/cafe-menu/chocolate-cacao-local.webp' }, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'chocolate-local', etiqueta_variacion: 'Taza · 8 oz', eje_variacion: 'Tamaño' },
+  { id: 15, documentId: '15', nombre: 'Chocolate de cacao local', slug: 'chocolate-12oz', descripcion: 'Cacao de El Espinal', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$9.000', destacado: false, categoria: 'acompanamiento', imagen: { url: '/images/cafe-menu/chocolate-cacao-local.webp' }, orden: 2, disponible: true, temporada: false, nota_disponibilidad: null, familia: 'chocolate-local', etiqueta_variacion: 'Grande · 12 oz', eje_variacion: 'Tamaño' },
   // ── Pan de yuca y miel (sin variaciones) ──
-  { id: 16, documentId: '16', nombre: 'Pan de yuca y miel', slug: null, descripcion: 'Horneado del día', historia: 'Almidón de yuca del Espinal con miel de Angelita. Horneado cada mañana.', tags: ['Horneado del día', 'Sin gluten'], precio: '$4.500', destacado: false, categoria: 'panaderia', imagen: null, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 16, documentId: '16', nombre: 'Pan de yuca y miel', slug: null, descripcion: 'Horneado del día', historia: 'Almidón de yuca del Espinal con miel de Angelita. Horneado cada mañana.', tags: ['Horneado del día', 'Sin gluten'], precio: '$4.500', destacado: false, categoria: 'panaderia', imagen: { url: '/images/cafe-menu/pan-yuca-miel.webp' }, orden: 1, disponible: true, temporada: false, nota_disponibilidad: null },
   // ── Queso de la Cumbre con arepa (sin variaciones) ──
-  { id: 17, documentId: '17', nombre: 'Queso de la Cumbre con arepa', slug: null, descripcion: 'Desayuno del territorio', historia: 'Queso fresco del día, arepa de maíz pelado. El desayuno del territorio.', tags: ['Local', 'Desayuno'], precio: '$8.500', destacado: false, categoria: 'acompanamiento', imagen: null, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null },
+  { id: 17, documentId: '17', nombre: 'Queso de la Cumbre con arepa', slug: null, descripcion: 'Desayuno del territorio', historia: 'Queso fresco del día, arepa de maíz pelado. El desayuno del territorio.', tags: ['Local', 'Desayuno'], precio: '$8.500', destacado: false, categoria: 'acompanamiento', imagen: { url: '/images/cafe-menu/queso-cumbre-arepa.webp' }, orden: 3, disponible: true, temporada: false, nota_disponibilidad: null },
 ];
 
 const displayGrouped: Array<{ slug: string; label: string; icon: string; entries: MenuEntry[] }> =
@@ -104,6 +109,47 @@ const displayGrouped: Array<{ slug: string; label: string; icon: string; entries
 const totalItems = allItems.length || fallbackItems.length;
 const availableCount = (allItems.length > 0 ? allItems : fallbackItems).filter(i => i.disponible).length;
 
+// ── Dúos perfectos (bebida + acompañamiento) ──
+const allForCombos = allItems.length > 0 ? allItems : fallbackItems;
+const findComboItem = (nombre: string) => allForCombos.find(i => i.nombre.includes(nombre));
+
+const COMBOS_DEF = [
+  { nombre: 'Desayuno del territorio', bebida: 'Café de origen Ambalá', comida: 'Queso de la Cumbre con arepa', desc: 'Café de origen + desayuno del territorio', grad: 'from-amber-100 via-orange-50 to-amber-50', icon_bebida: 'coffee', icon_comida: 'salad' },
+  { nombre: 'Dulce de Angelita', bebida: 'Miel de Angelita con café', comida: 'Pan de yuca y miel', desc: 'Signature con miel + pan horneado del día', grad: 'from-yellow-100 via-amber-50 to-orange-50', icon_bebida: 'sparkles', icon_comida: 'croissant' },
+  { nombre: 'Latte y pan', bebida: 'Latte de miel y canela', comida: 'Pan de yuca y miel', desc: 'Latte signature + pan artesanal', grad: 'from-rose-100 via-pink-50 to-amber-50', icon_bebida: 'coffee', icon_comida: 'croissant' },
+  { nombre: 'Cold brew y queso', bebida: 'Cold brew Ambalá', comida: 'Queso de la Cumbre con arepa', desc: 'Extracción en frío + acompañamiento local', grad: 'from-sky-100 via-cyan-50 to-blue-50', icon_bebida: 'snowflake', icon_comida: 'salad' },
+];
+
+const combos = COMBOS_DEF.map(c => {
+  const b = findComboItem(c.bebida);
+  const f = findComboItem(c.comida);
+  if (!b || !f) return null;
+  const precioOriginal = parsePrecio(b.precio) + parsePrecio(f.precio);
+  const precioCombo = Math.round(precioOriginal * 0.85 / 500) * 500;
+  const bSlug = b.slug || slugify(b.nombre);
+  const bRecurso = b.familia ? `cafe-${bSlug}` : `cafe-${bSlug}`;
+  const fRecurso = `cafe-${f.slug || slugify(f.nombre)}`;
+  return {
+    ...c,
+    precio_original: precioOriginal,
+    precio_combo: precioCombo,
+    ahorro: precioOriginal - precioCombo,
+    bebida_recurso: bRecurso,
+    bebida_nombre: b.nombre,
+    bebida_precio: parsePrecio(b.precio),
+    bebida_imagen: itemImage(b),
+    comida_recurso: fRecurso,
+    comida_nombre: f.nombre,
+    comida_precio: parsePrecio(f.precio),
+    comida_imagen: itemImage(f),
+  };
+}).filter(Boolean) as Array<{
+  nombre: string; bebida: string; comida: string; desc: string; grad: string; icon_bebida: string; icon_comida: string;
+  precio_original: number; precio_combo: number; ahorro: number;
+  bebida_recurso: string; bebida_nombre: string; bebida_precio: number; bebida_imagen: string | null;
+  comida_recurso: string; comida_nombre: string; comida_precio: number; comida_imagen: string | null;
+}>;
+
 // Category icon lookup for modal (pre-rendered SVGs, zero runtime)
 const CAT_ICON_NAMES: Record<string, string> = { cafe: 'coffee', signature: 'sparkles', panaderia: 'croissant', infusion: 'leaf', frio: 'snowflake', acompanamiento: 'candy' };
 const CAT_ICON_SVGS: Record<string, string> = Object.fromEntries(
@@ -116,45 +162,180 @@ const BADGE_SVGS: Record<string, string> = {
   coffee: lucideSvg('coffee', 'w-3 h-3 inline align-[-1px] mr-0.5'),
 };
 const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature', panaderia: 'Panadería', infusion: 'Infusiones', frio: 'Fríos', acompanamiento: 'Acompañamientos' };
+
+const hero = await getHeroBySlug('/cafe/menu');
 ---
 
 <BrandLayout brand="cafe" title="Menú · Café Iwagé" description="Cada producto tiene nombre, historia y proveedor. Café de origen, infusiones de flora nativa, panadería y signatures con miel de Angelita. Disponibilidad en tiempo real.">
-  <!-- Header -->
-  <section class="bg-dark-bg text-dark-text">
-    <div class="max-w-6xl mx-auto px-6 py-12 md:py-16 text-center">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Café Iwagé</p>
-      <h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Menú</h1>
-      <p class="mt-4 text-dark-text/60 max-w-xl mx-auto">
-        Cada producto es un personaje con nombre, historia y proveedor. Nada genérico.
-      </p>
-      <!-- Availability summary -->
-      <div class="mt-5 inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-2 text-sm">
-        <span class="flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          {availableCount} disponibles hoy
-        </span>
-        {availableCount < totalItems && (
-          <span class="flex items-center gap-1.5 text-dark-text/50">
-            <span class="w-2 h-2 rounded-full bg-red-400"></span>
-            {totalItems - availableCount} agotados
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Café Iwagé"
+    />
+  ) : (
+    <header class="bg-dark-bg text-dark-text">
+      <div class="max-w-6xl mx-auto px-6 py-12 md:py-16 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Café Iwagé</p>
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Menú</h1>
+        <p class="mt-4 text-dark-text/60 max-w-xl mx-auto">
+          Cada producto es un personaje con nombre, historia y proveedor. Nada genérico.
+        </p>
+        <div class="mt-5 inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-2 text-sm">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            {availableCount} disponibles hoy
           </span>
-        )}
+          {availableCount < totalItems && (
+            <span class="flex items-center gap-1.5 text-dark-text/50">
+              <span class="w-2 h-2 rounded-full bg-red-400"></span>
+              {totalItems - availableCount} agotados
+            </span>
+          )}
+        </div>
+      </div>
+    </header>
+  )}
+
+  <!-- Intro: pedidos en línea -->
+  <Section bg="sunken" class="!py-8 md:!py-10">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Pedidos en línea</p>
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-text-primary font-display">
+          Todo este menú se puede pedir en línea
+        </h2>
+        <p class="mt-3 text-sm md:text-base text-text-secondary leading-relaxed">
+          Agrega los productos con el botón <strong class="text-brand">+</strong>, quedan guardados en tu
+          carrito y pagas todo junto al final: en línea con tarjeta o en el sitio con QR, BreB, efectivo o
+          transferencia. ¿Prefieres coordinar de otra forma? También tomamos pedidos por WhatsApp.
+        </p>
+      </div>
+      <div class="mt-6 grid sm:grid-cols-3 gap-3">
+        <div class="flex items-center gap-3 bg-surface-raised rounded-xl border border-border p-4">
+          <span class="w-8 h-8 shrink-0 rounded-full bg-brand-muted text-brand flex items-center justify-center text-sm font-bold">1</span>
+          <p class="text-xs text-text-secondary leading-snug">
+            Explora el menú y agrega productos con <strong class="text-brand">+</strong>
+          </p>
+        </div>
+        <div class="flex items-center gap-3 bg-surface-raised rounded-xl border border-border p-4">
+          <span class="w-8 h-8 shrink-0 rounded-full bg-brand-muted text-brand flex items-center justify-center text-sm font-bold">2</span>
+          <p class="text-xs text-text-secondary leading-snug">
+            Revisa tu carrito con el precio acumulado
+          </p>
+        </div>
+        <div class="flex items-center gap-3 bg-surface-raised rounded-xl border border-border p-4">
+          <span class="w-8 h-8 shrink-0 rounded-full bg-brand-muted text-brand flex items-center justify-center text-sm font-bold">3</span>
+          <p class="text-xs text-text-secondary leading-snug">
+            Paga en línea o coordina por WhatsApp
+          </p>
+        </div>
+      </div>
+      <div class="mt-6 text-center">
+        <a href="#menu" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 text-sm font-semibold hover:bg-brand-dark transition-all">
+          Empezar a pedir <Icon name="arrow-down" class="w-4 h-4" />
+        </a>
       </div>
     </div>
-  </section>
+  </Section>
+
+  <!-- Dúos perfectos -->
+  {combos.length > 0 && (
+    <Section id="duos" bg="sunken" class="!py-12 scroll-mt-24">
+      <ScrollReveal>
+        <div class="max-w-3xl mx-auto text-center mb-8">
+          <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Arma tu combo</p>
+          <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-text-primary font-display">Dúos perfectos</h2>
+          <p class="mt-3 text-sm text-text-secondary">
+            Bebida + acompañamiento del territorio con <strong class="text-brand">15% de descuento</strong>.
+            Agrega el dúo completo con un solo clic.
+          </p>
+        </div>
+      </ScrollReveal>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+        {combos.map((combo, i) => (
+          <ScrollReveal delay={i * 80}>
+            <div class="bg-surface-raised rounded-2xl border border-border overflow-hidden flex flex-col h-full hover:border-accent/30 hover:shadow-md transition-all group">
+              {/* Imagen del combo (producto bebida desde Strapi) */}
+              <div class={`relative h-32 bg-gradient-to-br ${combo.grad} flex items-center justify-center overflow-hidden`}>
+                {combo.bebida_imagen ? (
+                  <img src={combo.bebida_imagen} alt={combo.nombre} class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div class="relative z-10 flex items-center gap-2.5">
+                    <div class="w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                      <Icon name={combo.icon_bebida} class="w-6 h-6 text-accent" />
+                    </div>
+                    <div class="w-3.5 h-3.5 rounded-full bg-accent/20 flex items-center justify-center">
+                      <Icon name="plus" class="w-2 h-2 text-accent" />
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                      <Icon name={combo.icon_comida} class="w-6 h-6 text-accent" />
+                    </div>
+                  </div>
+                )}
+                <span class="absolute top-2 right-2.5 bg-accent text-white text-[10px] font-bold rounded-full px-2 py-0.5 shadow-sm">15% OFF</span>
+              </div>
+              {/* Body */}
+              <div class="p-3 flex flex-col flex-1">
+                <div class="flex items-center gap-1.5 mb-2">
+                  <Icon name="sparkles" class="w-3.5 h-3.5 text-accent shrink-0" />
+                  <h3 class="text-sm font-bold text-text-primary leading-tight">{combo.nombre}</h3>
+                </div>
+              <div class="space-y-1 mb-3 flex-1">
+                <div class="flex items-center gap-1.5">
+                  <Icon name="coffee" class="w-3 h-3 text-brand shrink-0" />
+                  <span class="text-xs text-text-secondary truncate">{combo.bebida_nombre}</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <Icon name="utensils-crossed" class="w-3 h-3 text-accent shrink-0" />
+                  <span class="text-xs text-text-secondary truncate">{combo.comida_nombre}</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-border">
+                <div>
+                  <span class="text-[10px] text-text-muted line-through">{fmtCOP(combo.precio_original)}</span>
+                  <span class="text-sm font-bold text-brand ml-1">{fmtCOP(combo.precio_combo)}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="add-combo mt-2 w-full bg-brand text-white rounded-lg px-3 py-2 text-xs font-semibold hover:bg-brand-dark transition-colors flex items-center justify-center gap-1.5"
+                data-combo={JSON.stringify({
+                  bebida_recurso: combo.bebida_recurso,
+                  bebida_nombre: combo.bebida_nombre,
+                  bebida_precio: combo.bebida_precio,
+                  comida_recurso: combo.comida_recurso,
+                  comida_nombre: combo.comida_nombre,
+                  comida_precio: combo.comida_precio,
+                })}
+              >
+                <Icon name="shopping-cart" class="w-3.5 h-3.5" /> Agregar dúo
+              </button>
+              </div>
+            </div>
+          </ScrollReveal>
+        ))}
+      </div>
+    </Section>
+  )}
 
   <!-- Menu grid -->
-  <Section>
+  <Section id="menu">
     {displayGrouped.map((group) => (
-      <div class="mb-14 last:mb-0">
+      <div id={group.slug} class="mb-14 last:mb-0 scroll-mt-24">
         <h2 class="text-xl font-bold text-text-primary mb-6 flex items-center gap-3">
-          <span class="text-2xl">{(group as any).icon ?? 'coffee'}</span>
+          <Icon name={group.icon} class="w-6 h-6 text-brand" />
           {group.label}
           <span class="text-xs font-normal text-text-muted bg-surface-sunken rounded-full px-2.5 py-0.5 ml-1">
             {group.entries.filter(en => en.variaciones.some(v => v.disponible)).length}/{group.entries.length}
           </span>
         </h2>
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid md:grid-cols-2 gap-4">
           {group.entries.map((entry, i) => {
             const item = entry.rep;
             const img = itemImage(item);
@@ -204,62 +385,60 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
                     variaciones: variacionesPayload,
                   })}
                   class:list={[
-                    'relative rounded-2xl border h-full flex flex-col overflow-hidden transition-all duration-200 cursor-pointer group',
+                    'relative rounded-2xl border h-full flex flex-row overflow-hidden transition-all duration-200 cursor-pointer group',
                     agotado
-                      ? 'bg-surface-sunken border-border/50 opacity-70 hover:opacity-90'
+                      ? 'bg-surface-raised border-border/50 opacity-70 hover:opacity-90'
                       : item.destacado
                         ? 'bg-surface-raised border-accent ring-1 ring-accent/20 shadow-md hover:shadow-lg'
                         : 'bg-surface-raised border-border shadow-sm hover:shadow-md hover:border-brand/30',
                   ]}
                 >
-                  {/* Image */}
-                  {img && (
-                    <div class="h-36 w-full overflow-hidden">
+                  {/* Imagen lateral desde Strapi */}
+                  <div class="w-28 sm:w-32 shrink-0 relative overflow-hidden">
+                    {img ? (
                       <img
                         src={img}
                         alt={item.nombre}
-                        class:list={['w-full h-full object-cover transition-transform duration-300 group-hover:scale-105', agotado && 'grayscale']}
+                        class:list={['absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105', agotado && 'grayscale']}
                         loading="lazy"
                       />
+                    ) : (
+                      <div class="absolute inset-0 w-full h-full bg-brand-muted/30 flex items-center justify-center">
+                        <Icon name={CAT_ICON_NAMES[item.categoria] || 'coffee'} class="w-8 h-8 text-brand/40" />
+                      </div>
+                    )}
+                    {/* Badges sobre la imagen */}
+                    <div class="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                      {agotado && (
+                        <span class="bg-red-500/90 text-white text-[9px] font-bold uppercase tracking-wide rounded-full px-1.5 py-0.5 backdrop-blur-sm">
+                          Agotado
+                        </span>
+                      )}
+                      {item.temporada && (
+                        <span class="bg-amber-500/90 text-white text-[9px] font-bold uppercase tracking-wide rounded-full px-1.5 py-0.5 backdrop-blur-sm">
+                          Temporada
+                        </span>
+                      )}
+                      {item.destacado && !agotado && (
+                        <span class="bg-accent/90 text-white text-[9px] font-bold uppercase tracking-wide rounded-full px-1.5 py-0.5 backdrop-blur-sm">
+                          Destacado
+                        </span>
+                      )}
                     </div>
-                  )}
-
-                  {/* Badges */}
-                  <div class="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-                    {agotado && (
-                      <span class="bg-red-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
-                        Agotado
-                      </span>
-                    )}
-                    {item.temporada && (
-                      <span class="bg-amber-500/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
-                        <Icon name="sprout" class="w-3 h-3 inline align-[-1px] mr-0.5" />Temporada
-                      </span>
-                    )}
-                    {item.destacado && !agotado && (
-                      <span class="bg-accent/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
-                        <Icon name="star" class="w-3 h-3 inline align-[-1px] mr-0.5" />Destacado
-                      </span>
-                    )}
-                    {tieneVar && !agotado && (
-                      <span class="bg-brand/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-2.5 py-1 backdrop-blur-sm">
-                        <Icon name="coffee" class="w-3 h-3 inline align-[-1px] mr-0.5" />{numVar} opciones
-                      </span>
-                    )}
                   </div>
 
                   {/* Content */}
-                  <div class:list={['flex flex-col flex-1 p-5', !img && 'pt-11']}>
-                    <div class="flex items-start justify-between gap-3 mb-1.5">
+                  <div class="flex flex-col flex-1 p-4 min-w-0">
+                    <div class="flex items-start justify-between gap-2 mb-1">
                       <h3 class:list={[
-                        'text-base font-semibold leading-snug',
+                        'text-sm font-semibold leading-snug',
                         agotado ? 'text-text-muted line-through decoration-1' : 'text-text-primary',
                       ]}>
                         {item.nombre}
                       </h3>
                       {item.precio && (
                         <span class:list={[
-                          'text-base font-bold shrink-0',
+                          'text-sm font-bold shrink-0',
                           agotado ? 'text-text-muted' : 'text-brand',
                         ]}>
                           {tieneVar ? `Desde ${fmtCOP(entry.precioDesde)}` : item.precio}
@@ -267,15 +446,15 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
                       )}
                     </div>
 
-                    {/* Descripcion corta */}
+                    {/* Descripción corta */}
                     {item.descripcion && (
-                      <p class="text-xs text-text-muted font-medium mb-2">{item.descripcion}</p>
+                      <p class="text-xs text-text-muted font-medium mb-1">{item.descripcion}</p>
                     )}
 
                     {/* Historia truncated */}
                     {item.historia && (
                       <p class:list={[
-                        'text-sm italic leading-relaxed mb-3 flex-1 line-clamp-2',
+                        'text-xs italic leading-relaxed mb-2 flex-1 line-clamp-2',
                         agotado ? 'text-text-muted/60' : 'text-text-secondary',
                       ]}>
                         {item.historia}
@@ -284,17 +463,17 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
 
                     {/* Nota de disponibilidad */}
                     {agotado && item.nota_disponibilidad && (
-                      <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
-                        <Icon name="calendar" class="w-3.5 h-3.5 inline align-[-2px] mr-1" />{item.nota_disponibilidad}
+                      <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5 mb-2">
+                        <Icon name="calendar" class="w-3 h-3 inline align-[-2px] mr-1" />{item.nota_disponibilidad}
                       </p>
                     )}
 
                     {/* Tags */}
                     {item.tags && item.tags.length > 0 && (
-                      <div class="flex flex-wrap gap-1.5 mt-auto pt-2">
+                      <div class="flex flex-wrap gap-1 mt-auto pt-1">
                         {item.tags.map((tag: string) => (
                           <span class:list={[
-                            'text-xs font-medium rounded-full px-2.5 py-0.5',
+                            'text-[10px] font-medium rounded-full px-2 py-0.5',
                             agotado ? 'bg-surface text-text-muted' : 'bg-brand-muted text-brand',
                           ]}>
                             {tag}
@@ -304,14 +483,16 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
                     )}
 
                     {/* Click hint + quick add */}
-                    <div class="flex items-center justify-between mt-3">
-                      <p class="text-[10px] text-text-muted/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Ver detalle <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
-                      </p>
+                    <div class="flex items-center justify-between mt-2">
+                      {tieneVar && !agotado && (
+                        <span class="text-[10px] text-brand font-medium">
+                          <Icon name="coffee" class="w-3 h-3 inline align-[-1px] mr-0.5" />{numVar} opciones
+                        </span>
+                      )}
                       {!agotado && (
                         <button
                           type="button"
-                          class="quick-add w-9 h-9 rounded-full bg-brand text-white text-lg font-bold flex items-center justify-center shadow-sm hover:bg-brand-light hover:scale-110 transition-all"
+                          class="quick-add w-7 h-7 rounded-full bg-brand text-white text-base font-bold flex items-center justify-center shadow-sm hover:bg-brand-light hover:scale-110 transition-all ml-auto"
                           data-recurso-slug={recursoSlug}
                           data-nombre={item.nombre}
                           data-precio-num={precioNum}
@@ -352,9 +533,30 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
         Precios en COP. Menú sujeto a disponibilidad de cosecha y producción diaria.
         Los productos de temporada aparecen solo cuando hay materia prima fresca.
       </p>
-      <p class="mt-3 text-sm">
-        ¿Ya decidiste? Agrega productos con el botón <strong>+</strong> y paga todo junto desde tu carrito.
-      </p>
+      <div class="mt-8">
+        <h3 class="text-lg font-semibold text-text-primary">¿Ya decidiste tu pedido?</h3>
+        <p class="mt-1.5 text-sm text-text-secondary">
+          Agrega los productos con el botón <strong class="text-brand">+</strong> y paga todo junto desde
+          tu carrito: en línea o en el sitio.
+        </p>
+        <div class="mt-5 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            data-open-cart
+            class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-7 py-3.5 text-sm font-semibold hover:bg-brand-dark transition-all"
+          >
+            <Icon name="shopping-cart" class="w-4 h-4" /> Revisar mi carrito y pagar
+          </button>
+          <a
+            href={`https://wa.me/${whatsapp}?text=${whatsappMsg}`}
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 border border-brand text-brand rounded-full px-7 py-3.5 text-sm font-semibold hover:bg-brand-muted transition-all"
+          >
+            <Icon name="message-circle" class="w-4 h-4" /> Pedir por WhatsApp
+          </a>
+        </div>
+      </div>
     </div>
   </Section>
 
@@ -363,73 +565,73 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
 
   <!-- ═══ Detail Modal ═══ -->
   <dialog id="menu-modal" class="fixed inset-0 z-[100] m-auto w-[calc(100%-2rem)] max-w-lg rounded-3xl border-0 p-0 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:items-center">
-    <div class="max-h-[85vh] overflow-y-auto rounded-3xl bg-white">
+    <div class="flex flex-col max-h-[85vh] md:max-h-[90vh] w-full rounded-3xl bg-white overflow-hidden">
       {/* Hero / Image area */}
-      <div id="modal-hero" class="relative h-44 bg-gradient-to-br from-brand/10 to-accent/10 flex items-center justify-center overflow-hidden rounded-t-3xl">
+      <div id="modal-hero" class="relative h-28 sm:h-40 md:h-44 shrink-0 bg-gradient-to-br from-brand/10 to-accent/10 flex items-center justify-center overflow-hidden">
         <img id="modal-img" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden" />
         <span id="modal-icon" class="opacity-30" set:html={CAT_ICON_SVGS.cafe}></span>
-        <button id="modal-close" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm text-white flex items-center justify-center text-lg hover:bg-black/40 transition-colors" aria-label="Cerrar">✕</button>
+        <button id="modal-close" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm text-white flex items-center justify-center text-lg hover:bg-black/40 transition-colors z-20" aria-label="Cerrar">✕</button>
         {/* Status badges */}
-        <div id="modal-badges" class="absolute top-4 left-4 flex flex-wrap gap-2"></div>
+        <div id="modal-badges" class="absolute top-3 left-3 flex flex-wrap gap-2 z-10"></div>
       </div>
 
-      {/* Body */}
-      <div class="p-6 md:p-8">
+      {/* Scrollable Body */}
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4">
         {/* Category + price row */}
-        <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center justify-between">
           <span id="modal-cat" class="text-xs font-mono uppercase tracking-widest text-text-muted"></span>
-          <span id="modal-precio" class="text-2xl font-bold text-brand"></span>
+          <span id="modal-precio" class="text-xl sm:text-2xl font-bold text-brand"></span>
         </div>
 
         {/* Name */}
-        <h2 id="modal-nombre" class="text-2xl font-bold text-text-primary leading-tight mb-2"></h2>
+        <h2 id="modal-nombre" class="text-xl sm:text-2xl font-bold text-text-primary leading-tight"></h2>
 
         {/* Descripcion */}
-        <p id="modal-desc" class="text-sm text-text-muted font-medium mb-4"></p>
+        <p id="modal-desc" class="text-xs sm:text-sm text-text-muted font-medium"></p>
 
         {/* Historia */}
-        <div id="modal-historia-wrap" class="mb-5">
-          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1.5">La historia</p>
-          <p id="modal-historia" class="text-sm text-text-secondary leading-relaxed italic"></p>
+        <div id="modal-historia-wrap">
+          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">La historia</p>
+          <p id="modal-historia" class="text-xs sm:text-sm text-text-secondary leading-relaxed italic"></p>
         </div>
 
         {/* Nota disponibilidad */}
-        <div id="modal-nota-wrap" class="hidden mb-5">
-          <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+        <div id="modal-nota-wrap" class="hidden">
+          <p class="text-xs sm:text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
             <Icon name="calendar" class="w-3.5 h-3.5 inline align-[-2px] mr-1" /><span id="modal-nota"></span>
           </p>
         </div>
 
         {/* Tags */}
-        <div id="modal-tags-wrap" class="mb-6">
-          <div id="modal-tags" class="flex flex-wrap gap-2"></div>
+        <div id="modal-tags-wrap">
+          <div id="modal-tags" class="flex flex-wrap gap-1.5 sm:gap-2"></div>
         </div>
 
         {/* Variaciones (tamaño, sabor, ...) */}
-        <div id="modal-variaciones-wrap" class="hidden mb-6">
-          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2">
+        <div id="modal-variaciones-wrap" class="hidden">
+          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1.5">
             Elige tu <span id="modal-var-eje">presentación</span>
           </p>
           <div id="modal-var-pills" class="flex flex-wrap gap-2"></div>
         </div>
+      </div>
 
-        {/* CTA: agregar al carrito con cantidad */}
-        <div class="pt-4 border-t border-border space-y-3">
-          <div id="modal-qty-wrap" class="flex items-center justify-between gap-3">
-            <span class="text-sm font-medium text-text-secondary">Cantidad</span>
-            <div class="flex items-center gap-3">
-              <button type="button" id="modal-qty-minus" class="w-9 h-9 rounded-full border border-border text-lg font-bold text-text-secondary hover:bg-brand-muted hover:text-brand transition-colors" aria-label="Restar">−</button>
-              <span id="modal-qty" class="w-8 text-center text-base font-bold text-text-primary">1</span>
-              <button type="button" id="modal-qty-plus" class="w-9 h-9 rounded-full border border-border text-lg font-bold text-text-secondary hover:bg-brand-muted hover:text-brand transition-colors" aria-label="Sumar">+</button>
-            </div>
+      {/* Sticky Bottom Footer CTA (siempre visible en móvil sin necesidad de scroll) */}
+      <div class="shrink-0 p-4 sm:px-6 bg-white border-t border-border space-y-2.5 rounded-b-3xl shadow-lg z-20">
+        <div id="modal-qty-wrap" class="flex items-center justify-between gap-3">
+          <span class="text-xs sm:text-sm font-medium text-text-secondary">Cantidad</span>
+          <div class="flex items-center gap-3">
+            <button type="button" id="modal-qty-minus" class="w-8 h-8 rounded-full border border-border text-base font-bold text-text-secondary hover:bg-brand-muted hover:text-brand transition-colors" aria-label="Restar">−</button>
+            <span id="modal-qty" class="w-6 text-center text-sm font-bold text-text-primary">1</span>
+            <button type="button" id="modal-qty-plus" class="w-8 h-8 rounded-full border border-border text-base font-bold text-text-secondary hover:bg-brand-muted hover:text-brand transition-colors" aria-label="Sumar">+</button>
           </div>
-          <button type="button" id="modal-add" class="w-full bg-brand text-white font-semibold rounded-xl px-5 py-3.5 text-sm hover:bg-brand/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-            Agregar al carrito
-          </button>
-          <a href="/cafe/proveedores" class="block text-center text-xs text-text-muted hover:text-brand transition-colors underline underline-offset-2">
-            Ver proveedores
-          </a>
         </div>
+        <button type="button" id="modal-add" class="w-full bg-brand text-white font-semibold rounded-xl px-4 py-3 text-sm hover:bg-brand/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Agregar pedido
+        </button>
+        <a href="/cafe/proveedores" class="block text-center text-[11px] text-text-muted hover:text-brand transition-colors underline underline-offset-2">
+          Ver proveedores
+        </a>
       </div>
     </div>
   </dialog>
@@ -479,7 +681,7 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
     }
     addBtn.disabled = false;
     const total = (e.precio_num || 0) * modalQty;
-    addBtn.textContent = `Agregar al carrito — ${fmtCOP(total)}`;
+    addBtn.textContent = `Agregar pedido — ${fmtCOP(total)}`;
   }
 
   /** Re-pinta precio, descripción, historia, imagen, badges y CTA según la variación activa. */
@@ -535,7 +737,7 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
     if (currentData?.destacado && e.disponible !== false) badgeHtml += '<span class="bg-accent/90 text-white text-[11px] font-bold uppercase tracking-wide rounded-full px-3 py-1 backdrop-blur-sm">' + (BADGE_SVG.star || '') + 'Destacado</span>';
     badges.innerHTML = badgeHtml;
 
-    // CTA: cantidad + agregar al carrito
+    // CTA: cantidad + agregar pedido
     const qtyWrap = document.getElementById('modal-qty-wrap')!;
     if (e.disponible === false) {
       qtyWrap.classList.add('hidden');
@@ -633,7 +835,7 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
     if (modalQty < 10) { modalQty++; qtyEl.textContent = String(modalQty); updateAddBtn(); }
   });
 
-  // ── Agregar al carrito desde el modal (usa la variación activa) ──
+  // ── Agregar pedido desde el modal (usa la variación activa) ──
   addBtn.addEventListener('click', () => {
     const e = eff();
     if (!currentData || e.disponible === false) return;
@@ -649,7 +851,7 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
       requiere_pago: (e.precio_num || 0) > 0,
       url: window.location.href,
     });
-    addBtn.textContent = '✓ Agregado al carrito';
+    addBtn.textContent = '✓ Pedido agregado';
     addBtn.disabled = true;
     window.setTimeout(() => {
       modal.close();
@@ -710,5 +912,55 @@ const catLabels: Record<string, string> = { cafe: 'Café', signature: 'Signature
   });
   modal.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') modal.close();
+  });
+
+  // ── Agregar dúo perfecto (2 items al carrito con un clic) ──
+  document.querySelectorAll('.add-combo').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      try {
+        const data = JSON.parse((btn as HTMLElement).dataset.combo || '{}');
+        addItem({
+          recurso_slug: data.bebida_recurso,
+          nombre: data.bebida_nombre,
+          precio: data.bebida_precio,
+          cantidad: 1,
+          tipo: 'pedido_cafe',
+          tipo_disponibilidad: 'inmediato',
+          brand: 'cafe',
+          origen: 'iwage_cafe',
+          requiere_pago: true,
+          url: window.location.href,
+        });
+        addItem({
+          recurso_slug: data.comida_recurso,
+          nombre: data.comida_nombre,
+          precio: data.comida_precio,
+          cantidad: 1,
+          tipo: 'pedido_cafe',
+          tipo_disponibilidad: 'inmediato',
+          brand: 'cafe',
+          origen: 'iwage_cafe',
+          requiere_pago: true,
+          url: window.location.href,
+        });
+        const original = btn.innerHTML;
+        btn.innerHTML = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Dúo agregado';
+        btn.classList.add('opacity-70');
+        btn.setAttribute('disabled', 'true');
+        window.setTimeout(() => {
+          btn.innerHTML = original;
+          btn.classList.remove('opacity-70');
+          btn.removeAttribute('disabled');
+        }, 1500);
+      } catch { /* ignore */ }
+    });
+  });
+
+  // CTAs de "revisar carrito" abren el drawer (UnifiedCart escucha este evento)
+  document.querySelectorAll('[data-open-cart]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('iwage:open-cart'));
+    });
   });
 </script>

@@ -1,0 +1,248 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { getBrand } from '@/config/brands';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
+
+const brand = getBrand('granja')!;
+const waPhone = brand.whatsapp;
+
+const hero = await getHeroBySlug('/granja/servicios');
+
+const servicios = [
+  {
+    step: '1',
+    icon: 'map-pin',
+    title: 'Visita guiada al proceso',
+    description: 'Recorrido guiado por la granja: verás cada subsistema en funcionamiento, los datos del gemelo digital en vivo y probarás lo que produce el sistema. Servicio de menor fricción, disponible incluso con subsistemas en construcción.',
+    estado: 'disponible',
+    estadoClass: 'bg-emerald-100 text-emerald-700',
+    href: '/granja/visitas',
+    cta: 'Reservar visita',
+    modelo: 'Modelo Gaviotas / Open Source Ecology',
+    precio: '$45.000 / persona',
+  },
+  {
+    step: '2',
+    icon: 'presentation',
+    title: 'Taller puntual',
+    description: 'Sesión práctica sobre un experimento específico ya validado de forma consistente. Por ejemplo: captación de agua lluvia, compostaje de ciclo cerrado o dimensionamiento solar. Se activa cuando al menos un experimento del subsistema tiene resultados repetibles.',
+    estado: 'próximamente',
+    estadoClass: 'bg-amber-100 text-amber-700',
+    href: `/granja/contacto?tipo=taller`,
+    cta: 'Registrar interés',
+    modelo: 'Modelo Wheaton Labs / Milkwood',
+    precio: null,
+  },
+  {
+    step: '3',
+    icon: 'settings',
+    title: 'Servicio de implementación',
+    description: 'Acompañamiento directo a terceros que quieran replicar un subsistema completo en su predio. Incluye diagnóstico del territorio, diseño adaptado y seguimiento durante la implementación. Se activa cuando hay al menos un subsistema completamente validado y documentado.',
+    estado: 'próximamente',
+    estadoClass: 'bg-amber-100 text-amber-700',
+    href: `/granja/contacto?tipo=implementacion`,
+    cta: 'Contar tu proyecto',
+    modelo: 'Implementación asistida',
+    precio: null,
+  },
+  {
+    step: '4',
+    icon: 'graduation-cap',
+    title: 'Curso estructurado',
+    description: 'Programa formativo que consolida múltiples talleres validados en un currículo coherente. Se activa cuando existen al menos 3 talleres con demanda recurrente. Modelo de comunidad y archivo de contenido como activo principal.',
+    estado: 'futuro',
+    estadoClass: 'bg-blue-100 text-blue-700',
+    href: `/granja/contacto?tipo=curso`,
+    cta: 'Registrar interés',
+    modelo: 'Modelo Milkwood / Wheaton Labs',
+    precio: null,
+  },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Servicios derivados · Iwagé Granja',
+  description: 'Modelo de servicios derivados del laboratorio vivo: visitas guiadas, talleres, implementación y cursos.',
+  numberOfItems: servicios.length,
+  itemListElement: servicios.map((s, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: s.title,
+    description: s.description,
+  })),
+};
+---
+
+<BrandLayout
+  brand="granja"
+  title="Servicios · Iwagé Granja Autosustentable"
+  description="Servicios derivados del laboratorio vivo Iwagé: visitas guiadas, talleres puntuales, implementación de subsistemas y cursos estructurados. Cada servicio se deriva de experimentos validados en campo."
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Granja Autosustentable · Tolima"
+    />
+  ) : (
+    <header class="bg-surface pt-12 pb-8">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Servicios</p>
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text-primary mb-4">
+          Del experimento al servicio
+        </h1>
+        <p class="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+          Los servicios de Granja no se ofrecen por adelantado: se derivan de experimentos ya validados en campo. Cada nivel de servicio requiere un nivel de validación previo.
+        </p>
+      </div>
+    </header>
+  )}
+
+  <!-- Maturity ladder -->
+  <Section>
+    <SectionHeader
+      label="Escalera de madurez"
+      title="Cuatro niveles, un solo principio"
+      subtitle="Cada servicio se activa solo cuando el experimento detrás ha sido validado de forma consistente. La bitácora publica tanto lo que funcionó como lo que no."
+      align="center"
+    />
+
+    <div class="max-w-3xl mx-auto">
+      {servicios.map((s, i) => (
+        <ScrollReveal delay={i * 100}>
+          <div class={`relative flex gap-6 mb-6 ${i < servicios.length - 1 ? 'pb-6' : ''} ${i < servicios.length - 1 ? 'border-b border-border' : ''}`}>
+            <!-- Step number + connector -->
+            <div class="flex flex-col items-center shrink-0">
+              <div class={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold shrink-0 ${s.estado === 'disponible' ? 'bg-brand text-white' : 'bg-brand-muted text-brand'}`}>
+                {s.step}
+              </div>
+              {i < servicios.length - 1 && (
+                <div class="w-px flex-1 bg-border mt-2"></div>
+              )}
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 pb-2">
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <Icon name={s.icon} class="w-5 h-5 text-brand shrink-0" />
+                <h2 class="text-lg font-semibold text-text-primary">{s.title}</h2>
+                <span class={`inline-block text-[10px] font-bold uppercase tracking-wide rounded-full px-2.5 py-0.5 ${s.estadoClass}`}>
+                  {s.estado}
+                </span>
+              </div>
+              <p class="text-sm text-text-secondary leading-relaxed mb-3">{s.description}</p>
+              <div class="flex flex-wrap items-center gap-4 text-xs text-text-muted mb-4">
+                <span class="font-mono">{s.modelo}</span>
+                {s.precio && <span class="font-semibold text-text-secondary">{s.precio}</span>}
+              </div>
+              <a
+                href={s.href}
+                class={`inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+                  s.estado === 'disponible'
+                    ? 'bg-brand text-white hover:bg-brand-light hover:scale-[1.02]'
+                    : 'border border-brand text-brand hover:bg-brand-muted/30'
+                }`}
+              >
+                {s.cta} →
+              </a>
+            </div>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- How services are derived -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <div class="max-w-3xl mx-auto">
+        <SectionHeader
+          label="Lógica de derivación"
+          title="¿Cómo nace un servicio?"
+          align="center"
+        />
+        <div class="grid sm:grid-cols-2 gap-6 mt-6">
+          <div class="bg-surface-raised rounded-xl border border-border p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center text-brand">
+                <Icon name="flask-conical" class="w-4 h-4" />
+              </div>
+              <h3 class="text-sm font-semibold text-text-primary">1. Experimento en campo</h3>
+            </div>
+            <p class="text-xs text-text-secondary leading-relaxed">
+              Toda necesidad real del territorio se convierte en un experimento documentado en la bitácora: origen, hipótesis, proceso y resultado.
+            </p>
+          </div>
+          <div class="bg-surface-raised rounded-xl border border-border p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center text-brand">
+                <Icon name="check-circle" class="w-4 h-4" />
+              </div>
+              <h3 class="text-sm font-semibold text-text-primary">2. Validación consistente</h3>
+            </div>
+            <p class="text-xs text-text-secondary leading-relaxed">
+              El experimento debe funcionar de forma repetible, no solo una vez. Los datos del gemelo digital y la bitácora respaldan la validación.
+            </p>
+          </div>
+          <div class="bg-surface-raised rounded-xl border border-border p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center text-brand">
+                <Icon name="package" class="w-4 h-4" />
+              </div>
+              <h3 class="text-sm font-semibold text-text-primary">3. Servicio derivado</h3>
+            </div>
+            <p class="text-xs text-text-secondary leading-relaxed">
+              Si funcionó, se convierte en visita guiada, taller, implementación o curso. Si no funcionó, la lección se publica igual — sigue siendo conocimiento válido.
+            </p>
+          </div>
+          <div class="bg-surface-raised rounded-xl border border-border p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center text-brand">
+                <Icon name="bar-chart-3" class="w-4 h-4" />
+              </div>
+              <h3 class="text-sm font-semibold text-text-primary">4. Retroalimentación</h3>
+            </div>
+            <p class="text-xs text-text-secondary leading-relaxed">
+              Cada servicio genera nuevos datos y preguntas que alimentan la bitácora. El ciclo del laboratorio vivo nunca se cierra del todo.
+            </p>
+          </div>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+
+  <!-- CTA: first step -->
+  <Section bg="dark" class="!py-14">
+    <ScrollReveal>
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-dark-text mb-4">
+          El primer paso es conocer el sistema
+        </h2>
+        <p class="text-dark-text/60 mb-8">
+          La visita guiada es el servicio de menor fricción: recorres cada subsistema, ves los datos en vivo y decides si quieres profundizar en talleres o implementación.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/granja/visitas" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light hover:scale-[1.02] transition-all">
+            Reservar visita guiada →
+          </a>
+          <a href="/granja/sistema" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
+            Explorar el sistema
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

@@ -3,120 +3,423 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
+import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getCafeConfig, getMenuItems, getProveedores, itemImage, proveedorFoto } from '@/lib/cafe';
+import { getCafeConfig, getProveedores, CATEGORIAS_MENU, getMenuItems, proveedorFoto, proveedorIcono, getHistoriasVisitantes, historiaImagen, type HistoriaVisitante } from '@/lib/cafe';
+import { getHeroBySlug } from '@/lib/heroes';
 
-const [config, menuItems, proveedores] = await Promise.all([
+const [config, menuItems, proveedores, historias, hero] = await Promise.all([
   getCafeConfig(),
   getMenuItems(),
   getProveedores(),
+  getHistoriasVisitantes(),
+  getHeroBySlug('/cafe'),
 ]);
 
-// Fallback data if Strapi is unavailable
-const destacados = menuItems.filter(i => i.destacado).slice(0, 4);
-const fallbackMenu = destacados.length > 0 ? destacados : [
-  { nombre: 'Café de origen Ambalá', historia: 'Cultivado a 1,400 m.s.n.m. por la familia Cardona. Notas de panela y cítricos.', tags: ['Origen único', 'Tueste medio'], precio: '$6.500', destacado: true, imagen: null },
-  { nombre: 'Miel de Angelita con café', historia: 'Infusión de miel cruda de T. angustula en espresso doble. Dulzor natural sin azúcar.', tags: ['Signature', 'Sin azúcar'], precio: '$9.000', destacado: true, imagen: null },
-  { nombre: 'Aromática de flora nativa', historia: 'Blend de hierbas del corredor: hierbabuena, limoncillo y flor de guamo.', tags: ['Sin cafeína', 'Herbal'], precio: '$5.500', destacado: false, imagen: null },
-  { nombre: 'Chocolate de cacao local', historia: 'Cacao de El Espinal, preparado con leche de la finca La Cumbre.', tags: ['Caliente', 'Local'], precio: '$7.000', destacado: false, imagen: null },
+// Categorías del menú con conteo de items disponibles
+const categorias = CATEGORIAS_MENU.map(cat => {
+  const items = menuItems.filter(i => i.categoria === cat.slug);
+  const disponibles = items.filter(i => i.disponible).length;
+  return { ...cat, total: items.length, disponibles };
+}).filter(c => c.total > 0);
+
+// Fallback si Strapi no responde
+const fallbackCategorias = categorias.length > 0 ? categorias : [
+  { slug: 'cafe', label: 'Café', icon: 'coffee', total: 4, disponibles: 4 },
+  { slug: 'signature', label: 'Signature', icon: 'sparkles', total: 2, disponibles: 2 },
+  { slug: 'panaderia', label: 'Panadería', icon: 'croissant', total: 1, disponibles: 1 },
+  { slug: 'infusion', label: 'Infusiones', icon: 'leaf', total: 3, disponibles: 3 },
+  { slug: 'frio', label: 'Fríos', icon: 'snowflake', total: 2, disponibles: 2 },
+  { slug: 'acompanamiento', label: 'Acompañamientos', icon: 'candy', total: 3, disponibles: 3 },
 ];
 
-const fallbackProveedores = proveedores.length > 0 ? proveedores : [
-  { nombre: 'Familia Cardona', producto: 'Café de origen', ubicacion: 'Vereda El Carmen', distancia_km: 2.3, foto: null },
-  { nombre: 'Finca La Cumbre', producto: 'Leche y quesos', ubicacion: 'Cajamarca', distancia_km: 3.8, foto: null },
-  { nombre: 'Cacao El Espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, foto: null },
+// Historias por categoría (CMS o fallback)
+const fauna = historias.filter(h => h.categoria === 'fauna');
+const flora = historias.filter(h => h.categoria === 'flora');
+const personas = historias.filter(h => h.categoria === 'personas');
+
+const fallbackProveedores = proveedores.length > 0 ? proveedores.slice(0, 4) : [
+  { nombre: 'Meliponario Iwagé', slug: 'meliponario-iwage', producto: 'Miel de Angelita', ubicacion: 'Corredor Ambalá', distancia_km: 0.2, historia: 'Nuestra propia miel de Tetragonisca angustula. Cosecha limitada, dulzor floral único.', foto: { url: '/images/cafe-menu/proveedor-meliponario.webp' } },
+  { nombre: 'Familia Cardona', slug: 'familia-cardona', producto: 'Café de origen', ubicacion: 'Vereda El Carmen', distancia_km: 2.3, historia: 'Tres generaciones cultivando café en las laderas del Ambalá. Tueste medio, notas de panela y cítricos.', foto: { url: '/images/cafe-menu/proveedor-familia-cardona.webp' } },
+  { nombre: 'Finca La Cumbre', slug: 'finca-la-cumbre', producto: 'Leche y quesos', ubicacion: 'Cajamarca', distancia_km: 3.8, historia: 'Ganadería regenerativa a pequeña escala. Leche cruda para nuestro chocolate y quesos de temporada.', foto: { url: '/images/cafe-menu/proveedor-finca-cumbre.webp' } },
+  { nombre: 'Cacao El Espinal', slug: 'cacao-el-espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, historia: 'La excepción a nuestra regla de 4 km. Cacao fino de aroma del valle del Magdalena, fermentado 5 días.', foto: { url: '/images/cafe-menu/proveedor-cacao-espinal.webp' } },
 ];
+
+function slugify(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+// Historias para la sección del home: mostramos 4 destacadas, con link "Ver todas" si hay más.
+const FALLBACK_HISTORIAS_HOME: HistoriaVisitante[] = [
+  { id: 1, documentId: 'fb-h1', titulo: 'El colibrí de garganta azul', slug: 'colibri-garganta-azul', categoria: 'fauna', texto_corto: 'Aparece cada mañana a las 6:40. Primero al limoncillo de la entrada, luego al guamo del costado.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-colibri.webp' }, icono: 'bird', orden: 1, destacado: true },
+  { id: 2, documentId: 'fb-h2', titulo: 'Las angelitas del techo', slug: 'angelitas-techo', categoria: 'fauna', texto_corto: 'Una colonia de Tetragonisca angustula se instaló en el alero del café hace dos años. Producen la miel del signature.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-angelitas.webp' }, icono: 'bug', orden: 2, destacado: true },
+  { id: 3, documentId: 'fb-h3', titulo: 'El guamo centinela', slug: 'guamo-centinela', categoria: 'flora', texto_corto: 'Tiene más de 40 años. Da sombra a la mitad del jardín y flores dulces de diciembre a marzo.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-guamo.webp' }, icono: 'tree-pine', orden: 3, destacado: true },
+  { id: 4, documentId: 'fb-h4', titulo: 'Doña Nelly y la receta del pandebono', slug: 'dona-nelly', categoria: 'personas', texto_corto: 'Llegó un martes de mercado. Probó el pan de yuca y dijo: "así no se hace, pero está rico".', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-dona-nelly.webp' }, icono: 'heart-handshake', orden: 4, destacado: true },
+];
+
+const historiasPool = historias.length > 0 ? historias : FALLBACK_HISTORIAS_HOME;
+const historiasOrdenadas = [...historiasPool].sort((a, b) => {
+  if (a.destacado !== b.destacado) return a.destacado ? -1 : 1;
+  return (a.orden ?? 999) - (b.orden ?? 999);
+});
+const historiasHome = historiasOrdenadas.slice(0, 4);
+const totalHistorias = historiasPool.length;
 
 const whatsapp = config?.whatsapp ?? '573026693366';
 ---
 
 <BrandLayout brand="cafe">
   <!-- Hero -->
-  <section class="relative bg-dark-bg text-dark-text">
-    <img
-      src="/images/hero-cafe.webp"
-      alt="Café de origen del Tolima"
-      class="absolute inset-0 h-full w-full object-cover opacity-50"
-      loading="eager"
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Café Iwagé"
     />
-    <div class="absolute inset-0 bg-gradient-to-b from-dark-bg/60 via-dark-bg/50 to-dark-bg"></div>
-    <div class="relative max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Café Iwagé</p>
-      <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6 font-display">
-        {config?.titulo ?? 'El territorio en cada taza'}
-      </h1>
-      <p class="text-lg text-dark-text/60 leading-relaxed max-w-2xl mx-auto">
-        {config?.descripcion ?? 'Un café comunitario construido sobre ingredientes nombrados, proveedores a menos de 4 km y un menú donde cada producto es un personaje.'}
-      </p>
-      <div class="mt-8 flex flex-wrap justify-center gap-4">
-        <a href="/cafe/menu" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-6 py-3 font-medium hover:bg-accent-light transition-all">
-          Ver menú
-        </a>
-        <a href="/cafe/proveedores" class="inline-flex items-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-6 py-3 font-medium hover:border-accent hover:text-accent transition-all">
-          Nuestros proveedores
-        </a>
+  ) : (
+    <section class="relative bg-dark-bg text-dark-text">
+      <img src="/images/hero-cafe.webp" alt="" class="absolute inset-0 h-full w-full object-cover opacity-50" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-b from-dark-bg/60 via-dark-bg/50 to-dark-bg"></div>
+      <div class="relative max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Café Iwagé</p>
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6 font-display">{config?.titulo ?? 'El territorio en cada taza'}</h1>
       </div>
-    </div>
-  </section>
+    </section>
+  )}
 
-  <!-- Featured Menu -->
+  <!-- Categorías del menú (Fila Única) -->
   <Section>
     <ScrollReveal>
       <SectionHeader
         label="Menú"
-        title="Cada producto tiene nombre"
-        subtitle="No vendemos café genérico. Cada taza cuenta la historia de quien la cultivó."
+        title="Explora por categoría"
+        subtitle="Cada categoría tiene productos con nombre, historia y proveedor. Nada genérico."
       />
     </ScrollReveal>
-    <div class="grid md:grid-cols-2 gap-6">
-      {fallbackMenu.map((item, i) => (
-        <ScrollReveal delay={i * 80}>
-          <div class={`bg-surface-raised rounded-2xl border p-6 shadow-sm h-full ${item.destacado ? 'border-accent ring-1 ring-accent/20' : 'border-border'}`}>
-            <div class="flex items-start justify-between mb-3">
-              <h3 class="text-base font-semibold text-text-primary">{item.nombre}</h3>
-              <span class="text-lg font-bold text-brand shrink-0 ml-4">{item.precio}</span>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      {fallbackCategorias.map((cat, i) => (
+        <ScrollReveal delay={i * 60} class="h-full">
+          <a
+            href={`/cafe/menu#${cat.slug}`}
+            class="group relative block bg-surface-raised rounded-2xl border border-border p-4 text-center transition-all hover:border-brand/40 hover:shadow-md hover:scale-[1.02] h-full flex flex-col items-center justify-between"
+          >
+            <div>
+              <div class="w-12 h-12 rounded-2xl bg-brand-muted flex items-center justify-center mx-auto mb-3 transition-colors group-hover:bg-brand/15">
+                <Icon name={cat.icon} class="w-6 h-6 text-brand" />
+              </div>
+              <h3 class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors mb-0.5">
+                {cat.label}
+              </h3>
+              <p class="text-[11px] text-text-muted">
+                {cat.disponibles === cat.total
+                  ? `${cat.total} productos`
+                  : `${cat.disponibles} de ${cat.total}`
+                }
+              </p>
             </div>
-            <p class="text-sm text-text-secondary italic leading-relaxed mb-4">{item.historia}</p>
-            <div class="flex flex-wrap gap-2">
-              {(item.tags ?? []).map((tag: string) => (
-                <span class="bg-brand-muted text-brand text-xs font-medium rounded-full px-3 py-1">{tag}</span>
-              ))}
-            </div>
-          </div>
+            <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-brand">
+              Ver <Icon name="arrow-right" class="w-3 h-3" />
+            </span>
+          </a>
         </ScrollReveal>
       ))}
     </div>
     <div class="text-center mt-8">
-      <a href="/cafe/menu" class="text-brand font-medium hover:text-accent transition-colors">
-        Ver menú completo <Icon name="arrow-right" class="w-3.5 h-3.5 inline" />
+      <a href="/cafe/menu" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-6 py-3 font-medium hover:bg-accent-light transition-all">
+        Ver menú completo <Icon name="arrow-right" class="w-4 h-4" />
       </a>
     </div>
   </Section>
 
-  <!-- Suppliers -->
+  <!-- Promos: Reutilizable + Dúos perfectos -->
+  <Section bg="sunken" class="!py-12">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Trae tu reutilizable -->
+        <ScrollReveal>
+          <div class="bg-surface-raised rounded-2xl border border-brand/20 overflow-hidden flex flex-row h-full group hover:shadow-lg transition-all">
+            {/* Imagen lateral */}
+            <div class="w-40 sm:w-48 shrink-0 relative overflow-hidden">
+              <img src="/images/cafe-menu/promo-reutilizable.webp" alt="Trae tu reutilizable" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+              <span class="absolute top-3 left-3 bg-brand text-white text-xs font-bold rounded-full px-2.5 py-1 shadow-sm">
+                −15%
+              </span>
+            </div>
+            {/* Contenido */}
+            <div class="p-5 flex flex-col flex-1">
+              <h3 class="text-lg font-bold text-text-primary mb-2 font-display">Trae tu reutilizable</h3>
+              <p class="text-sm text-text-secondary leading-relaxed flex-1 mb-4">
+                Trae tu vaso o taza reutilizable y obtén <strong class="text-brand">15% de descuento</strong> en
+                cualquier bebida del menú. Menos desperdicio, mismo sabor — mejor consciencia.
+              </p>
+              <div class="flex items-center gap-2 text-xs text-text-muted bg-brand-muted/30 rounded-xl px-3 py-2">
+                <Icon name="info" class="w-3.5 h-3.5 text-brand shrink-0" />
+                <span>El descuento se aplica en tu carrito</span>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
+        <!-- Dúos perfectos -->
+        <ScrollReveal delay={80}>
+          <div class="bg-surface-raised rounded-2xl border border-accent/20 overflow-hidden flex flex-row h-full group hover:shadow-lg transition-all">
+            {/* Imagen lateral */}
+            <div class="w-40 sm:w-48 shrink-0 relative overflow-hidden">
+              <img src="/images/cafe-menu/promo-duos-perfectos.webp" alt="Dúos perfectos" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+              <span class="absolute top-3 left-3 bg-accent text-white text-xs font-bold rounded-full px-2.5 py-1 shadow-sm">
+                Combo
+              </span>
+            </div>
+            {/* Contenido */}
+            <div class="p-5 flex flex-col flex-1">
+              <h3 class="text-lg font-bold text-text-primary mb-2 font-display">Dúos perfectos</h3>
+              <p class="text-sm text-text-secondary leading-relaxed flex-1 mb-4">
+                Arma tu combinación favorita: bebida + acompañamiento del territorio con un
+                <strong class="text-accent">precio especial</strong>. Cada dúo es una experiencia completa.
+              </p>
+              <a href="/cafe/menu#duos" class="inline-flex items-center gap-2 text-sm font-medium text-accent hover:gap-3 transition-all">
+                Ver dúos disponibles <Icon name="arrow-right" class="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Proveedores destacados -->
   <Section bg="sunken">
     <ScrollReveal>
       <SectionHeader
         label="Proveedores"
         title="Cadena corta, nombre propio"
-        subtitle="Cada ingrediente tiene un rostro y una distancia máxima de 4 km (excepto el cacao)."
+        subtitle="Cada ingrediente tiene un rostro y una distancia."
       />
     </ScrollReveal>
-    <div class="grid md:grid-cols-3 gap-6">
-      {fallbackProveedores.map((p, i) => (
-        <ScrollReveal delay={i * 100}>
-          <div class="bg-surface-raised rounded-2xl border border-border p-6 shadow-sm text-center">
-            <div class="w-12 h-12 rounded-full bg-brand-muted flex items-center justify-center text-brand font-semibold mx-auto mb-4">
-              {p.nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-            </div>
-            <h3 class="text-base font-semibold text-text-primary mb-1">{p.nombre}</h3>
-            <p class="text-sm text-text-secondary mb-2">{p.producto}</p>
-            <p class="text-xs text-text-muted flex items-center justify-center gap-1">
-              <Icon name="map-pin" class="w-3.5 h-3.5" /> {p.ubicacion} · {p.distancia_km} km
-            </p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {fallbackProveedores.map((p, i) => {
+        const foto = proveedorFoto(p as any);
+        const icono = proveedorIcono(p);
+        const provSlug = (p as any).slug || slugify(p.nombre);
+        return (
+          <ScrollReveal delay={i * 80}>
+            <a
+              href={`/cafe/proveedores/${provSlug}`}
+              class="group block bg-surface-raised rounded-2xl border border-border overflow-hidden h-full flex flex-col transition-all hover:border-brand/40 hover:shadow-md"
+            >
+              <div class="relative w-full h-36 overflow-hidden">
+                {foto ? (
+                  <img src={foto} alt={p.nombre} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                ) : (
+                  <div class="w-full h-full bg-brand-muted/40 flex items-center justify-center">
+                    <Icon name={icono} class="w-10 h-10 text-brand/40" />
+                  </div>
+                )}
+                {p.distancia_km != null && (
+                  <span class="absolute top-2.5 right-2.5 text-[10px] font-bold bg-accent/90 text-white rounded-full px-2 py-0.5 backdrop-blur-sm">
+                    {p.distancia_km} km
+                  </span>
+                )}
+              </div>
+              <div class="p-4 flex flex-col flex-1">
+                <h3 class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors mb-0.5 leading-snug">{p.nombre}</h3>
+                <p class="text-xs text-brand font-medium mb-2">{p.producto}</p>
+                <p class="text-[11px] text-text-secondary leading-relaxed line-clamp-2 flex-1">{p.historia || p.ubicacion || ''}</p>
+                <div class="mt-2.5 flex items-center justify-between">
+                  <span class="text-[10px] text-text-muted flex items-center gap-1">
+                    <Icon name="map-pin" class="w-3 h-3" /> {p.ubicacion}
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-[10px] font-medium text-brand opacity-0 group-hover:opacity-100 transition-opacity">
+                    Ver ficha <Icon name="arrow-right" class="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
+            </a>
+          </ScrollReveal>
+        );
+      })}
+    </div>
+    <div class="text-center mt-6">
+      <a href="/cafe/proveedores" class="inline-flex items-center gap-2 text-brand font-medium text-sm hover:gap-3 transition-all">
+        Ver todos los proveedores <Icon name="arrow-right" class="w-4 h-4" />
+      </a>
+    </div>
+  </Section>
+
+  <!-- Visitantes del café -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader
+        label="Visitantes"
+        title="Quiénes nos visitan"
+        subtitle="Fauna, flora y personas reales que pasan por el café. Cada uno tiene una historia."
+      />
+    </ScrollReveal>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {historiasHome.map((h, i) => {
+        const img = historiaImagen(h);
+        const catLabel = h.categoria === 'fauna' ? 'Fauna' : h.categoria === 'flora' ? 'Flora' : 'Personas';
+        return (
+          <ScrollReveal delay={i * 80}>
+            <a
+              href={`/cafe/visitantes#${h.slug || h.documentId}`}
+              class="group block bg-surface-raised rounded-2xl border border-border overflow-hidden h-full flex flex-col transition-all hover:border-brand/40 hover:shadow-md"
+            >
+              {img ? (
+                <img src={img} alt={h.titulo} class="w-full h-40 object-cover" loading="lazy" />
+              ) : (
+                <div class="w-full h-40 bg-brand-muted/40 flex items-center justify-center">
+                  <Icon name={h.icono || (h.categoria === 'fauna' ? 'bird' : h.categoria === 'flora' ? 'tree-pine' : 'users')} class="w-10 h-10 text-brand/40" />
+                </div>
+              )}
+              <div class="p-5 flex flex-col flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-[10px] font-mono uppercase tracking-widest text-accent">{catLabel}</span>
+                </div>
+                <h3 class="text-base font-semibold text-text-primary group-hover:text-brand transition-colors mb-2 leading-snug">
+                  {h.titulo}
+                </h3>
+                <p class="text-xs text-text-secondary leading-relaxed line-clamp-3 flex-1">
+                  {h.texto_corto}
+                </p>
+                <span class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-brand">
+                  Leer historia <Icon name="arrow-right" class="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </a>
+          </ScrollReveal>
+        );
+      })}
+    </div>
+    {totalHistorias > 4 && (
+      <div class="text-center mt-8">
+        <a href="/cafe/visitantes" class="inline-flex items-center gap-2 text-brand font-medium text-sm hover:gap-3 transition-all">
+          Ver todas las historias ({totalHistorias}) <Icon name="arrow-right" class="w-4 h-4" />
+        </a>
+      </div>
+    )}
+  </Section>
+
+  <!-- Dónde estamos -->
+  <Section bg="sunken" class="!py-12">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-8">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-3">Dónde estamos</p>
+        <h2 class="text-2xl font-bold text-text-primary mb-3 font-display">Ven a conocernos</h2>
+        <p class="text-sm text-text-secondary leading-relaxed max-w-2xl mx-auto">
+          {config?.direccion ?? 'Corredor Ambalá, vereda El Carmen, Ibagué — Tolima.'}
+        </p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6 items-start mb-8">
+        <div class="md:col-span-1">
+          <div class="space-y-3 text-sm text-text-secondary">
+            {config?.horario && (
+              <div class="flex items-start gap-2">
+                <Icon name="clock" class="w-4 h-4 text-brand shrink-0 mt-0.5" />
+                <span>{config.horario}</span>
+              </div>
+            )}
+            {config?.telefono && (
+              <a href={`tel:${config.telefono.replace(/\s/g, '')}`} class="flex items-center gap-2 hover:text-brand transition-colors">
+                <Icon name="phone" class="w-4 h-4 text-brand shrink-0" />
+                <span>{config.telefono}</span>
+              </a>
+            )}
+            {config?.whatsapp && (
+              <a href={`https://wa.me/${config.whatsapp.replace(/\+/g, '')}`} target="_blank" rel="noopener" class="flex items-center gap-2 hover:text-[#25D366] transition-colors">
+                <Icon name="message-circle" class="w-4 h-4 text-brand shrink-0" />
+                <span>WhatsApp</span>
+              </a>
+            )}
           </div>
-        </ScrollReveal>
-      ))}
+          <div class="mt-5 flex flex-wrap gap-3">
+            {config?.mapa_url && (
+              <a href={config.mapa_url} target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-5 py-2.5 text-sm font-medium hover:bg-brand-dark transition-all">
+                <Icon name="map-pin" class="w-4 h-4" /> Cómo llegar
+              </a>
+            )}
+            <a href="/cafe/ayuda" class="inline-flex items-center gap-2 border border-border text-text-secondary rounded-full px-5 py-2.5 text-sm font-medium hover:border-brand hover:text-brand transition-all">
+              <Icon name="help-circle" class="w-4 h-4" /> Preguntas frecuentes
+            </a>
+          </div>
+        </div>
+        <div class="md:col-span-2 space-y-3">
+          <div class="flex items-center gap-2 text-xs text-text-muted bg-surface-raised rounded-lg px-3 py-2 border border-border">
+            <Icon name="info" class="w-3.5 h-3.5 text-brand shrink-0" />
+            <span>Mapa interactivo — haz clic para explorar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Mapa de ubicación a ancho completo -->
+  <div class="w-full">
+    {config?.mapa_url ? (
+      <iframe
+        src={config.mapa_url.replace('/place', '/embed').replace(/&output=.*$/, '')}
+        width="100%"
+        height="450"
+        style="border:0; display:block;"
+        allowfullscreen
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        title="Ubicación Café Iwagé"
+        class="w-full"
+      ></iframe>
+    ) : (
+      <div class="w-full h-[450px] flex items-center justify-center bg-brand-muted/30">
+        <div class="text-center">
+          <Icon name="map-pin" class="w-12 h-12 text-brand/40 mx-auto mb-3" />
+          <p class="text-sm text-text-muted font-medium">Corredor Ambalá, Ibagué — Tolima</p>
+          <p class="text-xs text-text-muted mt-1">Configura la URL del mapa en Strapi</p>
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- Cómo se conecta con el ecosistema Iwagé -->
+  <Section bg="sunken" class="!py-12">
+    <div class="max-w-4xl mx-auto text-center">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6">Cómo se conecta con el ecosistema Iwagé</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+        <a href="/meliponas/" class="group flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:border-accent/50 hover:bg-surface transition-all">
+          <Icon name="hexagon" class="w-5 h-5 text-accent shrink-0" />
+          <div class="text-left">
+            <p class="text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">Meliponas</p>
+            <p class="text-[9px] text-text-muted">Miel de Angelita</p>
+          </div>
+        </a>
+        <Icon name="arrow-right" class="w-3.5 h-3.5 text-text-muted hidden sm:block shrink-0" />
+        <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-brand/30 bg-brand-muted/30">
+          <Icon name="coffee" class="w-5 h-5 text-brand shrink-0" />
+          <div class="text-left">
+            <p class="text-xs font-semibold text-brand">Café</p>
+            <p class="text-[9px] text-text-muted">El punto de encuentro</p>
+          </div>
+        </div>
+        <Icon name="arrow-right" class="w-3.5 h-3.5 text-text-muted hidden sm:block shrink-0" />
+        <a href="/naturaleza/" class="group flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:border-accent/50 hover:bg-surface transition-all">
+          <Icon name="mountain" class="w-5 h-5 text-accent shrink-0" />
+          <div class="text-left">
+            <p class="text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">Naturaleza</p>
+            <p class="text-[9px] text-text-muted">Turismo regenerativo</p>
+          </div>
+        </a>
+        <Icon name="arrow-right" class="w-3.5 h-3.5 text-text-muted hidden sm:block shrink-0" />
+        <a href="/granja/" class="group flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:border-accent/50 hover:bg-surface transition-all">
+          <Icon name="sprout" class="w-5 h-5 text-accent shrink-0" />
+          <div class="text-left">
+            <p class="text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">Granja</p>
+            <p class="text-[9px] text-text-muted">Laboratorio vivo</p>
+          </div>
+        </a>
+      </div>
+      <p class="text-xs text-text-muted mt-4 max-w-lg mx-auto">La miel del meliponario endulza el café, el café atrae visitantes al territorio, los visitantes descubren la naturaleza y la granja documenta todo el proceso.</p>
     </div>
   </Section>
 

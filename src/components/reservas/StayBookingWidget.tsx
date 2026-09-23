@@ -3,7 +3,7 @@
  *
  * A diferencia de BookingWidget (slot_horario), este widget valida en vivo
  * contra /api/disponibilidad/rango (modelo abierto-salvo-bloqueo), calcula
- * el total por noches y permite agregar al carrito o reservar+pagar directo.
+ * el total por noches y permite agregar pedido o reservar+pagar directo.
  */
 import { useState, useEffect } from 'react';
 import { addItem } from '../../lib/cart-store';
@@ -393,14 +393,14 @@ export default function StayBookingWidget({
         </div>
       )}
 
-      {/* Primario: agregar al carrito unificado */}
+      {/* Primario: agregar pedido unificado */}
       <button
         type="button"
         onClick={handleAddToCart}
         disabled={addedToCart}
         className="w-full rounded-lg bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-70"
       >
-        {addedToCart ? '✓ Agregado al carrito' : 'Agregar al carrito'}
+        {addedToCart ? '✓ Pedido agregado' : 'Agregar pedido'}
       </button>
 
       {/* Secundario: reserva + pago directo */}

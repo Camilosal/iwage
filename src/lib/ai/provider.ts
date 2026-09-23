@@ -18,6 +18,8 @@ export interface LLMOptions {
   maxTokens?: number;
   /** Request timeout in ms. Default: 30000 */
   timeout?: number;
+  /** Force JSON output (OpenAI-compatible providers). */
+  jsonMode?: boolean;
 }
 
 export interface LLMResult {
@@ -54,7 +56,7 @@ function isRetryableError(err: any): boolean {
  * to remaining providers if the error is retryable (429/402/quota).
  */
 export async function callLLM(messages: LLMMessage[], opts: LLMOptions = {}): Promise<LLMResult> {
-  const { temperature = 0.7, maxTokens = 500, timeout = 30_000 } = opts;
+  const { temperature = 0.7, maxTokens = 500, timeout = 30_000, jsonMode = false } = opts;
   const chain = getFallbackChain();
   const errors: string[] = [];
 
@@ -63,7 +65,7 @@ export async function callLLM(messages: LLMMessage[], opts: LLMOptions = {}): Pr
       if (provider === 'gemini') {
         return await callGemini(messages, { temperature, maxTokens, timeout });
       }
-      return await callOpenAICompatible(messages, { temperature, maxTokens, timeout, provider });
+      return await callOpenAICompatible(messages, { temperature, maxTokens, timeout, provider, jsonMode });
     } catch (err: any) {
       const errMsg = err?.message || 'Unknown error';
       errors.push(`[${provider}] ${errMsg}`);
@@ -85,8 +87,10 @@ export async function callLLM(messages: LLMMessage[], opts: LLMOptions = {}): Pr
  * Handles markdown code blocks and raw JSON.
  */
 export async function callLLMJson<T = any>(messages: LLMMessage[], opts: LLMOptions = {}): Promise<T> {
-  const result = await callLLM(messages, opts);
-  const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+  const optsWithJson: LLMOptions = { ...opts, jsonMode: true };
+  const result = await callLLM(messages, optsWithJson);
+  const stripped = result.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+  const jsonMatch = stripped.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('LLM did not return valid JSON');
   return JSON.parse(jsonMatch[0]) as T;
 }
@@ -95,9 +99,9 @@ export async function callLLMJson<T = any>(messages: LLMMessage[], opts: LLMOpti
 
 async function callOpenAICompatible(
   messages: LLMMessage[],
-  opts: { temperature: number; maxTokens: number; timeout: number; provider: 'openai' | 'openrouter' }
+  opts: { temperature: number; maxTokens: number; timeout: number; provider: 'openai' | 'openrouter'; jsonMode: boolean }
 ): Promise<LLMResult> {
-  const { temperature, maxTokens, timeout, provider } = opts;
+  const { temperature, maxTokens, timeout, provider, jsonMode } = opts;
 
   const apiKey = provider === 'openrouter'
     ? process.env.OPENROUTER_API_KEY
@@ -113,13 +117,16 @@ async function callOpenAICompatible(
     ? (process.env.OPENROUTER_MODEL || 'google/gemma-4-26b-a4b-it:free')
     : (process.env.OPENAI_MODEL || 'gpt-4o-mini');
 
+  const body: Record<string, unknown> = { model, messages, max_tokens: maxTokens, temperature };
+  if (jsonMode) body.response_format = { type: 'json_object' };
+
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature }),
+    body: JSON.stringify(body),
     signal: AbortSignal.timeout(timeout),
   });
 
@@ -129,7 +136,8 @@ async function callOpenAICompatible(
   }
 
   const data = await res.json();
-  const content = data.choices?.[0]?.message?.content || '';
+  const rawContent = data.choices?.[0]?.message?.content || '';
+  const content = rawContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
   return { content, provider, model };
 }

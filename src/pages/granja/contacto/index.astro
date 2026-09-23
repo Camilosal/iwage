@@ -100,8 +100,9 @@ const opciones = [
             <select id="tipo_proyecto" name="tipo_proyecto" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
               <option value="">Selecciona una opción</option>
               <option value="visita">Visita guiada a la granja</option>
-              <option value="tienda">Compra de productos</option>
+              <option value="taller">Taller puntual</option>
               <option value="replicar">Replicar el sistema en mi predio</option>
+              <option value="tienda">Compra de productos</option>
               <option value="b2b">Alianza comercial / B2B</option>
               <option value="otro">Otro</option>
             </select>
@@ -155,4 +156,21 @@ const opciones = [
       status.classList.remove('hidden');
     }
   });
+
+  // Preselect form option from ?tipo= URL param (linked from /servicios)
+  const tipoParam = new URLSearchParams(window.location.search).get('tipo');
+  if (tipoParam) {
+    const select = document.getElementById('tipo_proyecto') as HTMLSelectElement;
+    const mapping: Record<string, string> = {
+      taller: 'taller',
+      implementacion: 'replicar',
+      curso: 'replicar',
+    };
+    const value = mapping[tipoParam];
+    if (value && select) {
+      select.value = value;
+      // Scroll to form after a short delay
+      setTimeout(() => select.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+    }
+  }
 </script>

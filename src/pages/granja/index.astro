@@ -4,11 +4,15 @@ import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import StatGrid from '@/components/StatGrid.astro';
+import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
+import { getExperimentos, formatFecha } from '@/lib/granja-experimentos';
+import { strapiImage } from '@/lib/strapi';
 import { getBrand } from '@/config/brands';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const brand = getBrand('granja')!;
+const hero = await getHeroBySlug('/granja');
 
 const stats = [
   { value: '6', label: 'Subsistemas integrados' },
@@ -22,73 +26,83 @@ const subsistemas = [
     icon: 'droplets',
     title: 'Gestión hídrica',
     description: 'Ciclo cerrado de agua: captación de lluvia, reutilización de grises y hábitos que ganan litros.',
-    href: '/granja/bitacora/gestion-hidrica',
+    href: '/granja/sistema/gestion-hidrica',
+    estado: 'operando',
   },
   {
-    icon: 'sun',
-    title: 'Solar off-grid',
-    description: 'Sistema fotovoltaico autónomo: sin red, con toda la energía que la granja necesita.',
-    href: '/granja/bitacora/solar-offgrid',
+    icon: 'zap',
+    title: 'Energía',
+    description: 'Generación de energía para la granja — sistema solar off-grid como primera etapa, sin limitarse a él.',
+    href: '/granja/sistema/energia',
+    estado: 'operando',
   },
   {
     icon: 'flask-conical',
     title: 'Bio-refinería doméstica',
     description: 'Nada que sale se considera basura: compost, biodigestión y ciclos de nutrientes cerrados.',
-    href: '/granja/bitacora/biorefineria-domestica',
+    href: '/granja/sistema/biorefineria-domestica',
+    estado: 'construccion',
   },
   {
     icon: 'sprout',
     title: 'Agroecosistema productivo',
     description: 'Tres formas de cultivar: huerta intensiva, agroforestería y producción animal integrada.',
-    href: '/granja/bitacora/agroecosistema-productivo',
+    href: '/granja/sistema/agroecosistema-productivo',
+    estado: 'construccion',
   },
   {
     icon: 'cpu',
     title: 'Gemelo digital',
     description: 'Home Assistant y sensores ESP32: cada subsistema medido, registrado y trazable.',
-    href: '/granja/bitacora/home-assistant',
+    href: '/granja/sistema/gemelo-digital',
+    estado: 'operando',
   },
   {
-    icon: 'hexagon',
-    title: 'Meliponario',
-    description: 'Las abejas nativas como primer subsistema vivo modelado del sistema Iwagé.',
-    href: '/granja/bitacora/meliponario-iwage-subsistema-vivo',
+    icon: 'home',
+    title: 'Bioarquitectura',
+    description: 'Materiales no convencionales, bioconstrucción, climatización pasiva, control de olores y neuroarquitectura.',
+    href: '/granja/sistema/bioarquitectura',
+    estado: 'diseno',
   },
 ];
 
-// Bitácora destacada (artículos reales de la marca)
-const { data: articulos } = await getBitacoraByMarca('granja' as any, { pageSize: 3 });
+const estadoConfig: Record<string, { label: string; class: string }> = {
+  idea: { label: 'Idea', class: 'bg-gray-100 text-gray-600' },
+  diseno: { label: 'Diseño', class: 'bg-blue-100 text-blue-700' },
+  construccion: { label: 'En construcción', class: 'bg-amber-100 text-amber-700' },
+  operando: { label: 'Operando', class: 'bg-emerald-100 text-emerald-700' },
+};
+
+// Experimentos destacados
+const { data: experimentos } = await getExperimentos({ pageSize: 3, destacado: true });
+// Fallback: si no hay destacados, traer los 3 más recientes
+const { data: recientes } = experimentos.length < 3 ? await getExperimentos({ pageSize: 3 }) : { data: [] };
+const experimentosHome = experimentos.length >= 3 ? experimentos : [...experimentos, ...recientes].slice(0, 3);
 ---
 
 <BrandLayout brand="granja" title={brand.seo.defaultTitle} description={brand.seo.defaultDescription}>
   <!-- Hero -->
-  <section class="relative overflow-hidden bg-surface">
-    <img
-      src="/images/hero-granja.webp"
-      alt="Granja autosustentable Iwagé en el corredor Ambalá"
-      class="absolute inset-0 h-full w-full object-cover"
-      loading="eager"
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Granja Autosustentable · Ibagué, Tolima"
     />
-    <div class="absolute inset-0 bg-gradient-to-br from-surface/80 via-surface/70 to-surface/85"></div>
-    <div class="relative max-w-4xl mx-auto px-6 py-20 md:py-28 text-center">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Granja Autosustentable · Ibagué, Tolima</p>
-      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-text-primary leading-tight">
-        Un sistema vivo<br />
-        <span class="text-brand">en construcción</span>
-      </h1>
-      <p class="mt-6 text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl mx-auto">
-        Granja peri-urbana autosustentable: agua, energía, alimento y datos integrados en un solo sistema. Documentado en abierto, subsistema por subsistema.
-      </p>
-      <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/granja/sistema" class="inline-flex items-center justify-center gap-2 bg-brand text-white rounded-full px-8 py-4 font-medium hover:bg-brand-light hover:scale-[1.02] transition-all shadow-lg shadow-brand/20">
-          Conocer el sistema →
-        </a>
-        <a href="/granja/visitas" class="inline-flex items-center justify-center gap-2 border border-border rounded-full px-8 py-4 font-medium text-text-primary hover:border-brand hover:text-brand transition-all">
-          Agendar una visita
-        </a>
+  ) : (
+    <section class="relative overflow-hidden bg-surface">
+      <img src="/images/hero-granja.webp" alt="" class="absolute inset-0 h-full w-full object-cover" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-br from-surface/80 via-surface/70 to-surface/85"></div>
+      <div class="relative max-w-4xl mx-auto px-6 py-20 md:py-28 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Granja Autosustentable · Ibagué, Tolima</p>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-text-primary leading-tight">Un sistema vivo<br /><span class="text-brand">en construcción</span></h1>
       </div>
-    </div>
-  </section>
+    </section>
+  )}
 
   <!-- Trust bar -->
   <Section bg="sunken" class="!py-10 md:!py-12">
@@ -116,6 +130,11 @@ const { data: articulos } = await getBitacoraByMarca('granja' as any, { pageSize
             </div>
             <h3 class="text-base font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors">{s.title}</h3>
             <p class="text-sm text-text-secondary leading-relaxed">{s.description}</p>
+            <div class="mt-3">
+              <span class={`inline-block text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${estadoConfig[s.estado].class}`}>
+                {estadoConfig[s.estado].label}
+              </span>
+            </div>
           </a>
         </ScrollReveal>
       ))}
@@ -127,52 +146,124 @@ const { data: articulos } = await getBitacoraByMarca('granja' as any, { pageSize
     </div>
   </Section>
 
-  <!-- Bitácora preview -->
-  {articulos.length > 0 && (
+  <!-- Laboratorio Vivo -->
+  <Section bg="sunken">
+    <ScrollReveal>
+      <SectionHeader
+        label="Filosofía"
+        title="Granja como laboratorio vivo"
+        subtitle="A diferencia de las otras líneas, que ya operan, Granja documenta su propio proceso de construcción. La transparencia radical — publicar tanto lo que funciona como lo que no — es lo que la distingue."
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="max-w-4xl mx-auto mt-8">
+      <div class="grid sm:grid-cols-5 gap-4">
+        {[
+          { step: '1', title: 'Necesidad real', desc: 'Un problema concreto del territorio, no una idea abstracta.' },
+          { step: '2', title: 'Experimento', desc: 'Se prueba en campo: herramienta, técnica, proceso o modelo.' },
+          { step: '3', title: 'Documentación', desc: 'Origen, hipótesis, proceso y resultado — bueno o malo.' },
+          { step: '4', title: '¿Funcionó?', desc: 'Punto de decisión explícito, sin filtrar resultados negativos.' },
+          { step: '5', title: 'Servicio o lección', desc: 'Si funcionó, se convierte en servicio; si no, la lección se publica.' },
+        ].map((item, i) => (
+          <ScrollReveal delay={i * 100}>
+            <div class="relative bg-surface-raised rounded-xl border border-border p-4 h-full text-center">
+              <div class="w-8 h-8 rounded-full bg-brand text-white text-sm font-bold flex items-center justify-center mx-auto mb-3">{item.step}</div>
+              <h4 class="text-sm font-semibold text-text-primary mb-1">{item.title}</h4>
+              <p class="text-xs text-text-secondary leading-relaxed">{item.desc}</p>
+            </div>
+          </ScrollReveal>
+        ))}
+      </div>
+    </div>
+  </Section>
+
+  <!-- Experimentos preview -->
+  {experimentosHome.length > 0 && (
     <Section bg="sunken">
       <ScrollReveal>
-        <SectionHeader label="Bitácora" title="Documentado en abierto" subtitle="Decisiones, datos y aprendizajes reales del sistema autosustentable." />
+        <SectionHeader label="Laboratorio Vivo" title="Experimentos documentados" subtitle="Fichas abiertas: origen, hipótesis, proceso, resultado y lección de cada experimento." />
       </ScrollReveal>
       <div class="grid md:grid-cols-3 gap-6">
-        {articulos.map((post, i) => (
+        {experimentosHome.map((exp, i) => (
           <ScrollReveal delay={i * 100}>
-            <a href={`/granja/bitacora/${post.slug}`} class="group block bg-surface-raised rounded-xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-brand/30 transition-all h-full">
-              {post.categoria && (
-                <span class="inline-block bg-brand-muted text-brand text-xs font-medium rounded-full px-2.5 py-0.5 mb-3">
-                  {post.categoria}
-                </span>
+            <a href={`/granja/experimentos/${exp.slug}`} class="group block bg-surface-raised rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-brand/30 transition-all h-full overflow-hidden">
+              {exp.imagen ? (
+                <div class="h-36 overflow-hidden">
+                  <img src={strapiImage(exp.imagen)} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                </div>
+              ) : (
+                <div class="h-28 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">
+                  <Icon name="flask-conical" class="w-10 h-10 opacity-40 text-brand" />
+                </div>
               )}
-              <h3 class="text-base font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors line-clamp-2">{post.titulo}</h3>
-              <p class="text-sm text-text-secondary leading-relaxed mb-4 line-clamp-3">{post.extracto}</p>
-              <span class="text-xs text-text-muted">{formatFecha(post.fecha)}</span>
+              <div class="p-5">
+                <h3 class="text-base font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors line-clamp-2">{exp.titulo}</h3>
+                <p class="text-sm text-text-secondary leading-relaxed mb-4 line-clamp-3">{exp.extracto}</p>
+                <span class="text-xs text-text-muted">{formatFecha(exp.fecha)}</span>
+              </div>
             </a>
           </ScrollReveal>
         ))}
       </div>
       <div class="mt-10 text-center">
-        <a href="/granja/bitacora" class="inline-flex items-center gap-2 text-brand font-medium hover:gap-3 transition-all">
-          Ver toda la bitácora →
+        <a href="/granja/experimentos" class="inline-flex items-center gap-2 text-brand font-medium hover:gap-3 transition-all">
+          Ver todos los experimentos →
         </a>
       </div>
     </Section>
   )}
 
-  <!-- CTA tienda + visitas -->
+  <!-- Cómo se conecta el ecosistema -->
+  <Section bg="sunken" class="!py-10">
+    <ScrollReveal>
+      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6 text-center">Cómo se conecta el ecosistema</p>
+      <div class="max-w-3xl mx-auto">
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-center">
+          <a href="/naturaleza/" class="group flex items-center gap-2 px-4 py-3 rounded-xl border border-border hover:border-accent/50 hover:bg-surface-raised transition-all">
+            <span class="text-xl">🌿</span>
+            <div class="text-left">
+              <p class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Naturaleza</p>
+              <p class="text-[10px] text-text-muted">Visitas guiadas</p>
+            </div>
+          </a>
+          <Icon name="arrow-right" class="w-4 h-4 text-text-muted hidden sm:block shrink-0" />
+          <div class="flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-brand/30 bg-brand-muted/30">
+            <span class="text-xl">🌱</span>
+            <div class="text-left">
+              <p class="text-sm font-semibold text-brand">Granja</p>
+              <p class="text-[10px] text-text-muted">Laboratorio vivo</p>
+            </div>
+          </div>
+          <Icon name="arrow-right" class="w-4 h-4 text-text-muted hidden sm:block shrink-0" />
+          <a href="/cafe/" class="group flex items-center gap-2 px-4 py-3 rounded-xl border border-border hover:border-accent/50 hover:bg-surface-raised transition-all">
+            <span class="text-xl">☕</span>
+            <div class="text-left">
+              <p class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">Café</p>
+              <p class="text-[10px] text-text-muted">Insumos de la granja</p>
+            </div>
+          </a>
+        </div>
+        <p class="text-xs text-text-muted text-center mt-4">Un experimento de Granja retroalimenta a Naturaleza (visitas) y a Café (insumos).</p>
+      </div>
+    </ScrollReveal>
+  </Section>
+
+  <!-- CTA servicios + tienda -->
   <Section bg="dark" class="!py-14">
     <ScrollReveal>
       <div class="text-center max-w-2xl mx-auto">
         <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-dark-text mb-4">
-          Prueba lo que produce el sistema
+          Del experimento al servicio
         </h2>
         <p class="text-dark-text/60 mb-8">
-          Cosecha de temporada, huevos, plántulas y abonos en la tienda. O ven a conocer la granja en persona con una visita guiada.
+          Visita guiada, talleres, implementación o cursos: cada servicio se deriva de experimentos validados en campo y documentados en la bitácora.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/granja/tienda" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light hover:scale-[1.02] transition-all">
-            Ir a la tienda →
+          <a href="/granja/servicios" class="inline-flex items-center justify-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light hover:scale-[1.02] transition-all">
+            Ver servicios →
           </a>
-          <a href="/granja/visitas" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
-            Reservar visita guiada
+          <a href="/granja/tienda" class="inline-flex items-center justify-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:border-accent hover:text-accent transition-all">
+            Ir a la tienda
           </a>
         </div>
       </div>

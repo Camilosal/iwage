@@ -8,9 +8,13 @@ import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
 import { getProductos, agruparPorFamilia, CATEGORIAS } from '@/lib/tienda';
 import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const productos = await getProductos({ canal: 'online', marca: 'meliponas' });
 const catalogo = await getCatalogo();
+
+const hero = await getHeroBySlug('/meliponas/tienda');
 
 // Una card por familia: las variaciones (presentaciones/tamaños) se eligen en la ficha
 const agrupados = agruparPorFamilia(productos);
@@ -21,16 +25,28 @@ const pills = CATEGORIAS.filter((c) => agrupados.some((g) => g.producto.categori
 ---
 
 <BrandLayout title={SEO.tienda.title} description={SEO.tienda.description}>
-  <!-- Hero -->
-  <section class="bg-surface pt-12 pb-8">
-    <div class="max-w-6xl mx-auto px-6">
-      <SectionHeader
-        label="Tienda"
-        title="Productos del meliponario"
-        subtitle="Miel con trazabilidad por lote, cajas en nogal cafetero y kits para empezar tu meliponario."
-      />
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Biotecnología Nativa · Tolima"
+    />
+  ) : (
+    <header class="bg-surface pt-12 pb-8">
+      <div class="max-w-6xl mx-auto px-6">
+        <SectionHeader
+          label="Tienda"
+          title="Productos del meliponario"
+          subtitle="Miel con trazabilidad por lote, cajas en nogal cafetero y kits para empezar tu meliponario."
+        />
+      </div>
+    </header>
+  )}
 
   <!-- Shipping info -->
   <div class="max-w-6xl mx-auto px-6 mb-8">

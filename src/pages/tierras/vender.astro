@@ -4,10 +4,13 @@ import Icon from '@/components/shared/Icon.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import { getBrand } from '@/config/brands';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
-export const prerender = true;
 
 const waPhone = getBrand('tierras')?.whatsapp || '573026693366';
+
+const hero = await getHeroBySlug('/tierras/vender');
 
 const INCLUIDO = [
   { icon: 'shield', title: 'Auditoría VAP sin costo', desc: 'Estudio de títulos de 20 años, levantamiento GPS de linderos, verificación de concesiones de agua y análisis PBOT. Valor comercial: $2–5M. Para ti: gratis.' },
@@ -61,17 +64,28 @@ const FAQS_VENTA = [
 ---
 
 <BrandLayout brand="tierras" title="Vender mi Propiedad · Iwagé Tierras" description="Vende tu tierra rural al precio justo: auditoría VAP gratuita, producción audiovisual con drone y tour 360°, compradores calificados y acompañamiento legal hasta el cierre.">
-
-  <!-- Hero -->
-  <section class="bg-[#0F120E] text-white py-14 md:py-20">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#C8933E] mb-4">Para Propietarios</p>
-      <h1 class="text-3xl md:text-5xl font-bold mb-4">Vende tu tierra al <span class="text-[#C8933E]">precio justo</span>, sin dolores de cabeza</h1>
-      <p class="text-white/70 text-lg max-w-2xl mx-auto">
-        Si tienes tierra en el Tolima y quieres venderla con transparencia, Iwagé la audita, la produce y la comercializa ante compradores calificados.
-      </p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Inmobiliaria Rural · Tolima"
+    />
+  ) : (
+    <header class="bg-[#0F120E] text-white py-14 md:py-20">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#C8933E] mb-4">Para Propietarios</p>
+        <h1 class="text-3xl md:text-5xl font-bold mb-4">Vende tu tierra al <span class="text-[#C8933E]">precio justo</span>, sin dolores de cabeza</h1>
+        <p class="text-white/70 text-lg max-w-2xl mx-auto">
+          Si tienes tierra en el Tolima y quieres venderla con transparencia, Iwagé la audita, la produce y la comercializa ante compradores calificados.
+        </p>
+      </div>
+    </header>
+  )}
 
   <!-- Value Proposition -->
   <Section class="bg-white">

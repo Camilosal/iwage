@@ -91,25 +91,49 @@ const BRAND_KEYWORDS: Record<string, Brand> = {
   propiedad: 'tierras', propiedades: 'tierras', finca: 'tierras', fincas: 'tierras',
   lote: 'tierras', lotes: 'tierras', terreno: 'tierras', casa_campestre: 'tierras',
   comprar_tierra: 'tierras', inmobiliaria: 'tierras', vap: 'tierras', hectareas: 'tierras',
-  predio: 'tierras', escritura: 'tierras', avaluo: 'tierras',
+  predio: 'tierras', escritura: 'tierras', avaluo: 'tierras', notarial: 'tierras',
+  roi: 'tierras', calculadora: 'tierras', avaluos: 'tierras', captacion: 'tierras',
   // Naturaleza
   experiencia: 'naturaleza', experiencias: 'naturaleza', tour: 'naturaleza',
   anfitrion: 'naturaleza', anfitriones: 'naturaleza', paquete: 'naturaleza',
   turismo: 'naturaleza', senderismo: 'naturaleza', aventura: 'naturaleza',
-  reserva: 'naturaleza', reservar: 'naturaleza',
+  reserva: 'naturaleza', reservar: 'naturaleza', anfitriona: 'naturaleza',
+  guardabosques: 'naturaleza', guardiana: 'naturaleza', guardian: 'naturaleza',
+  regenerativo: 'naturaleza', regenerativa: 'naturaleza', sabio: 'naturaleza',
+  escalafon: 'naturaleza', impacto: 'naturaleza', iniciativa: 'naturaleza',
   // Meliponas
   miel: 'meliponas', abeja: 'meliponas', abejas: 'meliponas', colmena: 'meliponas',
   colmenas: 'meliponas', meliponas: 'meliponas', meliponario: 'meliponas',
   angelita: 'meliponas', polinizacion: 'meliponas', caja: 'meliponas',
   cajas: 'meliponas', inpa: 'meliponas', trazabilidad: 'meliponas',
+  nectar: 'meliponas', propoleo: 'meliponas', polen: 'meliponas',
+  apis: 'meliponas', apicultura: 'meliponas', meliponicultura: 'meliponas',
+  aguacates: 'meliponas', citricos: 'meliponas', mora: 'meliponas',
+  tomate: 'meliponas', fresa: 'meliponas', catacion: 'meliponas',
+  prae: 'meliponas', iot: 'meliponas', pijao: 'meliponas',
   // Café
   cafe: 'cafe', menu: 'cafe', carta: 'cafe', bebida: 'cafe', bebidas: 'cafe',
   infusion: 'cafe', panaderia: 'cafe', proveedor: 'cafe', proveedores: 'cafe',
-  taza: 'cafe',
+  taza: 'cafe', espresso: 'cafe', capuchino: 'cafe', latte: 'cafe',
+  barismo: 'cafe', barista: 'cafe', visitantes: 'cafe', receta: 'cafe',
+  recetas: 'cafe', fauna: 'cafe', flora: 'cafe',
   // Gestión
   gestion: 'gestion', administracion: 'gestion', administrar: 'gestion',
   renta: 'gestion', airbnb: 'gestion', booking: 'gestion',
-  property_management: 'gestion', glamping: 'gestion',
+  property_management: 'gestion', glamping: 'gestion', huespedes: 'gestion',
+  alojamiento: 'gestion', alojamientos: 'gestion', propietario: 'gestion',
+  propietarios: 'gestion', alianza: 'gestion', coinversion: 'gestion',
+  noche: 'gestion', hospedaje: 'gestion', cabana: 'gestion', domo: 'gestion',
+  minicasa: 'gestion', complemento: 'gestion', complementos: 'gestion',
+  // Granja
+  granja: 'granja', granjas: 'granja', permacultura: 'granja',
+  agroecologia: 'granja', agroecologico: 'granja', huerta: 'granja',
+  compost: 'granja', biorefineria: 'granja', biodigestion: 'granja',
+  offgrid: 'granja', off_grid: 'granja', solar: 'granja',
+  fotovoltaica: 'granja', fotovoltaico: 'granja', hidrica: 'granja',
+  agua: 'granja', lluvia: 'granja', monitoreo: 'granja',
+  subsistema: 'granja', agroforestal: 'granja', agroforesteria: 'granja',
+  regenerativa: 'granja', regenerativo: 'granja', datos_abiertos: 'granja',
 };
 
 /**
@@ -131,8 +155,12 @@ export function detectBrand(query: string, explicitBrand?: string): Brand | unde
 
   // Also check multi-word patterns
   const lowerQuery = query.toLowerCase();
-  if (lowerQuery.includes('propiedad rural') || lowerQuery.includes('comprar finca')) brandScores['tierras'] = (brandScores['tierras'] || 0) + 2;
-  if (lowerQuery.includes('turismo') || lowerQuery.includes('experiencia')) brandScores['naturaleza'] = (brandScores['naturaleza'] || 0) + 1;
+  if (lowerQuery.includes('propiedad rural') || lowerQuery.includes('comprar finca') || lowerQuery.includes('casa campestre')) brandScores['tierras'] = (brandScores['tierras'] || 0) + 2;
+  if (lowerQuery.includes('turismo') || lowerQuery.includes('experiencia') || lowerQuery.includes('tour ') || lowerQuery.includes('guia local')) brandScores['naturaleza'] = (brandScores['naturaleza'] || 0) + 1;
+  if (lowerQuery.includes('miel de') || lowerQuery.includes('abeja') || lowerQuery.includes('polinizar') || lowerQuery.includes('caja inpa') || lowerQuery.includes('meliponario')) brandScores['meliponas'] = (brandScores['meliponas'] || 0) + 1;
+  if (lowerQuery.includes('cafe') || lowerQuery.includes('menu') || lowerQuery.includes('bebida')) brandScores['cafe'] = (brandScores['cafe'] || 0) + 1;
+  if (lowerQuery.includes('renta') || lowerQuery.includes('airbnb') || lowerQuery.includes('alojamiento') || lowerQuery.includes('gestion de')) brandScores['gestion'] = (brandScores['gestion'] || 0) + 1;
+  if (lowerQuery.includes('granja') || lowerQuery.includes('huerto') || lowerQuery.includes('agroecologia') || lowerQuery.includes('permacultura') || lowerQuery.includes('biodigestor')) brandScores['granja'] = (brandScores['granja'] || 0) + 2;
 
   const sorted = Object.entries(brandScores).sort((a, b) => b[1] - a[1]);
   if (sorted.length > 0 && sorted[0][1] >= 1) {

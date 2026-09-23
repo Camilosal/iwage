@@ -6,7 +6,7 @@ export const SITE = {
   description:
     'Centro de meliponicultura en Ibagué, Tolima. Miel de Angelita pura, cajas tecnificadas INPA/AF, proyectos de impacto y polinización asistida.',
   whatsapp: '+573026693366',
-  email: 'hola@iwage.co',
+  email: 'info@iwage.co',
   instagram: '@iwage.meliponario',
   location: 'Corredor Ambalá, Ibagué, Tolima',
 } as const;

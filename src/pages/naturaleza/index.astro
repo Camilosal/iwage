@@ -1,8 +1,12 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
+import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getExperienciasDestacadas, getExperiencias, getAnfitriones, getPaquetes, experienciaImagen, anfitrionFoto, formatPrecioCOP, dificultadInfo, nivelInfo } from '@/lib/naturaleza';
 import { strapiImage } from '@/lib/strapi';
+import { getHeroBySlug } from '@/lib/heroes';
+
+const hero = await getHeroBySlug('/naturaleza');
 
 // Featured experiences: flagged ones first, fallback to the most recent so the section never looks empty
 let destacadas = await getExperienciasDestacadas(3);
@@ -36,17 +40,17 @@ const CAMINOS = [
   {
     icon: 'footprints',
     title: 'Quiero vivir el territorio',
-    desc: 'Experiencias guiadas por quienes han habitado esta tierra por generaciones. Elige tu anfitrión, reserva y déjate transformar.',
-    pasos: ['Explora el catálogo de experiencias', 'Elige la mirada de tu anfitrión', 'Reserva en línea tu fecha', 'Vive y regenera el territorio'],
+    desc: 'Experiencias guiadas por quienes han habitado esta tierra. Elige tu anfitrión y reserva.',
+    pasos: ['Explora experiencias', 'Elige tu anfitrión', 'Reserva en línea', 'Vive el territorio'],
     cta: 'Explorar experiencias',
     href: '/naturaleza/experiencias',
     dark: false,
   },
   {
     icon: 'sprout',
-    title: 'Quiero ser anfitrión o presentar mi espacio',
-    desc: 'Convierte tu tierra, tu finca o tu conocimiento en una experiencia de la red Iwagé y genera ingresos con el territorio.',
-    pasos: ['Radicación sin compromiso', 'Capacitación y auditoría del espacio', 'Producción y publicación', 'Recibe reservas y genera ingresos'],
+    title: 'Quiero ser anfitrión',
+    desc: 'Convierte tu tierra o conocimiento en una experiencia de la red Iwagé.',
+    pasos: ['Radicación sin compromiso', 'Capacitación y auditoría', 'Producción y publicación', 'Recibe reservas'],
     cta: 'Presentar mi tierra',
     href: '/naturaleza/se-anfitrion',
     dark: true,
@@ -58,7 +62,7 @@ const CICLO_ECOSISTEMA = [
     icon: 'leaf',
     marca: 'Iwagé Naturaleza',
     titulo: 'Vive el territorio',
-    desc: 'Experiencias guiadas por anfitriones locales: recorre, siente y valida la tierra con quien la habita.',
+    desc: 'Experiencias guiadas por anfitriones locales.',
     href: '/naturaleza/experiencias',
     color: '#4a7c23',
   },
@@ -66,7 +70,7 @@ const CICLO_ECOSISTEMA = [
     icon: 'home',
     marca: 'Iwagé Tierras',
     titulo: 'Enamórate y cómprala',
-    desc: 'Tu anfitrión te conecta con predios en venta auditados. La experiencia es la puerta de entrada a tu tierra.',
+    desc: 'Predios en venta auditados por tu anfitrión.',
     href: '/tierras/propiedades',
     color: '#1B4332',
   },
@@ -74,7 +78,7 @@ const CICLO_ECOSISTEMA = [
     icon: 'key-round',
     marca: 'Iwagé Gestión',
     titulo: 'Protégela y adminístrala',
-    desc: 'Renta corta, segunda residencia o finca productiva: operamos tu propiedad mientras no estás.',
+    desc: 'Renta corta, segunda residencia o finca productiva.',
     href: '/gestion',
     color: '#2d5a8f',
   },
@@ -82,7 +86,7 @@ const CICLO_ECOSISTEMA = [
     icon: 'coffee',
     marca: 'Iwagé Café & Meliponas',
     titulo: 'Hazla productiva',
-    desc: 'Café especial y polinización con meliponas para activar el potencial agropecuario de tu predio.',
+    desc: 'Café especial y polinización con meliponas.',
     href: '/cafe/proveedores',
     color: '#6D4C41',
   },
@@ -98,57 +102,30 @@ const OFERTA_BULLETS = [
 <BrandLayout brand="naturaleza" title="Iwagé Naturaleza · Turismo Regenerativo · Tolima" description="Agencia de turismo rural en el Tolima: experiencias guiadas por anfitriones locales, cada uno con su propia mirada del territorio. Sé anfitrión o presenta tu espacio.">
 
   <!-- Hero -->
-  <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#0e1a08]">
-    <img
-      src="/images/hero-naturaleza.webp"
-      alt="Niebla sobre el bosque del Tolima"
-      class="absolute inset-0 w-full h-full object-cover opacity-40"
-      loading="eager"
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Agencia de Turismo Rural · Tolima"
     />
-    <div class="absolute inset-0 bg-gradient-to-b from-[#0e1a08]/60 via-transparent to-[#0e1a08]"></div>
-
-    <div class="relative z-10 text-center px-4 max-w-4xl mx-auto py-24">
-      <div class="flex items-center justify-center gap-3 mb-6">
-        <div class="w-2 h-2 rounded-full bg-[#4a7c23] animate-pulse"></div>
-        <span class="text-xs font-bold tracking-[0.4em] text-[#4a7c23] uppercase">Agencia de Turismo Rural · Tolima</span>
+  ) : (
+    <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#0e1a08]">
+      <img src="/images/hero-naturaleza.webp" alt="" class="absolute inset-0 w-full h-full object-cover opacity-40" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-b from-[#0e1a08]/60 via-transparent to-[#0e1a08]"></div>
+      <div class="relative z-10 text-center px-4 max-w-4xl mx-auto py-24">
+        <div class="flex items-center justify-center gap-3 mb-6">
+          <div class="w-2 h-2 rounded-full bg-[#4a7c23] animate-pulse"></div>
+          <span class="text-xs font-bold tracking-[0.4em] text-[#4a7c23] uppercase">Agencia de Turismo Rural · Tolima</span>
+        </div>
+        <h1 class="text-5xl lg:text-7xl font-light text-white leading-tight mb-6">Donde la tierra<br/><span class="font-serif italic text-[#d4920a]">tiene historia</span></h1>
       </div>
-      <h1 class="text-5xl lg:text-7xl font-light text-white leading-tight mb-6">
-        Donde la tierra<br/><span class="font-serif italic text-[#d4920a]">tiene historia</span>
-      </h1>
-      <p class="text-xl text-white/70 leading-relaxed mb-10 max-w-2xl mx-auto">
-        Experiencias de turismo regenerativo operadas por anfitriones locales. Un mismo territorio, mil miradas distintas.
-      </p>
-
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
-        <a href="/naturaleza/experiencias" class="bg-[#4a7c23] text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#4a7c23]/90 hover:scale-105 transition-all shadow-lg">
-          <Icon name="footprints" class="w-4 h-4 inline align-[-2px] mr-1" /> Vive una Experiencia
-        </a>
-        <a href="/naturaleza/se-anfitrion" class="bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:bg-[#d4920a]/90 hover:scale-105 transition-all shadow-lg">
-          <Icon name="sprout" class="w-4 h-4 inline align-[-2px] mr-1" /> Sé Anfitrión o Presenta tu Espacio
-        </a>
-      </div>
-
-      <!-- Trust bar -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl py-3 px-2">
-          <p class="text-2xl font-bold text-[#d4920a]">{totalExperiencias > 0 ? totalExperiencias : '10+'}</p>
-          <p class="text-[10px] uppercase tracking-wider text-white/50">Experiencias activas</p>
-        </div>
-        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl py-3 px-2">
-          <p class="text-2xl font-bold text-[#d4920a]">{totalAnfitriones > 0 ? totalAnfitriones : '5+'}</p>
-          <p class="text-[10px] uppercase tracking-wider text-white/50">Anfitriones locales</p>
-        </div>
-        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl py-3 px-2">
-          <p class="text-2xl font-bold text-[#d4920a]">6.8</p>
-          <p class="text-[10px] uppercase tracking-wider text-white/50">Hectáreas protegidas</p>
-        </div>
-        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl py-3 px-2">
-          <p class="text-2xl font-bold text-[#d4920a]">3.5%</p>
-          <p class="text-[10px] uppercase tracking-wider text-white/50">Fondo de impacto</p>
-        </div>
-      </div>
-    </div>
-  </section>
+    </section>
+  )}
 
   <!-- Dual Paths -->
   <section class="py-16 px-4 bg-[#f8faf5]">
@@ -168,7 +145,7 @@ const OFERTA_BULLETS = [
                 : 'bg-white border-gray-100 hover:border-[#4a7c23]/40 hover:shadow-2xl',
             ]}
           >
-            <span class="text-4xl block mb-4">{camino.icon}</span>
+            <span class="block mb-4"><Icon name={camino.icon} class="w-10 h-10" /></span>
             <h3 class:list={['text-xl font-semibold mb-3 transition-colors', camino.dark ? 'text-white group-hover:text-[#d4920a]' : 'text-[#1a3009] group-hover:text-[#4a7c23]']}>
               {camino.title}
             </h3>
@@ -293,7 +270,7 @@ const OFERTA_BULLETS = [
         <span class="text-xs font-bold tracking-[0.3em] text-[#d4920a] uppercase">El corazón de Iwagé Naturaleza</span>
         <h2 class="text-3xl lg:text-4xl font-light text-white mt-3">La misma tierra, <span class="font-serif italic text-[#d4920a]">mil miradas</span></h2>
         <p class="text-white/60 max-w-2xl mx-auto mt-4 text-sm leading-relaxed">
-          Una ruta puede estar en el mismo lugar, pero cada anfitrión le da su propia perspectiva y enfoque. Elige con quién caminar y vivirás un territorio distinto.
+          Cada anfitrión le da su propia perspectiva a la ruta. Elige con quién caminar y vivirás un territorio distinto.
         </p>
       </div>
 
@@ -356,7 +333,7 @@ const OFERTA_BULLETS = [
         <span class="text-xs font-bold tracking-[0.3em] text-[#4a7c23] uppercase">Ecosistema Iwagé</span>
         <h2 class="text-3xl lg:text-4xl font-light text-[#1a3009] mt-3">La experiencia es la <span class="font-serif italic text-[#4a7c23]">puerta de entrada</span></h2>
         <p class="text-gray-600 max-w-2xl mx-auto mt-4 text-sm leading-relaxed">
-          Naturaleza no es una isla: es el primer paso de un ciclo que conecta el territorio con tu próxima inversión. Tu anfitrión es el embajador que te abre la puerta.
+          Naturaleza es el primer paso de un ciclo que conecta el territorio con tu próxima inversión.
         </p>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -417,7 +394,7 @@ const OFERTA_BULLETS = [
           <p class="text-xs font-bold tracking-[0.3em] text-[#d4920a] uppercase mb-3">Para la comunidad local</p>
           <h2 class="text-2xl md:text-3xl font-light text-white mb-4">Convierte tu tierra en <span class="font-serif italic text-[#d4920a]">experiencia</span></h2>
           <p class="text-white/60 text-sm mb-6 leading-relaxed">
-            Si tienes una finca, un predio o un saber territorial, la red Iwagé lo convierte en una experiencia con reservas en línea, viajeros calificados y acompañamiento total.
+            Si tienes una finca o un saber territorial, la red Iwagé lo convierte en una experiencia con reservas en línea y viajeros calificados.
           </p>
           <a href="/naturaleza/se-anfitrion" class="inline-block bg-[#d4920a] text-[#0e1a08] px-8 py-4 rounded-full font-bold text-sm hover:bg-[#d4920a]/90 transition-all shadow-lg">
             Sé Anfitrión o Presenta mi Espacio →
@@ -426,7 +403,7 @@ const OFERTA_BULLETS = [
         <div class="lg:w-1/2 space-y-4">
           {OFERTA_BULLETS.map((item) => (
             <div class="flex items-start gap-4 bg-white/5 border border-white/10 rounded-xl p-5">
-              <span class="text-2xl shrink-0">{item.icon}</span>
+              <span class="shrink-0"><Icon name={item.icon} class="w-8 h-8 text-[#d4920a]" /></span>
               <div>
                 <h4 class="font-bold text-white text-sm mb-1">{item.title}</h4>
                 <p class="text-xs text-white/50">{item.desc}</p>
@@ -443,7 +420,7 @@ const OFERTA_BULLETS = [
     <div class="max-w-4xl mx-auto text-center">
       <h2 class="text-2xl lg:text-3xl font-light text-[#1a3009] mb-4">Cada experiencia regenera</h2>
       <p class="text-gray-600 leading-relaxed mb-8">
-        Un porcentaje de cada experiencia va directo a nuestro fondo de restauración: siembra nativa, protección de fuentes hídricas y formación de nuevos guardianes.
+        Un porcentaje de cada experiencia va a nuestro fondo de restauración: siembra nativa y protección de fuentes hídricas.
       </p>
       <div class="grid grid-cols-3 gap-6 max-w-lg mx-auto">
         <div>

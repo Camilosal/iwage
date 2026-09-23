@@ -4,10 +4,13 @@ import Icon from '@/components/shared/Icon.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import { getBrand } from '@/config/brands';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
-export const prerender = true;
 
 const waPhone = getBrand('tierras')?.whatsapp || '573026693366';
+
+const hero = await getHeroBySlug('/tierras/comprar');
 
 const PASOS_COMPRA = [
   {
@@ -85,17 +88,28 @@ const FAQS = [
 ---
 
 <BrandLayout brand="tierras" title="Guía de Compra · Iwagé Tierras" description="Cómo comprar tierra rural en el Tolima sin riesgos: proceso de 5 pasos, verificación VAP, acompañamiento legal y compra remota.">
-
-  <!-- Hero -->
-  <section class="bg-[#0F120E] text-white py-14 md:py-20">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">Para Compradores</p>
-      <h1 class="text-3xl md:text-5xl font-bold mb-4">Compra tierra rural <span class="text-[#52B788]">sin riesgos</span></h1>
-      <p class="text-white/70 text-lg max-w-2xl mx-auto">
-        El campo colombiano tiene riesgos reales: falsa tradición, linderos fantasma, agua sin concesión. Nuestro proceso de compra los elimina uno por uno.
-      </p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Inmobiliaria Rural · Tolima"
+    />
+  ) : (
+    <header class="bg-[#0F120E] text-white py-14 md:py-20">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-4">Para Compradores</p>
+        <h1 class="text-3xl md:text-5xl font-bold mb-4">Compra tierra rural <span class="text-[#52B788]">sin riesgos</span></h1>
+        <p class="text-white/70 text-lg max-w-2xl mx-auto">
+          El campo colombiano tiene riesgos reales: falsa tradición, linderos fantasma, agua sin concesión. Nuestro proceso de compra los elimina uno por uno.
+        </p>
+      </div>
+    </header>
+  )}
 
   <!-- 5 Steps -->
   <Section class="bg-white">

@@ -61,7 +61,7 @@ RUN printf '%s\n' \
     '' \
     '# Cache warmup: hit brand homepages after startup' \
     'sleep 5' \
-    'for path in / /meliponas/ /cafe/ /tierras/ /naturaleza/ /gestion/; do' \
+    'for path in / /meliponas/ /cafe/ /tierras/ /naturaleza/ /gestion/ /granja/; do' \
     '  wget -qO /dev/null "http://127.0.0.1:4321${path}" 2>/dev/null || true' \
     'done &' \
     '' \

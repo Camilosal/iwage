@@ -69,7 +69,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     const result = await callLLMJson<{ narrativa: string; gancho: string }>(messages, {
       temperature: 0.7,
-      maxTokens: 400,
+      maxTokens: 2000,
+      timeout: 45_000,
     }).catch(() => ({ narrativa: '', gancho: '' }));
 
     return new Response(JSON.stringify({ ...result, perfil: PERFILES[perfil], cached: false }), {

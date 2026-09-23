@@ -94,6 +94,21 @@ async function seedArticles() {
   const files = (await readdir(ARTICLES_DIR)).filter((f) => f.endsWith('.md')).sort();
   let created = 0, skipped = 0;
 
+  // Mapping: article slug → subsistema
+  const SUBSISTEMA_MAP = {
+    'gestion-hidrica': 'gestion-hidrica',
+    'solar-offgrid': 'energia',
+    'biorefineria-domestica': 'biorefineria-domestica',
+    'compostaje-rural-como-cerrar-el-ciclo-de-nutrientes-en-la-finca': 'biorefineria-domestica',
+    'agroecosistema-productivo': 'agroecosistema-productivo',
+    'cuaderno-campo': 'agroecosistema-productivo',
+    'home-assistant': 'gemelo-digital',
+    'edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable': 'gemelo-digital',
+    'esg-sin-greenwashing': 'gemelo-digital',
+    'bioarquitectura-terrenos': 'bioarquitectura',
+    'climatizacion-olores': 'bioarquitectura',
+  };
+
   for (const file of files) {
     const raw = await readFile(path.join(ARTICLES_DIR, file), 'utf8');
     const { meta, body } = parseFrontmatter(raw);
@@ -120,6 +135,7 @@ async function seedArticles() {
       fecha,
       marca: 'granja',
       destacado: serie.includes('Sistema Autosustentable') && slug === 'sistema-autosustentable-ancla',
+      subsistema: SUBSISTEMA_MAP[slug] || null,
       publishedAt: new Date().toISOString(),
     };
     if (await create('bitacoras', data)) created++;

@@ -2,8 +2,8 @@ import type { BrandConfig } from './types';
 
 export const cafe: BrandConfig = {
   slug: 'cafe',
-  name: 'Café Iwagé',
-  tagline: 'El territorio en cada taza',
+  name: 'Café',
+  tagline: 'Café de Origen & Menú Local',
   colors: {
     brand: '#5c3d2e',
     brandLight: '#7a5540',
@@ -22,6 +22,7 @@ export const cafe: BrandConfig = {
     { label: 'Menú', href: '/cafe/menu' },
     { label: 'Recetas', href: '/cafe/recetas' },
     { label: 'Proveedores', href: '/cafe/proveedores' },
+    { label: 'Visitantes', href: '/cafe/visitantes' },
     {
       label: 'Recursos',
       href: '/cafe/bitacora',

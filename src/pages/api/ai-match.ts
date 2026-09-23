@@ -66,7 +66,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     const result = await callLLMJson<{ matches: any[]; search_insights: string; user_profile: string }>(messages, {
       temperature: 0.3,
-      maxTokens: 1000,
+      maxTokens: 3000,
+      timeout: 45_000,
     }).catch(() => ({ matches: [], search_insights: 'No pude procesar los resultados.', user_profile: '' }));
 
     // Enrich matches with property data

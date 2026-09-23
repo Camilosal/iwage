@@ -2,8 +2,8 @@ import type { BrandConfig } from './types';
 
 export const gestion: BrandConfig = {
   slug: 'gestion',
-  name: 'Iwagé Gestión',
-  tagline: 'Alojamientos rurales & Gestión de propiedades',
+  name: 'Gestión',
+  tagline: 'Alojamientos & Gestión de Fincas',
   colors: {
     brand: '#1e3a5f',
     brandLight: '#2d5a8f',

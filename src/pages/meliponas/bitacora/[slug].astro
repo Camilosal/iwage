@@ -1,6 +1,7 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import { getBitacoraBySlug, getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
+import { strapiImage } from '@/lib/strapi';
 import { renderMarkdown } from '@/lib/render-markdown';
 import Icon from '@/components/shared/Icon.astro';
 
@@ -86,7 +87,7 @@ const articleMeta = {
     {article.imagen ? (
       <figure class="mb-10 -mx-6 md:mx-0">
         <img
-          src={article.imagen}
+          src={strapiImage(article.imagen)}
           alt={article.titulo}
           class="w-full h-64 md:h-80 object-cover rounded-none md:rounded-2xl shadow-sm"
         />
@@ -142,9 +143,15 @@ const articleMeta = {
         <div class="grid md:grid-cols-3 gap-6">
           {relatedPosts.map(post => (
             <a href={`/${BRAND}/bitacora/${post.slug}`} class="group block bg-surface-raised rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-              <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">
-                <Icon name={ICON} class="w-8 h-8 opacity-40 text-brand" />
-              </div>
+              {post.imagen ? (
+                <div class="h-32 overflow-hidden">
+                  <img src={strapiImage(post.imagen)} alt={post.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                </div>
+              ) : (
+                <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">
+                  <Icon name={ICON} class="w-8 h-8 opacity-40 text-brand" />
+                </div>
+              )}
               <div class="p-5">
                 {post.categoria && (
                   <span class="inline-block bg-brand-muted text-brand text-[10px] font-semibold rounded-full px-2.5 py-0.5 mb-2.5 uppercase tracking-wide">

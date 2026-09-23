@@ -5,6 +5,8 @@ import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const estandares = [
   {
@@ -38,21 +40,35 @@ const estandares = [
     cta: 'Ver estándar de polinización',
   },
 ];
+
+const hero = await getHeroBySlug('/meliponas/trazabilidad');
 ---
 
 <BrandLayout title={SEO.trazabilidad.title} description={SEO.trazabilidad.description}>
-  <!-- Hero -->
-  <section class="bg-dark-bg text-dark-text">
-    <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Trazabilidad Iwagé</p>
-      <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
-        Tres estándares,<br />una misma promesa
-      </h1>
-      <p class="text-lg text-dark-text/60 leading-relaxed max-w-2xl mx-auto">
-        Cada producto y servicio del meliponario está respaldado por un protocolo verificable. Elige el estándar según lo que buscas.
-      </p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Biotecnología Nativa · Tolima"
+    />
+  ) : (
+    <header class="bg-dark-bg text-dark-text">
+      <div class="max-w-6xl mx-auto px-6 py-16 md:py-24 text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Trazabilidad Iwagé</p>
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
+          Tres estándares,<br />una misma promesa
+        </h1>
+        <p class="text-lg text-dark-text/60 leading-relaxed max-w-2xl mx-auto">
+          Cada producto y servicio del meliponario está respaldado por un protocolo verificable. Elige el estándar según lo que buscas.
+        </p>
+      </div>
+    </header>
+  )}
 
   <!-- Estándares -->
   <Section>

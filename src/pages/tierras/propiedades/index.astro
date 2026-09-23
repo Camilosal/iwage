@@ -7,6 +7,8 @@ import PropertyCard from '@/components/tierras/PropertyCard.astro';
 import PropertiesMap from '@/components/tierras/PropertiesMap.astro';
 import SearchAgent from '@/components/tierras/SearchAgent.astro';
 import { getPropiedades } from '@/lib/tierras';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const url = new URL(Astro.request.url);
 const tipo = url.searchParams.get('tipo') || '';
@@ -32,6 +34,8 @@ const { data: propiedades, total, pageSize } = await getPropiedades({
 
 const totalPages = Math.ceil(total / pageSize);
 
+const hero = await getHeroBySlug('/tierras/propiedades');
+
 // Build query string helper for pagination
 const qs = new URLSearchParams();
 if (tipo) qs.set('tipo', tipo);
@@ -45,18 +49,29 @@ const baseQs = qs.toString();
 ---
 
 <BrandLayout brand="tierras" title="Propiedades Rurales · Iwagé Tierras" description="Catálogo de propiedades rurales auditadas en el Tolima. Fincas, lotes, casas campestres con verificación VAP.">
-
-  <!-- Header + Search (single frame) -->
-  <section class="bg-[#0F120E] text-white py-10 pb-12">
-    <div class="max-w-7xl mx-auto px-6">
-      <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Catálogo Auditado</p>
-      <h1 class="text-3xl md:text-4xl font-bold mb-1">Propiedades Rurales</h1>
-      <p class="text-white/60 text-sm mb-6">{total} propiedades verificadas con Protocolo VAP</p>
-      <div class="max-w-3xl">
-        <SearchAgent />
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Inmobiliaria Rural · Tolima"
+    />
+  ) : (
+    <header class="bg-[#0F120E] text-white py-10 pb-12">
+      <div class="max-w-7xl mx-auto px-6">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-[#52B788] mb-2">Catálogo Auditado</p>
+        <h1 class="text-3xl md:text-4xl font-bold mb-1">Propiedades Rurales</h1>
+        <p class="text-white/60 text-sm mb-6">{total} propiedades verificadas con Protocolo VAP</p>
+        <div class="max-w-3xl">
+          <SearchAgent />
+        </div>
       </div>
-    </div>
-  </section>
+    </header>
+  )}
 
   <!-- Main content: Sidebar + Results -->
   <section class="bg-[#FAFAF7] pt-8 pb-16">

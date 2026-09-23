@@ -7,9 +7,13 @@ import ProductCard from '@/components/ProductCard.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getProductos, agruparPorFamilia, CATEGORIAS_GRANJA } from '@/lib/tienda';
 import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const productos = await getProductos({ canal: 'online', marca: 'granja' });
 const catalogo = await getCatalogo();
+
+const hero = await getHeroBySlug('/granja/tienda');
 
 // Una card por familia: las variaciones (presentaciones/tamaños) se eligen en la ficha
 const agrupados = agruparPorFamilia(productos);
@@ -23,16 +27,28 @@ const pills = CATEGORIAS_GRANJA.filter((c) => agrupados.some((g) => g.producto.c
   title="Tienda de la Granja · Iwagé Granja Autosustentable"
   description="Productos frescos de la granja autosustentable Iwagé: huevos de gallina feliz, hortalizas de temporada, plántulas nativas, compost y visitas guiadas. Corredor Ambalá, Ibagué."
 >
-  <!-- Hero -->
-  <section class="bg-surface pt-12 pb-8">
-    <div class="max-w-6xl mx-auto px-6">
-      <SectionHeader
-        label="Tienda"
-        title="Productos de la granja"
-        subtitle="Cosecha de temporada, huevos, plántulas y abonos del sistema autosustentable. Todo lo que sale de la granja se documenta en la bitácora."
-      />
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Granja Autosustentable · Tolima"
+    />
+  ) : (
+    <header class="bg-surface pt-12 pb-8">
+      <div class="max-w-6xl mx-auto px-6">
+        <SectionHeader
+          label="Tienda"
+          title="Productos de la granja"
+          subtitle="Cosecha de temporada, huevos, plántulas y abonos del sistema autosustentable. Todo lo que sale de la granja se documenta en la bitácora."
+        />
+      </div>
+    </header>
+  )}
 
   <!-- Shipping info -->
   <div class="max-w-6xl mx-auto px-6 mb-8">

@@ -5,6 +5,7 @@
 import { cacheGet, cacheSet, redisInvalidate } from './redis';
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
+const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN || '';
 
 // ── TTL Hierarchy (seconds) ────────────────────────────
 export const CACHE_TTL = {
@@ -38,6 +39,12 @@ interface StrapiFetchOptions {
   sort?: string | string[];
   /** Pagination */
   pagination?: { page?: number; pageSize?: number };
+  /**
+   * Strapi v5 publication state filter.
+   * Use 'live' to return only published records (excludes drafts and their locale duplicates).
+   * Leave undefined to return all records (default Strapi behavior).
+   */
+  publicationState?: 'live' | 'preview';
 }
 
 /**
@@ -74,6 +81,7 @@ export async function strapiFetch<T = any>(
     filters,
     sort,
     pagination,
+    publicationState,
   } = options;
 
   // Build URL with query params
@@ -94,6 +102,7 @@ export async function strapiFetch<T = any>(
     if (pagination.page) params.set('pagination[page]', String(pagination.page));
     if (pagination.pageSize) params.set('pagination[pageSize]', String(pagination.pageSize));
   }
+  if (publicationState) params.set('publicationState', publicationState);
 
   const queryString = params.toString();
   const url = `${STRAPI_URL}/api/${endpoint}${queryString ? `?${queryString}` : ''}`;
@@ -114,11 +123,17 @@ export async function strapiFetch<T = any>(
 
   const fetchPromise = (async () => {
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (STRAPI_API_TOKEN) {
+        headers['Authorization'] = `Bearer ${STRAPI_API_TOKEN}`;
+      }
       const res = await fetch(url, {
         ...fetchOptions,
         signal: AbortSignal.timeout(8000),
         headers: {
-          'Content-Type': 'application/json',
+          ...headers,
           ...(fetchOptions.headers || {}),
         },
       });
@@ -191,9 +206,15 @@ export async function invalidateStrapiCache(pattern: string): Promise<number> {
   return redisInvalidate(`strapi:${pattern}`);
 }
 
-/** Helper to get full image URL from Strapi path */
+/**
+ * Resolve image URL from Strapi.
+ * - External URLs (http/https): returned as-is
+ * - Strapi media library (/uploads/...): prepend STRAPI_URL
+ * - Local paths (/images/...): served by Astro, return as-is
+ */
 export function strapiImage(path: string | null | undefined): string | null {
   if (!path) return null;
   if (path.startsWith('http')) return path;
-  return `${STRAPI_URL}${path}`;
+  if (path.startsWith('/uploads/')) return `${STRAPI_URL}${path}`;
+  return path;
 }

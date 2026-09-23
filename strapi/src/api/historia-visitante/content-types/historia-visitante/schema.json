@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "historia_visitantes",
+  "info": {
+    "singularName": "historia-visitante",
+    "pluralName": "historia-visitantes",
+    "displayName": "Historia Visitante",
+    "description": "Historias de fauna, flora y personas que visitan el Café Iwagé"
+  },
+  "options": { "draftAndPublish": true },
+  "attributes": {
+    "titulo": { "type": "string", "required": true },
+    "slug": { "type": "uid", "targetField": "titulo" },
+    "categoria": {
+      "type": "enumeration",
+      "enum": ["fauna", "flora", "personas"],
+      "required": true
+    },
+    "texto_corto": {
+      "type": "text",
+      "required": true,
+      "maxLength": 200
+    },
+    "texto_largo": {
+      "type": "richtext",
+      "required": true
+    },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "required": false
+    },
+    "icono": {
+      "type": "string",
+      "description": "Nombre Lucide del icono (ej: bird, tree-pine, user)"
+    },
+    "orden": { "type": "integer", "default": 0 },
+    "destacado": { "type": "boolean", "default": false }
+  }
+}

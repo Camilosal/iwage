@@ -1,0 +1,325 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { getExperimentoBySlug, getExperimentosBySubsistema, SUBSISTEMA_META, ESTADO_EXPERIMENTO, SECTIONS, formatFecha } from '@/lib/granja-experimentos';
+import { renderMarkdown } from '@/lib/render-markdown';
+import { strapiImage } from '@/lib/strapi';
+import type { Experimento } from '@/lib/granja-experimentos';
+
+const BRAND = 'granja';
+const BRAND_NAME = 'Iwagé Granja';
+const AUTHOR = 'Manuel Camilo Saldarriaga Acosta';
+const LOCATION = 'Corredor Ambalá, Ibagué, Tolima';
+
+const { slug } = Astro.params;
+const exp = await getExperimentoBySlug(slug!);
+
+if (!exp) {
+  return Astro.redirect('/granja/experimentos');
+}
+
+// Related experiments from same subsistema
+const related: Experimento[] = exp.subsistema
+  ? (await getExperimentosBySubsistema(exp.subsistema, { pageSize: 4 })).filter(e => e.slug !== slug).slice(0, 3)
+  : [];
+
+const subMeta = exp.subsistema ? SUBSISTEMA_META[exp.subsistema] : null;
+const estadoMeta = exp.estado_experimento ? ESTADO_EXPERIMENTO[exp.estado_experimento] : null;
+const heroImg = exp.imagen ? strapiImage(exp.imagen) : null;
+
+// Parse tags
+const tags = exp.tags ? exp.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+// Structured sections with content
+const activeSections = SECTIONS.filter(s => {
+  const content = (exp as any)[s.field] as string | null;
+  return content && content.trim().length > 0;
+});
+
+// Word count (all sections combined)
+const allText = activeSections.map(s => (exp as any)[s.field] || '').join(' ');
+const wordCount = allText ? allText.split(/\s+/).length : 0;
+
+// Article metadata for JSON-LD / OG
+const articleMeta = {
+  title: exp.titulo,
+  description: exp.extracto || exp.titulo,
+  datePublished: exp.fecha || new Date().toISOString().split('T')[0],
+  dateModified: exp.updatedAt || exp.fecha,
+  author: AUTHOR,
+  image: exp.imagen || undefined,
+  section: subMeta?.label || 'Experimento',
+  wordCount,
+};
+
+// Parse tags for display
+const tagList = exp.tags
+  ? exp.tags.split(',').map(t => t.trim()).filter(Boolean)
+  : [];
+---
+
+<BrandLayout brand={BRAND} title={`${exp.titulo} · Laboratorio Vivo · ${BRAND_NAME}`} description={exp.extracto || exp.titulo} ogType="article" article={articleMeta} ogImage={exp.imagen || undefined}>
+  <article class="w-full px-6 py-12 md:py-16 mx-auto max-w-7xl">
+    <!-- Breadcrumb -->
+    <nav class="mb-8 flex items-center gap-2 text-sm text-text-muted flex-wrap">
+      <a href="/granja/" class="hover:text-brand transition-colors">Inicio</a>
+      <span>/</span>
+      <a href="/granja/experimentos" class="hover:text-brand transition-colors">Experimentos</a>
+      {subMeta && (
+        <>
+          <span>/</span>
+          <a href={`/granja/sistema/${exp.subsistema}`} class="hover:text-brand transition-colors truncate max-w-[160px]">{subMeta.label}</a>
+        </>
+      )}
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-10">
+      <div class="flex items-center gap-2 mb-4 flex-wrap">
+        {subMeta && (
+          <span class="inline-flex items-center gap-1.5 bg-brand-muted text-brand text-xs font-semibold rounded-full px-3 py-1">
+            <Icon name={subMeta.icon} class="w-3.5 h-3.5" /> {subMeta.label}
+          </span>
+        )}
+        {estadoMeta && (
+          <span class={`inline-block text-[10px] font-bold uppercase tracking-wide rounded-full px-2.5 py-0.5 ${estadoMeta.class}`}>
+            {estadoMeta.label}
+          </span>
+        )}
+        {exp.destacado && (
+          <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5">
+            ★ Destacado
+          </span>
+        )}
+      </div>
+
+      <h1 class="text-3xl md:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-text-primary leading-tight mb-5">
+        {exp.titulo}
+      </h1>
+      {exp.extracto && (
+        <p class="text-lg text-text-secondary leading-relaxed mb-6">{exp.extracto}</p>
+      )}
+      <div class="flex flex-wrap items-center gap-4 text-sm text-text-muted pb-6 border-b border-border">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-brand-muted flex items-center justify-center"><Icon name="sprout" class="w-4 h-4 text-brand" /></div>
+          <span class="font-medium text-text-secondary">{AUTHOR}</span>
+        </div>
+        <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+        <time>{formatFecha(exp.fecha)}</time>
+        {exp.tiempo_lectura && (
+          <>
+            <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+            <span>{exp.tiempo_lectura} min lectura</span>
+          </>
+        )}
+        <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+        <span>{wordCount.toLocaleString('es-CO')} palabras</span>
+      </div>
+    </header>
+
+    <!-- Hero Image -->
+    {heroImg ? (
+      <figure class="mb-10 -mx-6 md:mx-0">
+        <img
+          src={heroImg}
+          alt={exp.titulo}
+          class="w-full h-64 md:h-80 object-cover rounded-none md:rounded-2xl shadow-sm"
+        />
+      </figure>
+    ) : (
+      <div class="mb-10 -mx-6 md:mx-0 h-48 md:h-56 rounded-none md:rounded-2xl bg-gradient-to-br from-brand-muted via-brand/10 to-brand/5 flex items-center justify-center">
+        <Icon name="flask-conical" class="w-16 h-16 opacity-40 text-brand" />
+      </div>
+    )}
+
+    <!-- Structured experiment sections -->
+    {activeSections.length > 0 ? (
+      <div class="space-y-6">
+        {activeSections.map((section) => {
+          const content = (exp as any)[section.field] as string;
+          return (
+            <div class="bg-surface-raised rounded-xl border border-border overflow-hidden">
+              <div class="flex items-center gap-3 px-5 py-3 border-b border-border bg-surface-sunken">
+                <div class="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center text-brand shrink-0">
+                  <Icon name={section.icon} class="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold text-text-primary">{section.heading}</h3>
+                  <p class="text-[11px] text-text-muted">{section.desc}</p>
+                </div>
+              </div>
+              <div class="px-5 py-4 article-body" set:html={renderMarkdown(content)}></div>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <div class="text-center py-12 bg-surface-raised rounded-2xl border border-border">
+        <Icon name="file-text" class="w-10 h-10 block mx-auto mb-4 text-text-muted" />
+        <p class="text-text-secondary">Las secciones de este experimento estarán disponibles próximamente.</p>
+      </div>
+    )}
+
+    <!-- Supporting bitácora articles -->
+    {exp.bitacoras && exp.bitacoras.length > 0 && (
+      <div class="mt-10">
+        <h2 class="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+          <Icon name="book-open" class="w-5 h-5 text-brand" />
+          Documentación de soporte
+          <span class="text-sm font-normal text-text-muted">({exp.bitacoras.length} {exp.bitacoras.length === 1 ? 'artículo' : 'artículos'})</span>
+        </h2>
+        <div class="grid sm:grid-cols-2 gap-4">
+          {exp.bitacoras.map(bit => (
+            <a
+              href={`/granja/bitacora/${bit.slug}`}
+              class="group flex items-start gap-4 p-4 bg-surface-raised rounded-xl border border-border hover:border-brand/30 hover:shadow-sm transition-all"
+            >
+              <div class="w-10 h-10 rounded-lg bg-brand-muted flex items-center justify-center shrink-0 mt-0.5">
+                <Icon name="file-text" class="w-5 h-5 text-brand" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors line-clamp-2">
+                  {bit.titulo}
+                </h3>
+                {bit.extracto && (
+                  <p class="text-xs text-text-muted mt-1 line-clamp-2">{bit.extracto}</p>
+                )}
+                <div class="flex items-center gap-3 mt-2 text-[11px] text-text-muted">
+                  {bit.fecha && <time>{formatFecha(bit.fecha)}</time>}
+                  {bit.tiempo_lectura && (
+                    <>
+                      <span class="w-0.5 h-0.5 rounded-full bg-text-muted"></span>
+                      <span>{bit.tiempo_lectura} min lectura</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <Icon name="chevron-right" class="w-4 h-4 text-text-muted group-hover:text-brand transition-colors shrink-0 mt-2" />
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- Attached documents -->
+    {exp.documentos && exp.documentos.length > 0 && (
+      <div class="mt-10">
+        <h2 class="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+          <Icon name="paperclip" class="w-5 h-5 text-brand" />
+          Documentos adjuntos
+          <span class="text-sm font-normal text-text-muted">({exp.documentos.length})</span>
+        </h2>
+        <div class="grid sm:grid-cols-2 gap-3">
+          {exp.documentos.map(doc => {
+            const isImage = doc.mime?.startsWith('image/');
+            const isVideo = doc.mime?.startsWith('video/');
+            const isPdf = doc.mime === 'application/pdf';
+            const fileIcon = isPdf ? 'file-text' : isImage ? 'image' : isVideo ? 'video' : 'file';
+            const fileSize = doc.size >= 1048576 ? `${(doc.size / 1048576).toFixed(1)} MB` : `${Math.round(doc.size / 1024)} KB`;
+            const fileUrl = doc.url.startsWith('http') ? doc.url : `http://localhost:1338${doc.url}`;
+            return (
+              <a
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group flex items-center gap-3 p-3.5 bg-surface-raised rounded-xl border border-border hover:border-brand/30 hover:shadow-sm transition-all"
+              >
+                <div class="w-10 h-10 rounded-lg bg-brand-muted flex items-center justify-center shrink-0">
+                  <Icon name={fileIcon} class="w-5 h-5 text-brand" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-text-primary group-hover:text-brand transition-colors truncate">
+                    {doc.name}
+                  </p>
+                  <p class="text-[11px] text-text-muted mt-0.5">{fileSize}</p>
+                </div>
+                <Icon name="download" class="w-4 h-4 text-text-muted group-hover:text-brand transition-colors shrink-0" />
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    )}
+
+    <!-- Tags -->
+    {tagList.length > 0 && (
+      <div class="mt-12 pt-6 border-t border-border flex flex-wrap gap-2">
+        {tagList.map(tag => (
+          <span class="inline-flex items-center gap-1.5 bg-surface-sunken text-text-secondary text-xs font-medium rounded-full px-3.5 py-2">
+            # {tag}
+          </span>
+        ))}
+        <a href="/granja/experimentos" class="inline-flex items-center gap-1.5 bg-surface-sunken text-text-secondary text-xs font-medium rounded-full px-3.5 py-2 hover:bg-brand-muted hover:text-brand transition-colors">
+          # Experimentos
+        </a>
+      </div>
+    )}
+
+    <!-- Author Box -->
+    <div class="mt-10 p-6 rounded-2xl bg-surface-sunken border border-border">
+      <div class="flex items-start gap-4">
+        <div class="w-14 h-14 rounded-full bg-brand-muted flex items-center justify-center shrink-0">
+          <Icon name="sprout" class="w-7 h-7 text-brand" />
+        </div>
+        <div>
+          <p class="font-semibold text-text-primary mb-1">{AUTHOR}</p>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            Documentamos cada experimento en abierto: lo que funcionó, lo que no, y por qué. La transparencia radical es lo que distingue al laboratorio vivo.
+          </p>
+          <p class="text-xs text-text-muted mt-2">{LOCATION}</p>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Related experiments -->
+  {related.length > 0 && (
+    <section class="bg-surface-sunken py-16">
+      <div class="max-w-7xl mx-auto px-6">
+        <h2 class="text-2xl font-bold text-text-primary mb-8">
+          {subMeta ? `Más experimentos de ${subMeta.label}` : 'Experimentos relacionados'}
+        </h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          {related.map(rel => {
+            const relSub = rel.subsistema ? SUBSISTEMA_META[rel.subsistema] : null;
+            const relEstado = rel.estado_experimento ? ESTADO_EXPERIMENTO[rel.estado_experimento] : null;
+            return (
+              <a href={`/granja/experimentos/${rel.slug}`} class="group block bg-surface-raised rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">
+                  <Icon name={relSub?.icon || 'flask-conical'} class="w-8 h-8 opacity-40 text-brand" />
+                </div>
+                <div class="p-5">
+                  <div class="flex items-center gap-2 mb-2 flex-wrap">
+                    {relSub && (
+                      <span class="inline-block bg-brand-muted text-brand text-[10px] font-semibold rounded-full px-2.5 py-0.5 uppercase tracking-wide">
+                        {relSub.label}
+                      </span>
+                    )}
+                    {relEstado && (
+                      <span class={`inline-block text-[9px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${relEstado.class}`}>
+                        {relEstado.label}
+                      </span>
+                    )}
+                  </div>
+                  <h3 class="text-sm font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors line-clamp-2">
+                    {rel.titulo}
+                  </h3>
+                  <p class="text-xs text-text-muted line-clamp-2">{rel.extracto}</p>
+                  <div class="mt-3 flex items-center gap-2 text-[11px] text-text-muted">
+                    <span>{formatFecha(rel.fecha)}</span>
+                    {rel.tiempo_lectura && (
+                      <>
+                        <span class="w-0.5 h-0.5 rounded-full bg-text-muted"></span>
+                        <span>{rel.tiempo_lectura} min</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  )}
+</BrandLayout>

@@ -79,7 +79,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     const result = await callLLMJson<{ insights: any[] }>(messages, {
       temperature: 0.4,
-      maxTokens: 1200,
+      maxTokens: 3000,
+      timeout: 45_000,
     }).catch(() => ({ insights: [] }));
 
     return new Response(JSON.stringify({ insights: result.insights || [], cached: false }), {

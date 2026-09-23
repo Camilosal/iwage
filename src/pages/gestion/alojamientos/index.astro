@@ -1,12 +1,16 @@
 ---
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 import AlojamientoCard from '@/components/gestion/AlojamientoCard.astro';
 import SearchBar from '@/components/gestion/SearchBar.astro';
 import { getAlojamientosDisponibles, TIPOS_ALOJAMIENTO } from '@/lib/gestion';
 
 // SSR for query param filtering
 export const prerender = false;
+
+const hero = await getHeroBySlug('/gestion/alojamientos');
 
 const url = new URL(Astro.request.url);
 const municipio = url.searchParams.get('municipio') || '';
@@ -34,18 +38,37 @@ const fechasQS = [
 
 <BrandLayout brand="gestion" title="Alojamientos Rurales en el Tolima · Iwagé Gestión" description="Reserva fincas, casas campestres, glamping y cabañas en el Tolima. Alojamientos rurales gestionados profesionalmente con experiencias de territorio incluidas.">
 
-  <!-- Hero with search -->
-  <section class="relative py-16 md:py-24 px-4 overflow-hidden bg-[#0c1520]">
-    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80" alt="Alojamientos rurales en el Tolima" class="absolute inset-0 w-full h-full object-cover opacity-30" loading="eager" />
-    <div class="absolute inset-0 bg-gradient-to-t from-[#0c1520] via-[#0c1520]/60 to-[#0c1520]/30"></div>
-    <div class="relative z-10 max-w-5xl mx-auto text-center">
-      <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Iwagé Gestión</span>
-      <h1 class="text-4xl lg:text-5xl font-light text-white mt-3 mb-4">
-        Encuentra tu <span class="font-serif italic text-[#52B788]">refugio rural</span>
-      </h1>
-      <p class="text-white/60 max-w-xl mx-auto mb-8">
-        Fincas, glamping, casas campestres y más. Alojamientos gestionados profesionalmente en el corazón del Tolima.
-      </p>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Iwagé Gestión"
+      align="center"
+    />
+  ) : (
+    <header class="relative py-16 md:py-24 px-4 overflow-hidden bg-[#0c1520]">
+      <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80" alt="Alojamientos rurales en el Tolima" class="absolute inset-0 w-full h-full object-cover opacity-30" loading="eager" />
+      <div class="absolute inset-0 bg-gradient-to-t from-[#0c1520] via-[#0c1520]/60 to-[#0c1520]/30"></div>
+      <div class="relative z-10 max-w-5xl mx-auto text-center">
+        <span class="text-xs font-bold tracking-[0.4em] text-[#52B788] uppercase">Iwagé Gestión</span>
+        <h1 class="text-4xl lg:text-5xl font-light text-white mt-3 mb-4">
+          Encuentra tu <span class="font-serif italic text-[#52B788]">refugio rural</span>
+        </h1>
+        <p class="text-white/60 max-w-xl mx-auto">
+          Fincas, glamping, casas campestres y más. Alojamientos gestionados profesionalmente en el corazón del Tolima.
+        </p>
+      </div>
+    </header>
+  )}
+
+  <!-- SearchBar -->
+  <section class="relative py-8 px-4 bg-[#0c1520]">
+    <div class="max-w-5xl mx-auto text-center">
       <SearchBar municipio={municipio} checkin={checkin} checkout={checkout} huespedes={huespedes} />
     </div>
   </section>

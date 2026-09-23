@@ -1,9 +1,10 @@
 ---
-export const prerender = true;
 
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { NIVELES_ESCALAFON } from '@/lib/naturaleza';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const niveles = Object.entries(NIVELES_ESCALAFON).map(([k, v]) => ({ nivel: Number(k), ...v }));
 
@@ -14,18 +15,31 @@ const CRITERIOS_DETALLE = [
   { nivel: 4, anos: 5, experiencias: 3, resenas: 25, calificacion: 4.5, certificaciones: 3, hectareas: 15 },
   { nivel: 5, anos: 10, experiencias: 5, resenas: 50, calificacion: 4.7, certificaciones: 4, hectareas: 30 },
 ];
+
+const hero = await getHeroBySlug('/naturaleza/escalafon');
 ---
 
 <BrandLayout brand="naturaleza" title="Escalafón de Anfitriones · Iwagé Naturaleza" description="Sistema de 5 niveles para anfitriones: Semilla, Brote, Raíz, Guardián y Sabio Ancestral. Criterios objetivos de crecimiento y reconocimiento.">
-
-  <!-- Header -->
-  <section class="pt-28 pb-12 px-4 bg-[#0e1a08]">
-    <div class="max-w-4xl mx-auto text-center">
-      <span class="text-xs font-bold tracking-[0.4em] text-[#d4920a] uppercase">Sistema de reconocimiento</span>
-      <h1 class="text-4xl lg:text-5xl font-light text-white mt-4 mb-4">Escalafón de Anfitriones</h1>
-      <p class="text-white/60 max-w-xl mx-auto">Cinco niveles que honran el compromiso, la experiencia y el impacto regenerativo de cada guardián del territorio.</p>
-    </div>
-  </section>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Agencia de Turismo Rural · Tolima"
+    />
+  ) : (
+    <header class="pt-28 pb-12 px-4 bg-[#0e1a08]">
+      <div class="max-w-4xl mx-auto text-center">
+        <span class="text-xs font-bold tracking-[0.4em] text-[#d4920a] uppercase">Sistema de reconocimiento</span>
+        <h1 class="text-4xl lg:text-5xl font-light text-white mt-4 mb-4">Escalafón de Anfitriones</h1>
+        <p class="text-white/60 max-w-xl mx-auto">Cinco niveles que honran el compromiso, la experiencia y el impacto regenerativo de cada guardián del territorio.</p>
+      </div>
+    </header>
+  )}
 
   <!-- Levels -->
   <section class="py-16 px-4 bg-[#f8faf5]">

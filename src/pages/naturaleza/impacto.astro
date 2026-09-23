@@ -2,6 +2,8 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getIniciativas } from '@/lib/naturaleza';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
 
 const ESG = [
   {
@@ -59,28 +61,41 @@ const iniciativasCMS = await getIniciativas();
 const iniciativas = iniciativasCMS.length > 0
   ? iniciativasCMS.map((i) => ({ icono: i.icono || 'sprout', titulo: i.titulo, descripcion: i.descripcion || '', estado: i.estado || 'En curso', metrica: i.metrica || '', progreso: i.progreso ?? 0 }))
   : INICIATIVAS_FALLBACK;
+
+const hero = await getHeroBySlug('/naturaleza/impacto');
 ---
 
 <BrandLayout brand="naturaleza" title="Impacto Regenerativo · Iwagé Naturaleza" description="Cómo cada experiencia Iwagé Naturaleza contribuye a la restauración del territorio: fondo de impacto, siembra nativa, protección hídrica y formación de guardianes.">
-
-  <!-- Hero -->
-  <section class="bg-[#0e1a08] text-white py-16 md:py-24 relative overflow-hidden">
-    <div class="absolute top-0 right-0 w-96 h-96 bg-[#40916C]/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
-    <div class="absolute bottom-0 left-0 w-80 h-80 bg-[#C8933E]/5 rounded-full blur-3xl -ml-40 -mb-40"></div>
-    <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
-      <div class="flex items-center justify-center gap-3 mb-6">
-        <span class="w-8 h-[1px] bg-[#40916C]"></span>
-        <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#40916C]">Propósito Iwagé</span>
-        <span class="w-8 h-[1px] bg-[#40916C]"></span>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Agencia de Turismo Rural · Tolima"
+    />
+  ) : (
+    <header class="bg-[#0e1a08] text-white py-16 md:py-24 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-[#40916C]/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
+      <div class="absolute bottom-0 left-0 w-80 h-80 bg-[#C8933E]/5 rounded-full blur-3xl -ml-40 -mb-40"></div>
+      <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
+        <div class="flex items-center justify-center gap-3 mb-6">
+          <span class="w-8 h-[1px] bg-[#40916C]"></span>
+          <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-[#40916C]">Propósito Iwagé</span>
+          <span class="w-8 h-[1px] bg-[#40916C]"></span>
+        </div>
+        <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl leading-tight mb-6">
+          Turismo que <span class="text-[#40916C] italic">regenera</span>
+        </h1>
+        <p class="text-lg md:text-xl text-white/60 font-serif italic max-w-2xl mx-auto leading-relaxed">
+          "Cada experiencia que diseñamos tiene un doble propósito: reconectar tu espíritu y devolverle la vida a nuestra montaña andina."
+        </p>
       </div>
-      <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl leading-tight mb-6">
-        Turismo que <span class="text-[#40916C] italic">regenera</span>
-      </h1>
-      <p class="text-lg md:text-xl text-white/60 font-serif italic max-w-2xl mx-auto leading-relaxed">
-        "Cada experiencia que diseñamos tiene un doble propósito: reconectar tu espíritu y devolverle la vida a nuestra montaña andina."
-      </p>
-    </div>
-  </section>
+    </header>
+  )}
 
   <!-- ESG Pillars -->
   <section class="py-16 px-6 bg-[#f8faf5]">

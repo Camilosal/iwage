@@ -4,17 +4,22 @@ import { brandList } from '@/config/brands';
 import { SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
 import SearchOverlay from '@/components/SearchOverlay.astro';
 import UnifiedCart from '@/components/cart/UnifiedCart';
+import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
+import { SITE_METRICS } from '@/config/site-metrics';
+import { getHeroBySlug } from '@/lib/heroes';
+
+const hero = await getHeroBySlug('/');
 
 const title = 'Iwagé · Ecosistema de Desarrollo Rural · Tolima, Colombia';
-const description = 'Cinco líneas de acción, un solo territorio. Meliponicultura, café de origen, inmobiliaria rural, turismo regenerativo y property management en el corredor Ambalá, Ibagué.';
+const description = 'Seis líneas de acción, un solo territorio. Meliponicultura, café de origen, inmobiliaria rural, turismo regenerativo, property management y granja autosustentable en el corredor Ambalá, Ibagué.';
 const PORTAL_URL = `${import.meta.env.PUBLIC_RESERVAS_API || 'https://reservas.iwage.co'}/mi-cuenta`;
 
 const stats = [
-  { value: '5', label: 'Líneas de acción' },
-  { value: '120+', label: 'Colmenas activas' },
-  { value: '50+', label: 'Propiedades gestionadas' },
-  { value: '12 km', label: 'Corredor biológico' },
+  { value: String(SITE_METRICS.lineasAccion), label: 'Líneas de acción' },
+  { value: `${SITE_METRICS.colmenasActivas}+`, label: SITE_METRICS.colmenasActivasLabel },
+  { value: SITE_METRICS.propiedadesGestionadas, label: 'Propiedades gestionadas' },
+  { value: SITE_METRICS.kmCorredorBiologico, label: 'Corredor biológico' },
 ];
 
 const jsonLd = {
@@ -134,28 +139,41 @@ const founderJsonLd = {
     </a>
 
     <!-- Hero -->
-    <header class="relative overflow-hidden">
-      <img
-        src="/images/hero-ecosistema.webp"
-        alt=""
-        aria-hidden="true"
-        class="absolute inset-0 h-full w-full object-cover"
+    {hero ? (
+      <Hero
+        titulo={hero.titulo}
+        subtitulo={hero.subtitulo}
+        imagen={hero.imagen}
+        cta_primario_texto={hero.cta_primario_texto}
+        cta_primario_url={hero.cta_primario_url}
+        cta_secundario_texto={hero.cta_secundario_texto}
+        cta_secundario_url={hero.cta_secundario_url}
+        label="Corredor Ambalá · Ibagué, Tolima"
       />
-      <div class="absolute inset-0 bg-gradient-to-b from-surface/70 via-surface/75 to-surface"></div>
-      <div class="relative mx-auto max-w-5xl px-6 py-14 md:py-28 text-center">
-        <p class="font-mono text-xs uppercase tracking-[0.3em] text-accent mb-6">
-          Corredor Ambalá · Ibagué, Tolima
-        </p>
-        <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
-          Ecosistema<br />
-          <span class="text-brand">Iwagé</span>
-        </h1>
-        <p class="mt-6 text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl mx-auto">
-          Cinco líneas de acción, un solo territorio. Agricultura regenerativa,
-          café de origen, tierra, turismo y gestión — conectados por la misma visión.
-        </p>
-      </div>
-    </header>
+    ) : (
+      <header class="relative overflow-hidden">
+        <img
+          src="/images/hero-ecosistema.webp"
+          alt=""
+          aria-hidden="true"
+          class="absolute inset-0 h-full w-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-b from-surface/70 via-surface/75 to-surface"></div>
+        <div class="relative mx-auto max-w-5xl px-6 py-14 md:py-28 text-center">
+          <p class="font-mono text-xs uppercase tracking-[0.3em] text-accent mb-6">
+            Corredor Ambalá · Ibagué, Tolima
+          </p>
+          <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
+            Ecosistema<br />
+            <span class="text-brand">Iwagé</span>
+          </h1>
+          <p class="mt-6 text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl mx-auto">
+            Seis líneas de acción, un solo territorio. Agricultura regenerativa,
+            café de origen, tierra, turismo, gestión y granja autosustentable — conectados por la misma visión.
+          </p>
+        </div>
+      </header>
+    )}
 
     <!-- Stats bar -->
     <section class="border-y border-border bg-surface-raised/50">
@@ -217,6 +235,48 @@ const founderJsonLd = {
         </div>
       </div>
     </main>
+
+    <!-- Cómo se conecta el ecosistema -->
+    <section class="border-t border-border bg-surface-raised/30 py-12 px-6">
+      <div class="mx-auto max-w-4xl text-center">
+        <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6">Cómo se conecta el ecosistema</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-center">
+          <a href="/naturaleza/" class="group flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:border-accent/50 hover:bg-surface transition-all">
+            <span class="text-lg">🌿</span>
+            <div class="text-left">
+              <p class="text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">Naturaleza</p>
+              <p class="text-[9px] text-text-muted">Visitantes</p>
+            </div>
+          </a>
+          <Icon name="arrow-right" class="w-3.5 h-3.5 text-text-muted hidden sm:block shrink-0" />
+          <a href="/granja/" class="group flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:border-accent/50 hover:bg-surface transition-all">
+            <span class="text-lg">🌱</span>
+            <div class="text-left">
+              <p class="text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">Granja</p>
+              <p class="text-[9px] text-text-muted">Laboratorio vivo</p>
+            </div>
+          </a>
+          <Icon name="arrow-right" class="w-3.5 h-3.5 text-text-muted hidden sm:block shrink-0" />
+          <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+            <a href="/cafe/" class="group flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:border-accent/50 hover:bg-surface transition-all">
+              <span class="text-lg">☕</span>
+              <div class="text-left">
+                <p class="text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">Café</p>
+                <p class="text-[9px] text-text-muted">Insumos</p>
+              </div>
+            </a>
+            <a href="/tierras/" class="group flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:border-accent/50 hover:bg-surface transition-all">
+              <span class="text-lg">🏔</span>
+              <div class="text-left">
+                <p class="text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">Tierras</p>
+                <p class="text-[9px] text-text-muted">Territorio</p>
+              </div>
+            </a>
+          </div>
+        </div>
+        <p class="text-xs text-text-muted mt-4">La miel necesitó un lugar (Café), el café atrajo visitantes (Naturaleza), los visitantes quisieron quedarse (Gestión), algunos comprar tierra (Tierras), y documentar el proceso se volvió su propia línea (Granja).</p>
+      </div>
+    </section>
 
     <!-- Footer -->
     <footer class="border-t border-border py-12 px-6">

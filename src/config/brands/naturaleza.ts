@@ -2,8 +2,8 @@ import type { BrandConfig } from './types';
 
 export const naturaleza: BrandConfig = {
   slug: 'naturaleza',
-  name: 'Iwagé Naturaleza',
-  tagline: 'Turismo Regenerativo & Experiencias de Territorio',
+  name: 'Naturaleza',
+  tagline: 'Turismo Regenerativo & Anfitriones',
   colors: {
     brand: '#2d5016',
     brandLight: '#4a7c23',

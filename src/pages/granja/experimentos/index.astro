@@ -1,0 +1,222 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { getExperimentos, SUBSISTEMA_META, ESTADO_EXPERIMENTO, formatFecha } from '@/lib/granja-experimentos';
+import type { Experimento } from '@/lib/granja-experimentos';
+import { strapiImage } from '@/lib/strapi';
+
+const BRAND = 'granja';
+const BRAND_TITLE = 'Experimentos · Laboratorio Vivo · Iwagé Granja';
+const BRAND_DESC = 'Fichas de experimento del laboratorio vivo: origen, hipótesis, proceso, resultado y lección de cada experimento documentado en la granja autosustentable.';
+
+const { data: experimentos } = await getExperimentos({ pageSize: 100 });
+
+// Counts per subsistema
+const subCounts = new Map<string, number>();
+experimentos.forEach((e) => {
+  const sub = e.subsistema || 'sin-subsistema';
+  subCounts.set(sub, (subCounts.get(sub) || 0) + 1);
+});
+
+// Counts per estado
+const estadoCounts = new Map<string, number>();
+experimentos.forEach((e) => {
+  const est = e.estado_experimento || 'sin-estado';
+  estadoCounts.set(est, (estadoCounts.get(est) || 0) + 1);
+});
+
+function normalizeSearch(e: Experimento): string {
+  return ((e.titulo || '') + ' ' + (e.extracto || '') + ' ' + (e.subsistema || '') + ' ' + (e.tags || ''))
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+---
+
+<BrandLayout brand={BRAND} title={BRAND_TITLE} description={BRAND_DESC}>
+  <!-- Header -->
+  <section class="bg-surface pt-12 pb-8">
+    <div class="max-w-7xl mx-auto px-6">
+      <span class="text-xs font-bold uppercase tracking-[0.25em] text-accent block mb-3">Laboratorio Vivo</span>
+      <h1 class="text-3xl md:text-4xl font-bold text-text-primary mb-3">Experimentos</h1>
+      <p class="text-text-secondary max-w-xl">Fichas abiertas de cada experimento: origen, hipótesis, proceso, resultado y lección. Transparency radical — publicamos tanto lo que funciona como lo que no.</p>
+    </div>
+  </section>
+
+  {experimentos.length === 0 ? (
+    <section class="max-w-7xl mx-auto px-6 py-20 text-center">
+      <Icon name="flask-conical" class="w-10 h-10 block mx-auto mb-4 text-brand" />
+      <p class="text-text-secondary max-w-md mx-auto">Pronto publicaremos las primeras fichas de experimento. Vuelve pronto.</p>
+    </section>
+  ) : (
+    <section class="max-w-7xl mx-auto px-6 pb-16">
+      <div class="flex gap-8 items-start">
+        <!-- Filter sidebar -->
+        <aside id="filter-sidebar" class="hidden lg:block w-56 shrink-0 sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto">
+          <!-- Search -->
+          <div class="relative mb-5">
+            <input id="experimento-search" type="text" placeholder="Buscar experimento..." class="w-full rounded-lg border border-border bg-surface-raised px-4 py-2.5 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
+            <Icon name="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <button id="search-clear" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary">
+              <Icon name="x" class="w-4 h-4" />
+            </button>
+          </div>
+
+          <!-- Subsistema filter -->
+          <div class="mb-5">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">Subsistema</p>
+            <div class="space-y-1">
+              <button class="filter-btn active w-full text-left px-3 py-1.5 rounded-lg text-sm hover:bg-brand-muted transition-colors flex items-center justify-between" data-group="subsistema" data-value="all">
+                <span>Todos</span>
+                <span class="text-xs text-text-muted">{experimentos.length}</span>
+              </button>
+              {Object.entries(SUBSISTEMA_META).map(([key, meta]) => (
+                subCounts.has(key) && (
+                  <button class="filter-btn w-full text-left px-3 py-1.5 rounded-lg text-sm hover:bg-brand-muted transition-colors flex items-center justify-between" data-group="subsistema" data-value={key}>
+                    <span class="flex items-center gap-2">
+                      <Icon name={meta.icon} class="w-3.5 h-3.5 text-brand" />
+                      <span class="line-clamp-1">{meta.label}</span>
+                    </span>
+                    <span class="text-xs text-text-muted">{subCounts.get(key)}</span>
+                  </button>
+                )
+              ))}
+            </div>
+          </div>
+
+          <!-- Estado filter -->
+          <div class="mb-5">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">Estado</p>
+            <div class="space-y-1">
+              <button class="filter-btn active w-full text-left px-3 py-1.5 rounded-lg text-sm hover:bg-brand-muted transition-colors flex items-center justify-between" data-group="estado" data-value="all">
+                <span>Todos</span>
+              </button>
+              {Object.entries(ESTADO_EXPERIMENTO).map(([key, meta]) => (
+                estadoCounts.has(key) && (
+                  <button class="filter-btn w-full text-left px-3 py-1.5 rounded-lg text-sm hover:bg-brand-muted transition-colors flex items-center justify-between" data-group="estado" data-value={key}>
+                    <span class={`inline-block text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${meta.class}`}>{meta.label}</span>
+                    <span class="text-xs text-text-muted">{estadoCounts.get(key)}</span>
+                  </button>
+                )
+              ))}
+            </div>
+          </div>
+
+          <!-- Clear -->
+          <button id="clear-filters" class="hidden w-full text-center text-xs text-brand hover:underline py-2">Limpiar filtros</button>
+
+          <!-- Results count -->
+          <p id="results-count" class="text-xs text-text-muted mt-3">
+            Mostrando <span class="font-semibold text-text-secondary">{experimentos.length}</span> de {experimentos.length} experimentos
+          </p>
+        </aside>
+
+        <!-- Mobile filter toggle -->
+        <div id="filter-backdrop" class="fixed inset-0 bg-black/30 z-30 opacity-0 invisible transition-opacity lg:hidden"></div>
+        <button id="filter-toggle-mobile" class="lg:hidden fixed bottom-6 right-6 z-20 w-12 h-12 rounded-full bg-brand text-white shadow-lg flex items-center justify-center">
+          <Icon name="sliders-horizontal" class="w-5 h-5" />
+        </button>
+        <button id="filter-close" class="hidden lg:hidden fixed top-4 right-4 z-40 w-8 h-8 rounded-full bg-surface-raised border border-border flex items-center justify-center">
+          <Icon name="x" class="w-4 h-4" />
+        </button>
+
+        <!-- Experiment grid -->
+        <div class="flex-1 min-w-0">
+          <div id="experimento-grid" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {experimentos.map((exp: Experimento) => {
+              const subMeta = exp.subsistema ? SUBSISTEMA_META[exp.subsistema] : null;
+              const estadoMeta = exp.estado_experimento ? ESTADO_EXPERIMENTO[exp.estado_experimento] : null;
+              const img = exp.imagen ? strapiImage(exp.imagen) : null;
+              return (
+                <article
+                  class="group relative"
+                  data-subsistema={exp.subsistema || ''}
+                  data-estado={exp.estado_experimento || ''}
+                  data-search={normalizeSearch(exp)}
+                >
+                  <a href={`/granja/experimentos/${exp.slug}`} class="block bg-surface-raised rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-brand/30 transition-all h-full overflow-hidden">
+                    {/* Image */}
+                    {img ? (
+                      <div class="h-40 overflow-hidden">
+                        <img src={img} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                      </div>
+                    ) : (
+                      <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">
+                        <Icon name={subMeta?.icon || 'flask-conical'} class="w-10 h-10 opacity-40 text-brand" />
+                      </div>
+                    )}
+                    {/* Content */}
+                    <div class="p-5">
+                      <div class="flex items-center gap-2 mb-3 flex-wrap">
+                        {subMeta && (
+                          <span class="inline-flex items-center gap-1 bg-brand-muted text-brand text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5">
+                            <Icon name={subMeta.icon} class="w-3 h-3" /> {subMeta.label}
+                          </span>
+                        )}
+                        {estadoMeta && (
+                          <span class={`inline-block text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${estadoMeta.class}`}>
+                            {estadoMeta.label}
+                          </span>
+                        )}
+                        {exp.destacado && (
+                          <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5">
+                            ★ Destacado
+                          </span>
+                        )}
+                      </div>
+                      <h2 class="text-base font-semibold text-text-primary mb-2 group-hover:text-brand transition-colors line-clamp-2">
+                        {exp.titulo}
+                      </h2>
+                      <p class="text-sm text-text-secondary leading-relaxed mb-4 line-clamp-3">{exp.extracto}</p>
+                      <div class="flex items-center gap-2 text-xs text-text-muted mt-auto flex-wrap">
+                        {exp.fecha && <span>{formatFecha(exp.fecha)}</span>}
+                        {exp.tiempo_lectura && (
+                          <>
+                            <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+                            <span>{exp.tiempo_lectura} min</span>
+                          </>
+                        )}
+                        {exp.bitacoras && exp.bitacoras.length > 0 && (
+                          <>
+                            <span class="w-1 h-1 rounded-full bg-text-muted"></span>
+                            <span class="inline-flex items-center gap-1">
+                              <Icon name="file-text" class="w-3 h-3" />
+                              {exp.bitacoras.length} {exp.bitacoras.length === 1 ? 'doc' : 'docs'}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </a>
+                </article>
+              );
+            })}
+          </div>
+
+          <!-- Empty state -->
+          <div id="no-results" class="hidden py-16 text-center">
+            <Icon name="search" class="w-10 h-10 block mx-auto mb-4 text-brand" />
+            <p class="font-medium text-text-primary mb-1">Sin resultados</p>
+            <p class="text-sm text-text-secondary">Ningún experimento coincide con los filtros aplicados.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Newsletter -->
+  <section class="bg-surface-sunken py-16">
+    <div class="max-w-xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-bold text-text-primary mb-3">Sigue los experimentos</h2>
+      <p class="text-text-secondary mb-6">Recibe cada nueva ficha de experimento: datos, resultados y lecciones del laboratorio vivo.</p>
+      <form class="flex gap-3" onsubmit="return false;">
+        <input type="email" placeholder="tu@correo.com" required class="flex-1 rounded-full border border-border bg-surface px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" />
+        <button type="submit" class="bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all shrink-0">Suscribir</button>
+      </form>
+    </div>
+  </section>
+</BrandLayout>
+
+<script>
+  import '@/lib/experimento-filters';
+</script>
