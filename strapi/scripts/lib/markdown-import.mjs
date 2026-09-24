@@ -40,3 +40,35 @@ function parsearValor(raw) {
   if (q) return q[1] ?? q[2];
   return v;
 }
+
+/** Quita los placeholders de imagen sugerida y las imágenes alojadas en el WordPress borrado. */
+export function quitarPlaceholders(cuerpo) {
+  return cuerpo
+    .replace(/^!\[[^\]]*Imagen sugerida[^\]]*\]\([^)]*\)\s*$/gim, '')
+    .replace(/^!\[[^\]]*\]\(https?:\/\/[^)]*tienda\.iwage\.co[^)]*\)\s*$/gim, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/** Primer párrafo utilizable: descarta títulos, imágenes y bloques sueltos de separación. */
+export function extraerExtracto(cuerpo, max = 200) {
+  for (const bloque of cuerpo.split(/\n{2,}/)) {
+    const t = bloque.trim();
+    if (!t || /^(#|!\[|\||-{3,}|\* \* \*)/.test(t)) continue;
+    const limpio = t
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/[*_`>#]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (limpio.length < 40) continue;
+    if (limpio.length <= max) return limpio;
+    const corte = limpio.lastIndexOf(' ', max);
+    return limpio.slice(0, corte > 60 ? corte : max) + '…';
+  }
+  return '';
+}
+
+export function calcularTiempoLectura(cuerpo) {
+  const palabras = (cuerpo.match(/\S+/g) || []).length;
+  return Math.max(1, Math.round(palabras / 220));
+}

@@ -40,7 +40,7 @@ Medido el 2026-09-23 contra producción, no asumido:
 | `strapi/scripts/lib/markdown-import.mjs` | crear | Parsear y limpiar un `.md` de WordPress: front matter, slug, placeholder de imagen, extracto, tiempo de lectura, mapeo a registro Strapi. Puro, sin red ni fs. |
 | `strapi/scripts/importar-bitacora.mjs` | crear | CLI: lee la carpeta, pide slugs existentes, crea los que faltan con `publicado:false`, o publica con `--publicar`. Único punto que habla con Strapi. |
 | `tests/markdown-import.test.mjs` | crear | Tests del módulo puro con `node --test` (fixtures como cadenas literales, sin archivos temporales). |
-| `package.json` | modificar | Script `"test": "node --test tests/"`. |
+| `package.json` | modificar | Script `"test": "node --test tests/*.test.mjs"`. |
 | `strapi/src/api/bitacora/content-types/bitacora/schema.json` | modificar | +`publicado`, `autor`, `etiquetas`, `fecha_actualizacion`, `meta_title`, `meta_description`. |
 | `src/lib/bitacora.ts` | modificar | Interfaz enriquecida, `publicado:true` en los tres fetchers, `fields` explícitos. |
 | `src/lib/sitemap.ts` | modificar | Las bitácoras del sitemap solo publicaciones. |
@@ -64,7 +64,7 @@ Medido el 2026-09-23 contra producción, no asumido:
 - Create: `strapi/scripts/lib/markdown-import.mjs`
 - Create: `tests/markdown-import.test.mjs`
 
-- [ ] **Step 1: Crear `tests/markdown-import.test.mjs` con el primer test fallando**
+- [x] **Step 1: Crear `tests/markdown-import.test.mjs` con el primer test fallando**
 
 ```js
 import { test } from 'node:test';
@@ -79,12 +79,12 @@ test('limpiarSlug: minúsculas, sin acentos, sin tramos de fecha de WordPress', 
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
-Run: `cd /home/ubuntu/negocio/data/app_iwage && node --test tests/`
+Run: `cd /home/ubuntu/negocio/data/app_iwage && node --test tests/*.test.mjs`
 Expected: `Cannot find module '.../strapi/scripts/lib/markdown-import.mjs'` (o `ERR_MODULE_NOT_FOUND`). Si en su lugar aparece un éxito, el runner no está corriendo el archivo: detener y revisar la ruta.
 
-- [ ] **Step 3: Implementar el mínimo**
+- [x] **Step 3: Implementar el mínimo**
 
 Crear `strapi/scripts/lib/markdown-import.mjs`:
 
@@ -107,22 +107,22 @@ export function limpiarSlug(input) {
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
-Run: `node --test tests/`
+Run: `node --test tests/*.test.mjs`
 Expected: `pass 1` / `fail 0`.
 
-- [ ] **Step 5: Registrar el script en `package.json`**
+- [x] **Step 5: Registrar el script en `package.json`**
 
 En el bloque `scripts` de `package.json`, después de `"preview"`:
 
 ```json
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.mjs"
 ```
 
 Run: `npm test` → Expected: lo mismo del paso 4.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json tests/markdown-import.test.mjs strapi/scripts/lib/markdown-import.mjs
@@ -137,7 +137,7 @@ git commit -m "test(importacion): runner con node --test y normalizacion de slug
 - Modify: `tests/markdown-import.test.mjs`
 - Modify: `strapi/scripts/lib/markdown-import.mjs`
 
-- [ ] **Step 1: Test fallante con el front matter real de un borrador**
+- [x] **Step 1: Test fallante con el front matter real de un borrador**
 
 Adjuntar a `tests/markdown-import.test.mjs` (añadir `parseFrontMatter` al `import` de arriba):
 
@@ -170,12 +170,12 @@ test('parseFrontMatter: sin front matter devuelve el texto intacto', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
-Run: `node --test tests/`
+Run: `node --test tests/*.test.mjs`
 Expected: `parseFrontMatter is not exported` / `SyntaxError` de import. 
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 Añadir a `strapi/scripts/lib/markdown-import.mjs`:
 
@@ -207,11 +207,11 @@ function parsearValor(raw) {
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
-Run: `node --test tests/` → Expected: `pass 3`.
+Run: `node --test tests/*.test.mjs` → Expected: `pass 3`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/markdown-import.test.mjs strapi/scripts/lib/markdown-import.mjs
@@ -226,7 +226,7 @@ git commit -m "feat(importacion): parser de front matter del export de WordPress
 - Modify: `tests/markdown-import.test.mjs`
 - Modify: `strapi/scripts/lib/markdown-import.mjs`
 
-- [ ] **Step 1: Tests fallantes**
+- [x] **Step 1: Tests fallantes**
 
 Añadir al test (extender el `import` con `quitarPlaceholders`, `extraerExtracto`, `calcularTiempoLectura`):
 
@@ -265,11 +265,11 @@ test('calcularTiempoLectura: 220 palabras por minuto, mínimo 1', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
-Run: `node --test tests/` → Expected: 3 fallos por exportaciones inexistentes.
+Run: `node --test tests/*.test.mjs` → Expected: 3 fallos por exportaciones inexistentes.
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 ```js
 /** Quita los placeholders de imagen sugerida y las imágenes alojadas en el WordPress borrado. */
@@ -307,11 +307,11 @@ export function calcularTiempoLectura(cuerpo) {
 
 `tienda.iwage.co` queda literal en la segunda expresión regular: es el dominio del WordPress que ya no resuelve. Si algún día se recupera una de esas dos imágenes, la regla correcta es subirla a `public/images/bitacora/` como `.webp`, no reactivar el hotlink.
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
-Run: `node --test tests/` → Expected: `pass 6`.
+Run: `node --test tests/*.test.mjs` → Expected: `pass 6`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/markdown-import.test.mjs strapi/scripts/lib/markdown-import.mjs
