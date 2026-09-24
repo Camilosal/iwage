@@ -1102,6 +1102,19 @@ Con el 400 puesto: las 3 páginas muestreadas siguen respondiendo 200, no se pub
 
 El build del host también hizo su trabajo acá: la primera pasada de `npx astro build` reventó con `Expected `,` or `)` but found `:`` en `src/lib/bitacora.ts:40` --un paréntesis que me comí al editar la firma-- y `npm test` estaba verde. Sin el build, eso llegaba al deploy.
 
+### La deuda de hosts (`www` / `http→https` / `recetas`), medida y no adivinada
+
+Tres peticiones por variante, midiendo DNS, código, `Location` y cabeceras. Dos de las tres no eran lo que decían ser:
+
+| Variante | Medido | Lectura |
+|---|---|---|
+| DNS de `iwage.co` | 2 A de Cloudflare (172.67.158.50, 104.21.90.165) | el origen no termina TLS: el nginx del repo es un solo bloque `listen 80; server_name _;` |
+| `http://iwage.co/` | **200, sin 301 y sin `Strict-Transport-Security`** (tampoco en https) | **deuda real y activa**: todo el sitio está duplicado en http. No se arregla acá --el toggle es "Always Use HTTPS" en Cloudflare, un clic, sin deploy— |
+| `http(s)://www.iwage.co` | **sin registro A** (`dig` vacío), la petición ni siquiera levanta conexión | no hay nada que consolidar: Google no puede llegar. Como mucho, un registro nuevo si alguien escribe `www.` |
+| `https://recetas.iwage.co/` | 200, `last-modified` fijo, canónica a sí misma, **sin `robots`**, 14.675 bytes, título "Recetario Iwagé Cafe · Filtrados, espresso y panadería…" | **una propiedad independiente y indexable del mismo tema**, que no sirve lo mismo que `/cafe/recetas` del app (76.741 bytes, título "Recetario · Café Iwagé") ni está enlazada ni en el sitemap. No la sirve este stack: no hay bloque `server_name` para esa subdominio en el repo y `/etc/nginx` no es legible sin `sudo` |
+
+Consecuencia honesta para el objetivo: de los tres puntos de la deuda, **ninguno se cierra con código de este repo**. El de http es un interruptor de Cloudflare; el de `recetas` es decidir qué se quiere que viva ahí (301 a `/cafe/recetas`, `noindex`, o apagar el registro); `www` simplemente no existe.
+
 ### Resultado del CHECKPOINT 2 (deploy #4, verificado en el origen 2026-09-24 ~18:23Z)
 
 `docker compose up -d iwage_app` recreó `iwage_web` con la imagen nueva (`01702c0f0549`, etiquetada `7c62a7b`; la anterior queda como `eae8219` → `b192ea11b28f`, así que el rollback sigue siendo un retag). Sano al primer intento. Todo lo de abajo se midió en `127.0.0.1:4321`, sin purgar ninguna caché.
