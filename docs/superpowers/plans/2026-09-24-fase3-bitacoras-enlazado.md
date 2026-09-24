@@ -1,0 +1,763 @@
+# Fase 3 · Bitácoras y enlazado interno — Plan de implementación
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Que `/` (el hub de iwage.co) enlace las bitácoras con contenido y al menos 6 artículos, y que cada landing muestre su propia fila de bitácora, para que los 56 artículos publicados sean alcanzables en dos saltos desde la portada.
+
+**Architecture:** Una sola pasada a Strapi (`getResumenBitacora()`) produce un resumen en memoria (`filasAResumen()`, pura) que alimentan el hub y las landings; el mismo cache key de Redis sirve a las 7 superficies que consultan bitácora. Todo bloque es *data-driven*: si `count === 0` no se renderiza, así que las 4 bitácoras vacías no ganan enlace ni cambian de aspecto. La degradación es a nada (`catch → filasAResumen([])`), nunca a un 500 en la portada.
+
+**Tech Stack:** Astro 7 (`output: 'server'`, `@astrojs/node` standalone), TypeScript sin `astro check` (solo `astro build`), Tailwind v4 con tokens `--color-surface`/`--color-brand`, Strapi 5 + PostgreSQL, Redis (`iwage:` prefix) → nginx SWR (120 s) → Cloudflare tunnel, `node --test` con type-stripping de Node 22.
+
+**Especificación:** `docs/superpowers/specs/2026-09-24-fase3-bitacoras-enlazado-design.md` (commit `e48eb20`).
+
+---
+
+## Contexto que hay que saber antes de tocar nada
+
+Medido el 2026-09-24 con Search Console: **0 impresiones y 1 sola página indexada** (la portada). El grafo de enlaces lo explica: `/` emite 8 hrefs, **ninguno** a una bitácora; solo 4 de 37 artículos son alcanzables en dos saltos. Con contenido solo hay `meliponas` (37) y `granja` (19); `cafe`/`tierras`/`naturaleza`/`gestion` están vacías y en `noindex`, y no existen borradores para ellas en `Publicaciones/`. La fase 3 por tanto **enlaza, no escribe**.
+
+## Restricciones de este repositorio (no negociables)
+
+1. **El host no tiene `node_modules`** (node v22.23.2 sí está). `npm test` = `node --test tests/*.test.mjs`, y solo puede importar módulos que no arrastren `ioredis`. Por eso `filasAResumen()` vive en `src/lib/bitacora-resumen.ts` (cero imports en tiempo de ejecución; `import type` se borra con el type-stripping) y se **re-exporta** desde `src/lib/bitacora.ts` para que los consumidores sigan importando de `@/lib/bitacora`. Desviación declarada respecto al objetivo ("en `src/lib/bitacora.ts`"): la función es accesible desde ahí, pero se define en un módulo puro para que el test corra sin Docker.
+2. **No se puede ensanchar `getBitacoraByMarca()` con `fields`.** `src/lib/rag/indexer.ts:257` lo llama y **necesita `contenido`**. Los `fields` van solo en la consulta nueva.
+3. **Despliegue = `docker compose build iwage_app` + `up -d` desde `/home/ubuntu/negocio`** (el contexto de build es `./data/app_iwage`, es decir se construye **desde el árbol local**, sin `git push`). El `npm run build` corre dentro de la imagen: si el build falla, el contenedor viejo sigue arriba. **Requiere CHECKPOINT confirmado por un mensaje de texto del usuario.**
+4. **Sin `git push` sin pedirlo.** Los secretos se validan solo por presencia, nunca leyendo valores. Nada de archivos temporales en ninguna parte, incluido `/tmp`: las verificaciones se hacen con tuberías.
+5. `security.checkOrigin: true` (`astro.config.mjs:28-30`): cualquier POST sin `Content-Type: application/json` devuelve 403. No aplica a este plan (no hay POSTs), pero es la causa de un fallo pasado.
+6. Astro compila el frontmatter en ámbito de módulo: **no usar `return` en el frontmatter** de un componente. La ocultación se hace con `{cond && (…)}`.
+
+## Estructura de archivos
+
+| Archivo | Acción | Responsabilidad |
+|---|---|---|
+| `src/lib/strapi.ts` | Modificar | Soportar `fields?: string[]` (consulta sin `contenido`). |
+| `src/lib/bitacora-resumen.ts` | Crear | `ResumenBitacora`, `filasAResumen()`, `conteoDe()`. Puro, testeable en el host. |
+| `src/lib/bitacora.ts` | Modificar | `getResumenBitacora()` (única pasada a Strapi) + re-exportar lo puro. |
+| `tests/bitacora-resumen.test.mjs` | Crear | 4 tests de la agrupación. |
+| `src/components/brand/BitacoraEcosistema.astro` | Crear | Sección del hub: chips de portadas con contenido + tira de 6 recientes. |
+| `src/pages/index.astro` | Modificar | `resumen` en frontmatter, pie `"Bitácora · N publicaciones"` por tarjeta, montar la sección. |
+| `src/components/brand/UltimasDeBitacora.astro` | Crear | Fila `"Desde la bitácora"` (3 `BitacoraCard`), oculta si la marca está vacía. |
+| `src/pages/{cafe,tierras,naturaleza,gestion,granja}/index.astro` | Modificar | Importar y montar `UltimasDeBitacora` antes de `</BrandLayout>`. |
+| `src/components/brand/BrandFooter.astro` | Modificar | Enlazar, en la columna Ecosistema, las bitácoras con contenido. |
+| `src/config/brands/granja.ts` | Modificar | `/granja/bitacora` en `nav` (hoy 19 artículos indexables sin ruta de menú). |
+
+Commits: 4 de código (uno por bloque de tareas) + 1 de documentación al cerrar. No hay commits por paso suelto.
+
+---
+
+### Task 1: `fields` en `strapiFetch`
+
+**Files:**
+- Modify: `src/lib/strapi.ts:41-47` (interfaz `StrapiFetchOptions`)
+- Modify: `src/lib/strapi.ts:76-85` (desestructuración de opciones)
+- Modify: `src/lib/strapi.ts:89-95` (construcción de `params`)
+
+- [ ] **Step 1: Declarar la opción en la interfaz**
+
+En `src/lib/strapi.ts`, localizar el bloque `pagination?: { page?: number; pageSize?: number };` (dentro de `StrapiFetchOptions`) y dejarlo seguido por el miembro nuevo:
+
+```ts
+  /** Pagination */
+  pagination?: { page?: number; pageSize?: number };
+  /**
+   * Subconjunto de atributos (Strapi v5 `fields[]`). En colecciones con `contenido`
+   * largo evita arrastrar el texto completo al caché de Redis.
+   */
+  fields?: string[];
+```
+
+- [ ] **Step 2: Desestructurarla**
+
+En `strapiFetch`, el bloque de desestructuración queda:
+
+```ts
+  const {
+    ttl = CACHE_TTL.list,
+    cacheKey: customKey,
+    fetchOptions = {},
+    populate,
+    filters,
+    sort,
+    pagination,
+    fields,
+    publicationState,
+  } = options;
+```
+
+- [ ] **Step 3: Serializarla con la sintaxis de corchetes que ya usa `populate[]`**
+
+Justo después del bloque `if (populate) { … }` (antes de `if (filters)`), añadir:
+
+```ts
+  if (fields) fields.forEach((f) => params.append('fields[]', f));
+```
+
+- [ ] **Step 4: Verificar estáticamente**
+
+Run: `grep -c "fields" src/lib/strapi.ts`
+Expected: `4` — las cuatro son, en orden del archivo: la línea del comentario JSDoc que menciona ``fields[]``, la declaración `fields?: string[];`, el `fields,` de la desestructuración y el `if (fields) fields.forEach(...)`. Cualquier otro número deja de este paso: falta una edición o hay una duplicada.
+
+- [ ] **Step 5: Verificar que no rompió la suite**
+
+Run: `npm test`
+Expected: `fail 0` (ningún test importa `strapi.ts`).
+
+No se commitea todavía: el commit 1 cubre Tasks 1-3.
+
+---
+
+### Task 2: `filasAResumen()` y `conteoDe()` (TDD)
+
+**Files:**
+- Create: `tests/bitacora-resumen.test.mjs`
+- Create: `src/lib/bitacora-resumen.ts`
+
+- [ ] **Step 1: Escribir los 4 tests que fallan**
+
+Crear `tests/bitacora-resumen.test.mjs`:
+
+```js
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { filasAResumen, conteoDe } from '../src/lib/bitacora-resumen.ts';
+
+const fila = (titulo, marca, fecha = '2026-09-01') => ({
+  id: 0, documentId: titulo, titulo, slug: titulo, extracto: null, contenido: null,
+  categoria: null, tiempo_lectura: null, imagen: null, fecha, marca, destacado: false,
+  publicado: true, autor: null, etiquetas: null, fecha_actualizacion: null,
+  meta_title: null, meta_description: null, subsistema: null,
+  publishedAt: fecha, updatedAt: fecha,
+});
+
+test('filasAResumen: sin filas devuelve un resumen vacío, sin marcas fantasma', () => {
+  assert.deepEqual(filasAResumen([]), { total: 0, porMarca: {}, recientes: [] });
+});
+
+test('filasAResumen: agrupa dos marcas, recorta por `porMarca` y respeta el orden de entrada', () => {
+  const r = filasAResumen([
+    fila('g1', 'granja'), fila('m1', 'meliponas'), fila('g2', 'granja'),
+    fila('m2', 'meliponas'), fila('m3', 'meliponas'), fila('m4', 'meliponas'),
+  ]);
+  assert.equal(r.total, 6);
+  assert.equal(r.porMarca.granja.count, 2);
+  assert.equal(r.porMarca.meliponas.count, 4);
+  assert.deepEqual(r.porMarca.meliponas.ultimas.map((f) => f.titulo), ['m1', 'm2', 'm3']);
+  assert.deepEqual(r.recientes.map((f) => f.titulo), ['g1', 'm1', 'g2', 'm2', 'm3', 'm4']);
+  assert.equal(Object.values(r.porMarca).reduce((s, v) => s + v.count, 0), r.total);
+});
+
+test('filasAResumen: una marca desconocida no produce enlaces rotos', () => {
+  const r = filasAResumen([fila('x', 'desconocida'), fila('m', 'meliponas')]);
+  assert.equal(r.total, 1);
+  assert.deepEqual(Object.keys(r.porMarca), ['meliponas']);
+  assert.deepEqual(r.recientes.map((f) => f.titulo), ['m']);
+});
+
+test('conteoDe: 0 sin bitácora, el conteo real con contenido', () => {
+  const r = filasAResumen([fila('a', 'granja'), fila('b', 'granja')]);
+  assert.equal(conteoDe(r, 'granja'), 2);
+  assert.equal(conteoDe(r, 'cafe'), 0);
+  assert.equal(conteoDe(r, 'cualquier-cosa'), 0);
+});
+```
+
+- [ ] **Step 2: Correrlos y verlos fallar**
+
+Run: `node --test tests/bitacora-resumen.test.mjs 2>&1 | tail -20`
+Expected: `Cannot find module '…/src/lib/bitacora-resumen.ts'`, `pass 0`, `fail 1`.
+
+- [ ] **Step 3: Implementar el módulo puro**
+
+Crear `src/lib/bitacora-resumen.ts`:
+
+```ts
+/**
+ * Agrupación pura del resumen de bitácoras, sin Strapi ni Redis.
+ * Vive aparte de `bitacora.ts` para que `node --test` pueda importarla sobre el
+ * repositorio (el host no tiene node_modules y `bitacora.ts` arrastra ioredis).
+ */
+import type { EntradaBitacora, Marca } from './bitacora';
+
+export interface ResumenBitacora {
+  total: number;
+  porMarca: Partial<Record<Marca, { count: number; ultimas: EntradaBitacora[] }>>;
+  recientes: EntradaBitacora[];
+}
+
+const MARCAS: string[] = ['tierras', 'naturaleza', 'meliponas', 'cafe', 'gestion', 'granja'];
+
+/**
+ * Recibe filas YA ordenadas por fecha descendente y las agrupa: no vuelve a ordenar.
+ * Las filas de marca desconocida se descartan, porque su href (`/${marca}/bitacora/…`)
+ * sería un 404.
+ */
+export function filasAResumen(
+  filas: EntradaBitacora[],
+  { porMarca = 3, recientes = 6 }: { porMarca?: number; recientes?: number } = {}
+): ResumenBitacora {
+  const validas = filas.filter((f) => MARCAS.includes(f.marca));
+  const agrupado: ResumenBitacora['porMarca'] = {};
+  for (const fila of validas) {
+    const marca = fila.marca as Marca;
+    const entrada = agrupado[marca] ?? (agrupado[marca] = { count: 0, ultimas: [] });
+    entrada.count += 1;
+    if (entrada.ultimas.length < porMarca) entrada.ultimas.push(fila);
+  }
+  return { total: validas.length, porMarca: agrupado, recientes: validas.slice(0, recientes) };
+}
+
+/** Conteo de una marca por slug, aceptando el `slug: string` de BrandConfig. */
+export function conteoDe(resumen: ResumenBitacora, slug: string): number {
+  return resumen.porMarca[slug as Marca]?.count ?? 0;
+}
+```
+
+- [ ] **Step 4: Correrlos y verlos pasar**
+
+Run: `node --test tests/bitacora-resumen.test.mjs 2>&1 | tail -12`
+Expected: `pass 4`, `fail 0`.
+
+- [ ] **Step 5: Suite completa**
+
+Run: `npm test 2>&1 | tail -12`
+Expected: `fail 0`, con los 4 tests nuevos incluidos.
+
+---
+
+### Task 3: `getResumenBitacora()` y el commit de la capa de datos
+
+**Files:**
+- Modify: `src/lib/bitacora.ts:5` (imports)
+- Modify: `src/lib/bitacora.ts:52` (después de `getBitacoraByMarca`)
+
+- [ ] **Step 1: Importar lo puro y re-exportar lo que consumen las superficies**
+
+En `src/lib/bitacora.ts`, la línea 5 es `import { strapiFetch, CACHE_TTL } from './strapi';`. Reemplazar esa única línea por estas cuatro:
+
+```ts
+import { strapiFetch, CACHE_TTL } from './strapi';
+import { filasAResumen, type ResumenBitacora } from './bitacora-resumen';
+
+export { conteoDe, type ResumenBitacora } from './bitacora-resumen';
+```
+
+`filasAResumen` se importa porque `getResumenBitacora()` la llama abajo, y **no** se re-exporta: ninguna página la invoca, solo la consume `getResumenBitacora()`. Lo que sí sale hacia los componentes es `conteoDe` (hub, `BrandFooter`) y el tipo `ResumenBitacora` (props de `BitacoraEcosistema`). El paso 1 de Task 2 ya demuestra que se puede importar directamente desde `@/lib/bitacora-resumen` si algún día hace falta.
+
+- [ ] **Step 2: Añadir la consulta única**
+
+Después del cierre de `getBitacoraByMarca` (la función termina en `}` tras el `catch`), insertar:
+
+```ts
+/** Campos que necesitan las tiras de resumen; `contenido` queda fuera a propósito. */
+const CAMPOS_RESUMEN = [
+  'titulo', 'slug', 'marca', 'fecha', 'extracto', 'imagen', 'categoria', 'tiempo_lectura',
+];
+
+/**
+ * Una sola pasada a Strapi para todas las superficies que muestran bitácora
+ * (hub, 5 landings y BrandFooter). `porMarca`/`recientes` son de post-proceso:
+ * no entran al cache key, así que las 7 superficies comparten una única entrada
+ * de Redis con TTL `CACHE_TTL.list`.
+ * Si Strapi falla, devuelve el resumen vacío: el bloque se degrada a nada, nunca
+ * a un 500 en la portada.
+ */
+export async function getResumenBitacora(
+  opts: { porMarca?: number; recientes?: number } = {}
+): Promise<ResumenBitacora> {
+  try {
+    const res = await strapiFetch<EntradaBitacora>('bitacoras', {
+      ttl: CACHE_TTL.list,
+      filters: { publicado: { $eq: true } },
+      sort: ['fecha:desc', 'publishedAt:desc'],
+      pagination: { page: 1, pageSize: 100 },
+      fields: CAMPOS_RESUMEN,
+    });
+    return filasAResumen(res.data || [], opts);
+  } catch {
+    return filasAResumen([], opts);
+  }
+}
+```
+
+- [ ] **Step 3: Verificar la superficie exportada**
+
+Run: `grep -n "export" src/lib/bitacora.ts`
+Expected: las salidas previas más `export { conteoDe, type ResumenBitacora } …` y `export async function getResumenBitacora(`.
+
+- [ ] **Step 4: Suite completa otra vez**
+
+Run: `npm test 2>&1 | tail -8`
+Expected: `fail 0`.
+
+- [ ] **Step 5: Revisar el diff y commit 1**
+
+```bash
+cd /home/ubuntu/negocio/data/app_iwage
+git diff --stat
+git add src/lib/strapi.ts src/lib/bitacora-resumen.ts src/lib/bitacora.ts tests/bitacora-resumen.test.mjs
+git commit -m "feat(fase 3): capa de datos del resumen de bitácoras en una sola pasada"
+```
+
+Expected en `git diff --stat` antes del `git add`: 4 archivos (3 modificados + 2 nuevos, ninguno fuera de `src/lib/` y `tests/`).
+
+---
+
+### Task 4: Sección del hub `BitacoraEcosistema` y sus dos anclajes en `/`
+
+**Files:**
+- Create: `src/components/brand/BitacoraEcosistema.astro`
+- Modify: `src/pages/index.astro:10-12` (imports y datos), `:221-223` (pie de tarjeta), `:237` (montaje)
+
+- [ ] **Step 1: Crear el componente**
+
+Crear `src/components/brand/BitacoraEcosistema.astro`:
+
+```astro
+---
+import { brandList } from '@/config/brands';
+import Icon from '@/components/shared/Icon.astro';
+import { conteoDe, type ResumenBitacora } from '@/lib/bitacora';
+
+interface Props {
+  resumen: ResumenBitacora;
+}
+
+const { resumen } = Astro.props;
+
+const marcasConContenido = brandList
+  .map((brand) => ({ brand, count: conteoDe(resumen, brand.slug) }))
+  .filter((entrada) => entrada.count > 0);
+
+const nombreDe = (slug: string) => brandList.find((b) => b.slug === slug)?.name ?? slug;
+---
+
+{resumen.recientes.length > 0 && (
+  <section class="border-t border-border py-14 px-6">
+    <div class="mx-auto max-w-6xl">
+      <p class="text-center font-mono text-xs uppercase tracking-widest text-accent">
+        Bitácoras del ecosistema
+      </p>
+
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+        {marcasConContenido.map(({ brand, count }) => (
+          <a
+            href={`/${brand.slug}/bitacora`}
+            class="inline-flex items-center gap-2 rounded-full border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text-primary transition-all hover:border-brand/40 hover:text-brand"
+          >
+            <Icon name={brand.icon} class="w-4 h-4 text-brand" />
+            {brand.name}
+            <span class="font-mono text-[10px] uppercase tracking-widest text-text-muted">{count}</span>
+          </a>
+        ))}
+      </div>
+
+      <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {resumen.recientes.map((post) => (
+          <li>
+            <a
+              href={`/${post.marca}/bitacora/${post.slug}`}
+              class="group flex h-full flex-col rounded-xl border border-border bg-surface-raised p-5 transition-all hover:border-brand/40 hover:shadow-md"
+            >
+              <span class="font-mono text-[10px] uppercase tracking-widest text-accent">
+                {nombreDe(post.marca)}
+              </span>
+              <span class="mt-2 text-base font-semibold leading-snug text-text-primary transition-colors group-hover:text-brand">
+                {post.titulo}
+              </span>
+              {post.extracto && (
+                <span class="mt-2 line-clamp-2 text-sm text-text-secondary">{post.extracto}</span>
+              )}
+              <span class="mt-auto pt-3 text-xs text-text-muted">{post.fecha ?? ''}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}
+```
+
+- [ ] **Step 2: Pedir el resumen en el frontmatter del hub**
+
+En `src/pages/index.astro`, tras `import { getHeroBySlug } from '@/lib/heroes';` (línea 10) añadir los dos imports, y tras `const hero = await getHeroBySlug('/');` (línea 12) la nueva constante:
+
+```ts
+import { getHeroBySlug } from '@/lib/heroes';
+import { getResumenBitacora, conteoDe } from '@/lib/bitacora';
+import BitacoraEcosistema from '@/components/brand/BitacoraEcosistema.astro';
+
+const hero = await getHeroBySlug('/');
+const resumen = await getResumenBitacora();
+```
+
+- [ ] **Step 3: Pie "Bitácora · N publicaciones" en cada tarjeta**
+
+Las tarjetas del hub son `<a>` (líneas 196-224), así que el pie **no puede ser un enlace** — sería HTML inválido. Se añade como texto, justo después del `<span>` de `Explorar` (líneas 221-223):
+
+```astro
+            <span class="mt-6 inline-flex items-center gap-2 text-sm font-medium text-brand group-hover:gap-3 transition-all">
+              Explorar <Icon name="arrow-right" class="w-4 h-4" />
+            </span>
+            {conteoDe(resumen, brand.slug) > 0 && (
+              <p class="mt-3 font-mono text-[10px] uppercase tracking-widest text-text-muted">
+                Bitácora · {conteoDe(resumen, brand.slug)} publicaciones
+              </p>
+            )}
+```
+
+Los enlaces reales a las portadas de bitácora viven en `BitacoraEcosistema` (paso siguiente), que es lo que satisface el criterio de "≥2 portadas enlazadas".
+
+- [ ] **Step 4: Montar la sección bajo el grid de marcas**
+
+`</main>` cierra el grid de tarjetas en la línea 237, antes del comentario `<!-- Cómo se conecta el ecosistema -->`. Insertar entre ambos:
+
+```astro
+    </main>
+
+    <BitacoraEcosistema resumen={resumen} />
+
+    <!-- Cómo se conecta el ecosistema -->
+```
+
+- [ ] **Step 5: Verificar estáticamente**
+
+```bash
+grep -n "BitacoraEcosistema\|getResumenBitacora\|conteoDe" src/pages/index.astro
+```
+Expected: 6 líneas → (1) `import { getResumenBitacora, conteoDe } …`, (2) `import BitacoraEcosistema …`, (3) `const resumen = await getResumenBitacora();`, (4) `{conteoDe(resumen, brand.slug) > 0 && (`, (5) `Bitácora · {conteoDe(resumen, brand.slug)} publicaciones`, (6) `<BitacoraEcosistema resumen={resumen} />`. Si falta alguna, ese paso no se cerró.
+
+- [ ] **Step 6: Commit 2**
+
+```bash
+git add src/components/brand/BitacoraEcosistema.astro src/pages/index.astro
+git commit -m "feat(fase 3): el hub enlaza bitácoras — conteo por marca y tira de recientes"
+```
+
+---
+
+### Task 5: Fila "Desde la bitácora" en las 5 landings que no la tienen
+
+**Files:**
+- Create: `src/components/brand/UltimasDeBitacora.astro`
+- Modify: `src/pages/cafe/index.astro` (import tras la línea 9, montaje tras el `</Section>` final)
+- Modify: `src/pages/tierras/index.astro` (import tras la 8)
+- Modify: `src/pages/naturaleza/index.astro` (import tras la 7)
+- Modify: `src/pages/gestion/index.astro` (import tras la 7)
+- Modify: `src/pages/granja/index.astro` (import tras la 12)
+
+- [ ] **Step 1: Crear el componente**
+
+Crear `src/components/brand/UltimasDeBitacora.astro`. Reutiliza `BitacoraCard` y lee del mismo resumen compartido (`porMarca[marca].ultimas`, 3 por defecto):
+
+```astro
+---
+import BitacoraCard from '@/components/BitacoraCard.astro';
+import { getResumenBitacora, type Marca } from '@/lib/bitacora';
+
+interface Props {
+  marca: Marca;
+}
+
+const { marca } = Astro.props;
+const resumen = await getResumenBitacora();
+const ultimas = resumen.porMarca[marca]?.ultimas ?? [];
+---
+
+{ultimas.length > 0 && (
+  <section class="bg-surface border-t border-border py-16">
+    <div class="mx-auto max-w-6xl px-6">
+      <div class="mb-8 flex items-end justify-between gap-4">
+        <div>
+          <p class="font-mono text-xs uppercase tracking-widest text-accent">Bitácora</p>
+          <h2 class="mt-2 text-2xl font-bold text-text-primary">Desde la bitácora</h2>
+        </div>
+        <a
+          href={`/${marca}/bitacora`}
+          class="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-brand transition-all hover:gap-3"
+        >
+          Ver todo <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {ultimas.map((post) => (
+          <BitacoraCard
+            title={post.titulo}
+            excerpt={post.extracto ?? ''}
+            category={post.categoria ?? 'General'}
+            date={post.fecha ?? ''}
+            readTime={String(post.tiempo_lectura ?? 5)}
+            href={`/${marca}/bitacora/${post.slug}`}
+            image={post.imagen ?? undefined}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+```
+
+- [ ] **Step 2: Montarlo en las 5 landings**
+
+En cada archivo se hacen exactamente dos ediciones: (a) el import, y (b) el montaje como último hijo de `<BrandLayout>`. El import es idéntico en los cinco y va inmediatamente después de la última línea `import …` del frontmatter:
+
+```ts
+import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
+```
+
+Para el montaje, el patrón es el mismo en los cinco: tomar las dos últimas líneas del archivo (el cierre de la última sección y `</BrandLayout>`) e intercalar el componente con el slug **propio de esa marca**:
+
+```astro
+  </Section>
+
+  <UltimasDeBitacora marca="meliponas" />
+</BrandLayout>
+```
+
+Sustituyendo `marca="meliponas"` por el valor de la columna correspondiente y `</Section>` por la etiqueta que realmente cierra en ese archivo:
+
+| Archivo | Última línea | Cierre previo que se conserva | Valor de `marca` |
+|---|---|---|---|
+| `src/pages/cafe/index.astro` | 442 | `  </Section>` (441) | `"cafe"` |
+| `src/pages/tierras/index.astro` | 380 | `  </section>` (379) | `"tierras"` |
+| `src/pages/naturaleza/index.astro` | 459 | `  </section>` (458) | `"naturaleza"` |
+| `src/pages/gestion/index.astro` | 205 | `  </section>` (204) | `"gestion"` |
+| `src/pages/granja/index.astro` | 272 | `  </Section>` (271) | `"granja"` |
+
+Las dos variantes de Mayúsculas/minúsculas son reales: `cafe` y `granja` usan el componente `<Section>`; `tierras`, `naturaleza` y `gestion` cierran un `<section>` a mano. Usar el de cada archivo para no romper el balance de etiquetas.
+
+`src/pages/meliponas/index.astro` **no** se toca: su portada ya enlaza 4 artículos (`src/pages/meliponas/index.astro:250-275`).
+
+- [ ] **Step 3: Verificar los 5 montajes**
+
+```bash
+grep -n "UltimasDeBitacora" src/pages/*/index.astro
+```
+Expected: 10 líneas (import + montaje) en cada uno de `cafe`, `gestion`, `granja`, `naturaleza`, `tierras`; **cero** en `meliponas/index.astro`.
+
+- [ ] **Step 4: Verificar que ninguna página usa `return` en el frontmatter**
+
+```bash
+grep -n "^return\|[^.a-zA-Z]return " src/components/brand/UltimasDeBitacora.astro
+```
+Expected: sin coincidencias (la ocultación es `{ultimas.length > 0 && (…}`).
+
+- [ ] **Step 5: Commit 3**
+
+```bash
+git add src/components/brand/UltimasDeBitacora.astro src/pages/cafe/index.astro src/pages/tierras/index.astro src/pages/naturaleza/index.astro src/pages/gestion/index.astro src/pages/granja/index.astro
+git commit -m "feat(fase 3): las 5 landings sin bitácora publican su fila 'Desde la bitácora'"
+```
+
+---
+
+### Task 6: Pie global y menú de granja
+
+**Files:**
+- Modify: `src/components/brand/BrandFooter.astro:1-12` (frontmatter), `:95-104` (lista del ecosistema)
+- Modify: `src/config/brands/granja.ts:32-40` (`nav`)
+
+- [ ] **Step 1: Consultar el resumen en el pie**
+
+En `src/components/brand/BrandFooter.astro`, el frontmatter termina en `const otherBrands = …` / `const year = …`. Añadir:
+
+```ts
+import { getResumenBitacora, conteoDe } from '@/lib/bitacora';
+
+const otherBrands = brandList.filter((b) => b.slug !== brand.slug);
+const year = new Date().getFullYear();
+const resumen = await getResumenBitacora();
+```
+
+(El import va con los demás imports del bloque, y las dos constantes reemplazan a las líneas existentes con el mismo nombre.)
+
+- [ ] **Step 2: Enlazar la bitácora debajo de cada marca con contenido**
+
+Reemplazar el `otherBrands.map` de la columna "Ecosistema Iwagé" (líneas 95-104) por:
+
+```astro
+          {otherBrands.map((b) => (
+            <li>
+              <a
+                href={`/${b.slug}/`}
+                class="inline-flex items-center gap-2 text-sm text-dark-text/60 hover:text-accent transition-colors"
+              >
+                <Icon name={b.icon} class="w-4 h-4" /> {b.name}
+              </a>
+              {conteoDe(resumen, b.slug) > 0 && (
+                <a
+                  href={`/${b.slug}/bitacora`}
+                  class="mt-1 block w-fit text-xs text-dark-text/40 hover:text-accent transition-colors"
+                >
+                  Bitácora · {conteoDe(resumen, b.slug)}
+                </a>
+              )}
+            </li>
+          ))}
+```
+
+- [ ] **Step 3: Menú de granja, con el idioma de las otras 5 marcas**
+
+En `src/config/brands/granja.ts`, el grupo `Recursos` queda exactamente como en `meliponas.ts:35-40` (el `href` del grupo apunta a la bitácora y `Bitácora` es el primer hijo):
+
+```ts
+    {
+      label: 'Recursos',
+      href: '/granja/bitacora',
+      children: [
+        { label: 'Bitácora', href: '/granja/bitacora' },
+        { label: 'Quiénes Somos', href: '/granja/nosotros' },
+        { label: 'Ayuda', href: '/granja/ayuda' },
+        { label: 'Contacto', href: '/granja/contacto' },
+      ],
+    },
+```
+
+- [ ] **Step 4: Verificar**
+
+```bash
+grep -n "bitacora" src/config/brands/granja.ts && grep -n "getResumenBitacora\|conteoDe" src/components/brand/BrandFooter.astro
+```
+Expected: dos coincidencias de `bitacora` en `granja.ts` (grupo + hijo) y cuatro en `BrandFooter.astro` (import, `const resumen`, y dos usos de `conteoDe`).
+
+- [ ] **Step 5: Suite completa**
+
+Run: `npm test 2>&1 | tail -8`
+Expected: `fail 0`.
+
+- [ ] **Step 6: Commit 4**
+
+```bash
+git add src/components/brand/BrandFooter.astro src/config/brands/granja.ts
+git commit -m "feat(fase 3): pie global enlaza las bitácoras con contenido y granja suma su ruta al menú"
+```
+
+---
+
+### Task 7: CHECKPOINT de despliegue y verificación en producción
+
+**Files:** ninguno (producción). Todo este task requiere un mensaje de texto del usuario que diga el CHECKPOINT; una respuesta de AskUserQuestion **no** cuenta.
+
+- [ ] **Step 1: Presentar el estado y parar**
+
+```bash
+cd /home/ubuntu/negocio/data/app_iwage && git log --oneline -5 && git diff --stat e48eb20..HEAD
+```
+
+Mostrar los 4 commits y escribir explícitamente: *CHECKPOINT 1 — desplegar (`docker compose build iwage_app && docker compose up -d iwage_app`) es una acción sobre producción; necesito tu confirmación por mensaje de texto.* No ejecutar nada del Step 2 en adelante hasta que llegue.
+
+- [ ] **Step 2: Construir la imagen (aún no toca el contenedor en marcha)**
+
+```bash
+cd /home/ubuntu/negocio && docker compose build iwage_app 2>&1 | tail -25
+```
+Expected: `RUN npm run build` termina sin `error` y la imagen se etiqueta. Si el build falla, **abortar aquí**: el contenedor viejo sigue sirviendo, no se hace `up`. Corregir y volver al Step 2.
+
+- [ ] **Step 3: Recrear el servicio**
+
+```bash
+cd /home/ubuntu/negocio && docker compose up -d iwage_app 2>&1 | tail -5 && sleep 25 && docker ps --filter name=iwage_web --format '{{.Status}}'
+```
+Expected: `Up …`, sin reinicios en cascada. (Los 5 primeros `TypeError: fetch failed` observados en la fase 2 son la carrera de arranque documentada; por eso el `sleep 25`.)
+
+- [ ] **Step 4: Verificar en el ORIGEN, antes de mirar ninguna caché intermedia**
+
+Astro escucha en `127.0.0.1:4321` **dentro** del contenedor (el puerto publicado 4321 del host es nginx, que tiene su propio SWR de 120 s):
+
+```bash
+docker exec iwage_web curl -s -o /dev/null -w 'origen /: %{http_code} %{time_total}s\n' http://127.0.0.1:4321/
+docker exec iwage_web curl -s http://127.0.0.1:4321/ | grep -oE 'href="/[a-z]+/bitacora/[^"/]+"' | sort -u | wc -l
+docker exec iwage_web curl -s http://127.0.0.1:4321/ | grep -oE 'href="/(meliponas|granja|cafe|tierras|naturaleza|gestion)/bitacora"' | sort -u
+```
+Expected: `200`; **≥ 6** hrefs de artículo; y exactamente dos portadas (`/granja/bitacora`, `/meliponas/bitacora`). Si los artículos salen `0`, el `fields[]` está siendo rechazado por Strapi (400 → `catch` → degradación a nada): revisar Step 3 de Task 1 antes de seguir.
+
+- [ ] **Step 5: Contract de cada superficie, ya por el borde público tras expirar el SWR**
+
+```bash
+sleep 125
+for m in granja cafe tierras naturaleza gestion; do
+  printf '%s: artículos=%s banda=%s\n' "$m" \
+    "$(curl -s "https://iwage.co/$m/" | grep -oE "href=\"/$m/bitacora/[^\"]+\"" | wc -l)" \
+    "$(curl -s "https://iwage.co/$m/" | grep -o 'Desde la bitácora' | wc -l)"
+done
+curl -s https://iwage.co/meliponas/ | grep -oE 'href="/meliponas/bitacora/[^"]+"' | wc -l
+curl -s https://iwage.co/granja/ | grep -oE 'href="/granja/bitacora"' | wc -l
+```
+Expected: `granja` → `artículos=3 banda=1`; `cafe`/`tierras`/`naturaleza`/`gestion` → `artículos=0 banda=0` (bitácora vacía: sin enlace y sin cambio visual); la línea de `meliponas` → `4` (el bloque preexistente sigue); la de granja con menú → `≥ 2` (cabecera + fila nueva). Se cuenta con `grep -o | wc -l` y no con `grep -c` porque `-c` cuenta **líneas** que coinciden, y Astro sirve varios enlaces por línea.
+
+- [ ] **Step 6: Las bitácoras vacías siguen en `noindex` y la con contenido indexable**
+
+```bash
+for m in cafe tierras naturaleza gestion meliponas granja; do
+  printf '%s: %s\n' "$m" "$(curl -s https://iwage.co/$m/bitacora | grep -oE '<meta name="robots"[^>]*>' | head -1)"
+done
+```
+Expected: los 4 vacíos con `noindex` (comportamiento de la fase 1, intocado); `meliponas` y `granja` **sin** `noindex`.
+
+- [ ] **Step 7: Ráfaga de 60 peticiones a 12 paralelas sobre `/`**
+
+```bash
+seq 1 60 | xargs -P12 -I{} curl -s -o /dev/null -w '%{http_code}\n' https://iwage.co/ | sort | uniq -c
+```
+Expected: una sola línea `60 200`. Cualquier `429`/`500` ⇒ revertir el paso del hub (`git revert`) y volver a construir, porque el costo extra de `getResumenBitacora()` no puede pagar un 5xx en la portada.
+
+- [ ] **Step 8: Rastreo de la profundidad dos**
+
+```bash
+curl -s https://iwage.co/granja/bitacora | grep -oE 'href="/granja/bitacora/[^"]+"' | sort -u | wc -l
+```
+Expected: `≥ 19` (la portada de granja ya enlaza sus artículos; lo nuevo es que `/` llega a esa portada).
+
+---
+
+### Task 8: Cierre documental
+
+**Files:**
+- Modify: `docs/superpowers/plans/2026-09-24-fase3-bitacoras-enlazado.md` (marcar los 8 pasos de verificación con la medida real)
+- Modify: `docs/superpowers/specs/2026-09-24-fase3-bitacoras-enlazado-design.md` (solo si algo medido contradice el diseño)
+
+- [ ] **Step 1: Anotar las mediciones**
+
+En cada `- [ ] **Step N …**` de Tasks 4-8, marcar `- [x]` y añadir la salida medida (número de hrefs, códigos de la ráfaga, el `noindex` de las 4 vacías). Sin medición no se marca.
+
+- [ ] **Step 2: Commit de docs**
+
+```bash
+git add docs/superpowers/plans/2026-09-24-fase3-bitacoras-enlazado.md docs/superpowers/specs/2026-09-24-fase3-bitacoras-enlazado-design.md
+git commit -m "docs(fase 3): enlazado verificado — conteos del grafo tras el despliegue"
+```
+
+- [ ] **Step 3: Actualizar el gitlink del repo padre**
+
+```bash
+cd /home/ubuntu/negocio && git status --short data/app_iwage && git add data/app_iwage && git commit -m "chore(iwage): gitlink a la fase 3 de enlazado"
+```
+Expected: `git status --short` muestra `M data/app_iwage` **solo**; si aparece cualquier otra ruta, no commitear sin revisarla (el árbol del padre tiene cientos de caminos sucios).
+
+- [ ] **Step 4: Preguntar por el push, sin hacerlo**
+
+Escribir: *"Listos los N commits locales; `origin/master` sigue atrás. ¿Los subo?"* Esperar respuesta de texto. El push del árbol del padre y de `data/app_iwage` se hace solo con ese sí, y después de que el usuario confirme que las 4 líneas con `STRAPI_API_TOKEN` en el repositorio son placeholders y no el token real.
+
+---
+
+## Criterios de aceptación (cómo se mide cada uno)
+
+| Criterio del objetivo | Dónde se verifica |
+|---|---|
+| `npm test` verde con los tests nuevos de `filasAResumen()` y cero dependencias nuevas | Task 2 Step 4, Task 3 Step 4, Task 6 Step 5. `package.json` no se toca en ningún task. |
+| `/` enlaza ≥ 2 portadas de bitácora y ≥ 6 artículos | Task 7 Step 4 |
+| Cada landing con contenido enlaza 3 artículos | Task 7 Step 5 (`granja` = 3, `meliponas` = 4 preexistente) |
+| `/granja/bitacora` aparece en el menú de granja | Task 6 Step 4, Task 7 Step 5 |
+| Ninguna bitácora vacía gana enlace ni cambia de aspecto | Task 7 Step 5 (`artículos=0 banda=0`) y Step 6 (`noindex` intacto) |
+| `/` responde 200 en 60 peticiones a 12 paralelas | Task 7 Step 7 |
+| Verificación en el origen antes de purgar caché | Task 7 Step 4 antes del Step 5 |
+| Cada despliegue con CHECKPOINT confirmado por texto del usuario | Task 7 Step 1 (ningún comando de producción antes de ese mensaje) |
+| Sin `git push` sin pedirlo; secretos solo por presencia | Task 8 Step 4 |
+
+## Fuera de alcance (por decisión del usuario)
+
+Deduplicar el grid copiado en los 6 `<marca>/bitacora/index.astro`, subir volumen de contenido, rutas por receta, y IndexNow (no nacen URLs nuevas: `/granja/bitacora` y los 56 artículos ya están en el sitemap enviado el 2026-09-24).
+
+## Riesgos conocidos
+
+- **Que `fields[]` sea rechazado**: Strapi 5 responde 400 y `getResumenBitacora()` se degrada a vacío. El síntoma es inequívoco (0 hrefs en el Step 4) y la corrección es quitar `fields` de la consulta.
+- **El precedente del 500 por ICON**: un componente nuevo con un import mal roto revienta el build dentro de la imagen, no en producción — por eso el Step 2 construye antes de `up -d`.
+- **El `pageSize: 100` del resumen**: con 56 publicados hay margen; al pasar de 100 artículos publicados el hub subreportaría. Se anota como deuda, no se resuelve aquí.
