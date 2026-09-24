@@ -3,10 +3,12 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import BitacoraSidebar from '@/components/brand/BitacoraSidebar.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
+import { BITACORA_MARCAS } from '@/config/bitacora-marcas';
 import { strapiImage } from '@/lib/strapi';
 import type { EntradaBitacora } from '@/lib/bitacora';
 
 const BRAND = 'meliponas';
+const ICON = BITACORA_MARCAS[BRAND].icono;
 const BRAND_TITLE = 'Bitácora · Iwagé Meliponario';
 const BRAND_DESC = 'Guías técnicas, flora nativa, territorio Pijao y producción agroecológica';
 
