@@ -2,6 +2,7 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getBitacoraBySlug, getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
+import { rutaDeLaMarcaDelArticulo } from '@/lib/bitacora-ruta';
 import { renderMarkdown } from '@/lib/render-markdown';
 
 const BRAND = 'naturaleza';
@@ -16,6 +17,11 @@ const article = await getBitacoraBySlug(slug!);
 if (!article) {
   return Astro.redirect(`/${BRAND}/bitacora`);
 }
+
+// El slug puede pertenecer a otra marca: `getBitacoraBySlug` no filtra, y servirlo acá
+// canonicaría 6 URLs distintas para un mismo documento con la Organización equivocada.
+const rutaAjena = rutaDeLaMarcaDelArticulo({ marcaRuta: BRAND, marcaArticulo: article.marca, slug: slug! });
+if (rutaAjena) return Astro.redirect(rutaAjena, 301);
 
 // Fetch related articles from same brand
 const { data: related } = await getBitacoraByMarca(BRAND as any, { pageSize: 4 });
