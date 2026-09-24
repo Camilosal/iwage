@@ -8,6 +8,7 @@ import UnifiedCart from '@/components/cart/UnifiedCart';
 import { getBrandFromPath, defaultBrand } from '@/config/brands';
 import type { BrandConfig } from '@/config/brands/types';
 import { GOOGLE, FACEBOOK, SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
+import { blogDeBitacora, webSiteSchema, type FilaDeBlog } from '@/lib/schema-bitacora';
 
 interface ArticleMeta {
   title: string;
@@ -29,6 +30,7 @@ interface Props {
   ogImage?: string;
   ogType?: 'website' | 'article';
   article?: ArticleMeta;
+  bitacora?: FilaDeBlog[];
   noindex?: boolean;
 }
 
@@ -134,8 +136,19 @@ const breadcrumbJsonLd = breadcrumbItems.length > 1 ? {
 } : null;
 
 // Combined JSON-LD graph (Organization + Person + Breadcrumb + optional Article)
-const jsonLdGraph: Record<string, any>[] = [orgJsonLd, { "@context": "https://schema.org", ...founderPerson }];
+const jsonLdGraph: Record<string, any>[] = [webSiteSchema(), orgJsonLd, { "@context": "https://schema.org", ...founderPerson }];
 if (breadcrumbJsonLd) jsonLdGraph.push(breadcrumbJsonLd);
+
+// Blog de la marca: solo cuando el índice tiene artículos
+const blogJsonLd = props.bitacora
+  ? blogDeBitacora({
+      brand: brandConfig.slug,
+      nombre: brandConfig.name,
+      descripcion: description,
+      articulos: props.bitacora,
+    })
+  : null;
+if (blogJsonLd) jsonLdGraph.push(blogJsonLd);
 
 // Article structured data (for bitácora pages)
 if (props.article) {
@@ -155,7 +168,8 @@ if (props.article) {
     },
     ...(a.keywords?.length && { "keywords": a.keywords.join(", ") }),
     "publisher": { "@id": `https://iwage.co/${brandConfig.slug}/#organization` },
-    ...(a.image && { "image": a.image }),
+    // Google exige image en Article; sin imagen en la fila vale la hero declarada en og:image
+    "image": a.image ?? ogImage,
     ...(a.section && { "articleSection": a.section }),
     ...(a.wordCount && { "wordCount": a.wordCount }),
     "mainEntityOfPage": canonicalURL.href,

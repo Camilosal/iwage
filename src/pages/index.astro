@@ -10,6 +10,7 @@ import { SITE_METRICS } from '@/config/site-metrics';
 import { getHeroBySlug } from '@/lib/heroes';
 import { getResumenBitacora, conteoDe } from '@/lib/bitacora';
 import BitacoraEcosistema from '@/components/brand/BitacoraEcosistema.astro';
+import { webSiteSchema } from '@/lib/schema-bitacora';
 
 const hero = await getHeroBySlug('/');
 const resumen = await getResumenBitacora();
@@ -94,6 +95,7 @@ const founderJsonLd = {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <script type="application/ld+json" set:html={JSON.stringify(founderJsonLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(webSiteSchema())} />
 
     <!-- Theme init (no flash) -->
     <script is:inline>

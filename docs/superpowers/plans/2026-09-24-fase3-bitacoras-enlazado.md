@@ -1046,6 +1046,37 @@ Sobre el disco, para no repetir el error de lectura: esos 400 M **no** eran la c
 
 **El historial final de la fase son 14 commits** (`git rev-list --count e48eb20^..HEAD`): los 11 del bullet "Estado de git para el cierre" más `4c777f6`, `eae8219` y `12b9883`. Los tres últimos son de cierre y uno de `gitignore`; ninguno toca `src/`, así que **no abren un deploy ni cambian lo servido**. Con eso la fase 3 queda cerrada: el grafo está desplegado y medido, el mapa dice lo mismo que el grafo, el historial está en `origin/master`, el puntero del padre está alineado y hay imagen a la que volver.
 
+## Fase 3-b: corrección del diagnóstico de schema y el parche (mismo día, ~18:00Z)
+
+**Me equivoqué al reportar el hueco.** Dije que los 56 artículos no tenían ni un `application/ld+json`, y saqué eso de grepear el archivo de ruta en vez de medir el HTML servido. En el origen el Article ya venía completo: headline, description, datePublished, dateModified, author, keywords, articleSection, inLanguage, mainEntityOfPage, publisher y wordCount, más Person, Organization y BreadcrumbList. No iba a agregar un BlogPosting sobre algo que ya lo declara.
+
+Los tres huecos que sí existen, cada uno con su medición:
+
+| Hueco | Medición antes | Qué se hizo |
+|---|---|---|
+| No hay nodo WebSite en todo el sitio | `grep -c WebSite` dio 0 en `/`, `/granja/`, `/meliponas/` y `/ayuda/` | Nodo WebSite (`@id` `https://iwage.co/#website`, `inLanguage` es, publisher la Organización madre) en BrandLayout y en el hub |
+| Los índices no declaran su colección | `/granja/bitacora` y `/meliponas/bitacora` solo emitían Organization + Person + BreadcrumbList: el índice con 19 y 37 artículos no decía cuántos ni cuáles | Nodo Blog con `numberOfItems` y un BlogPosting por artículo, armado con las filas que el índice ya trae (cero consultas nuevas) |
+| Article sin image | El nodo llevaba image solo si la fila la traía; las filas del corpus no la traen y Google la pide | Fallback a la hero ya declarada en og:image (`a.image ?? ogImage`), o sea el mismo valor que ve Facebook |
+
+Criterio heredado de la fase 3: **un índice vacío no emite Blog.** `blogDeBitacora` devuelve `null` sin filas --la misma regla que el `noindex` de las 4 marcas vacías-- y quedó escrito en el contrato.
+
+Dónde vive el código: `src/lib/schema-bitacora.ts` es puro (sin fetch y sin imports de `@/lib/strapi`) para que `node --test` lo cargue; los 5 tests nuevos están en `tests/schema-bitacora.test.mjs`. `BrandLayout.astro` recibe `bitacora={articulos}` en los 6 índices, una línea por archivo, y arma el nodo donde ya vive el resto del grafo.
+
+Medición después del parche, sobre el bundle con el mismo Strapi de fixture de 56 filas (puerto 4399, Redis en puerto muerto, cero consultas a producción):
+
+| página | grafo servido | detalle |
+|---|---|---|
+| `/` | Organization + Person + WebSite | el hub ancla el sitio |
+| `/granja/` | WebSite + Organization + Person + BreadcrumbList | |
+| `/granja/bitacora` | + **Blog** | `numberOfItems`=19, 19 BlogPosting, publisher `https://iwage.co/granja/#organization`, isPartOf `https://iwage.co/#website` |
+| `/meliponas/bitacora` | + **Blog** | `numberOfItems`=37 |
+| `/cafe/bitacora` | WebSite + Organization + Person + BreadcrumbList | **sin Blog**: la marca está vacía |
+| un artículo | + Article | `image` ahora `https://iwage.co/images/hero-granja.webp` |
+
+`npm test`: 24 pruebas (19 de la fase 3 + 5 nuevas), 0 fallas. `npx astro build`: exit 0 en 11,8 s. Líneas `resumen degradado`: 0 con Strapi alcanzable.
+
+**Nada de esto está desplegado.** El parche espera un CHECKPOINT, y la agrupación es a propósito: el deploy #4 llevaría schema y nada más, porque el resto de la fase 3-b no toca el árbol servido.
+
 ## Rehearsal en local con un Strapi de fixture (medido 2026-09-24, sin tocar producción)
 
 Cómo se corrió: el bundle de la fase arrancado con `PORT=4399 HOST=127.0.0.1 STRAPI_URL=http://127.0.0.1:4401 STRAPI_API_TOKEN=fixture-unused REDIS_URL=redis://127.0.0.1:1 node dist/server/entry.mjs` frente a un servidor HTTP en loopback que sirve las 56 filas del corpus (`Publicaciones/Granja` 19 + `Publicaciones/Meliponario` 37) con la forma plana de Strapi 5 (`{data, meta.pagination}`), aplicando los filtros `filters[marca][$eq]`, `filters[slug][$eq]` y `filters[publicado][$eq]` y la paginación pedida; cualquier otro `/api/*` contesta vacío pero válido. Redis a un puerto muerto (`src/lib/redis.ts:38-56`: el primer intento abre el circuito y el resto lo salta), el token es un literal inventado, y los puertos 4399/4401 dejan libre el 4321 que usa nginx dentro del contenedor. Todo en un proceso por stdin: no se escribió ningún archivo ni se tocó el contenedor en marcha.
