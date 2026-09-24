@@ -131,13 +131,13 @@ Cada fase se despliega sola y se revierte sola. El orden importa: F0 es lo que h
 | Fase | Contenido | Criterio de salida |
 |---|---|---|
 | **F0** | Volumen `public/uploads` en `iwage_strapi` + backup junto a los dumps de Postgres · `mediaSrc` relativo de sitio + `absUrl` para OG · `try/catch` en `heroes.ts` · `src=""` de `MediaGallery.astro:105` · hero sin imagen de `Hero.astro:46-54` | Un activo subido al admin se ve en el sitio; con Strapi detenido, las 40 páginas con hero responden 200 |
-| **F1** | `src/lib/media.ts` · `MediaGallery` única · se borra `ProductGallery` y las 4 copias del tipo · dedupe · caída de los fallbacks **salvo** `LOCAL_IMAGES`/`itemImage()` | `grep -r strapiImage src/` vacío; `vitest` de contrato en verde; build sin errores |
+| **F1** | `src/lib/media.ts` · `MediaGallery` única · se borra `ProductGallery` y las 4 copias del tipo · dedupe · caída de los fallbacks **salvo** `LOCAL_IMAGES`/`itemImage()` | `grep -r strapiImage src/` vacío; `npm test` de contrato en verde; build sin errores |
 | **F2** | Esquema de los 41 campos · `media-import.mjs` y enlace de los huérfanos · allowlist en los `embed_*` · recién aquí cae `LOCAL_IMAGES` y las 16 reglas por nombre | Cada content-type con portada tiene exactamente un campo editable de portada; las 36 bitácoras muestran su tapa; el menú de café no pierde ninguna imagen al migrar |
 | **F3** | Borrado de los 19 png y de los slots muertos (`fotos_evidencia` en `tierras/propiedades/[slug].astro:208-209`, `mapa_imagen_url`) · decisión sobre la banda de video · reemplazo de los enlaces a material ajeno que liste la consulta | 0 rutas de imagen rota en el crawl; 404 de producción en 0 |
 
 ## Pruebas y métrica de aceptación
 
-- `vitest` sobre `src/lib/media.ts`: `toMediaItem` con las 4 entradas posibles, dedupe entre `/uploads/x`, `https://iwage.co/uploads/x` y `http://iwage_strapi:1337/uploads/x`, `mediaSrc` sin prefijo interno, `absUrl` para OG.
+- `node --test` sobre `src/lib/media.ts` (el runner del repo es `node --test tests/*.test.mjs`): `toMediaItem` con las 4 entradas posibles, dedupe entre `/uploads/x`, `https://iwage.co/uploads/x` y `http://iwage_strapi:1337/uploads/x`, `mediaSrc` sin prefijo interno, `absUrl` para OG.
 - Test de contrato fallido si algún archivo de `src/` vuelve a importar `strapiImage` (evita la regresión por inercia en 53 llamadas).
 - Prueba de resiliencia: Strapi detenido → las 40 páginas con hero y los 4 índices con `FALLBACK_*` eliminado responden 200 con mosaico Icon.
 - **La métrica es el mismo censo, antes y después**, con el crawler del 2026-09-24 sobre las 185 URLs:
