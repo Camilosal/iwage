@@ -79,7 +79,10 @@ export async function getResumenBitacora(
       fields: CAMPOS_RESUMEN,
     });
     return filasAResumen(res.data || [], opts);
-  } catch {
+  } catch (error) {
+    // El bloque se degrada a nada, pero el motivo tiene que quedar en el log del
+    // contenedor: sin esto, "0 enlaces en la portada" no se distingue de "Strapi caído".
+    console.error(`[bitácora] resumen degradado — ${error instanceof Error ? error.message : String(error)}`);
     return filasAResumen([], opts);
   }
 }
