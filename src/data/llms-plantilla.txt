@@ -19,30 +19,32 @@ de los Tres Ejes, documentada en camilosaldarriaga.com.
 
 ## Estructura del sitio
 
-- `/` — Hub del ecosistema (overview de las 6 marcas)
-- `/meliponas/` — Meliponario & Biotecnología Nativa
-- `/cafe/` — Café de Origen
-- `/tierras/` — Inmobiliaria Rural
-- `/naturaleza/` — Turismo Regenerativo
-- `/gestion/` — Property Management
-- `/granja/` — Granja Autosustentable
-- `/meliponas/bitacora` — Publicaciones del Meliponario
-- `/cafe/bitacora` — Publicaciones de Café
-- `/tierras/bitacora` — Publicaciones de Tierras
-- `/naturaleza/bitacora` — Publicaciones de Naturaleza
-- `/gestion/bitacora` — Publicaciones de Gestión
-- `/granja/bitacora` — Publicaciones de la Granja (bitácora del sistema)
-- `/meliponas/tienda` — Tienda online (miel, cajas, kits)
-- `/meliponas/polinizacion` — Servicio de polinización gestionada
-- `/meliponas/proyectos` — Diseño e instalación de meliponarios
-- `/tierras/propiedades` — Listado de propiedades rurales
-- `/naturaleza/experiencias` — Experiencias de turismo regenerativo
-- `/naturaleza/anfitriones` — Guías y guardianes del territorio
-- `/gestion/propiedades` — Propiedades gestionadas
-- `/granja/sistema` — Mapa del sistema autosustentable (subsistemas)
-- `/granja/tienda` — Tienda de la granja (cosecha, huevos, plántulas, compost)
-- `/granja/visitas` — Visitas guiadas a la granja con reserva online
-- `/legal/` — Políticas legales y términos
+- https://iwage.co/ — Hub del ecosistema (overview de las 6 marcas)
+- https://iwage.co/meliponas/ — Meliponario & Biotecnología Nativa
+- https://iwage.co/cafe/ — Café de Origen
+- https://iwage.co/tierras/ — Inmobiliaria Rural
+- https://iwage.co/naturaleza/ — Turismo Regenerativo
+- https://iwage.co/gestion/ — Property Management
+- https://iwage.co/granja/ — Granja Autosustentable
+- https://iwage.co/meliponas/bitacora — Publicaciones del Meliponario
+- https://iwage.co/cafe/bitacora — Publicaciones de Café
+- https://iwage.co/tierras/bitacora — Publicaciones de Tierras
+- https://iwage.co/naturaleza/bitacora — Publicaciones de Naturaleza
+- https://iwage.co/gestion/bitacora — Publicaciones de Gestión
+- https://iwage.co/granja/bitacora — Publicaciones de la Granja (bitácora del sistema)
+- https://iwage.co/meliponas/tienda — Tienda online (miel, cajas, kits)
+- https://iwage.co/meliponas/polinizacion — Servicio de polinización gestionada
+- https://iwage.co/meliponas/proyectos — Diseño e instalación de meliponarios
+- https://iwage.co/tierras/propiedades — Listado de propiedades rurales
+- https://iwage.co/naturaleza/experiencias — Experiencias de turismo regenerativo
+- https://iwage.co/naturaleza/anfitriones — Guías y guardianes del territorio
+- https://iwage.co/gestion/propiedades — Propiedades gestionadas
+- https://iwage.co/granja/sistema — Mapa del sistema autosustentable (subsistemas)
+- https://iwage.co/granja/tienda — Tienda de la granja (cosecha, huevos, plántulas, compost)
+- https://iwage.co/granja/visitas — Visitas guiadas a la granja con reserva online
+- https://iwage.co/legal/ — Políticas legales y términos
+
+{{BITACORA}}
 
 ## Marcas y verticales
 
