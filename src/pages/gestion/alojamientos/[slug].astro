@@ -11,7 +11,7 @@ import {
   tipoGestionInfo,
   modeloAlianzaInfo,
 } from '@/lib/gestion';
-import { strapiImage } from '@/lib/strapi';
+import { mediaSrc, absUrl } from '@/lib/media';
 import { getBrand } from '@/config/brands';
 
 export const prerender = false;
@@ -31,7 +31,7 @@ const huespedes = Astro.url.searchParams.get('huespedes') || '';
 const tipo = tipoGestionInfo(prop.tipo_gestion);
 const modelo = modeloAlianzaInfo(prop.modelo_alianza);
 const heroImg = propiedadGestionImagen(prop);
-const galeriaImgs = (prop.galeria || []).map((g) => strapiImage(g.url)).filter(Boolean) as string[];
+const galeriaImgs = (prop.galeria || []).map((g) => mediaSrc(g.url)).filter(Boolean) as string[];
 const precio = formatPrecioGestion(prop);
 
 // WhatsApp desde la configuración de marca
@@ -63,7 +63,7 @@ const lodgingJsonLd = {
   ...(prop.precio_noche && {
     priceRange: `$${prop.precio_noche.toLocaleString('es-CO')} COP/noche`,
   }),
-  ...(heroImg && { image: heroImg }),
+  ...(heroImg && { image: absUrl(heroImg) }),
   containedInPlace: { '@type': 'AdministrativeArea', name: prop.ubicacion_municipio || 'Ibagué' },
 };
 ---
@@ -343,7 +343,7 @@ const lodgingJsonLd = {
                   <h3 class="text-xs font-bold uppercase text-gray-400 mb-3 inline-flex items-center gap-1"><Icon name="user" class="w-3.5 h-3.5" /> Anfitrión{prop.anfitriones.length > 1 ? 'es' : ''} que la ofrecen</h3>
                   <div class="grid sm:grid-cols-2 gap-3">
                     {prop.anfitriones.map((anf) => {
-                      const foto = anf.foto_perfil_url || (anf.foto_perfil?.url ? strapiImage(anf.foto_perfil.url) : null);
+                      const foto = mediaSrc(anf.foto_perfil_url ?? anf.foto_perfil?.url);
                       return (
                         <a href={`/naturaleza/anfitriones/${anf.slug}`} class="group flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-[#1e3a5f]/30 hover:shadow-lg transition-all">
                           {foto ? (

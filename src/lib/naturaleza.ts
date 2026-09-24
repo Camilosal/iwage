@@ -2,7 +2,8 @@
  * Iwagé Naturaleza — Strapi data access layer
  * Handles experiences, hosts, packages, and filters.
  */
-import { strapiFetch, strapiImage, CACHE_TTL } from './strapi';
+import { strapiFetch, CACHE_TTL } from './strapi';
+import { mediaSrc } from './media';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -497,28 +498,33 @@ export async function getIniciativas(): Promise<Iniciativa[]> {
 
 export function experienciaImagen(exp: Experiencia): string {
   // Priority: imagen_hero_url (direct URL from sync) > imagen_hero (Strapi media) > galeria_urls > galeria > fallback
-  if (exp.imagen_hero_url) return exp.imagen_hero_url;
-  if (exp.imagen_hero?.url) return strapiImage(exp.imagen_hero.url) || '';
-  if (exp.galeria_urls?.[0]?.url) return exp.galeria_urls[0].url;
-  if (exp.galeria?.[0]?.url) return strapiImage(exp.galeria[0].url) || '';
-  return 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=70';
+  // mediaSrc resuelve las dos formas: la ruta cruda que dejó la sincronización y el objeto media de Strapi.
+  return (
+    mediaSrc(exp.imagen_hero_url)
+    ?? mediaSrc(exp.imagen_hero)
+    ?? mediaSrc(exp.galeria_urls?.[0])
+    ?? mediaSrc(exp.galeria?.[0])
+    ?? 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=70'
+  );
 }
 
 /** Get all gallery image URLs (merging galeria_urls and Strapi media galeria) */
 export function experienciaGaleria(exp: Experiencia): Array<{ url: string; tipo?: string; titulo?: string }> {
   const items: Array<{ url: string; tipo?: string; titulo?: string }> = [];
   if (exp.galeria_urls && exp.galeria_urls.length > 0) {
-    items.push(...exp.galeria_urls);
+    items.push(...exp.galeria_urls.map((g) => ({ ...g, url: mediaSrc(g.url) || '' })));
   } else if (exp.galeria && exp.galeria.length > 0) {
-    items.push(...exp.galeria.map((g) => ({ url: strapiImage(g.url) || '', titulo: g.alternativeText || undefined })));
+    items.push(...exp.galeria.map((g) => ({ url: mediaSrc(g.url) || '', titulo: g.alternativeText || undefined })));
   }
   return items.filter((i) => i.url);
 }
 
 export function anfitrionFoto(host: Anfitrion): string {
-  if (host.foto_perfil_url) return host.foto_perfil_url;
-  if (host.foto_perfil?.url) return strapiImage(host.foto_perfil.url) || '';
-  return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=70';
+  return (
+    mediaSrc(host.foto_perfil_url)
+    ?? mediaSrc(host.foto_perfil)
+    ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=70'
+  );
 }
 
 export function formatPrecioCOP(value: number | null | undefined): string {

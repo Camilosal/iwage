@@ -2,7 +2,8 @@
  * Iwagé Tierras — Strapi data access layer
  * Handles property listings, filters, and detail pages.
  */
-import { strapiFetch, strapiSingle, strapiImage, CACHE_TTL } from './strapi';
+import { strapiFetch, strapiSingle, CACHE_TTL } from './strapi';
+import { mediaSrc } from './media';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -401,8 +402,8 @@ export function formatPrecio(precio: number | null, moneda = 'COP'): string {
 
 /** Get image URL from Strapi media */
 export function propiedadImagen(prop: Propiedad): string | null {
-  if (prop.imagen_principal?.url) return strapiImage(prop.imagen_principal.url);
-  if (prop.imagenes && prop.imagenes.length > 0) return strapiImage(prop.imagenes[0].url);
+  if (prop.imagen_principal?.url) return mediaSrc(prop.imagen_principal.url);
+  if (prop.imagenes && prop.imagenes.length > 0) return mediaSrc(prop.imagenes[0].url);
   return null;
 }
 

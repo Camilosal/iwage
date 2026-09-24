@@ -3,7 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getExperimentoBySlug, getExperimentosBySubsistema, SUBSISTEMA_META, ESTADO_EXPERIMENTO, SECTIONS, formatFecha } from '@/lib/granja-experimentos';
 import { renderMarkdown } from '@/lib/render-markdown';
-import { strapiImage } from '@/lib/strapi';
+import { mediaSrc } from '@/lib/media';
 import type { Experimento } from '@/lib/granja-experimentos';
 
 const BRAND = 'granja';
@@ -25,7 +25,7 @@ const related: Experimento[] = exp.subsistema
 
 const subMeta = exp.subsistema ? SUBSISTEMA_META[exp.subsistema] : null;
 const estadoMeta = exp.estado_experimento ? ESTADO_EXPERIMENTO[exp.estado_experimento] : null;
-const heroImg = exp.imagen ? strapiImage(exp.imagen) : null;
+const heroImg = exp.imagen ? mediaSrc(exp.imagen) : null;
 
 // Parse tags
 const tags = exp.tags ? exp.tags.split(',').map(t => t.trim()).filter(Boolean) : [];

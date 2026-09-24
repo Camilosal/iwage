@@ -212,16 +212,3 @@ export async function strapiSingle<T = any>(
 export async function invalidateStrapiCache(pattern: string): Promise<number> {
   return redisInvalidate(`strapi:${pattern}`);
 }
-
-/**
- * Resolve image URL from Strapi.
- * - External URLs (http/https): returned as-is
- * - Strapi media library (/uploads/...): prepend STRAPI_URL
- * - Local paths (/images/...): served by Astro, return as-is
- */
-export function strapiImage(path: string | null | undefined): string | null {
-  if (!path) return null;
-  if (path.startsWith('http')) return path;
-  if (path.startsWith('/uploads/')) return `${STRAPI_URL}${path}`;
-  return path;
-}

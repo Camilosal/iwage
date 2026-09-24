@@ -7,7 +7,7 @@ import StatGrid from '@/components/StatGrid.astro';
 import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getExperimentos, formatFecha } from '@/lib/granja-experimentos';
-import { strapiImage } from '@/lib/strapi';
+import { mediaSrc } from '@/lib/media';
 import { getBrand } from '@/config/brands';
 import { getHeroBySlug } from '@/lib/heroes';
 import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
@@ -190,7 +190,7 @@ const experimentosHome = experimentos.length >= 3 ? experimentos : [...experimen
             <a href={`/granja/experimentos/${exp.slug}`} class="group block bg-surface-raised rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-brand/30 transition-all h-full overflow-hidden">
               {exp.imagen ? (
                 <div class="h-36 overflow-hidden">
-                  <img src={strapiImage(exp.imagen)} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                  <img src={mediaSrc(exp.imagen)} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                 </div>
               ) : (
                 <div class="h-28 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">

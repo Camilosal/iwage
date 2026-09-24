@@ -2,7 +2,7 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getExperienciaBySlug, getExperiencias, experienciaImagen, experienciaGaleria, anfitrionFoto, formatPrecioCOP, dificultadInfo, nivelInfo } from '@/lib/naturaleza';
-import { strapiImage } from '@/lib/strapi';
+import { absUrl } from '@/lib/media';
 import { tipoAlojamientoInfo } from '@/lib/gestion';
 import { getBrand } from '@/config/brands';
 import BookingWidget from '@/components/reservas/BookingWidget';
@@ -80,7 +80,7 @@ const jsonLd = {
   '@type': 'TouristTrip',
   name: exp.titulo,
   description: exp.resumen,
-  image: heroImg,
+  image: absUrl(heroImg),
   touristType: exp.categoria,
   location: exp.ubicacion ? {
     '@type': 'Place',

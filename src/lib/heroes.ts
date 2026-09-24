@@ -7,6 +7,7 @@
  * title, subtitle, image, and up to 2 CTAs.
  */
 import { strapiFetch, CACHE_TTL } from './strapi';
+import { mediaSrc } from './media';
 
 const ENDPOINT = 'hero-configuracions';
 
@@ -54,7 +55,7 @@ function normalize(rec: StrapiHeroRecord): HeroConfig | null {
     slug_ruta: rec.slug_ruta,
     titulo: rec.titulo,
     subtitulo: rec.subtitulo ?? null,
-    imagen: rec.imagen ?? null,
+    imagen: mediaSrc(rec.imagen) ?? null,
     label: rec.label ?? null,
     cta_primario_texto: rec.cta_primario_texto ?? null,
     cta_primario_url: rec.cta_primario_url ?? null,

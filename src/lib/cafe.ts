@@ -1,7 +1,8 @@
 /**
  * Café Iwagé — Strapi data access layer
  */
-import { strapiFetch, strapiSingle, strapiImage, CACHE_TTL } from './strapi';
+import { strapiFetch, strapiSingle, CACHE_TTL } from './strapi';
+import { mediaSrc } from './media';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -214,7 +215,7 @@ export async function getHistoriasVisitantes(categoria?: string): Promise<Histor
 }
 
 export function historiaImagen(h: HistoriaVisitante): string | null {
-  return strapiImage(h.imagen?.url);
+  return mediaSrc(h.imagen?.url);
 }
 
 // ── Helpers ────────────────────────────────────────────
@@ -244,7 +245,7 @@ const LOCAL_IMAGES: Record<string, string> = {
 
 export function itemImage(item: ItemMenu): string | null {
   // First try Strapi image
-  const strapiImg = strapiImage(item.imagen?.url);
+  const strapiImg = mediaSrc(item.imagen?.url);
   if (strapiImg) return strapiImg;
   
   // Fall back to local images based on familia or nombre
@@ -271,7 +272,7 @@ export function itemImage(item: ItemMenu): string | null {
 }
 
 export function proveedorFoto(p: Proveedor): string | null {
-  return strapiImage(p.foto?.url);
+  return mediaSrc(p.foto?.url);
 }
 
 /**

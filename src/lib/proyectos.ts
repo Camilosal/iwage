@@ -3,7 +3,8 @@
  * Fetches project sheets from Strapi with Redis caching.
  * Falls back to local seed data when Strapi is unavailable.
  */
-import { strapiFetch, CACHE_TTL, strapiImage } from './strapi';
+import { strapiFetch, CACHE_TTL } from './strapi';
+import { mediaSrc } from './media';
 
 // ── Types ──────────────────────────────────────────────
 export type TipoProyecto = 'finca' | 'empresa' | 'club' | 'cultivo' | 'turismo' | 'residencial' | 'institucional';
@@ -281,7 +282,7 @@ const FALLBACK_PROYECTOS: ProyectoMeliponario[] = [
 function normalizeProyecto(raw: any): ProyectoMeliponario {
   const galeria = Array.isArray(raw.galeria)
     ? raw.galeria.map((g: any) =>
-        typeof g === 'string' ? { url: strapiImage(g) ?? g, tipo: 'imagen' as const } : { ...g, url: strapiImage(g.url) ?? g.url }
+        typeof g === 'string' ? { url: mediaSrc(g) ?? g, tipo: 'imagen' as const } : { ...g, url: mediaSrc(g.url) ?? g.url }
       )
     : null;
 
@@ -292,7 +293,7 @@ function normalizeProyecto(raw: any): ProyectoMeliponario {
     slug: raw.slug,
     descripcion: raw.descripcion ?? null,
     descripcion_corta: raw.descripcion_corta ?? null,
-    imagen: raw.imagen ? strapiImage(raw.imagen) : (galeria?.[0]?.url ?? null),
+    imagen: raw.imagen ? mediaSrc(raw.imagen) : (galeria?.[0]?.url ?? null),
     galeria,
     tipo: raw.tipo,
     estado: raw.estado ?? 'en-proceso',

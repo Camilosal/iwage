@@ -11,7 +11,7 @@ import Storytelling from '@/components/tierras/Storytelling.astro';
 import MediaGallery from '@/components/shared/MediaGallery.astro';
 import AgendarVisita from '@/components/tierras/AgendarVisita.astro';
 import { getPropiedadBySlug, getAllPropiedadSlugs, formatPrecio, formatArea, propiedadImagen, SELLOS_VAP } from '@/lib/tierras';
-import { strapiImage } from '@/lib/strapi';
+import { mediaSrc } from '@/lib/media';
 import { getBrand } from '@/config/brands';
 
 const { slug } = Astro.params;
@@ -21,9 +21,9 @@ if (!prop) {
   return Astro.redirect('/tierras/propiedades');
 }
 
-const images = prop.imagenes?.map(img => strapiImage(img.url)).filter(Boolean) || [];
-if (prop.imagen_principal?.url && !images.includes(strapiImage(prop.imagen_principal.url)!)) {
-  images.unshift(strapiImage(prop.imagen_principal.url)!);
+const images = prop.imagenes?.map(img => mediaSrc(img.url)).filter(Boolean) || [];
+if (prop.imagen_principal?.url && !images.includes(mediaSrc(prop.imagen_principal.url)!)) {
+  images.unshift(mediaSrc(prop.imagen_principal.url)!);
 }
 
 // Build Ficha Técnica sections

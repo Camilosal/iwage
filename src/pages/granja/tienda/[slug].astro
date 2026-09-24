@@ -7,6 +7,7 @@ import type { GaleriaItem } from '@/lib/tienda';
 import { renderMarkdown } from '@/lib/render-markdown';
 import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
 import { SITE } from '@/config/site';
+import { absUrl } from '@/lib/media';
 
 const { slug } = Astro.params;
 const producto = await getProductoBySlug(slug!);
@@ -83,7 +84,7 @@ const productJsonLd: Record<string, any> = {
   description: producto.descripcion_corta ?? producto.descripcion,
   sku: producto.sku,
   url: `https://iwage.co/granja/tienda/${producto.slug}`,
-  ...(producto.imagen && { image: producto.imagen }),
+  ...(producto.imagen && { image: absUrl(producto.imagen) }),
   brand: { '@type': 'Brand', name: 'Iwagé Granja' },
   ...(producto.categoria && { category: categoriaLabel }),
   offers: {

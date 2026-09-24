@@ -2,7 +2,7 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import { getBitacoraBySlug, getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
 import { rutaDeLaMarcaDelArticulo } from '@/lib/bitacora-ruta';
-import { strapiImage } from '@/lib/strapi';
+import { mediaSrc } from '@/lib/media';
 import { renderMarkdown } from '@/lib/render-markdown';
 import Icon from '@/components/shared/Icon.astro';
 import { BITACORA_MARCAS } from '@/config/bitacora-marcas';
@@ -98,7 +98,7 @@ const articleMeta = {
     {article.imagen ? (
       <figure class="mb-10 -mx-6 md:mx-0">
         <img
-          src={strapiImage(article.imagen)}
+          src={mediaSrc(article.imagen)}
           alt={article.titulo}
           class="w-full h-64 md:h-80 object-cover rounded-none md:rounded-2xl shadow-sm"
         />
@@ -156,7 +156,7 @@ const articleMeta = {
             <a href={`/${BRAND}/bitacora/${post.slug}`} class="group block bg-surface-raised rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
               {post.imagen ? (
                 <div class="h-32 overflow-hidden">
-                  <img src={strapiImage(post.imagen)} alt={post.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                  <img src={mediaSrc(post.imagen)} alt={post.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                 </div>
               ) : (
                 <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">

@@ -2,7 +2,8 @@
  * Iwagé Gestión — Strapi data access layer
  * Handles managed properties with cross-brand relations.
  */
-import { strapiFetch, strapiImage, CACHE_TTL } from './strapi';
+import { strapiFetch, CACHE_TTL } from './strapi';
+import { mediaSrc } from './media';
 
 /** API interna de app_reservas (server-side) para filtros de disponibilidad */
 const RESERVAS_API = import.meta.env.RESERVAS_API_URL || 'http://reservas_app:4326';
@@ -357,7 +358,7 @@ function normalizePropiedadGestion(raw: any): PropiedadGestion {
       moneda: c.moneda || 'COP',
       precio_por: c.precio_por || 'persona',
       icono: c.icono || null,
-      imagen_url: c.imagen?.url ? strapiImage(c.imagen.url) : (c.imagen_url || null),
+      imagen_url: mediaSrc(c.imagen?.url ?? c.imagen_url),
     })) : null,
     productos: Array.isArray(raw.productos) ? raw.productos.map((p: any) => ({
       id: p.id,
@@ -368,7 +369,7 @@ function normalizePropiedadGestion(raw: any): PropiedadGestion {
       precio: p.precio ? Number(p.precio) : 0,
       presentacion: p.presentacion || null,
       categoria: p.categoria || 'miel',
-      imagen: p.imagen || null,
+      imagen: mediaSrc(p.imagen),
       destacado: p.destacado || false,
       stock_disponible: p.stock_disponible !== false,
     })) : null,
@@ -379,8 +380,8 @@ function normalizePropiedadGestion(raw: any): PropiedadGestion {
 
 /** Get image URL for a managed property */
 export function propiedadGestionImagen(prop: PropiedadGestion): string | null {
-  if (prop.imagen_principal?.url) return strapiImage(prop.imagen_principal.url);
-  if (prop.galeria && prop.galeria.length > 0) return strapiImage(prop.galeria[0].url);
+  if (prop.imagen_principal?.url) return mediaSrc(prop.imagen_principal.url);
+  if (prop.galeria && prop.galeria.length > 0) return mediaSrc(prop.galeria[0].url);
   return null;
 }
 
@@ -499,7 +500,7 @@ export async function getExperienciasGestion(categoria?: string): Promise<Experi
       cupo_maximo_desc: e.cupo_maximo_desc || null,
       nivel_dificultad: e.nivel_dificultad || 1,
       precio_desde: e.precio_desde ? Number(e.precio_desde) : null,
-      imagen: e.imagen_hero?.url ? strapiImage(e.imagen_hero.url) : (e.imagen_hero_url || null),
+      imagen: mediaSrc(e.imagen_hero?.url ?? e.imagen_hero_url),
       es_destacado: e.es_destacado || false,
     }));
   } catch {

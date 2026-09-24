@@ -2,7 +2,7 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getPaquetes, formatPrecioCOP } from '@/lib/naturaleza';
-import { strapiImage } from '@/lib/strapi';
+import { mediaSrc } from '@/lib/media';
 import { getBrand } from '@/config/brands';
 import Hero from '@/components/Hero.astro';
 import { getHeroBySlug } from '@/lib/heroes';
@@ -41,7 +41,7 @@ const hero = await getHeroBySlug('/naturaleza/programas');
       {paquetes.length > 0 ? (
         <div class="grid md:grid-cols-2 gap-8">
           {paquetes.map((pkg) => {
-            const heroUrl = pkg.imagen_hero?.url ? strapiImage(pkg.imagen_hero.url) : 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=70';
+            const heroUrl = pkg.imagen_hero?.url ? mediaSrc(pkg.imagen_hero.url) : 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=70';
             return (
               <div class="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300">
                 <div class="relative h-56 overflow-hidden">

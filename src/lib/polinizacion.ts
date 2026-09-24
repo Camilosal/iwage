@@ -3,7 +3,8 @@
  * Fetches crop sheets from Strapi `cultivo-polinizaciones` with Redis caching.
  * Falls back to local seed data when Strapi is unavailable.
  */
-import { strapiFetch, CACHE_TTL, strapiImage } from './strapi';
+import { strapiFetch, CACHE_TTL } from './strapi';
+import { mediaSrc } from './media';
 
 // ── Types ──────────────────────────────────────────────
 export interface GaleriaItem {
@@ -84,7 +85,7 @@ export const ICONO_DEFAULT = 'flower-2';
 function mapCultivo(raw: any): CultivoPolinizacion {
   const galeria = Array.isArray(raw.galeria)
     ? raw.galeria.map((g: any) =>
-        typeof g === 'string' ? { url: strapiImage(g) ?? g, tipo: 'imagen' as const } : { ...g, url: strapiImage(g.url) ?? g.url }
+        typeof g === 'string' ? { url: mediaSrc(g) ?? g, tipo: 'imagen' as const } : { ...g, url: mediaSrc(g.url) ?? g.url }
       )
     : null;
 
@@ -96,7 +97,7 @@ function mapCultivo(raw: any): CultivoPolinizacion {
     nombre_cientifico: raw.nombre_cientifico ?? null,
     familia_botanica: raw.familia_botanica ?? null,
     icono: raw.icono ?? null,
-    imagen: strapiImage(raw.imagen) ?? raw.imagen ?? (galeria?.[0]?.url ?? null),
+    imagen: mediaSrc(raw.imagen) ?? raw.imagen ?? (galeria?.[0]?.url ?? null),
     galeria,
     descripcion: raw.descripcion ?? null,
     descripcion_corta: raw.descripcion_corta ?? null,

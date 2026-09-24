@@ -3,7 +3,8 @@
  * Fetches from Strapi `productos` collection with Redis caching.
  * Falls back to local seed data when Strapi is unavailable.
  */
-import { strapiFetch, CACHE_TTL, strapiImage } from './strapi';
+import { strapiFetch, CACHE_TTL } from './strapi';
+import { mediaSrc } from './media';
 
 // ── Types ──────────────────────────────────────────────
 export interface GaleriaItem {
@@ -141,10 +142,10 @@ function normalizeProducto(raw: any): Producto {
     presentacion: raw.presentacion ?? null,
     categoria: raw.categoria,
     marca: raw.marca ?? 'meliponas',
-    imagen: raw.imagen ? strapiImage(raw.imagen) : null,
+    imagen: raw.imagen ? mediaSrc(raw.imagen) : null,
     galeria: Array.isArray(raw.galeria)
       ? raw.galeria.map((g: any) =>
-          typeof g === 'string' ? { url: strapiImage(g) ?? g, tipo: 'imagen' as const } : { ...g, url: strapiImage(g.url) ?? g.url }
+          typeof g === 'string' ? { url: mediaSrc(g) ?? g, tipo: 'imagen' as const } : { ...g, url: mediaSrc(g.url) ?? g.url }
         )
       : null,
     stock_disponible: raw.stock_disponible ?? true,
