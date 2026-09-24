@@ -3,7 +3,7 @@
  * Handles experiences, hosts, packages, and filters.
  */
 import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc } from './media';
+import { mediaSrc, toMediaList, type MediaItem } from './media.ts';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -508,15 +508,14 @@ export function experienciaImagen(exp: Experiencia): string {
   );
 }
 
-/** Get all gallery image URLs (merging galeria_urls and Strapi media galeria) */
-export function experienciaGaleria(exp: Experiencia): Array<{ url: string; tipo?: string; titulo?: string }> {
-  const items: Array<{ url: string; tipo?: string; titulo?: string }> = [];
-  if (exp.galeria_urls && exp.galeria_urls.length > 0) {
-    items.push(...exp.galeria_urls.map((g) => ({ ...g, url: mediaSrc(g.url) || '' })));
-  } else if (exp.galeria && exp.galeria.length > 0) {
-    items.push(...exp.galeria.map((g) => ({ url: mediaSrc(g.url) || '', titulo: g.alternativeText || undefined })));
-  }
-  return items.filter((i) => i.url);
+/** Get all gallery items (merging galeria_urls and Strapi media galeria) */
+export function experienciaGaleria(exp: Experiencia): MediaItem[] {
+  // `galeria_urls` es la columna sincronizada y puede llegar con la forma histórica;
+  // `toMediaList` también la entiende. El alternativeText de la relación de media es el pie.
+  const crudo: unknown = exp.galeria_urls?.length
+    ? exp.galeria_urls
+    : (exp.galeria ?? []).map((g) => ({ url: g.url, caption: g.alternativeText ?? undefined }));
+  return toMediaList(crudo);
 }
 
 export function anfitrionFoto(host: Anfitrion): string {

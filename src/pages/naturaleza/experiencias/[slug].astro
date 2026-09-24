@@ -254,22 +254,22 @@ const jsonLd = {
           <h2 class="text-2xl font-light text-[#1a3009] mb-6">Galería</h2>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             {galeriaItems.map((item, i) => (
-              item.tipo === 'video' ? (
+              item.kind === 'video' ? (
                 <a href={item.url} target="_blank" rel="noopener" class="relative block w-full h-40 rounded-xl overflow-hidden group">
                   <div class="w-full h-full bg-[#0e1a08] flex items-center justify-center">
                     <span class="text-3xl group-hover:scale-110 transition-transform"><Icon name="play-circle" class="w-8 h-8 text-white" /></span>
                   </div>
-                  <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.titulo || 'Video'}</span>
+                  <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.caption || item.alt || 'Video'}</span>
                 </a>
-              ) : item.tipo === '360' ? (
+              ) : item.kind === 'tour360' ? (
                 <a href={item.url} target="_blank" rel="noopener" class="relative block w-full h-40 rounded-xl overflow-hidden group">
                   <div class="w-full h-full bg-[#1a3009] flex items-center justify-center">
                     <span class="text-3xl group-hover:scale-110 transition-transform"><Icon name="refresh-ccw" class="w-8 h-8 text-white" /></span>
                   </div>
-                  <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.titulo || 'Tour 360°'}</span>
+                  <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.caption || item.alt || 'Tour 360°'}</span>
                 </a>
               ) : (
-                <img src={item.url} alt={item.titulo || `${exp.titulo} - foto ${i + 1}`} class="w-full h-40 object-cover rounded-xl" loading="lazy" />
+                <img src={item.url} alt={item.alt || item.caption || `${exp.titulo} - foto ${i + 1}`} class="w-full h-40 object-cover rounded-xl" loading="lazy" />
               )
             ))}
           </div>

@@ -1,29 +1,28 @@
 ---
 import Icon from '@/components/shared/Icon.astro';
+import { toMediaList, type MediaItem } from '@/lib/media';
 
 /**
  * MediaGallery — Galería audiovisual reutilizable con lightbox.
- * Acepta URLs simples o objetos { url, tipo: 'imagen'|'video'|'360', titulo? }.
+ * Acepta URLs sueltas o items de galería en cualquier forma (canónica o histórica):
+ * la única normalización es `toMediaList()`, que entrega `MediaItem`
+ * ({ url, kind: 'imagen'|'video'|'tour360', alt?, caption?, provider? }).
  * Funciona con cualquier marca (colores heredados del tema).
+ *
+ * Task 8 reescribe este componente: debe conservar el import de `@/lib/media`,
+ * la normalización en el borde y el escenario sin `src` vacío.
  */
-export interface GalleryItem {
-  url: string;
-  tipo?: 'imagen' | 'video' | '360';
-  titulo?: string;
-}
-
 interface Props {
-  images: (string | GalleryItem)[];
+  /** URLs sueltas o items de galería; se normalizan con toMediaList(). */
+  images?: unknown[];
   title?: string;
   columns?: 4 | 3 | 2;
 }
 
 const { images: rawImages, title = 'Galería', columns = 4 } = Astro.props;
 
-// Normalize items
-const items: GalleryItem[] = (rawImages || [])
-  .map((item) => (typeof item === 'string' ? { url: item, tipo: 'imagen' as const } : { tipo: 'imagen' as const, ...item }))
-  .filter((item) => !!item.url);
+// Normalize items — un solo punto de entrada para las formas que llegan.
+const items: MediaItem[] = toMediaList(rawImages);
 
 if (items.length === 0) return;
 
@@ -57,30 +56,30 @@ function ytEmbed(url: string) {
       <button
         class="relative overflow-hidden rounded-lg aspect-[4/3] group cursor-pointer"
         data-gal-open={String(i)}
-        aria-label={item.titulo || `${title} ${i + 1}`}
+        aria-label={item.alt || item.caption || `${title} ${i + 1}`}
       >
-        {item.tipo === 'video' ? (
+        {item.kind === 'video' ? (
           <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
             <span class="w-10 h-10 rounded-full bg-brand/90 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Icon name="play" class="w-5 h-5 text-white ml-0.5" />
             </span>
           </div>
-        ) : item.tipo === '360' ? (
+        ) : item.kind === 'tour360' ? (
           <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
             <span class="w-10 h-10 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Icon name="rotate-3d" class="w-5 h-5 text-white" />
             </span>
           </div>
         ) : (
-          <img src={item.url} alt={item.titulo || `${title} ${i + 1}`} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+          <img src={item.url} alt={item.alt || item.caption || `${title} ${i + 1}`} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
         )}
         <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
-        {item.titulo && (
-          <span class="absolute bottom-2 left-2 right-2 text-[10px] font-medium text-white bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md truncate text-left">{item.titulo}</span>
+        {(item.caption || item.alt) && (
+          <span class="absolute bottom-2 left-2 right-2 text-[10px] font-medium text-white bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md truncate text-left">{item.caption || item.alt}</span>
         )}
-        {item.tipo === 'video' && <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">Video</span>}
-        {item.tipo === '360' && <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">360°</span>}
-        {i === 0 && item.tipo === 'imagen' && <span class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-full uppercase">Principal</span>}
+        {item.kind === 'video' && <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">Video</span>}
+        {item.kind === 'tour360' && <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">360°</span>}
+        {i === 0 && item.kind === 'imagen' && <span class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-full uppercase">Principal</span>}
       </button>
     ))}
   </div>
@@ -102,7 +101,7 @@ function ytEmbed(url: string) {
 
   <!-- Main content -->
   <div class="absolute inset-0 flex items-center justify-center p-16" data-gal-stage>
-    {items[0].tipo === 'imagen' ? (
+    {items[0].kind === 'imagen' ? (
       <img data-gal-img src={items[0].url} alt="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
     ) : (
       <div data-gal-img-placeholder class="w-full max-w-4xl aspect-video rounded-lg bg-surface-sunken"></div>
@@ -124,10 +123,10 @@ function ytEmbed(url: string) {
   <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2 max-w-[80vw] overflow-x-auto px-4 py-2 rounded-full bg-black/50">
     {items.map((item, i) => (
       <button class="w-12 h-9 rounded-md overflow-hidden shrink-0 opacity-50 hover:opacity-100 transition-opacity border-2 border-transparent data-[active=true]:border-white data-[active=true]:opacity-100" data-gal-strip={String(i)} data-active={i === 0 ? 'true' : 'false'}>
-        {item.tipo === 'imagen' ? (
+        {item.kind === 'imagen' ? (
           <img src={item.url} alt="" class="w-full h-full object-cover" loading="lazy" />
         ) : (
-          <span class="w-full h-full flex items-center justify-center bg-white/10 text-white text-[10px]">{item.tipo === 'video' ? '▶' : '360'}</span>
+          <span class="w-full h-full flex items-center justify-center bg-white/10 text-white text-[10px]">{item.kind === 'video' ? '▶' : '360'}</span>
         )}
       </button>
     ))}
@@ -165,30 +164,31 @@ function ytEmbed(url: string) {
       strips.forEach((t, i) => t.setAttribute('data-active', String(i === current)));
 
       // Title
-      if (item.titulo) {
-        titleEl.textContent = item.titulo;
+      const pie = item.caption || item.alt || '';
+      if (pie) {
+        titleEl.textContent = pie;
         titleEl.classList.remove('hidden');
       } else {
         titleEl.classList.add('hidden');
       }
 
       // Render media
-      if (item.tipo === 'video') {
+      if (item.kind === 'video') {
         const embedUrl = isYouTube(item.url) ? ytEmbed(item.url) : item.url;
         stage.innerHTML = `<iframe src="${embedUrl}" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
-      } else if (item.tipo === '360') {
+      } else if (item.kind === 'tour360') {
         stage.innerHTML = `<iframe src="${item.url}" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl" frameborder="0" allowfullscreen></iframe>`;
       } else {
         stage.innerHTML = '';
         if (img) {
           img.src = item.url;
-          img.alt = item.titulo || '';
+          img.alt = item.alt || item.caption || '';
           img.style.display = '';
           stage.appendChild(img);
         } else {
           const el = document.createElement('img');
           el.src = item.url;
-          el.alt = item.titulo || '';
+          el.alt = item.alt || item.caption || '';
           el.className = 'max-w-full max-h-full object-contain rounded-lg shadow-2xl';
           stage.appendChild(el);
         }

@@ -8,23 +8,22 @@
  * el visor principal cambia de medio (imagen / iframe de video / iframe 360).
  *
  * Props:
- *  - items: GaleriaItem[]  → [{ url, tipo?: 'imagen'|'video'|'360', titulo? }]
- *  - title: string         → texto alt / accesibilidad
+ *  - items: cualquier forma de galería (MediaItem, la histórica o URLs sueltas);
+ *           `toMediaList()` es el único punto de normalización → MediaItem[]
+ *  - title: string → texto alt / accesibilidad
  */
-import type { GaleriaItem } from '@/lib/tienda';
+import { toMediaList, type MediaItem } from '@/lib/media';
 import Icon from '@/components/shared/Icon.astro';
 
 interface Props {
-  items: GaleriaItem[];
+  items: unknown[];
   title?: string;
 }
 
 const { items: rawItems, title = 'Producto' } = Astro.props;
 
 // Normaliza y filtra items válidos
-const items: GaleriaItem[] = (rawItems || [])
-  .map((it) => ({ tipo: 'imagen' as const, ...it }))
-  .filter((it) => !!it.url);
+const items: MediaItem[] = toMediaList(rawItems);
 
 function isYouTube(url: string) {
   return /youtube\.com|youtu\.be/.test(url);
@@ -53,17 +52,17 @@ const gid = `pg-${Math.random().toString(36).slice(2, 8)}`;
   <div class="space-y-3" data-pg-wrapper={gid}>
     <!-- Visor principal -->
     <div class="relative aspect-square rounded-2xl overflow-hidden bg-surface-sunken border border-border" data-pg-stage>
-      {first.tipo === 'imagen' ? (
+      {first.kind === 'imagen' ? (
         <img
           src={first.url}
-          alt={first.titulo || title}
+          alt={first.alt || first.caption || title}
           class="w-full h-full object-cover"
           data-pg-main-img
         />
       ) : (
         <iframe
           src={embedUrl(first.url)}
-          title={first.titulo || title}
+          title={first.alt || first.caption || title}
           class="w-full h-full"
           frameborder="0"
           allow="autoplay; fullscreen; picture-in-picture"
@@ -73,9 +72,9 @@ const gid = `pg-${Math.random().toString(36).slice(2, 8)}`;
       )}
 
       <!-- Indicador de tipo sobre el visor -->
-      {first.tipo !== 'imagen' && (
+      {first.kind !== 'imagen' && (
         <span class="absolute top-4 right-4 text-[10px] font-bold text-white bg-black/60 px-2.5 py-1 rounded-full uppercase tracking-wide">
-          {first.tipo === 'video' ? 'Video' : '360°'}
+          {first.kind === 'video' ? 'Video' : '360°'}
         </span>
       )}
     </div>
@@ -94,9 +93,9 @@ const gid = `pg-${Math.random().toString(36).slice(2, 8)}`;
             ]}
             data-pg-thumb={String(i)}
             data-active={i === 0 ? 'true' : 'false'}
-            aria-label={item.titulo || `${title} ${i + 1}`}
+            aria-label={item.alt || item.caption || `${title} ${i + 1}`}
           >
-            {item.tipo === 'imagen' ? (
+            {item.kind === 'imagen' ? (
               <img
                 src={item.url}
                 alt=""
@@ -107,15 +106,15 @@ const gid = `pg-${Math.random().toString(36).slice(2, 8)}`;
               <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
                 <span class:list={[
                   'w-9 h-9 rounded-full flex items-center justify-center',
-                  item.tipo === 'video' ? 'bg-brand/90' : 'bg-accent/90',
+                  item.kind === 'video' ? 'bg-brand/90' : 'bg-accent/90',
                 ]}>
-                  {item.tipo === 'video' ? <Icon name="play" class="w-4 h-4 text-white ml-0.5" /> : <Icon name="rotate-3d" class="w-4 h-4 text-white ml-0.5" />}
+                  {item.kind === 'video' ? <Icon name="play" class="w-4 h-4 text-white ml-0.5" /> : <Icon name="rotate-3d" class="w-4 h-4 text-white ml-0.5" />}
                 </span>
               </div>
             )}
-            {item.tipo !== 'imagen' && (
+            {item.kind !== 'imagen' && (
               <span class="absolute bottom-1 right-1 text-[8px] font-bold text-white bg-black/60 px-1.5 py-0.5 rounded-full uppercase">
-                {item.tipo === 'video' ? '▶' : '360'}
+                {item.kind === 'video' ? '▶' : '360'}
               </span>
             )}
           </button>
@@ -126,7 +125,7 @@ const gid = `pg-${Math.random().toString(36).slice(2, 8)}`;
 )}
 
 <!-- Datos + lógica de cambio de medio -->
-<script data-pg-items={gid} type="application/json" set:html={JSON.stringify(items.map((it) => ({ ...it, embed: it.tipo !== 'imagen' ? embedUrl(it.url) : it.url })))} />
+<script data-pg-items={gid} type="application/json" set:html={JSON.stringify(items.map((it) => ({ ...it, embed: it.kind !== 'imagen' ? embedUrl(it.url) : it.url })))} />
 <script define:vars={{ gid }}>
   (() => {
     const wrapper = document.querySelector(`[data-pg-wrapper="${gid}"]`);
@@ -147,16 +146,16 @@ const gid = `pg-${Math.random().toString(36).slice(2, 8)}`;
       // Limpia el visor y detiene cualquier video en reproducción
       stage.innerHTML = '';
 
-      if (item.tipo === 'imagen') {
+      if (item.kind === 'imagen') {
         const img = document.createElement('img');
         img.src = item.url;
-        img.alt = item.titulo || '';
+        img.alt = item.alt || item.caption || '';
         img.className = 'w-full h-full object-cover';
         stage.appendChild(img);
       } else {
         const iframe = document.createElement('iframe');
         iframe.src = item.embed;
-        iframe.title = item.titulo || '';
+        iframe.title = item.alt || item.caption || '';
         iframe.className = 'w-full h-full';
         iframe.setAttribute('frameborder', '0');
         iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
@@ -165,7 +164,7 @@ const gid = `pg-${Math.random().toString(36).slice(2, 8)}`;
 
         const badge = document.createElement('span');
         badge.className = 'absolute top-4 right-4 text-[10px] font-bold text-white bg-black/60 px-2.5 py-1 rounded-full uppercase tracking-wide';
-        badge.textContent = item.tipo === 'video' ? 'Video' : '360°';
+        badge.textContent = item.kind === 'video' ? 'Video' : '360°';
         stage.appendChild(badge);
       }
 

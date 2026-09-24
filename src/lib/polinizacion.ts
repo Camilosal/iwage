@@ -4,14 +4,12 @@
  * Falls back to local seed data when Strapi is unavailable.
  */
 import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc } from './media';
+import { mediaSrc, toMediaList, type MediaItem } from './media.ts';
 
 // ── Types ──────────────────────────────────────────────
-export interface GaleriaItem {
-  url: string;
-  tipo?: 'imagen' | 'video' | '360';
-  titulo?: string;
-}
+// El único tipo de galería del sitio es `MediaItem` (./media.ts). Se re-exporta desde
+// aquí para no romper importaciones que pedían el tipo a esta capa de datos.
+export type { MediaItem };
 
 export interface EspecieMelipona {
   nombre: string;
@@ -36,7 +34,7 @@ export interface CultivoPolinizacion {
   familia_botanica: string | null;
   icono: string | null;
   imagen: string | null;
-  galeria: GaleriaItem[] | null;
+  galeria: MediaItem[] | null;
   descripcion: string | null;
   descripcion_corta: string | null;
   rendimiento: string | null;
@@ -83,11 +81,7 @@ export const ICONO_DEFAULT = 'flower-2';
 
 // ── Mapper ─────────────────────────────────────────────
 function mapCultivo(raw: any): CultivoPolinizacion {
-  const galeria = Array.isArray(raw.galeria)
-    ? raw.galeria.map((g: any) =>
-        typeof g === 'string' ? { url: mediaSrc(g) ?? g, tipo: 'imagen' as const } : { ...g, url: mediaSrc(g.url) ?? g.url }
-      )
-    : null;
+  const galeria = Array.isArray(raw.galeria) ? toMediaList(raw.galeria) : null;
 
   return {
     id: raw.id,

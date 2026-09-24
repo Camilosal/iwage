@@ -103,3 +103,59 @@ test('ninguna URL de Strapi construida a mano puede llegar al HTML: ni host inte
     `URLs de Strapi construidas a mano en src/ — deben pasar por mediaSrc()/absUrl():\n  ${culpables}`.trim(),
   );
 });
+
+// ── Task 7: un solo tipo de galería, y un solo juego de campos ──────────────
+//
+// El grep que pidió el plan (`GaleriaItem|GalleryItem`) borra los duplicados pero no ve la
+// mitad que sí rompe el sitio en el navegador: `MediaItem` renombra `tipo`→`kind` y
+// `titulo`→`caption`, y `astro build` SOLO borra tipos, no los verifica. Una lectura
+// `item.tipo` que sobreviva da build verde, página 200 y galería pintando vacío. Es
+// especialmente fácil de dejar viva porque las dos galerías serializan sus `items` a un
+// `<script type="application/json">` y VUELVEN a leerlos en el cliente: server y navegador
+// tienen que nombrar los mismos campos, y ningún compilador lo comprueba aquí.
+const GALERIAS = ['components/shared/MediaGallery.astro', 'components/shared/ProductGallery.astro'];
+
+test('el tipo de galería es uno solo: no vuelve GaleriaItem ni GalleryItem', () => {
+  const culpables = archivosEn(SRC)
+    .filter((f) => /\b(GaleriaItem|GalleryItem)\b/.test(readFileSync(f, 'utf8')))
+    .map((f) => enSrc(f))
+    .join(', ');
+  assert.equal(culpables, '', `duplicados del tipo de galería todavía presentes: ${culpables}`);
+});
+
+test('los campos de galería de los modelos declaran MediaItem[] | null', () => {
+  const culpables = [];
+  for (const ruta of ['lib/tienda.ts', 'lib/proyectos.ts', 'lib/polinizacion.ts']) {
+    const fuente = readFileSync(join(SRC, ruta), 'utf8');
+    if (!/galeria:\s*MediaItem\[\]\s*\|\s*null/.test(fuente)) culpables.push(`${ruta}: galeria no declara MediaItem[] | null`);
+  }
+  const naturaleza = readFileSync(join(SRC, 'lib/naturaleza.ts'), 'utf8');
+  if (!/function experienciaGaleria\([^)]*\)\s*:\s*MediaItem\[\]/.test(naturaleza)) {
+    culpables.push('lib/naturaleza.ts: experienciaGaleria() no devuelve MediaItem[]');
+  }
+  assert.deepEqual(culpables, []);
+});
+
+test('las galerías leen kind/caption/alt también en el script del navegador', () => {
+  for (const ruta of GALERIAS) {
+    const fuente = readFileSync(join(SRC, ruta), 'utf8');
+
+    // (1) Ninguna lectura `.tipo`/`.titulo`: en un MediaItem son `undefined` y el visor se
+    //     queda en blanco sin que el build se entere.
+    const legadas = fuente
+      .split('\n')
+      .map((linea, i) => [i + 1, linea])
+      .filter(([, linea]) => /\.\s*(tipo|titulo)\b/.test(linea))
+      .map(([n, linea]) => `    ${ruta}:${n}: ${linea.trim().slice(0, 140)}`)
+      .join('\n');
+    assert.equal(legadas, '', `${ruta} sigue leyendo campos de la forma histórica`);
+
+    // (2) Sí leen los canónicos: `kind` es lo que decide <img> o <iframe>, y `caption` el pie.
+    assert.match(fuente, /\bkind\b/, `${ruta} no lee el campo canónico 'kind'`);
+    assert.match(fuente, /\bcaption\b/, `${ruta} no lee el campo canónico 'caption'`);
+
+    // (3) La normalización está en el borde del componente: la única puerta es toMediaList().
+    assert.match(fuente, /toMediaList/, `${ruta} no normaliza con toMediaList()`);
+    assert.match(fuente, /from '@\/lib\/media'/, `${ruta} no importa el contrato de medios`);
+  }
+});

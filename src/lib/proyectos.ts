@@ -4,7 +4,7 @@
  * Falls back to local seed data when Strapi is unavailable.
  */
 import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc } from './media';
+import { mediaSrc, toMediaList, type MediaItem } from './media.ts';
 
 // ── Types ──────────────────────────────────────────────
 export type TipoProyecto = 'finca' | 'empresa' | 'club' | 'cultivo' | 'turismo' | 'residencial' | 'institucional';
@@ -15,11 +15,9 @@ export type TipoContrato = 'unico' | 'acompanamiento-mensual' | 'convenio' | 'do
 export type SaludColonias = 'excelente' | 'buena' | 'regular' | 'critica';
 export type ClienteTipo = 'colegio' | 'finca' | 'empresa' | 'hotel' | 'particular' | 'ong' | 'gobernacion';
 
-export interface GaleriaItem {
-  url: string;
-  tipo?: 'imagen' | 'video' | '360';
-  titulo?: string;
-}
+// El único tipo de galería del sitio es `MediaItem` (./media.ts). Se re-exporta desde
+// aquí para no romper importaciones que pedían el tipo a esta capa de datos.
+export type { MediaItem };
 
 export interface ProyectoMeliponario {
   id: number;
@@ -29,7 +27,7 @@ export interface ProyectoMeliponario {
   descripcion: string | null;
   descripcion_corta: string | null;
   imagen: string | null;
-  galeria: GaleriaItem[] | null;
+  galeria: MediaItem[] | null;
 
   // Clasificación
   tipo: TipoProyecto;
@@ -135,8 +133,8 @@ const FALLBACK_PROYECTOS: ProyectoMeliponario[] = [
     descripcion_corta: 'Proyecto PRAE con 6 colmenas educativas y sendero interpretativo.',
     imagen: '/images/galeria/proyecto-ambala-1.webp',
     galeria: [
-      { url: '/images/galeria/proyecto-ambala-1.webp', tipo: 'imagen' },
-      { url: '/images/galeria/proyecto-ambala-2.webp', tipo: 'imagen' },
+      { url: '/images/galeria/proyecto-ambala-1.webp', kind: 'imagen' },
+      { url: '/images/galeria/proyecto-ambala-2.webp', kind: 'imagen' },
     ],
     tipo: 'club', estado: 'activo',
     ubicacion: 'Ibagué, Tolima', municipio: 'Ibagué', vereda: 'Ambalá', altitud_msnm: 1300, coordenadas: '4.4389,-75.2322', area_m2: 200,
@@ -160,8 +158,8 @@ const FALLBACK_PROYECTOS: ProyectoMeliponario[] = [
     descripcion_corta: 'Polinización de aguacate Hass y producción de miel con 12 colmenas.',
     imagen: '/images/galeria/proyecto-carmen-1.webp',
     galeria: [
-      { url: '/images/galeria/proyecto-carmen-1.webp', tipo: 'imagen' },
-      { url: '/images/galeria/proyecto-carmen-2.webp', tipo: 'imagen' },
+      { url: '/images/galeria/proyecto-carmen-1.webp', kind: 'imagen' },
+      { url: '/images/galeria/proyecto-carmen-2.webp', kind: 'imagen' },
     ],
     tipo: 'finca', estado: 'activo',
     ubicacion: 'Vereda El Carmen, Ibagué', municipio: 'Ibagué', vereda: 'El Carmen', altitud_msnm: 1450, coordenadas: '4.4612,-75.2890', area_m2: 5000,
@@ -185,8 +183,8 @@ const FALLBACK_PROYECTOS: ProyectoMeliponario[] = [
     descripcion_corta: 'Experiencia de observación y cata de miel para huéspedes.',
     imagen: '/images/galeria/proyecto-cumbre-1.webp',
     galeria: [
-      { url: '/images/galeria/proyecto-cumbre-1.webp', tipo: 'imagen' },
-      { url: '/images/galeria/proyecto-cumbre-2.webp', tipo: 'imagen' },
+      { url: '/images/galeria/proyecto-cumbre-1.webp', kind: 'imagen' },
+      { url: '/images/galeria/proyecto-cumbre-2.webp', kind: 'imagen' },
     ],
     tipo: 'turismo', estado: 'activo',
     ubicacion: 'Cajamarca, Tolima', municipio: 'Cajamarca', vereda: 'La Cumbre', altitud_msnm: 1600, coordenadas: '4.4450,-75.4320', area_m2: 800,
@@ -210,7 +208,7 @@ const FALLBACK_PROYECTOS: ProyectoMeliponario[] = [
     descripcion_corta: '4 colmenas educativas con material PRAE para primaria.',
     imagen: '/images/galeria/proyecto-bonifacio-1.webp',
     galeria: [
-      { url: '/images/galeria/proyecto-bonifacio-1.webp', tipo: 'imagen' },
+      { url: '/images/galeria/proyecto-bonifacio-1.webp', kind: 'imagen' },
     ],
     tipo: 'club', estado: 'en-proceso',
     ubicacion: 'Ibagué, Tolima', municipio: 'Ibagué', vereda: null, altitud_msnm: 1280, coordenadas: null, area_m2: 120,
@@ -234,7 +232,7 @@ const FALLBACK_PROYECTOS: ProyectoMeliponario[] = [
     descripcion_corta: 'Polinización de café Caturra con 8 colmenas en bordes de lote.',
     imagen: '/images/galeria/proyecto-esperanza-1.webp',
     galeria: [
-      { url: '/images/galeria/proyecto-esperanza-1.webp', tipo: 'imagen' },
+      { url: '/images/galeria/proyecto-esperanza-1.webp', kind: 'imagen' },
     ],
     tipo: 'finca', estado: 'activo',
     ubicacion: 'Coello, Tolima', municipio: 'Coello', vereda: 'La Esperanza', altitud_msnm: 1100, coordenadas: '4.2900,-74.9100', area_m2: 8000,
@@ -258,7 +256,7 @@ const FALLBACK_PROYECTOS: ProyectoMeliponario[] = [
     descripcion_corta: 'Paisajismo con 3 colmenas ornamentales en zonas comunes.',
     imagen: '/images/galeria/proyecto-poblado-1.webp',
     galeria: [
-      { url: '/images/galeria/proyecto-poblado-1.webp', tipo: 'imagen' },
+      { url: '/images/galeria/proyecto-poblado-1.webp', kind: 'imagen' },
     ],
     tipo: 'residencial', estado: 'en-proceso',
     ubicacion: 'Ibagué, Tolima', municipio: 'Ibagué', vereda: null, altitud_msnm: 1250, coordenadas: null, area_m2: 60,
@@ -280,11 +278,7 @@ const FALLBACK_PROYECTOS: ProyectoMeliponario[] = [
 
 // ── Normalizer ─────────────────────────────────────────
 function normalizeProyecto(raw: any): ProyectoMeliponario {
-  const galeria = Array.isArray(raw.galeria)
-    ? raw.galeria.map((g: any) =>
-        typeof g === 'string' ? { url: mediaSrc(g) ?? g, tipo: 'imagen' as const } : { ...g, url: mediaSrc(g.url) ?? g.url }
-      )
-    : null;
+  const galeria = Array.isArray(raw.galeria) ? toMediaList(raw.galeria) : null;
 
   return {
     id: raw.id,

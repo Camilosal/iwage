@@ -4,14 +4,12 @@
  * Falls back to local seed data when Strapi is unavailable.
  */
 import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc } from './media';
+import { mediaSrc, toMediaList, type MediaItem } from './media.ts';
 
 // ── Types ──────────────────────────────────────────────
-export interface GaleriaItem {
-  url: string;
-  tipo?: 'imagen' | 'video' | '360';
-  titulo?: string;
-}
+// El único tipo de galería del sitio es `MediaItem` (./media.ts). Se re-exporta desde
+// aquí para no romper importaciones que pedían el tipo a esta capa de datos.
+export type { MediaItem };
 
 /** Elemento clave o diferenciador del producto (máx. 3). */
 export interface Diferenciador {
@@ -59,7 +57,7 @@ export interface Producto {
   /** Marca dueña del producto ('meliponas' por defecto; 'granja' para la tienda de la granja). */
   marca?: 'meliponas' | 'granja';
   imagen: string | null;
-  galeria: GaleriaItem[] | null;
+  galeria: MediaItem[] | null;
   stock_disponible: boolean;
   stock_cantidad: number | null;
   destacado: boolean;
@@ -143,11 +141,7 @@ function normalizeProducto(raw: any): Producto {
     categoria: raw.categoria,
     marca: raw.marca ?? 'meliponas',
     imagen: raw.imagen ? mediaSrc(raw.imagen) : null,
-    galeria: Array.isArray(raw.galeria)
-      ? raw.galeria.map((g: any) =>
-          typeof g === 'string' ? { url: mediaSrc(g) ?? g, tipo: 'imagen' as const } : { ...g, url: mediaSrc(g.url) ?? g.url }
-        )
-      : null,
+    galeria: Array.isArray(raw.galeria) ? toMediaList(raw.galeria) : null,
     stock_disponible: raw.stock_disponible ?? true,
     stock_cantidad: raw.stock_cantidad ?? null,
     destacado: raw.destacado ?? false,

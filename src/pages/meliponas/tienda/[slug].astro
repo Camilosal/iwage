@@ -3,11 +3,10 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import ProductGallery from '@/components/shared/ProductGallery.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getProductoBySlug, getProductos, getProductosPorFamilia, CATEGORIAS } from '@/lib/tienda';
-import type { GaleriaItem } from '@/lib/tienda';
 import { renderMarkdown } from '@/lib/render-markdown';
 import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
 import { SITE } from '@/config/site';
-import { absUrl } from '@/lib/media';
+import { absUrl, type MediaItem } from '@/lib/media';
 
 const { slug } = Astro.params;
 const producto = await getProductoBySlug(slug!);
@@ -60,8 +59,8 @@ const categoriaLabel = CATEGORIAS.find((c) => c.id === producto.categoria)?.labe
 const descuento = producto.precio_comparativo ? Math.round((1 - producto.precio / producto.precio_comparativo) * 100) : null;
 
 // ── Galería audiovisual: imagen principal + galería ──
-const mediaItems: GaleriaItem[] = [
-  ...(producto.imagen ? [{ url: producto.imagen, tipo: 'imagen' as const, titulo: producto.nombre }] : []),
+const mediaItems: MediaItem[] = [
+  ...(producto.imagen ? [{ url: producto.imagen, kind: 'imagen' as const, caption: producto.nombre }] : []),
   ...(producto.galeria ?? []),
 ];
 
