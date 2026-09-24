@@ -1610,3 +1610,31 @@ Deuda nueva que deja este hallazgo (unidad de trabajo pequeña, con su propio de
 `sitemap:xml` no tiene invalidación por versión. Cualquier cambio en `collectSitemapUrls` tarda
 hasta 1 h en verse y hasta 24 h en el edge. Arreglo proposals: clave con sufijo de versión
 (`sitemap:xml:v2`) que se sube al tocar la lógica, o purgar la clave en el arranque del proceso.
+
+## Deploy #6 ejecutado y verificado (22:16Z) — el ítem (1) queda cerrado en producción
+
+CHECKPOINT del usuario a las 21:47Z. Agrupó `29c79d8` (identidad en `/legal`) + `72a7af6`
+(clave de caché del sitemap versionada). Imagen `negocio-iwage_app` construida a las 21:16Z
+y `iwage_web` recreado: `running / healthy`, StartedAt 22:16:12Z. Cero líneas de error o
+degradado en `docker logs --since 4m` después de servir un barrido de 180 peticiones.
+
+| métrica en el origen | antes (deploy #5) | después (deploy #6) |
+|---|---|---|
+| `<loc>` en `/sitemap.xml` | 185 (caché vieja) | **180** |
+| rutas `/legal` declaradas | 6 | **1** (solo el índice; las 5 hojas salen `noindex, follow`) |
+| claves Redis `*sitemap:xml*` | `iwage:sitemap:xml` | **`iwage:sitemap:xml:v2`** — la v1 quedó huérfana sin purgar nada |
+| URLs del sitemap con 0 `application/ld+json` | 5 | **0** |
+| bloques JSON que no parsean | — | **0** |
+| `/legal/*` (6 rutas) | 0 bloques | **2 bloques** cada una (`WebSite`, `Organization`) |
+
+Tipos presentes sobre las 180 URLs: `Article, Blog+ItemList, BreadcrumbList, FAQPage,
+LodgingBusiness, Organization, Person, Product, TouristAttraction, TouristTrip, WebSite`.
+
+Efecto colateral buscado y medido: `/llms.txt` ahora dice *"Sitemap dinámico en /sitemap.xml
+(180 URLs)"* — el marcador sale de `collectSitemapUrls()`, así que se autocorrigió con el deploy.
+El 301 entre marcas sigue vivo (`/cafe/bitacora/viabilidad-practica` → `/granja/bitacora/...`).
+
+**Para el ítem (3), hito 2026-10-08:** reenviar el sitemap de **180 URLs** (no 185). Antes de
+reenviar, tirar el XML por el borde público una vez, porque la respuesta pide
+`s-maxage=3600, stale-while-revalidate=86400` y Cloudflare puede seguir sirviendo el de 185 hasta
+24 h aunque el origen ya esté fresco.
