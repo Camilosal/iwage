@@ -1300,3 +1300,50 @@ El ensayo que acompañó a `075debd` usó un Strapi de fixture con 4 filas: prob
 | las 56 rutas propias | `200` (están dentro del barrido de 170 URLs de arriba) |
 
 Lectura: el deploy #5 es lo que convierte las **336 URLs vivas para 56 documentos** que midió el barrido de producción en **56 documentos con una sola URL**, y lo hace sin que ningún destino sea un callejón: los 280 redirects apuntan a las 56 que sí existen. Lo que aún no se puede saber acá es cuánto de esas 336 llegó a conocer Googlebot — eso se lee en Search Console, hito del 8-oct, ítem (3) del goal.
+
+## La deuda de hosts del ítem (4), medida desde afuera (2026-09-24 ~19:55Z)
+
+Tres de los cinco renglones del ítem (4) eran `www` / `http→https` / `recetas.iwage.co`, y estaban escritos como si fueran una sola clase de problema: hosts duplicados que consolidar. **Medidos uno por uno, ninguno de los cuatro es eso.** Procedimiento: `dig` + `curl` a los hosts públicos, sin credenciales, sin escribir en ningún lado.
+
+| host | DNS | qué responde hoy |
+|---|---|---|
+| `iwage.co` | A `172.67.158.50` `104.21.90.165`, AAAA ×2 (Cloudflare) | el sitio |
+| `www.iwage.co` | **A vacío, CNAME vacío, AAAA vacío** | nada: `curl` → `000`, NXDOMAIN |
+| `recetas.iwage.co` | mismos IPs Cloudflare | otra app viva, propia |
+| `cafe.iwage.co` | mismos IPs Cloudflare | otra app viva, **ajena** |
+
+### `www` no es deuda de consolidación: es ausencia
+
+No hay registro, así que no hay un host duplicado que redirigir ni contenido que canibalizar — no existe una segunda URL que pelee con la primera. Lo que sí existe es una pérdida tipográfica: quien escribe `www.iwage.co` se queda afuera. En el código aparece una sola vez y no como URL publicada (`src/lib/media.ts:55`, en una allowlist de hosts de Strapi que no toca este goal). Decisiones posibles, ambas del usuario y **ninguna es código**: crear el CNAME en Cloudflare + `Always Use HTTPS`, o dejarlo así y no imprimir nunca `www.iwage.co` en materiales.
+
+### `http://iwage.co` no redirige a https: sirve el mismo documento
+
+`curl -s -o /dev/null http://iwage.co/` → `200`, sin cabecera `Location`. Y no es una respuesta vacía: `sha256sum` del body de `http://` y de `https://` es **idéntico** (`5b62dfa850865a9c…`, 63286 bytes). O sea que Cloudflare tiene **"Always Use HTTPS" apagado** y el sitio contesta dos veces por el mismo contenido, con el `rel=canonical` absoluto a `https://iwage.co/…` como única señal que deshace el empate.
+
+Acción del usuario: Cloudflare → SSL/TLS → Edge Certificates → **Always Use HTTPS** ON. Verificación después del cambio: `curl -I http://iwage.co/` debe dar `301` con `Location: https://iwage.co/`. Costo para este repo: **cero commits** — el `301` lo emite el borde, no Astro.
+
+### `recetas.iwage.co`: un sitio hijo enlazado pero no declarado
+
+App separada y real: título `Recetario Iwagé Cafe · Filtrados, espresso y panadería con café de origen`, `canonical` propio (`https://recetas.iwage.co/`), sin `noindex`. Desde `src/pages/cafe/recetas.astro:7,62` salen **2 enlaces** con `target="_blank" rel="noopener noreferrer"` al host, y `https://iwage.co/cafe/recetas` responde `200` con 76 KB.
+
+Lo que le falta es exactamente lo que esta fase cerró para `iwage.co`, y no se puede cerrar desde acá:
+
+| señal | `iwage.co` | `recetas.iwage.co` |
+|---|---|---|
+| `/sitemap.xml` | 200, 170–185 URLs | **404** |
+| `Sitemap:` en `robots.txt` | presente | **ausente** (el `robots.txt` es boilerplate de "content signals", sin una sola línea de permiso ni de mapa) |
+| bloques `ld+json` | ≥1 en las 170 URLs del sitemap | **0** en su portada y en `/recetas` |
+
+Riesgo GEO concreto: un motor de respuesta que entre por el enlace de la landing de café a `recetas` no encuentra mapa ni identidad; el subdominio queda como una isla sin grafo, y `Organization`/`WebSite` del padre no le llegan (son JSON-LD distintos en otro host, sin `parentURL` ni `sameAs` que los ate). Es el mismo defecto que la fase 1–3 corrigió en el sitio principal, en un host que no está en este repo.
+
+### `cafe.iwage.co`: un placeholder de otro software, publicado bajo la marca
+
+El host existe y está detrás de Cloudflare, pero no es Iwagé. Medido: título `Home | My Website`, **`<link rel="canonical" href="http://127.0.0.1:8069/">`**, cookies `frontend_lang` y `session_id` HttpOnly, `robots.txt` con `Sitemap: http://cafe.iwage.co/sitemap.xml` y `Allow: /cards/`, y un `sitemap.xml` (`200`, 873 bytes) con **11 `<loc>` en `http://`** de rutas genéricas: `/`, `/contactus`, `/terms`, `/shop`, `/website/info`, `/jobs`, `/events`, `/slides`, `/profile/users`, `/profile/ranks_badges`, `/slides/all`.
+
+Ni `iwage.co` ni `recetas` enlazan a este host (medido: 0 ocurrencias de `cafe.iwage.co` en `/`, `/cafe/`, `/cafe/recetas`; la única aparición de esa cadena en el repo es `@cafe.iwage`, un handle de Instagram en `src/config/brands/cafe.ts:44`). O sea: no es deuda de consolidación ni canibalización — el `canonical` a `127.0.0.1:8069` hace que cualquier motor descarte las 11 URLs, pero a cambio el host publica un `robots.txt`+`sitemap` ajenos bajo el dominio de la marca.
+
+Acción del usuario, en orden de preferencia: quitar el registro/proxy de `cafe.iwage.co`, o reemplazar la app por un `301` a `https://iwage.co/cafe/`. No hay nada que commitear acá.
+
+### Lectura del renglón
+
+De las cuatro cosas medidas, **cero son código de este repo**: tres son de Cloudflare/DNS (siempre-https, `www`, el placeholder) y una (`recetas`) es un sitio en otro despliegue que necesitaría su propio `sitemap.xml`, su `robots.txt` con `Sitemap:` y su `ld+json`. Nada de esto entra al bundle del deploy #5. Quedan como acciones del usuario, y el ítem (4) de la deuda de hosts pasa a estar **medido y repartido**, que es lo que se puede hacer sin tocar contenido ni Search Console.
