@@ -1598,7 +1598,7 @@ docker exec redis_app redis-cli DEL iwage:sitemap:xml
 curl -s -H 'Host: iwage.co' http://127.0.0.1:4321/sitemap.xml | grep -c '<loc>'   # esperar 180
 ```
 
-Y ojo con el edge: la cabecera del sitemap pide `s-maxage=3600, stale-while-revalidate=86400`, así
+Una vez esto esté desplegado ya no hace falta purgar: el fix es la clave versionada (`iwage:sitemap:xml:v2`, ver `sitemap-bitacora.ts`), que nunca fue poblada. Y ojo con el edge: la cabecera del sitemap pide `s-maxage=3600, stale-while-revalidate=86400`, así
 que Cloudflare puede servir un XML con hasta 24 h de vida aunque el origen ya esté fresco. Para
 Google esto significa que "reenviar el sitemap" no es determinista el mismo día del deploy.
 

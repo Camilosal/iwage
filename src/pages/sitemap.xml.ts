@@ -8,9 +8,10 @@
 import type { APIRoute } from 'astro';
 import { SITE } from '@/config/site';
 import { collectSitemapUrls, renderSitemapXml } from '@/lib/sitemap';
+import { claveSitemap } from '@/lib/sitemap-bitacora';
 import { cacheGet, cacheSet } from '@/lib/redis';
 
-const CACHE_KEY = 'sitemap:xml';
+const CACHE_KEY = claveSitemap();
 const CACHE_TTL_SECONDS = 3600;
 
 export const GET: APIRoute = async () => {

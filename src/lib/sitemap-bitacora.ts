@@ -156,3 +156,19 @@ export function indicesDeBitacora(entries: SlugEntry[]): SitemapUrl[] {
     priority: 0.8,
   }));
 }
+
+/**
+ * Versión de la clave con que el XML del sitemap se cachea en Redis.
+ *
+ * `src/pages/sitemap.xml.ts` guarda el documento completo y el Redis es un contenedor aparte,
+ * así que un `docker compose build` NO limpia la clave: medido el 2026-09-24, el origen seguía
+ * sirviendo 185 URLs con las 5 hojas de `/legal` que el código había dejado de declarar cinco
+ * horas antes. Cada vez que cambie la lógica de `collectSitemapUrls` se sube este número y el
+ * proceso nuevo escribe en una clave que todavía nadie pobló. La v1 (sin sufijo) quedó
+ * envenenada en producción y no se vuelve a leer.
+ */
+export const VERSION_SITEMAP = 2;
+
+export function claveSitemap(): string {
+  return `sitemap:xml:v${VERSION_SITEMAP}`;
+}
