@@ -66,27 +66,32 @@ No son las 10 preguntas del nicho: son tres consultas que responden una pregunta
 | `iwage.co bitacora meliponario pureza miel de angelita adulteración` | tema de artículo | **0** | `ecocolmena.org/como-saber-si-tu-miel-es-pura-o-esta-adulterada/` |
 | `"El agroecosistema productivo" iwage granja tres formas de cultivar` | título exacto | **0** | `camilosaldarriaga.com/es/bitacora/agroecosistema-productivo` |
 
-### Qué significa el tercer renglón
+### El tercer renglón: qué resultó ser, y cómo la primera lectura estaba equivocada
 
-El documento **está indexado y rankea #1**, pero el motor no puede saber que es de Iwagé: la URL que gana es el dominio personal del autor, y `https://iwage.co/granja/bitacora/agroecosistema-productivo` no aparece. Verificado con `curl` en las dos copias, no por apariencia:
+Primera lectura (18:40Z, escrita con un solo artículo): "el documento está duplicado y el ranking se lo llevó la copia del dominio personal". **Falsa en lo esencial.** Se corrigió ampliando la muestra de 1 a los 19 artículos involucrados, medido entre 18:51Z y 18:56Z.
 
-| | `camilosaldarriaga.com/es/...` | `iwage.co/granja/bitacora/...` |
+| | `iwage.co` | `camilosaldarriaga.com` |
 |---|---|---|
-| tamaño | 129,261 bytes | -- |
-| `rel=canonical` | self | self |
-| `robots` | ausente | -- |
-| `og:url` | self | -- |
-| menciones del otro dominio | 2 → `iwage.co` | 6 → `camilosaldarriaga.com` |
-| bloques `ld+json` | 2 | -- |
-| `datePublished` / `dateModified` | -- | `2026-07-16` / `2026-09-24T02:05:21.171Z` |
-| `author.url` | -- | `https://camilosaldarriaga.com` |
+| URLs en el sitemap | 185 | 1.836 |
+| URLs de bitácora | 56 | 196 (49 slugs en `/es/`) |
+| idiomas | 1 | 4 (`es`/`en`/`fr`/`pt`) con `hreflang` + `x-default` en cada hoja |
+| `rel=canonical` en las 19 hojas colisionadas | self | self en 19/19 |
+| `meta robots` | -- | ausente en 19/19 |
 
-Cada copia se declara canónica a sí misma. No hay `rel=canonical` cruzado ni anotación de duplicado en ningún lado: desde afuera son dos propiedades distintas publicando el mismo texto, y el grafo de schema que acabamos de cerrar incluso **refuerza** la atribución al dominio personal (`author.url` apunta allá).
+**Colisiones:** 19 de los 56 artículos comparten slug con el dominio personal -- y son el 100 % de `granja` (19/19), 0 de los 37 de `meliponas`. En las 19 el `<h1>` es idéntico y el párrafo de apertura también.
+
+**Pero el cuerpo no es el mismo texto.** Contención de 8-gramas sobre el `<article>` aislado y normalizado: 0,147 de promedio del dominio personal dentro de iwage (rango 0,034–0,45), 0,044 en la dirección inversa. Un duplicado real da ~0,9 en las dos direcciones.
+
+Entonces no hay copia: hay **dos redacciones distintas del mismo artículo, con el mismo título exacto, en dos dominios**. Para un motor de respuesta eso es peor que un duplicado, porque ninguna señal resuelve la disputa --ni `canonical` cruzado, ni `noindex` en una de las dos (19/19 sin `meta robots`)--, así que la consulta por título tiene dos candidatos legítimos y gana el dominio 10× más grande.
+
+Nota de instrumento, para no repetir el error: dos cifras de la pasada inicial eran artefactos de comparaciones mal escritas. La "similitud 0,06" se había medido sobre la página completa (menú, footer, tira de relacionadas) en vez del `<article>`; y el "1 `canonical` que apunta a iwage" era un `in` sobre el slug `meliponario-iwage-subsistema-vivo`, que contiene la palabra `iwage`. Regla: medir sobre el nodo de contenido y con igualdad de cadenas, nunca con substring.
+
+Los dos `robots.txt`: iwage solo declara `User-agent: * / Allow: /` más los `Disallow` internos; el dominio personal enumera 19 agentes de IA con `Allow`. La diferencia es **cosmética** --la ausencia de una stanza no bloquea nada, el permiso por defecto es permitir--, así que esto no se anota como deuda ni hay que "arreglarlo".
 
 ### Lectura
 
-- La marca existe en el índice: la consulta de marca devuelve `https://iwage.co/` en el puesto 1. El problema no es "Google no sabe que Iwagé existe".
-- El contenido del nicho tampoco: 0 de 10 en la serie fija + 0 en la consulta por tema.
-- Y hay una tercera variable que las fases 1-3 no habían medido: para el único artículo probado por título exacto, **el ranking ya está ocupado por la copia del dominio personal**. Subir volumen de contenido sin resolver la propiedad del duplicado compra participación en una consulta donde Iwagé compite contra sí mismo y pierde.
+- La marca sí está en el índice: la consulta de marca devuelve `https://iwage.co/` en el puesto 1. El problema no es que Google ignore que Iwagé existe.
+- El contenido del nicho, no: 0 de 10 en la serie fija + 0 en la consulta por tema.
+- Y aparece una variable que las fases 1-3 no midieron: **la mitad del corpus (`granja`, los 19) compite por su propio título contra el dominio personal**, en 4 idiomas, y es la otra URL la que aparece al buscar el texto. `meliponas` (37 artículos) es el único territorio sin esa contienda --y también el que sigue en 0 menciones en la serie fija, así que la contienda no explica el cero de las otras marcas.
 
-Qué hacer con esto: no es una decisión de código, y no se decide acá. Se lleva como pregunta al hito del **2026-10-08** --Search Console sobre `iwage.co` dice cuántos de los 56 están descubiertos y con qué consulta; con ese número se decide si la fase 4 se escribe sobre `iwage.co` o sobre el otro dominio. Mientras no se resuelva, la hipótesis de contenido de la fase 4 queda con una condición agregada, no refutada.
+Qué hacer con esto: no es una decisión de código y no se decide acá. Va como pregunta al hito del **2026-10-08**: Search Console sobre `iwage.co` dice cuántos de los 56 están descubiertos y con qué consulta, y si las 19 de `granja` están canibalizadas por `camilosaldarriaga.com`. Con esa respuesta se decide sobre qué dominio se escribe la fase 4 y qué pasa con esas 19. Mientras no se resuelva, esto es una **condición agregada** a la hipótesis de contenido, no su refutación.
