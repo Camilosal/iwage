@@ -1102,6 +1102,25 @@ Con el 400 puesto: las 3 páginas muestreadas siguen respondiendo 200, no se pub
 
 El build del host también hizo su trabajo acá: la primera pasada de `npx astro build` reventó con `Expected `,` or `)` but found `:`` en `src/lib/bitacora.ts:40` --un paréntesis que me comí al editar la firma-- y `npm test` estaba verde. Sin el build, eso llegaba al deploy.
 
+### Resultado del CHECKPOINT 2 (deploy #4, verificado en el origen 2026-09-24 ~18:23Z)
+
+`docker compose up -d iwage_app` recreó `iwage_web` con la imagen nueva (`01702c0f0549`, etiquetada `7c62a7b`; la anterior queda como `eae8219` → `b192ea11b28f`, así que el rollback sigue siendo un retag). Sano al primer intento. Todo lo de abajo se midió en `127.0.0.1:4321`, sin purgar ninguna caché.
+
+| Superficie | Medido en el grafo servido |
+|---|---|
+| `/` | `Organization`, `Person`, `WebSite` --el `WebSite` es nuevo— |
+| `/granja/bitacora` | `WebSite`, `Organization` ×2, `Person`, `BreadcrumbList`, **`Blog`** con `numberOfItems=19`, `blogPost=19`, las 19 URLs absolutas, `@id=…/granja/bitacora#blog`, `isPartOf=…/#website` |
+| `/meliponas/bitacora` | igual, con `numberOfItems=37` y 37 `blogPost` |
+| `/cafe/bitacora`, `/tierras/bitacora` | **sin `Blog`**, `robots=index, follow` revocado a `noindex, follow` (índice vacío real, no blip: el log no tiene ni una línea de degradado) |
+| `/granja/bitacora/<slug>` ×2 | `WebSite`, `Organization` ×2, `Person`, `BreadcrumbList`, `Article` con 14 claves e `image` presente |
+| Integridad de referencias | `@id` declarados 8, referenciados 5, **colgando 0** (en local el validador encontró 12; la madre declarada los cerró) |
+
+Conteos de la fase 3 intactos: `/` sigue enlazando `idx=2 art=6`, y el sitemap conserva **185** URLs, de las cuales **58** son de bitácora = **2 índices + 56 artículos** (37 meliponas + 19 granja). Ráfaga: 60 peticiones a 12 sobre 5 rutas → `60 × 200`; las 185 URLs del sitemap, barridas en el origen con redirects desactivados → **185 / 200, cero caídas**. `docker logs iwage_web | grep -c 'resumen degradado'` = **0**.
+
+### Dos cosas que salió a medir el barrido y no estaban en la lista de deudas
+
+- **5 URLs del sitemap se autodeclaran `noindex`**: `/legal/cancelaciones-y-reembolsos`, `/legal/cookies`, `/legal/devoluciones-y-retracto`, `/legal/terminos-y-condiciones`, `/legal/tratamiento-de-datos`. Google reporta eso como \"enviado y con noindex\", y es exactamente el tipo de señal que ensucia el informe de cobertura justo cuando se valide el hito del 8-oct. El arreglo es de una línea por página (o quitarlas del sitemap), pero es un cambio de comportamiento sobre páginas publicadas: no se mezcló con un deploy de schema sin la decisión del usuario.
+- **Los redirects de barra emiten `Location: http://…` aunque la petición llega por TLS**: `https://iwage.co/naturaleza` → 301 → `http://iwage.co/naturaleza/` (nginx lo devuelve a https y la cadena cierra, pero el origen no ve `X-Forwarded-Proto`). No afecta al rastreo mientras el sitemap declare la forma con barra --y las 185 la declaran—, así que queda registrado con la deuda de `www`/`http→https`, que es del mismo origen.
 
 ## Rehearsal en local con un Strapi de fixture (medido 2026-09-24, sin tocar producción)
 
