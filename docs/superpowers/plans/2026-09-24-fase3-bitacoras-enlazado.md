@@ -1563,3 +1563,50 @@ a una sola y un barrido visual de las 6 marcas antes de desplegar.
    (`npm test` es un `exit 1`). La unidad de trabajo de recetas necesita su propia sesión sobre
    el repo padre, con su CHECKPOINT y su build de `cafeteria_app` (contenedor compartido: 6 semanas
    arriba, no lo toco desde acá).
+
+## El `/sitemap.xml` servido es caché, no código (y esto invalida una medición mía anterior)
+
+Medido sobre el origen a las 21:43Z:
+
+| qué | valor |
+|---|---|
+| `<loc>` servidos por `iwage_web` | **185** |
+| de esos, rutas `/legal` | **6** (índice + 5 hojas) |
+| clave de caché | `iwage:sitemap:xml` (TTL restante 494 s sobre 3600) |
+| qué dice el código en `HEAD` | `STATIC_PAGES` solo declara `['/legal/', 0.3, 'yearly']` — las 5 hojas salieron con el commit `9f5e831` (hoy 18:32Z) |
+| imagen desplegada | creada 21:19Z, **después** de `9f5e831` |
+
+Es decir: el contenedor desplegado ya tiene el arreglo, pero `/sitemap.xml` sigue sirviendo el
+XML viejo porque `src/pages/sitemap.xml.ts` cachea **el documento completo** en el Redis
+compartido (`iwage:sitemap:xml`, 3600 s; 60 s si alguna colección falla) y el Redis sobrevive al
+rebuild del contenedor. Nadie purga la clave al desplegar.
+
+**Corrección de un error público mío:** en `1a38cce` anoté que mi predicción "el sitemap baja a
+180 tras el deploy #5" estaba equivocada porque medí 185 antes y 185 después. La predicción era
+correcta; lo equivocado fue el método — medir el sitemap sin purgar la caché. El 185 "después" era
+la caché del "antes". Con el código actual el número real es **180** (185 − 5 hojas legales).
+
+Render fresco desde `HEAD` con Redis inalcanzable dio 170 `<loc>`: **no es el número de
+referencia**, porque sin el entorno de la app (`STRAPI_TOKEN`) las colecciones privadas fallan y
+`fetchAllSlugs` las omite en silencio. El conteo authoritative solo se toma en el origen, después
+de purgar.
+
+Procedimiento para no volver a medir caché (aplica al deploy #6 y a la validación del ítem (3)):
+
+```
+docker exec redis_app redis-cli DEL iwage:sitemap:xml
+curl -s -H 'Host: iwage.co' http://127.0.0.1:4321/sitemap.xml | grep -c '<loc>'   # esperar 180
+```
+
+Y ojo con el edge: la cabecera del sitemap pide `s-maxage=3600, stale-while-revalidate=86400`, así
+que Cloudflare puede servir un XML con hasta 24 h de vida aunque el origen ya esté fresco. Para
+Google esto significa que "reenviar el sitemap" no es determinista el mismo día del deploy.
+
+**Consecuencia directa para el ítem (3), hito 2026-10-08:** el archivo que hay que reenviar es el
+de **180 URLs**, no el de 185 que se mencionaba en el objetivo; y conviene reenviarlo después del
+deploy #6 + purge, no antes.
+
+Deuda nueva que deja este hallazgo (unidad de trabajo pequeña, con su propio deploy):
+`sitemap:xml` no tiene invalidación por versión. Cualquier cambio en `collectSitemapUrls` tarda
+hasta 1 h en verse y hasta 24 h en el edge. Arreglo proposals: clave con sufijo de versión
+(`sitemap:xml:v2`) que se sube al tocar la lógica, o purgar la clave en el arranque del proceso.
