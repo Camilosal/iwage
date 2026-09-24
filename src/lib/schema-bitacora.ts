@@ -96,6 +96,70 @@ export function nodosComunes(): Record<string, unknown>[] {
   return [webSiteSchema(), organizacionMadre()];
 }
 
+export interface MetaArticulo {
+  title: string;
+  description: string;
+  datePublished: string;
+  dateModified?: string;
+  author?: string;
+  authorPlace?: string;
+  image?: string;
+  section?: string;
+  wordCount?: number;
+  keywords?: string[];
+}
+
+export interface OpcionesArticulo {
+  brand: string;
+  url: string;
+  /** La imagen del layout (`og:image`), para las filas que no traen la suya. */
+  imagen: string;
+  article: MetaArticulo;
+}
+
+const AUTOR_POR_DEFECTO = 'Manuel Camilo Saldarriaga Acosta';
+const AUTOR_URL = 'https://camilosaldarriaga.com';
+
+/**
+ * El nodo `Article` de las rutas de bitácora. Estaba escrito en línea dentro de
+ * `BrandLayout`, así que ningún test puro lo miraba: acá vive la única versión.
+ *
+ * `about` es lo que faltaba del contrato que pide el goal: las mismas materias que
+ * ya sostienen `keywords` y la sección, declaradas como entidades en vez de como
+ * una cadena.
+ */
+export function articuloSchema({ brand, url, imagen, article }: OpcionesArticulo): Record<string, unknown> {
+  const materias = [
+    ...new Set([article.section, ...(article.keywords ?? [])].filter((x): x is string => Boolean(x))),
+  ].slice(0, 8);
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.description,
+    datePublished: article.datePublished,
+    ...(article.dateModified && { dateModified: article.dateModified }),
+    author: {
+      '@type': 'Person',
+      name: article.author || AUTOR_POR_DEFECTO,
+      url: AUTOR_URL,
+      ...(article.authorPlace && {
+        address: { '@type': 'PostalAddress', addressLocality: article.authorPlace },
+      }),
+    },
+    ...(materias.length && { about: materias.map((name) => ({ '@type': 'DefinedTerm', name })) }),
+    ...(article.keywords?.length && { keywords: article.keywords.join(', ') }),
+    publisher: { '@id': `${SITIO}/${brand}/#organization` },
+    // Google exige image en Article; sin imagen en la fila vale la hero declarada en og:image
+    image: article.image ?? imagen,
+    ...(article.section && { articleSection: article.section }),
+    ...(article.wordCount && { wordCount: article.wordCount }),
+    mainEntityOfPage: url,
+    inLanguage: 'es-CO',
+  };
+}
+
 /**
  * `null` con la marca vacía: un índice sin publicaciones no debe declararse Blog,
  * es el mismo criterio que el `noindex` de la fase 3.

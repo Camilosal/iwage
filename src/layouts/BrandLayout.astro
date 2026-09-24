@@ -8,20 +8,7 @@ import UnifiedCart from '@/components/cart/UnifiedCart';
 import { getBrandFromPath, defaultBrand } from '@/config/brands';
 import type { BrandConfig } from '@/config/brands/types';
 import { GOOGLE, FACEBOOK, SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
-import { blogDeBitacora, founderPersona, organizacionMadre, referenciaMadre, webSiteSchema, type FilaDeBlog } from '@/lib/schema-bitacora';
-
-interface ArticleMeta {
-  title: string;
-  description: string;
-  datePublished: string;
-  dateModified?: string;
-  author?: string;
-  image?: string;
-  section?: string;
-  wordCount?: number;
-  keywords?: string[];
-  authorPlace?: string;
-}
+import { articuloSchema, blogDeBitacora, founderPersona, organizacionMadre, referenciaMadre, webSiteSchema, type FilaDeBlog, type MetaArticulo } from '@/lib/schema-bitacora';
 
 interface Props {
   title?: string;
@@ -29,7 +16,7 @@ interface Props {
   brand?: string;
   ogImage?: string;
   ogType?: 'website' | 'article';
-  article?: ArticleMeta;
+  article?: MetaArticulo;
   bitacora?: FilaDeBlog[];
   noindex?: boolean;
 }
@@ -126,31 +113,16 @@ const blogJsonLd = props.bitacora
   : null;
 if (blogJsonLd) jsonLdGraph.push(blogJsonLd);
 
-// Article structured data (for bitácora pages)
+// Article structured data (for bitácora pages) — la única versión está en el módulo puro
 if (props.article) {
-  const a = props.article;
-  jsonLdGraph.push({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": a.title,
-    "description": a.description,
-    "datePublished": a.datePublished,
-    ...(a.dateModified && { "dateModified": a.dateModified }),
-    "author": {
-      "@type": "Person",
-      "name": a.author || "Manuel Camilo Saldarriaga Acosta",
-      "url": "https://camilosaldarriaga.com",
-      ...(a.authorPlace && { "address": { "@type": "PostalAddress", "addressLocality": a.authorPlace } })
-    },
-    ...(a.keywords?.length && { "keywords": a.keywords.join(", ") }),
-    "publisher": { "@id": `https://iwage.co/${brandConfig.slug}/#organization` },
-    // Google exige image en Article; sin imagen en la fila vale la hero declarada en og:image
-    "image": a.image ?? ogImage,
-    ...(a.section && { "articleSection": a.section }),
-    ...(a.wordCount && { "wordCount": a.wordCount }),
-    "mainEntityOfPage": canonicalURL.href,
-    "inLanguage": "es-CO"
-  });
+  jsonLdGraph.push(
+    articuloSchema({
+      brand: brandConfig.slug,
+      url: canonicalURL.href,
+      imagen: ogImage,
+      article: props.article,
+    }),
+  );
 }
 
 ---

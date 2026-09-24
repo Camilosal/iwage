@@ -1397,3 +1397,32 @@ Qué cerraría el hueco, en orden de valor y sin escribir una sola receta nueva:
 4. `robots.txt` con `Sitemap:` solo tendría sentido después del punto 1; y el `cache-control` del documento podría pasar a `public, s-maxage=…` para que Cloudflare sirva la cáscara desde el borde.
 
 Cómo queda el renglón en el ítem (4): **medido y especificado, pero no reparable desde `app_iwage`.** Es un cambio en `data/app_cafeteria` con su propio despliegue, así que entra como unidad de trabajo aparte —y el goal pide explícitamente un deploy por unidad, con CHECKPOINT.
+
+
+## `about` en los 56 `Article`: cerrado con test puro y probado comparando el render contra el origen (2026-09-24 ~20:19Z)
+
+La auditoría del ítem (1) pedía `headline, datePublished, dateModified, author, about, publisher`. Cinco estaban en el HTML servido; **`about` no existía en ninguna de las 56 rutas**, y la razón era estructural: el nodo `Article` vivía **dentro de `BrandLayout.astro`**, así que ningún test puro podía mirarlo — los 61 tests anteriores verificaban `blogDeBitacora`, `webSiteSchema` y las helpers, pero el `Article` solo se podía ver por HTTP.
+
+Qué se hizo (una sola unidad, tres archivos):
+
+- `src/lib/schema-bitacora.ts` — exporta `articuloSchema()` y el tipo `MetaArticulo`; es la **única** versión del nodo. `about` se deriva de `categoria` + `etiquetas` deduplicadas, tope 8, cada término como `DefinedTerm` con `name` string; si no hay ni sección ni etiquetas, la propiedad **se omite** (no se emite `about: []`).
+- `src/layouts/BrandLayout.astro` — borra el nodo inline y la `interface ArticleMeta` local (ahora importa `MetaArticulo`); el grafo sigue armando los mismos 6 nodos.
+- `tests/schema-articulo.test.mjs` — 7 tests. RED verificado con el fallo correcto: `SyntaxError: The requested module '../src/lib/schema-bitacora.ts' does not provide an export named 'articuloSchema'`. Suite: **68/68 (`# fail 0`)**.
+
+Prueba de render, no de lectura de código: `astro dev` en `127.0.0.1:4322` (con `REDIS_URL` apuntando a un puerto cerrado para no escribir en el Redis compartido) contra el contenedor servido en `:4321`, misma ruta, mismo `Host`:
+
+| medición | `:4322` con el cambio | `:4321` servido hoy |
+|---|---|---|
+| bloques `ld+json` por artículo | 6 (`WebSite`, `Organization`×2, `Person`, `BreadcrumbList`, `Article`) | 6, idénticos |
+| `@id` repetidos en una misma hoja | 0 | 0 |
+| `Article.about` | presente, 2–7 `DefinedTerm` | **ausente** |
+| resto del nodo (`headline`/`datePublished`/`dateModified`/`author`/`publisher`/`image`/`wordCount`/`articleSection`) | idéntico byte a byte | — |
+
+Es decir: **el único cambio de bytes servidos es la aparición de `about`.** Barrido de las 56 rutas descubiertas desde los índices (19 `granja` + 37 `meliponas`; `cafe`/`tierras`/`naturaleza`/`gestion` no aportan ninguna, siguen en cero): 56/56 con nodo `Article` y **0 rutas con alguno de los siete campos vacío**; `about` entre 2 y 7 términos. En `/meliponas/bitacora`, el nodo `Blog`+`ItemList` sigue con `numberOfItems: 37` igual a la longitud de su `blogPost`. La validación de marca responde también en el árbol nuevo: `/cafe/bitacora/agroecosistema-productivo` → 301 a `/granja/bitacora/agroecosistema-productivo` con sus 6 bloques.
+
+Dos observaciones que salen del barrido y que **no** se arreglan en este commit:
+
+1. **`about` es, hoy, el mismo conjunto que `keywords`.** Las páginas construyen `keywords = etiquetas ∪ {categoria} ∪ nombre de marca` y `about` se deriva de `section` + esas etiquetas, así que en 2 de 2 filas muestreadas `about` y `keywords` tienen los mismos términos — y uno de ellos (`"Iwagé Granja"`) es la marca, no un tema. Es válido para el validador y mejor que nada, pero el valor real llega al separar las dos cosas: `about` debería ser el eje temático y `keywords` las etiquetas libres. Corregirlo **cambia el texto visible del `<meta name="keywords">`**, que sí está en el bundle gateado: queda como decisión para el CHECKPOINT 3, no como ajuste silencioso.
+2. **`dateModified` miente por omisión, y ahora está medido.** `fecha_actualizacion` está **null en 25 de 25** filas devueltas por `/api/bitacoras` (muestreo por defecto de Strapi, 25 de las 56), así que `dateModified: article.fecha_actualizacion || article.updatedAt` cae en `updatedAt`; las 25 filas tienen `updatedAt` en `2026-09-24` y **solo 6 marcas de tiempo distintas** para 25 registros: una reescritura masiva, no 25 ediciones editoriales. En las hojas servidas se ve igual — `2026-09-24T02:05:21.171Z` y `...:20.639Z` a media segundos de distancia. Consecuencia GEO: las 56 rutas declaran `dateModified` = hoy, que es la señal de frescura falsa que los evaluadores de calidad penalizan. Dos salidas, ninguna es código de este commit: **(a)** llenar `fecha_actualizacion` en Strapi (operación de contenido, del usuario), o **(b)** cambiar el fallback a `article.fecha` para que `dateModified` iguale a `datePublished` salvo edición real — 2 líneas en `granja` y `meliponas`, medible en el mismo barrido. La (b) es barata y honesta; se decide en el CHECKPOINT.
+
+Estado de las puertas después de este cambio: `npm test` de los míos **68/68**, y la prueba de render sobre `astro dev` en las 56 rutas. `npx astro build` **no** se corrió sobre este árbol porque el árbol de trabajo ya no es solo mío: el otro flujo migrando `strapiImage` → `mediaSrc` tiene sin commitear 8 archivos de `src/lib`, `src/components/tierras/PropertyCard.astro` y 12 páginas, y su test nuevo `tests/media-contract.test.mjs` falla (`still referencing strapiImage: src/lib/strapi.ts`) — con eso `npm test` completo marca 69/70. El build y la suite completa se vuelven a exigir sobre el árbol commiteado en el momento del deploy, no antes.
