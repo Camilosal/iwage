@@ -21,6 +21,9 @@ const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = 
   [/^\/gestion\/segunda-residencia\/?$/, () => '/gestion/propietarios/segunda-residencia'],
   // /gestion/operacion-turistica → /gestion/propietarios/operacion-turistica
   [/^\/gestion\/operacion-turistica\/?$/, () => '/gestion/propietarios/operacion-turistica'],
+  // /gestion/propiedades → /gestion/alojamientos (las páginas se movieron en la migración)
+  [/^\/gestion\/propiedades\/?$/, () => '/gestion/alojamientos'],
+  [/^\/gestion\/propiedades\/([^/]+)\/?$/, (m) => `/gestion/alojamientos/${m[1]}`],
   // /cafe/:anything → /cafe/:anything (subdomain catch-all handled at DNS level)
 ];
 
