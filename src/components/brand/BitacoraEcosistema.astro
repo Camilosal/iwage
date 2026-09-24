@@ -1,0 +1,62 @@
+---
+import { brandList } from '@/config/brands';
+import Icon from '@/components/shared/Icon.astro';
+import { conteoDe, type ResumenBitacora } from '@/lib/bitacora';
+
+interface Props {
+  resumen: ResumenBitacora;
+}
+
+const { resumen } = Astro.props;
+
+const marcasConContenido = brandList
+  .map((brand) => ({ brand, count: conteoDe(resumen, brand.slug) }))
+  .filter((entrada) => entrada.count > 0);
+
+const nombreDe = (slug: string) => brandList.find((b) => b.slug === slug)?.name ?? slug;
+---
+
+{resumen.recientes.length > 0 && (
+  <section class="border-t border-border py-14 px-6">
+    <div class="mx-auto max-w-6xl">
+      <p class="text-center font-mono text-xs uppercase tracking-widest text-accent">
+        Bitácoras del ecosistema
+      </p>
+
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+        {marcasConContenido.map(({ brand, count }) => (
+          <a
+            href={`/${brand.slug}/bitacora`}
+            class="inline-flex items-center gap-2 rounded-full border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text-primary transition-all hover:border-brand/40 hover:text-brand"
+          >
+            <Icon name={brand.icon} class="w-4 h-4 text-brand" />
+            {brand.name}
+            <span class="font-mono text-[10px] uppercase tracking-widest text-text-muted">{count}</span>
+          </a>
+        ))}
+      </div>
+
+      <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {resumen.recientes.map((post) => (
+          <li>
+            <a
+              href={`/${post.marca}/bitacora/${post.slug}`}
+              class="group flex h-full flex-col rounded-xl border border-border bg-surface-raised p-5 transition-all hover:border-brand/40 hover:shadow-md"
+            >
+              <span class="font-mono text-[10px] uppercase tracking-widest text-accent">
+                {nombreDe(post.marca)}
+              </span>
+              <span class="mt-2 text-base font-semibold leading-snug text-text-primary transition-colors group-hover:text-brand">
+                {post.titulo}
+              </span>
+              {post.extracto && (
+                <span class="mt-2 line-clamp-2 text-sm text-text-secondary">{post.extracto}</span>
+              )}
+              <span class="mt-auto pt-3 text-xs text-text-muted">{post.fecha ?? ''}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}

@@ -8,8 +8,11 @@ import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { SITE_METRICS } from '@/config/site-metrics';
 import { getHeroBySlug } from '@/lib/heroes';
+import { getResumenBitacora, conteoDe } from '@/lib/bitacora';
+import BitacoraEcosistema from '@/components/brand/BitacoraEcosistema.astro';
 
 const hero = await getHeroBySlug('/');
+const resumen = await getResumenBitacora();
 
 const title = 'Iwagé · Ecosistema de Desarrollo Rural · Tolima, Colombia';
 const description = 'Seis líneas de acción, un solo territorio. Meliponicultura, café de origen, inmobiliaria rural, turismo regenerativo, property management y granja autosustentable en el corredor Ambalá, Ibagué.';
@@ -221,6 +224,11 @@ const founderJsonLd = {
             <span class="mt-6 inline-flex items-center gap-2 text-sm font-medium text-brand group-hover:gap-3 transition-all">
               Explorar <Icon name="arrow-right" class="w-4 h-4" />
             </span>
+            {conteoDe(resumen, brand.slug) > 0 && (
+              <p class="mt-3 font-mono text-[10px] uppercase tracking-widest text-text-muted">
+                Bitácora · {conteoDe(resumen, brand.slug)} publicaciones
+              </p>
+            )}
           </a>
         ))}
 
@@ -235,6 +243,8 @@ const founderJsonLd = {
         </div>
       </div>
     </main>
+
+    <BitacoraEcosistema resumen={resumen} />
 
     <!-- Cómo se conecta el ecosistema -->
     <section class="border-t border-border bg-surface-raised/30 py-12 px-6">
