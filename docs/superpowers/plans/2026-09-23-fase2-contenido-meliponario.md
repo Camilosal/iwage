@@ -931,7 +931,7 @@ git commit -m "feat(bitacora): metadatos por marca compartidos y Article con aut
 
 ## Tarea 10: Publicar y avisar a los rastreadores
 
-- [ ] **Step 1: Publicar los 37 — CHECKPOINT**
+- [x] **Step 1: Publicar los 37 — CHECKPOINT**
 
 Es el punto sin retorno: entran a la SERP. **Confirmar con el usuario.**
 
@@ -946,7 +946,7 @@ Expected: 37 líneas `[dry] publicaría …` y `publicadas=0 pendientes=37 …`.
 Y entonces, **con confirmación del usuario**, el mismo comando sin `--dry-run`:
 Expected: `publicadas=37 pendientes=37 en Strapi sin publicar para meliponas`.
 
-- [ ] **Step 2: Purgar las cachés intermedias**
+- [x] **Step 2: Purgar las cachés intermedias**
 
 ```bash
 docker exec redis_app redis-cli --scan --pattern 'iwage:*' | xargs -r -n50 docker exec -i redis_app redis-cli DEL >/dev/null
@@ -955,7 +955,7 @@ curl -s -o /dev/null -w "origen: %{http_code}\n" "http://127.0.0.1:4321/sitemap.
 ```
 Expected: `origen: 200`. Si la ruta de caché de nginx es otra, listar antes con `docker exec iwage_web ls /var/cache/nginx` en vez de borrar a ciegas.
 
-- [ ] **Step 3: Comprobar los números finales**
+- [x] **Step 3: Comprobar los números finales**
 
 ```bash
 echo -n "URLs sitemap: " && curl -s "https://iwage.co/sitemap.xml?cb=$RANDOM" | grep -c "<loc>"
@@ -966,7 +966,7 @@ Expected: `189` (152 + 37), `content="index, follow"` (la portada se volteó sol
 
 > **Medido:** `189` y `56` en el sitemap sí, pero `/meliponas/bitacora` respondía **500 desde el origen**. La tarjeta de la portada usaba `<Icon name={ICON}>` y `ICON` nunca estuvo definido en `src/pages/meliponas/bitacora/index.astro` (arrastre de `da9765a`). Con el índice vacío el `.map` no corría nunca, así que la fase 1 --justo el estado "noindex porque no hay nada"-- tapó el fallo durante todo este tiempo. Arreglado en `6b26abb` tomando el icono de `BITACORA_MARCAS`, la misma fuente de la página de artículo.
 
-- [ ] **Step 4: IndexNow directo y reindex del RAG**
+- [x] **Step 4: IndexNow directo y reindex del RAG**
 
 El proxy propio `/api/indexnow` **no** sirve para esto: medido en el contenedor, `INDEXNOW_SECRET` y `INDEXNOW_KEY` vienen en longitud 0, o sea que su guardia cae en el valor por defecto que está escrito en `src/pages/api/indexnow.ts:15-16`. Usar ese default es parte de la deuda de la fase 3, no una solución. Se envía a `api.indexnow.org` con la llave que el propio sitio publica en `https://iwage.co/iwage-indexnow-2024-key.txt` (verificado: `HTTP 200`, 24 bytes):
 
@@ -992,11 +992,27 @@ process.exit(r.ok ? 0 : 1);
 ```
 Expected: `IndexNow: 200 37 URLs` y `reindex RAG: 200`. El reindex le cuenta a la búsqueda interna y al índice RAG del sitio que existen 37 artículos nuevos; sin él, `/api/search` y el chat se quedan describiendo un Meliponario vacío.
 
-- [ ] **Step 4b: Nota para la fase 3**
+> **Corregido al ejecutarlo:** el `curl -X POST` de la última línea responde **403** con el cuerpo `Cross-site POST form submissions are forbidden`. No es Cloudflare ni un WAF: `iwage_web` escuchando en `127.0.0.1:4321` devuelve exactamente lo mismo en 4 ms, y el texto es la señal del guard `security.checkOrigin` que el repositorio activa en `astro.config.mjs:28-30`. Astro trata un POST **sin** `Content-Type` como envío de formulario del mismo sitio, así que exige cabecera `Origin`; con `Content-Type: application/json` la petición pasa (probado con y sin `Origin`: `200` en ambos casos). El comando utilizable es:
+>
+> ```bash
+> curl -s -X POST "https://iwage.co/api/reindex" -H 'Content-Type: application/json' -d '{}'
+> ```
+>
+> Consecuencia para Strapi: cualquier webhook que apunte a `/api/reindex` debe enviar `Content-Type: application/json`, o recibirá 403 sin explicación en los logs de la app.
+
+> **Medido:** `IndexNow: 200 37 URLs` y `reindex RAG: 200` con `{"success":true,"chunks":224}`. Comprobado que el índice quedó efecto y no solo el 200: `POST /api/search {"query":"manejo de cajas meliponas"}` detecta `meliponas` y devuelve `modulo-5-c2-b7-manejo-y-revision-periodica`, `guia-completa-de-meliponicultura-…`, `modulo-2-c2-b7-especies-…` entre los 5 primeros resultados. `/api/search` es **solo POST** con la clave `query` (no `q`); un `GET` cae en el 404 HTML del sitio.
+
+- [x] **Step 4b: Nota para la fase 3**
 
 Anotar en el issue de la fase 3: `INDEXNOW_SECRET` y `REINDEX_SECRET` no están en `docker-compose.yml`, así que `/api/indexnow` se protege con un literal del repositorio y `/api/reindex` corre sin ninguna validación (reconstruye el índice quien lo pida). Endurecer ambos antes de abrir ningún otro endpoint.
 
-- [ ] **Step 5: Commit**
+> Todavía no hay documento de fase 3, así que la deuda se anota aquí, con la medición que la sustenta y el comando que la reproduce:
+>
+> 1. **Los secretos no existen.** `docker-compose.yml` no declara `INDEXNOW_SECRET` ni `REINDEX_SECRET`; medido dentro de `iwage_web`, ambos llegan con longitud 0. Consecuencia: `src/pages/api/indexnow.ts:15-16` cae en su valor por defecto, que está escrito en el repositorio --cualquiera con acceso al repo puede firmar peticiones en nombre de `iwage.co`. Reproducir: `docker exec iwage_web sh -c 'echo -n "${#INDEXNOW_SECRET} ${#REINDEX_SECRET}"'`.
+> 2. **`/api/reindex` no valida nada.** Su `REINDEX_SECRET` está vacío, así que la rama de autorización del `if` nunca corre: un POST reconstruye el índice cuando el que sea. No es un denial-of-service grave (224 chunks, segundos), pero es un endpoint de escritura sin puerta. Con el punto 1, los dos endpoints de "señal hacia fuera" quedan protegidos por valores conocidos públicamente.
+> 3. **`checkOrigin` muerde a quien llama sin cabeceras.** `astro.config.mjs:28-30` lo tiene encendido, así que todo POST sin `Content-Type` (o con tipo de formulario) necesita `Origin` del mismo sitio o devuelve 403. El default de Astro es razonable para formularios del navegador e invisible para integraciones: `/api/reindex`, `/api/indexnow` y los webhooks de Strapi tienen que documentarse con `Content-Type: application/json` explícito. Al abrir la fase 3, decidir si el webhook de Strapi existe de verdad o si el reindex lo dispara solo el despliegue.
+
+- [x] **Step 5: Commit**
 
 ```bash
 git commit --allow-empty -m "docs(contenido): 37 artículos de meliponas publicados, sitemap en 189 URLs"
@@ -1129,7 +1145,7 @@ async function total(endpoint: string, filters: Record<string, unknown>): Promis
 
 `total()` devuelve 0 si Strapi falla: el archivo sale con un número bajo en vez de un 500. Es un compromiso consciente — preferible a no servir nada.
 
-- [ ] **Step 5: Compilar, desplegar y verificar — CHECKPOINT** (recrea `iwage_web`)
+- [x] **Step 5: Compilar, desplegar y verificar — CHECKPOINT** (recrea `iwage_web`)
 
 ```bash
 cd /home/ubuntu/negocio && docker compose up -d --build iwage_app && sleep 8
@@ -1138,7 +1154,7 @@ curl -s -o /dev/null -w "llms.txt: %{http_code} · content-type %{content_type}\
 ```
 Expected: las tres líneas con `4 propiedades`, `56 publicaciones`, `189 URLs`, y `200 text/plain`. Si sigue mostrando `50+`, es la caché de Cloudflare sobre el archivo viejo: purgar esa URL desde el panel.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/content/llms-plantilla.txt src/lib/llms.ts src/pages/llms.txt.ts tests/llms.test.mjs package.json
@@ -1174,7 +1190,7 @@ En `DYNAMIC_REDIRECTS`, justo antes del comentario de `/cafe/:anything`:
   [/^\/gestion\/propiedades\/([^/]+)\/?$/, (m) => `/gestion/alojamientos/${m[1]}`],
 ```
 
-- [ ] **Step 3: Compilar y verificar — CHECKPOINT**
+- [x] **Step 3: Compilar y verificar — CHECKPOINT**
 
 ```bash
 cd /home/ubuntu/negocio && docker compose up -d --build iwage_app && sleep 8
@@ -1182,7 +1198,7 @@ curl -s -o /dev/null -w "%{http_code} -> %header{location}\n" "https://iwage.co/
 ```
 Expected: `301 -> https://iwage.co/gestion/alojamientos`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/middleware.ts
@@ -1195,11 +1211,11 @@ git commit -m "fix(redirects): /gestion/propiedades apunta a /gestion/alojamient
 
 Sin código nuevo: cerrar con números, para que la medición de 2–4 semanas tenga un antes y un después.
 
-- [ ] **Step 1: Suite de tests verde**
+- [x] **Step 1: Suite de tests verde**
 
 Run: `npm test` → Expected: `pass 10`, `fail 0`.
 
-- [ ] **Step 2: Los seis contratos de la fase 2, en una pasada**
+- [x] **Step 2: Los seis contratos de la fase 2, en una pasada**
 
 ```bash
 chequear() { # $1 nombre · $2 esperado · $3 comando
@@ -1222,28 +1238,67 @@ chequear "feed google-merchant"   200          "curl -s -o /dev/null -w '%{http_
 
 Expected: siete líneas `ok`. Un `MAL` en `robots meliponas` con `content="noindex, follow"` significa que la portada sigue vacía para la app — o sea, el despliegue de la Tarea 9 no corrió o Strapi no publicó.
 
-- [ ] **Step 3: Ráfaga sin 503 (regresión de la fase 1)**
+- [x] **Step 3: Ráfaga sin 503 (regresión de la fase 1)**
 
 Run: `seq 60 | xargs -P12 -I{} curl -s -o /dev/null -w "%{http_code}\n" "https://iwage.co/meliponas/bitacora?cb={}" | sort | uniq -c`
 Expected: `60 200`.
 
-- [ ] **Step 4: Repos limpios**
+- [x] **Step 4: Repos limpios**
 
 Run: `git status --porcelain && git log --oneline -14` (en `data/app_iwage`) y lo mismo en `/home/ubuntu/negocio` para el gitlink.
 Expected: árbol limpio salvo las dos exclusiones ya conocidas (`scripts/`, el `.docx`). Actualizar el gitlink del repo padre con el último commit de esta fase, con su propio commit que no arrastre otros proyectos.
 
-- [ ] **Step 5: Fijar la línea base**
+- [x] **Step 5: Fijar la línea base**
 
 Anotar en `docs/superpowers/plans/2026-09-23-fase2-contenido-meliponario.md`, al final: fecha de publicación de los 37, las 189 URLs, y las impresiones de Search Console de ese día leídas por el usuario en `https://iwage.co/`. La comparación se hace a las 2 y a las 4 semanas.
 
 ---
 
+## Línea base de la fase 2 (medida al cerrar, 2026-09-24)
+
+| Qué | Valor | Cómo se lee |
+|---|---|---|
+| Publicación de los 37 | 2026-09-24, 02:57 UTC | `dateModified` del Article en producción (02:57:00.492 → 02:57:02.300) |
+| URLs en el sitemap | 189 | `curl -s https://iwage.co/sitemap.xml \| grep -c '<loc>'` |
+| Bajo `/bitacora/` | 56 (19 previas + 37 nuevas) | `grep -c '/bitacora/'` sobre el mismo archivo |
+| Artículos meliponas | 37, los 37 con `index, follow` y JSON-LD Article completo | barrido de las 37 URLs del sitemap |
+| Índice RAG | 224 chunks | `POST /api/reindex` con `Content-Type: application/json` |
+| IndexNow | 200 con las 37 URLs | `api.indexnow.org/IndexNow`, llave `iwage-indexnow-2024-key` |
+| Impresiones en Search Console el día del cierre | **pendiente, las lee el usuario** en `https://search.google.com/search-console?resource_id=sc-domain%3Aiwage.co` | corte: 2026-09-24 · comparación: 2026-10-08 y 2026-10-22 |
+| Clics / impresiones / posición Media | **pendiente, mismo informe** | el mismo informe, pestaña Rendimiento |
+
+Las dos filas pendientes no son olvido: el acceso a Search Console es del usuario y la fase no toca su cuenta. Sin ese número la fase 4 no tiene con qué comparar, así que se anota apenas se lea.
+
+## Deuda de contenido que dejó la verificación
+
+Descubierta al barrer las 37 URLs, no al importar. No bloquea nada --los tres contratos de JSON-LD se cumplen--, pero es señal más débil de lo que parece:
+
+1. **4 artículos llegan a `keywords` con solo la marca** (`pureza-en-la-miel-de-angelita-…`, `el-sabor-del-territorio-…`, `fermentacion-burbujas-y-un-frasco-que-explota`, `la-ruta-de-la-miel-del-nido-silvestre-a-tu-frasco`): en el borrador no traían ni etiquetas ni categoría útil (`Sin categoría`). La unificación de `f9b4447` garantiza que el campo no vaya vacío, pero una keyword de un solo valor no le dice nada a un buscador sobre qué trata el texto. Les hacen falta 3-5 etiquetas escritas a mano en Strapi.
+2. **12 artículos más traen marca + sección** (2 valores): la categoría salva el campo, pero tampoco hay etiquetas propias. Son los siguientes en la fila.
+3. **`de-la-colmena-a-la-taza` está en `/meliponas/` con la categoría `Café Iwagé`**, que sale en sus keywords como si fuera de otra marca. El borrador era un texto de café importado dentro del Meliponario; o se le cambia la categoría o se mueve de marca.
+4. Los 21 restantes sí llevan etiquetas reales de 4-6 valores (`resultados-polinizacion-aguacate-…`, `por-que-la-miel-del-corredor-ambal…`): la prueba de que el formato de origen permite buenas etiquetas y de que los otros 16 son un hueco de escritura, no un límite del esquema.
+
+## Detalles medidos y no perseguidos
+
+- **`TypeError: fetch failed` × 5 en los 30 primeros segundos de `iwage_web`.** Al recrear el contenedor, la app pide listas a Strapi antes de que el `depends_on` lo deje sano; las cinco peticiones caen y reintentan, y después todas las páginas responden 200. Es un arranque con carrera entre dos servicios del mismo compose, no un fallo de la fase --pero mientras el compose levante `iwage_app` con `iwage_strapi` (que además lo reconstruye, ~20 min), merece un `healthcheck`+condición en vez de un `depends_on` a secas.
+- **Las 37 URLs se enviaron a IndexNow una sola vez** y el índice RAG se reconstruyó dos (una por llamada fallida de más). Ninguna de las dos cosas deja rastro que haya que limpiar.
+
+
+---
+
 ## Criterios de aceptación
 
-1. `curl -I` a cualquier artículo meliponas → `200`, con `<meta name="robots" content="index, follow">`.
-2. `/meliponas/bitacora` pasa a `index, follow` **sin editar una línea de código** (es la consecuencia de la fase 1, y su prueba de que quedó bien).
-3. Sitemap en 189 URLs, de ellas 56 bajo `/bitacora/`.
-4. Ningún artículo aparece antes del paso 10: el filtro `publicado` se comprueba con un 404 en Step 4 de la tarea 8 y con `152` en Step 4 de la tarea 7.
-5. `llms.txt` sin una sola cifra que no se pueda reproducir desde la base de datos.
-6. `npm test` en verde y cero dependencias nuevas.
-7. Cada CHECKPOINT ejecutado con confirmación explícita del usuario, y `iwage_strapi` nunca reconstruido con `--no-deps` roto: si Strapi no levanta, se detiene la fase, no se fuerza el build de la app.
+Cerrados el 2026-09-24, con la medición al lado de cada uno:
+
+1. `curl -I` a cualquier artículo meliponas → `200`, con `<meta name="robots" content="index, follow">`. **Cumple:** HEAD `200`, y el barrido de las 37 URLs del sitemap encontró `index, follow` en **37 de 37**.
+2. `/meliponas/bitacora` pasa a `index, follow` **sin editar una línea de código** (es la consecuencia de la fase 1, y su prueba de que quedó bien). **Cumple:** volteó sola al publicarse el primer artículo; el único código tocado en la portada fue arreglar el `ICON` que la tiraba a 500 (`6b26abb`), no la señal de indexación.
+3. Sitemap en 189 URLs, de ellas 56 bajo `/bitacora/`. **Cumple:** 189 y 56, medido igual en el origen y por el borde.
+4. Ningún artículo aparece antes del paso 10: el filtro `publicado` se comprueba con un 404 en Step 4 de la tarea 8 y con `152` en Step 4 de la tarea 7. **Cumple:** 152 URLs hasta el paso 10; los 37 importados eran 404 y no salían en el sitemap.
+5. `llms.txt` sin una sola cifra que no se pueda reproducir desde la base de datos. **Cumple:** `src/pages/llms.txt.ts` cuenta al responder y `src/data/llms-plantilla.txt` solo lleva marcadores.
+6. `npm test` en verde y cero dependencias nuevas. **Cumple:** `# tests 10 / pass 10 / fail 0`; `git diff eb5cd2c^..HEAD -- package.json package-lock.json` sale vacío.
+7. Cada CHECKPOINT ejecutado con confirmación explícita del usuario, y `iwage_strapi` nunca reconstruido con `--no-deps` roto: si Strapi no levanta, se detiene la fase, no se fuerza el build de la app. **Cumple:** los dos despliegues y la publicación de los 37 se confirmaron del usuario antes de correr; cuando el primer compose recreó Strapi y la app devolvió 500 un rato, se esperó a `healthy` + API respondiendo antes de publicar, en vez de forzar nada.
+
+Quedan abiertos, y no por descuido:
+
+- **Impresiones de Search Console del día del cierre**: las lee el usuario en su cuenta (la fase no toca credenciales ajenas). Sin ese número no hay comparación a 2 y 4 semanas.
+- **Los 16 artículos con `keywords` flacas** (4 solo con la marca, 12 con marca + sección) y el caso `de-la-colmena-a-la-taza`, etiquetado `Café Iwagé` dentro de `/meliponas/`. Es escritura sobre el borrador, no código: ver *Deuda de contenido que dejó la verificación*.
