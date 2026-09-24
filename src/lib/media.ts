@@ -74,7 +74,9 @@ function classify(url: string): { kind: MediaKind; provider: MediaProvider } {
   if (/youtu\.?be/.test(host)) return { kind: 'video', provider: 'youtube' };
   if (/vimeo/.test(host)) return { kind: 'video', provider: 'vimeo' };
   if (/drive\.google/.test(host)) return { kind: 'imagen', provider: 'drive' };
-  if (/(matterport|kuula|360|pano|tourmkr)/.test(host + url)) return { kind: 'tour360', provider: 'otro' };
+  // tour360 solo si el HOST es un proveedor de recorridos: `embed` son enlaces de
+  // terceros. Nunca sobre la ruta, o un /uploads/panorama-miel.webp propio iría a <iframe>.
+  if (/(matterport|kuula|360|pano|tourmkr)/.test(host)) return { kind: 'tour360', provider: 'otro' };
   const path = url.split(/[?#]/)[0];
   if (/\.(mp4|webm|mov|m4v|m4a|mp3|ogg|wav)$/i.test(path)) return { kind: 'video', provider: 'strapi' };
   return { kind: 'imagen', provider: 'strapi' };
@@ -124,7 +126,11 @@ export function toMediaItem(input: unknown): MediaItem | null {
 /** Clave de dedupe: la misma pieza escrita de cualquier forma converge. */
 function canonicalKey(url: string): string {
   const u = safeUrl(url);
-  return (u ? u.pathname : url).toLowerCase();
+  // Host + ruta: dedupe solo la MISMA pieza. Dos externos distintos que comparten
+  // ruta (cdn-a.com/i.jpg y cdn-b.com/i.jpg) son dos activos, no un duplicado.
+  // Las URLs propias ya llegan reducidas a pathname por mediaSrc(), así que siguen cayendo
+  // en la misma clave entre las tres formas de escribirlas.
+  return (u ? `${u.hostname}${u.pathname}` : url).toLowerCase();
 }
 
 const RIQUEZA = (m: MediaItem) => (m.alt ? 2 : 0) + (m.caption ? 1 : 0);
