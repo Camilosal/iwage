@@ -1634,7 +1634,7 @@ Efecto colateral buscado y medido: `/llms.txt` ahora dice *"Sitemap dinámico en
 (180 URLs)"* — el marcador sale de `collectSitemapUrls()`, así que se autocorrigió con el deploy.
 El 301 entre marcas sigue vivo (`/cafe/bitacora/viabilidad-practica` → `/granja/bitacora/...`).
 
-**Para el ítem (3), hito 2026-10-08:** reenviar el sitemap de **180 URLs** (no 185). Antes de
-reenviar, tirar el XML por el borde público una vez, porque la respuesta pide
-`s-maxage=3600, stale-while-revalidate=86400` y Cloudflare puede seguir sirviendo el de 185 hasta
-24 h aunque el origen ya esté fresco.
+**Para el ítem (3), hito 2026-10-08:** reenviar el sitemap de **180 URLs** (no 185).
+Medido por el borde público a los 2 min del deploy: `https://iwage.co/sitemap.xml` ya devuelve
+**180** `<loc>` y `https://iwage.co/legal/cookies` ya trae sus 2 bloques ld+json. No hizo falta
+ningún purge de Cloudflare (el XML entra al borde con SHA-HTML, no con `s-maxage` de la ruta).
