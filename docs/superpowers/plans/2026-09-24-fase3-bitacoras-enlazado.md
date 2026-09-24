@@ -1334,7 +1334,7 @@ Lo que le falta es exactamente lo que esta fase cerró para `iwage.co`, y no se 
 | `Sitemap:` en `robots.txt` | presente | **ausente** (el `robots.txt` es boilerplate de "content signals", sin una sola línea de permiso ni de mapa) |
 | bloques `ld+json` | ≥1 en las 170 URLs del sitemap | **0** en su portada y en `/recetas` |
 
-Riesgo GEO concreto: un motor de respuesta que entre por el enlace de la landing de café a `recetas` no encuentra mapa ni identidad; el subdominio queda como una isla sin grafo, y `Organization`/`WebSite` del padre no le llegan (son JSON-LD distintos en otro host, sin `parentURL` ni `sameAs` que los ate). Es el mismo defecto que la fase 1–3 corrigió en el sitio principal, en un host que no está en este repo.
+**Y la primera lectura de este párrafo estaba equivocada en lo importante** (corregido a las 20:03Z, ver «El HTML que sirve `recetas` no contiene las recetas», al final de este documento): el hueco no es el mapa ni el `robots.txt`, es que el HTML que sirve `recetas` no contiene las recetas. Los tres renglones de la tabla son reales pero cosméticos.
 
 ### `cafe.iwage.co`: un placeholder de otro software, publicado bajo la marca
 
@@ -1368,3 +1368,32 @@ Y una verificación que incumbía al CHECKPOINT 3, porque `master` se movió mie
 - `tools/geo-probe.mjs`, `tests/geo-probe.test.mjs` y las correcciones de `b745fc7` tampoco tocan el bundle: `tools/` no se compila y el test extra corre en la suite.
 
 Estado de las dos puertas, medido ahora sobre el árbol de trabajo con `node_modules` presente: **`npm test` 61/61 (`# fail 0`)** y **`npx astro build` `[build] Complete!` exit 0 en 12,65 s**. Con eso el deploy #5 queda sin condición técnica: lo único que falta es el mensaje del usuario que lo autoriza, y la lista de verificación en el origen (180 URLs en `/sitemap.xml`, ≥1 bloque `ld+json` en las 180, 0 dobles declaraciones, cadena de 301 de marca cerrando en `200`, `/` con `idx=2 art=6`, ráfaga 60@12 sin `resumen degradado`, y **0 advertencias** del validador en `/granja/bitacora`).
+
+
+## El HTML que sirve `recetas` no contiene las recetas (medido 2026-09-24 ~20:03Z)
+
+Perseguir el renglón `recetas.iwage.co` del ítem (4) hasta su fuente —el código está en `data/app_cafeteria`, servido por Express con `express.static(public)`— cambió el diagnóstico. El proyecto **no es de este repo** y su destino de despliegue no está en `sync.sh` (sin URLs de Netlify/Vercel/Pages), así que acá solo se mide y se especifica; no se edita ni se despliega.
+
+Qué responde hoy `https://recetas.iwage.co/`:
+
+| medición | valor | qué significa |
+|---|---|---|
+| bytes del documento | 14 856 | la cáscara |
+| bytes de texto visible (sin `<script>`/`<style>`/etiquetas) | **1 595** | un rastreador lee ~1,6 KB de cromo y **ninguna receta** |
+| contenedores de fichas en el HTML servido | 8 puntos de montaje sin contenido (`#cat-grid`, `#steps-list`, `#ingredients-list`, `#detail-info`, …) | las recetas se pintan en el cliente |
+| `/api/recipes` | `200`, 2 789 bytes **sin credenciales**; con `?limit=200` siguen **4 items**: Brownies, V60, Prensa Francesa, Chemex (`filtrados`, `horno`) | el contenido existe, pero solo por API, y **el corpus entero son 4 recetas**, no un archivo largo |
+| `/api/categories` | `200`, 2 865 bytes | igual |
+| `admin.html` | **`200`, 30 242 bytes sin credenciales** | la superficie administrativa es pública en HTML (la autenticación es del lado del cliente) |
+| `robots.txt` | **0 líneas de directiva** | ni `User-agent`, ni `Allow`, ni `Sitemap` |
+| `cache-control` del documento | `no-store, no-cache, must-revalidate, private`, `cf-cache-status: DYNAMIC` | nada cacheable, ni en el borde |
+
+Entonces: **el sitemap no era el hueco.** Con una sola URL de contenido (`/`): no hay router en ningún `public/js/*.js` ni en `app.js` (cero ocurrencias de `location.hash`, `pushState`, `replaceState`, `popstate`, `URLSearchParams`), los únicos enlaces del documento son `#` y `admin.html` —el resto son recursos: icono, manifiesto, CSS y fuentes— y en `public/` solo hay dos HTML, un `sitemap.xml` declararía una URL que ya se descubre desde `iwage.co/cafe/recetas`. Lo que falta es que el documento traiga el contenido dentro del HTML, y eso ningún sitemap lo arregla.
+
+Qué cerraría el hueco, en orden de valor y sin escribir una sola receta nueva:
+
+1. **Renderizar las 4 fichas en el HTML de la respuesta.** Ya están en `database.sqlite` y en `seed_data.json` (4 entradas, medidas arriba); `server.js:63` sirve `public/` estático, así que se puede generar un `index.html` con las fichas impresas (o un render por petición) y dejar el JS como mejora. Es el mismo principio por el que las 56 rutas de bitácora llevan `Article` en el HTML y no en el cliente.
+2. **`ld+json` en esa única URL**: un `ItemList` de `Recipe` con `name`/`recipeIngredient`/`recipeYield`/`image`, más `WebSite` + `Organization` con `parentOrganization` apuntando a `https://iwage.co/#organization`. Sin esto, un motor de respuesta no puede atribuirle el recetario a Iwagé ni saber que hay 4 recetas.
+3. **Bajar `admin.html` del índice** — lo correcto es autenticar en el servidor (hay `authMiddleware` en `server.js:51`, solo protegendo `/api/logs`), y mientras tanto `<meta name="robots" content="noindex, follow">` en la hoja más una línea `Disallow: /admin.html` en un `robots.txt` que hoy no tiene directivas.
+4. `robots.txt` con `Sitemap:` solo tendría sentido después del punto 1; y el `cache-control` del documento podría pasar a `public, s-maxage=…` para que Cloudflare sirva la cáscara desde el borde.
+
+Cómo queda el renglón en el ítem (4): **medido y especificado, pero no reparable desde `app_iwage`.** Es un cambio en `data/app_cafeteria` con su propio despliegue, así que entra como unidad de trabajo aparte —y el goal pide explícitamente un deploy por unidad, con CHECKPOINT.
