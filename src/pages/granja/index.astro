@@ -10,6 +10,7 @@ import { getExperimentos, formatFecha } from '@/lib/granja-experimentos';
 import { strapiImage } from '@/lib/strapi';
 import { getBrand } from '@/config/brands';
 import { getHeroBySlug } from '@/lib/heroes';
+import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
 
 const brand = getBrand('granja')!;
 const hero = await getHeroBySlug('/granja');
@@ -269,4 +270,6 @@ const experimentosHome = experimentos.length >= 3 ? experimentos : [...experimen
       </div>
     </ScrollReveal>
   </Section>
+
+  <UltimasDeBitacora marca="granja" />
 </BrandLayout>

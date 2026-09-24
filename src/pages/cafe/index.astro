@@ -7,6 +7,7 @@ import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getCafeConfig, getProveedores, CATEGORIAS_MENU, getMenuItems, proveedorFoto, proveedorIcono, getHistoriasVisitantes, historiaImagen, type HistoriaVisitante } from '@/lib/cafe';
 import { getHeroBySlug } from '@/lib/heroes';
+import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
 
 const [config, menuItems, proveedores, historias, hero] = await Promise.all([
   getCafeConfig(),
@@ -439,4 +440,6 @@ const whatsapp = config?.whatsapp ?? '573026693366';
       </div>
     </ScrollReveal>
   </Section>
+
+  <UltimasDeBitacora marca="cafe" />
 </BrandLayout>

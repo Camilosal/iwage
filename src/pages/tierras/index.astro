@@ -6,6 +6,7 @@ import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import { getPropiedadesDestacadas, getPropiedades, formatPrecio, formatArea, propiedadImagen, PERFILES_COMPRADOR, SELLOS_VAP } from '@/lib/tierras';
 import { getHeroBySlug } from '@/lib/heroes';
+import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
 
 const hero = await getHeroBySlug('/tierras');
 
@@ -377,4 +378,6 @@ const TICS = [
       </div>
     </div>
   </section>
+
+  <UltimasDeBitacora marca="tierras" />
 </BrandLayout>

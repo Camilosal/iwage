@@ -1,0 +1,44 @@
+---
+import BitacoraCard from '@/components/BitacoraCard.astro';
+import { getResumenBitacora, type Marca } from '@/lib/bitacora';
+
+interface Props {
+  marca: Marca;
+}
+
+const { marca } = Astro.props;
+const resumen = await getResumenBitacora();
+const ultimas = resumen.porMarca[marca]?.ultimas ?? [];
+---
+
+{ultimas.length > 0 && (
+  <section class="bg-surface border-t border-border py-16">
+    <div class="mx-auto max-w-6xl px-6">
+      <div class="mb-8 flex items-end justify-between gap-4">
+        <div>
+          <p class="font-mono text-xs uppercase tracking-widest text-accent">Bitácora</p>
+          <h2 class="mt-2 text-2xl font-bold text-text-primary">Desde la bitácora</h2>
+        </div>
+        <a
+          href={`/${marca}/bitacora`}
+          class="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-brand transition-all hover:gap-3"
+        >
+          Ver todo <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {ultimas.map((post) => (
+          <BitacoraCard
+            title={post.titulo}
+            excerpt={post.extracto ?? ''}
+            category={post.categoria ?? 'General'}
+            date={post.fecha ?? ''}
+            readTime={String(post.tiempo_lectura ?? 5)}
+            href={`/${marca}/bitacora/${post.slug}`}
+            image={post.imagen ?? undefined}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+)}

@@ -5,6 +5,7 @@ import Icon from '@/components/shared/Icon.astro';
 import AlojamientoCard from '@/components/gestion/AlojamientoCard.astro';
 import { getPropiedadesGestionDestacadas, TIPOS_GESTION } from '@/lib/gestion';
 import { getHeroBySlug } from '@/lib/heroes';
+import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
 
 const destacadas = await getPropiedadesGestionDestacadas(8);
 const hero = await getHeroBySlug('/gestion');
@@ -202,4 +203,6 @@ const hero = await getHeroBySlug('/gestion');
       </div>
     </div>
   </section>
+
+  <UltimasDeBitacora marca="gestion" />
 </BrandLayout>
