@@ -2,6 +2,7 @@
 import type { BrandConfig } from '@/config/brands/types';
 import { brandList } from '@/config/brands';
 import Icon from '@/components/shared/Icon.astro';
+import { getResumenBitacora, conteoDe } from '@/lib/bitacora';
 
 interface Props {
   brand: BrandConfig;
@@ -10,6 +11,7 @@ interface Props {
 const { brand } = Astro.props;
 const otherBrands = brandList.filter((b) => b.slug !== brand.slug);
 const year = new Date().getFullYear();
+const resumen = await getResumenBitacora();
 
 // Separate nav into: primary links (top-level non-submenu) and submenu groups
 const primaryLinks = brand.nav.filter((item) => !item.children);
@@ -100,6 +102,14 @@ const submenuGroups = brand.nav.filter((item) => item.children);
               >
                 <Icon name={b.icon} class="w-4 h-4" /> {b.name}
               </a>
+              {conteoDe(resumen, b.slug) > 0 && (
+                <a
+                  href={`/${b.slug}/bitacora`}
+                  class="mt-1 block w-fit text-xs text-dark-text/40 hover:text-accent transition-colors"
+                >
+                  Bitácora · {conteoDe(resumen, b.slug)}
+                </a>
+              )}
             </li>
           ))}
           <li>

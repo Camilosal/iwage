@@ -31,8 +31,9 @@ export const granja: BrandConfig = {
     { label: 'Tienda', href: '/granja/tienda' },
     {
       label: 'Recursos',
-      href: '/granja/nosotros',
+      href: '/granja/bitacora',
       children: [
+        { label: 'Bitácora', href: '/granja/bitacora' },
         { label: 'Quiénes Somos', href: '/granja/nosotros' },
         { label: 'Ayuda', href: '/granja/ayuda' },
         { label: 'Contacto', href: '/granja/contacto' },
