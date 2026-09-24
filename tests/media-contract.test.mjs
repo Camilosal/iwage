@@ -113,11 +113,59 @@ test('ninguna URL de Strapi construida a mano puede llegar al HTML: ni host inte
 // especialmente fácil de dejar viva porque las dos galerías serializan sus `items` a un
 // `<script type="application/json">` y VUELVEN a leerlos en el cliente: server y navegador
 // tienen que nombrar los mismos campos, y ningún compilador lo comprueba aquí.
+//
+// Fix round 1 (review): este gate leía el texto COMPLETO del archivo, así que podía poner la
+// suite roja siendo el código correcto. Dos cambios, los dos medidos (informe, "Fix round 1"):
+//   (a) los comentarios se borran antes de casar — «aquí antes se leía `item.tipo`» o un JSDoc
+//       que nombre `GalleryItem` es documentación, no el bug que este gate corta;
+//   (b) las lecturas históricas se anclan a la forma que está en juego: un `prop.titulo` o un
+//       `cultivo.tipo` legítimos dentro de un componente de galería no son un `MediaItem`.
+// Los dientes no se perdieron: contra `git show a0552b5:src/components/shared/*.astro` (el
+// árbol ANTES del rename) el mismo código sigue casando 18 lecturas en MediaGallery y 16 en
+// ProductGallery, y el gate de `GalleryItem` sigue cayendo sobre ese árbol.
 const GALERIAS = ['components/shared/MediaGallery.astro', 'components/shared/ProductGallery.astro'];
+
+/** Convierte un bloque de comentario en espacios: se va el texto, se queda la línea. */
+function enBlanco(bloque) {
+  return bloque.replace(/[^\n]/g, ' ');
+}
+
+/**
+ * Quita el contenido de los comentarios dejando las líneas en su sitio, para que los números
+ * que salen en los mensajes sigan apuntando a la línea real del archivo.
+ *
+ * No es un lexer, son tres reglas y su coste está declarado:
+ *  · `//` abre comentario solo si NO va pegado a `:` o `/` → las URLs `https://www.youtube...`
+ *    que las dos galerías arman en el `ytEmbed`/`embedUrl` (server y cliente) sobreviven.
+ *  · `/* … *\/` (JSDoc y los `{/* … *\/}` de la plantilla Astro) y `<!-- … -->` de HTML se
+ *    cierran por su propio delimitador, sin anidar.
+ *  · Un `//` dentro de un string de código se perdería con su resto de línea. Medido sobre las
+ *    dos galerías: ningún read de un item cae después de una URL en la misma línea. Y el coste
+ *    de equivocarse es un gate más flojo en ESA línea, nunca un falso positivo, que es lo que
+ *    hay que evitar aquí.
+ */
+function sinComentarios(fuente) {
+  return fuente
+    .replace(/\/\*[\s\S]*?\*\//g, enBlanco)
+    .replace(/<!--[\s\S]*?-->/g, enBlanco)
+    .replace(/(?<![:/])\/\/[^\n]*/g, '');
+}
+
+/**
+ * Receptores que en ESTAS dos galerías son un `MediaItem`, medidos en los cuatro fuentes
+ * (HEAD y `git show a0552b5:` de los dos componentes): `items` es el array normalizado,
+ * `item`/`it` son sus elementos en los `map` y en el `<script>` del navegador, `first` es
+ * `items[0]` en ProductGallery y `*Item` cubre cualquier variable declarada como un item.
+ * El filtro de coherencia del test (punto 4) comprueba que ningún receptor que lee
+ * `kind`/`caption` se quede fuera de esta lista, así que renombrar la variable del `map`
+ * (Task 8) rompe el test con un mensaje explícito en vez de dejar el gate silencioso.
+ */
+const ITEM_RECEPTOR = String.raw`\b(?:items\s*\[[^\]]*\]|[A-Za-z_$][A-Za-z0-9_$]*[Ii]tem|item|it|first)`;
+const LECTURA_LEGADA_DE_ITEM = new RegExp(`${ITEM_RECEPTOR}\\s*\\.\\s*(?:tipo|titulo)\\b`);
 
 test('el tipo de galería es uno solo: no vuelve GaleriaItem ni GalleryItem', () => {
   const culpables = archivosEn(SRC)
-    .filter((f) => /\b(GaleriaItem|GalleryItem)\b/.test(readFileSync(f, 'utf8')))
+    .filter((f) => /\b(GaleriaItem|GalleryItem)\b/.test(sinComentarios(readFileSync(f, 'utf8'))))
     .map((f) => enSrc(f))
     .join(', ');
   assert.equal(culpables, '', `duplicados del tipo de galería todavía presentes: ${culpables}`);
@@ -136,19 +184,28 @@ test('los campos de galería de los modelos declaran MediaItem[] | null', () => 
   assert.deepEqual(culpables, []);
 });
 
-test('las galerías leen kind/caption/alt también en el script del navegador', () => {
-  for (const ruta of GALERIAS) {
-    const fuente = readFileSync(join(SRC, ruta), 'utf8');
+/** `ruta:linea: código` por cada lectura histórica de un item, sobre el código sin comentarios. */
+function lecturasLegadas(ruta) {
+  return sinComentarios(readFileSync(join(SRC, ruta), 'utf8'))
+    .split('\n')
+    .map((linea, i) => [i + 1, linea])
+    .filter(([, linea]) => LECTURA_LEGADA_DE_ITEM.test(linea))
+    .map(([n, linea]) => `    ${ruta}:${n}: ${linea.trim().slice(0, 140)}`);
+}
 
-    // (1) Ninguna lectura `.tipo`/`.titulo`: en un MediaItem son `undefined` y el visor se
-    //     queda en blanco sin que el build se entere.
-    const legadas = fuente
-      .split('\n')
-      .map((linea, i) => [i + 1, linea])
-      .filter(([, linea]) => /\.\s*(tipo|titulo)\b/.test(linea))
-      .map(([n, linea]) => `    ${ruta}:${n}: ${linea.trim().slice(0, 140)}`)
-      .join('\n');
-    assert.equal(legadas, '', `${ruta} sigue leyendo campos de la forma histórica`);
+test('las galerías leen kind/caption/alt también en el script del navegador', () => {
+  // (1) Ninguna lectura `.tipo`/`.titulo` SOBRE UN ITEM: en un MediaItem son `undefined` y el
+  //     visor se queda en blanco sin que el build se entere. Anclado al receptor, un
+  //     `prop.titulo` o un `cultivo.tipo` de este componente son otra cosa y no casan.
+  //     Se barren las DOS galerías antes deassertir: el rojo tiene que nombrar de una vez
+  //     todas las líneas vivas (18 en MediaGallery y 16 en ProductGallery contra el árbol
+  //     histórico `a0552b5`), no solo las de la primera que cae.
+  const legadas = GALERIAS.flatMap((ruta) => lecturasLegadas(ruta)).join('\n');
+  assert.equal(legadas, '', 'las galerías siguen leyendo campos de la forma histórica sobre un item');
+
+  for (const ruta of GALERIAS) {
+    // Todo lo que casa este test es código: los comentarios ya no son materia prima.
+    const fuente = sinComentarios(readFileSync(join(SRC, ruta), 'utf8'));
 
     // (2) Sí leen los canónicos: `kind` es lo que decide <img> o <iframe>, y `caption` el pie.
     assert.match(fuente, /\bkind\b/, `${ruta} no lee el campo canónico 'kind'`);
@@ -156,6 +213,23 @@ test('las galerías leen kind/caption/alt también en el script del navegador', 
 
     // (3) La normalización está en el borde del componente: la única puerta es toMediaList().
     assert.match(fuente, /toMediaList/, `${ruta} no normaliza con toMediaList()`);
-    assert.match(fuente, /from '@\/lib\/media'/, `${ruta} no importa el contrato de medios`);
+    //     El especificador se casa con las tres formas de comilla: lo que se exige es que el
+    //     import apunte al contrato, no con qué comilla lo escribió quien lo escribió.
+    assert.match(fuente, /from\s+["'`]@\/lib\/media["'`]/, `${ruta} no importa el contrato de medios`);
+
+    // (4) Coherencia del anclaje del punto (1): TODO receptor que lee un campo canónico de un
+    //     MediaItem tiene que estar cubierto por LECTURA_LEGADA_DE_ITEM. Sin esto, renombrar la
+    //     variable del `map` (`entry.kind`) dejaría el gate verde sobre código histórico.
+    const receptoresCanonicos = [
+      ...fuente.matchAll(/\b([A-Za-z_$][A-Za-z0-9_$]*(?:\s*\[[^\]]*\])?)\s*\.\s*(?:kind|caption)\b/g),
+    ].map((m) => m[1]);
+    const fueraDelAnclaje = [...new Set(receptoresCanonicos)]
+      .filter((rec) => !LECTURA_LEGADA_DE_ITEM.test(`${rec}.tipo`))
+      .join(', ');
+    assert.equal(
+      fueraDelAnclaje,
+      '',
+      `${ruta}: receptores que leen kind/caption y el anclaje no cubre: ${fueraDelAnclaje} — ampliar ITEM_RECEPTOR o nombrar la variable como un item`,
+    );
   }
 });
