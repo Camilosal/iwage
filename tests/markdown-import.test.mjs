@@ -6,6 +6,7 @@ import {
   quitarPlaceholders,
   extraerExtracto,
   calcularTiempoLectura,
+  aRegistroBitacora,
 } from '../strapi/scripts/lib/markdown-import.mjs';
 
 test('limpiarSlug: minúsculas, sin acentos, sin tramos de fecha de WordPress', () => {
@@ -73,4 +74,37 @@ test('extraerExtracto: primer párrafo real, sin títulos ni liga, cortado en pa
 test('calcularTiempoLectura: 220 palabras por minuto, mínimo 1', () => {
   assert.equal(calcularTiempoLectura('una dos tres'), 1);
   assert.equal(calcularTiempoLectura(Array(441).fill('pal').join(' ')), 2);
+});
+
+test('aRegistroBitacora: carpeta manda la marca, no la categoría', () => {
+  const texto = `---
+title: "Método de extracción en frío"
+date: 2026-04-11
+slug: cafe-frio-2026-04-11
+categories: ["Café Iwagé"]
+tags: ["cold brew"]
+source: wordpress
+---
+
+# Método de extracción en frío
+
+El cold brew no es café frío: es una extracción distinta, y la molienda manda.
+`;
+  const r = aRegistroBitacora(texto, 'meliponas');
+  assert.equal(r.slug, 'cafe-frio');
+  assert.ok(!r.contenido.startsWith('#'), 'el H1 del .md no se repite en el contenido');
+  assert.equal(r.marca, 'meliponas');
+  assert.equal(r.categoria, 'Café Iwagé');
+  assert.equal(r.fecha, '2026-04-11');
+  assert.deepEqual(r.etiquetas, ['cold brew']);
+  assert.equal(r.publicado, false);
+  assert.ok(!r.contenido.startsWith('---'));
+});
+
+test('aRegistroBitacora: Sin categoría queda null y sin tags no hay etiquetas', () => {
+  const texto = '---\ntitle: "X"\ndate: 2026-01-02\nslug: x\ncategories: ["Sin categoría"]\nsource: wordpress\n---\n\n# X\n\nUn párrafo que mide más de cuarenta caracteres para que sirva de extracto real.';
+  const r = aRegistroBitacora(texto, 'meliponas');
+  assert.equal(r.categoria, null);
+  assert.equal(r.slug, 'x');
+  assert.ok(Array.isArray(r.etiquetas) && r.etiquetas.length === 0);
 });

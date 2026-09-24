@@ -326,7 +326,7 @@ git commit -m "feat(importacion): limpieza de placeholders, extracto y tiempo de
 - Modify: `tests/markdown-import.test.mjs`
 - Modify: `strapi/scripts/lib/markdown-import.mjs`
 
-- [ ] **Step 1: Tests fallantes**
+- [x] **Step 1: Tests fallantes**
 
 `aRegistroBitacora(texto, marca)` es la única función que conoce el esquema de Strapi; todo lo demás son piezas. El slug se toma del `slug:` del front matter y no del título: `limpiarSlug` solo le quita la fecha de WordPress. Son 37 slugs únicos en `Meliponario` (verificado con `grep -h '^slug:' | uniq -d` → vacío) y los títulos sí se repiten, así que derivar el slug del título sería arriesgarse a choques. La Tarea 4 Step 5 comprueba que la normalización no los vuelva contra una colisión.
 
@@ -365,9 +365,9 @@ test('aRegistroBitacora: Sin categoría queda null y sin tags no hay etiquetas',
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla** → Expected: `aRegistroBitacora is not exported`.
+- [x] **Step 2: Ejecutar y ver que falla** → Expected: `aRegistroBitacora is not exported`.
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 ```js
 /** Convierte el texto de un .md exportado en el payload de `bitacoras`. */
@@ -397,9 +397,9 @@ export function aRegistroBitacora(texto, marca) {
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa** → Expected: `pass 8`.
+- [x] **Step 4: Ejecutar y ver que pasa** → Expected: `pass 8`.
 
-- [ ] **Step 5: Prueba contra los 37 archivos reales** (sin escribir nada, sin red)
+- [x] **Step 5: Prueba contra los 37 archivos reales** (sin escribir nada, sin red)
 
 Run:
 ```bash
@@ -428,7 +428,7 @@ console.log(`${n} archivos revisados, ${vistos.size} slugs distintos`);'
 ```
 Expected: `56 archivos revisados, 56 slugs distintos` y ninguna línea de fallo ni de colisión. Esta es la comprobación que no se pudo hacer al escribir el plan (el módulo todavía no existía): si `vistos.size` sale menor que `n`, dos borradores chocan después de quitarles la fecha y hay que desambiguar uno a mano en el front matter antes de importar nada. Con `sin extracto`, afilar `extraerExtracto` contra ese archivo antes de seguir — es la señal de que ese borrador empieza con algo que la regla no contempla.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/markdown-import.test.mjs strapi/scripts/lib/markdown-import.mjs

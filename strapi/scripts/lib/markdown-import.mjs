@@ -72,3 +72,30 @@ export function calcularTiempoLectura(cuerpo) {
   const palabras = (cuerpo.match(/\S+/g) || []).length;
   return Math.max(1, Math.round(palabras / 220));
 }
+
+/** Convierte el texto de un .md exportado en el payload de `bitacoras`. */
+export function aRegistroBitacora(texto, marca) {
+  const { data, body } = parseFrontMatter(texto);
+  const contenido = quitarPlaceholders(body)
+    .replace(/^#\s+.*\n+/, '')            // el H1 lo pone la plantilla; en el cuerpo duplica
+    .trim();
+  const categorias = (data.categories ?? []).filter((c) => c && c !== 'Sin categoría');
+  const titulo = (data.title || data.slug || '').trim();
+  const extracto = extraerExtracto(contenido);
+  return {
+    titulo,
+    slug: limpiarSlug(data.slug || titulo),
+    extracto,
+    contenido,
+    categoria: categorias[0] ?? null,
+    tiempo_lectura: calcularTiempoLectura(contenido),
+    imagen: null,
+    fecha: data.date || null,
+    marca,
+    destacado: false,
+    publicado: false,
+    etiquetas: (data.tags ?? []).slice(0, 8),
+    meta_title: titulo.slice(0, 60),
+    meta_description: extracto.slice(0, 155),
+  };
+}
