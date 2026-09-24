@@ -31,7 +31,7 @@ Cuando Cafe publique su primer artículo, su bitácora pasa sola de `noindex` a 
 | `src/lib/bitacora.ts` | `filasAResumen()` pura + `getResumenBitacora()` que consulta |
 | `src/components/brand/BitacoraEcosistema.astro` | la sección nueva del hub: pie de bitácoras + tira de recientes |
 | `src/components/brand/UltimasDeBitacora.astro` | una fila "Desde la bitácora" para una marca, reutilizando `BitacoraCard` |
-| `src/pages/index.astro` | monta `BitacoraEcosistema` y enlaza bitácoras en su pie en línea |
+| `src/pages/index.astro` | monta `BitacoraEcosistema` y añade la línea de conteo por tarjeta; su `<footer>` en línea no cambia (ver "El pie del hub") |
 | `src/pages/{cafe,tierras,naturaleza,gestion,granja}/index.astro` | montan `UltimasDeBitacora` |
 | `src/components/brand/BrandFooter.astro` | enlaza las bitácoras de las otras marcas con contenido |
 | `src/config/brands/granja.ts` | `brand.nav` gana `/granja/bitacora` |
@@ -69,20 +69,22 @@ El `fields` es la razón de tocar `src/lib/strapi.ts`. Sin él, la consulta arra
 
 ## Lo que se renderiza
 
-**Flujo de datos.** `src/pages/index.astro` llama a `getResumenBitacora()` **una vez** en su frontmatter y pasa el resultado por props a la sección nueva y a su propio pie: dos llamadas desde dos componentes serían dos deserializaciones de la misma caché en el mismo render. `BrandFooter` sí consulta por su cuenta --es un componente que se monta en las páginas de cada marca y nadie le pasa ese dato--, y ahí la caché compartida hace que sigan siendo una consulta cada 5 minutos para todo el sitio.
+**Flujo de datos.** `src/pages/index.astro` llama a `getResumenBitacora()` **una vez** en su frontmatter y usa el resultado en dos sitios del mismo render --la línea de conteo de cada tarjeta y, por props, la sección nueva--: dos llamadas desde dos componentes serían dos deserializaciones de la misma caché en el mismo render. `BrandFooter` sí consulta por su cuenta --es un componente que se monta en las páginas de cada marca y nadie le pasa ese dato--, y ahí la caché compartida hace que sigan siendo una consulta cada 5 minutos para todo el sitio.
 
-**El hub (`/`).** Las tarjetas de marca **no se tocan**: cada una es un `<a href="/marca/">` que envuelve toda la tarjeta (`index.astro:196-224`), y meterle dentro un enlace a la bitácora sería anidar un `<a>` dentro de otro --HTML inválido y comportamiento de hover roto. En su lugar, una sección nueva debajo del grid, con `BitacoraEcosistema`:
+**El hub (`/`).** **No se agrega ningún enlace** dentro de las tarjetas de marca: cada una es un `<a href="/marca/">` que envuelve toda la tarjeta (`index.astro:200-232`), y meterle dentro un enlace a la bitácora sería anidar un `<a>` dentro de otro --HTML inválido y comportamiento de hover roto. Lo que sí recibió la tarjeta es una línea de **texto** con el conteo, condicionada a `conteoDe(...) > 0` (`index.astro:227-231`): no enlaza al índice, así que no cambia el grafo y no cuenta como salto 1. El enlace lo pone una sección nueva debajo del grid, con `BitacoraEcosistema`:
 
-- Una línea por marca con contenido: `Meliponario · 37 publicaciones →` a `/meliponas/bitacora`, y `Granja · 19 publicaciones →` a `/granja/bitacora`. Sin filas para las cuatro vacías.
+- Una línea por marca con contenido: `Meliponario · 37 publicaciones →` a `/meliponas/bitacora`, y `Granja · 19 publicaciones →` a `/granja/bitacora`. Sin filas para las cuatro vacías. Escrito así, en prosa; lo que renderiza `BitacoraEcosistema.astro:32-34` es el nombre y el número en dos `<span>` sueltos (`>Meliponario<` y `>37<`, verificado en el HTML servido), **sin** la palabra `publicaciones`. La precisión importa porque el Step 4 de la cuenta toma el testimonio del salto 1 buscando `Bitácora · N publicaciones`, que es el pie de la **tarjeta de marca** (`index.astro:227-231`), no la píldora: si alguien lee esta frase como literal de marcado, contará `0` pies creyendo que cuenta píldoras.
 - Una tira de 6 artículos recientes entre todas las marcas, cada uno con el nombre de la marca visible y enlace directo al artículo.
 
 Los 6 artículos recientes no se eligen por marca sino globalmente: el hub es un directorio, y su trabajo es repartir, no competir con las landings.
+
+**Medido en producción (2026-09-24), y conviene tenerlo dicho:** esa elección global no repartió. La tira salió **6 de 6 granja**, porque la `fecha` publicada más nueva de meliponas es `2026-06-02` contra `2026-07-25` de granja y el `sort=fecha:desc` corta en seis. El "repartir" de esta frase lo cumplen las **píldoras** de arriba (una por marca con contenido, con su `37` y su `19`), no la tira; la tira solo reparte atención cuando las fechas de las marcas van parejas. Se deja como está y no se le agregó una cuota por marca: el criterio medible de la fase (los 56 a dos saltos) no depende del mix, y meter un sesgo por marca sería cambiar el diseño por una preferencia estética sobre un dato que todavía no tiene dos temporadas comparadas.
 
 **Las 5 landings sin bloque de bitácora.** Fila "Desde la bitácora" con 3 tarjetas (componente `UltimasDeBitacora`, que usa `getBitacoraByMarca(marca, {pageSize: 3})` --ya existe-- y `BitacoraCard` --ya existe, usado solo en meliponas:250-271--). Con `total = 0` la fila no se dibuja: cafe, tierras, naturaleza y gestion quedan idénticas a hoy, byte por byte. `meliponas` no se toca: su bloque ya cumple la función.
 
 **El pie global (`BrandFooter`).** A las 5 landings de otras marcas que ya enlaza (`BrandFooter.astro:95-104`) se suman las bitácoras con contenido de esas mismas marcas, excluyendo la marca de la página (para no duplicar el enlace que ya está en el menú). Este es el cambio que más páginas toca --todo el sitio--, y el único que añade una consulta a plantillas que no la tenían.
 
-**El pie del hub.** `/` no usa `BrandFooter`, tiene su propio `<footer>` en línea (`index.astro:282-298`) que solo enlaza las 6 landings. Ahí se agregan las bitácoras con contenido, mismo criterio.
+**El pie del hub.** `/` no usa `BrandFooter`, tiene su propio `<footer>` en línea (`index.astro:292-308`) que solo enlaza las 6 landings. La intención original era agregar ahí las bitácoras con contenido, mismo criterio; **no se hizo**, y la ejecución deja la decisión justificada en lugar de abierta: los únicos hrefs directos a un índice de bitácora en `/` son las dos píldoras de `BitacoraEcosistema`, que ya aplican el mismo criterio (`conteoDe(...) > 0`, un enlace por marca con contenido). Repetirlos en el pie no acorta el grafo --un artículo seguiría estando a dos saltos--, no añade una sola URL al mapa, y sí cambiaría los conteos con los que el Step 4 toma el testimonio del salto 1. El pie que sí distribuye bitácoras entre marcas es `BrandFooter` (diseño 5), que es el que se implementó.
 
 **El menú de granja.** `src/config/brands/granja.ts:20-39` no tiene entrada de bitácora, aunque granja aporta 19 de las 56 URLs indexables. Se agrega `/granja/bitacora` a `brand.nav`, como ya tienen cafe (28), gestion (36), meliponas (37), naturaleza (43) y tierras (44).
 
