@@ -1,8 +1,9 @@
 /**
  * Sitemap dinámico en /sitemap.xml — incluye todas las páginas estáticas
  * y todo el contenido publicado en Strapi (productos, propiedades,
- * experiencias, anfitriones, programas, proyectos, cultivos, landings
- * y bitácoras de las 5 marcas). Cacheado en Redis 1 hora.
+ * experiencias, anfitriones, programas, proyectos, cultivos y bitácoras;
+ * el índice de cada marca solo si esa marca tiene filas publicadas).
+ * Cacheado en Redis 1 hora.
  */
 import type { APIRoute } from 'astro';
 import { SITE } from '@/config/site';
