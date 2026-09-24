@@ -180,3 +180,24 @@ GEO_ENDPOINT=https://api.moonshot.ai/v1/chat/completions \
 GEO_KEY=<la del .env> GEO_MODELS=kimi-k2.6 GEO_BUSQUEDA=kimi-k2.6 \
 node tools/geo-probe.mjs --formato=jsonl >> docs/superpowers/probes/<fecha>-kimi-k2.6.jsonl
 ```
+
+### La línea base que sí quedó medida (4 respuestas reales, 2 motores, 2 preguntas de la serie)
+
+| motor | pregunta de la serie | respondió | menciona iwage.co | URLs propias | fuentes |
+|---|---|---|---|---|---|
+| Moonshot `kimi-k2.6` + `$web_search` | #1 `qué es la meliponicultura cómo empezar Colombia abejas sin aguijón` | sí | **no** | 0 | 0 citas en el mensaje |
+| Moonshot `kimi-k2.6` + `$web_search` | #2 `granja autosustentable diseño clima cálido Tolima Colombia` | sí | **no** | 0 | 0 citas en el mensaje |
+| Perplexity (interfaz web, sin cuenta) | #1 meliponicultura | sí, `Investigado 8s` | **no** | 0 | `10 fuentes`, hosts no extraíbles sin sesión |
+| Perplexity (interfaz web, sin cuenta) | #2 granja autosustentable | sí, `Investigado 7s` | **no** | 0 | idem |
+
+Lectura: en las 4 respuestas que hoy se pudieron obtener, **Iwagé no aparece**. No es una línea base de 10 preguntas --es 2 preguntas por motor--, pero es la primera vez que existe un número en lugar de una suposición, y con procedimiento repetible.
+
+### Techo medido de la vía gratuita (para no volver a intentarla como si fuera infinita)
+
+Después de esas 2 respuestas, la tercera pregunta ya no obtuvo respuesta: la interfaz devolvió **«Regístrate y repite tu solicitud.»**. El tope anónimo de Perplexity por sesión de navegador es por lo tanto **2 consultas de la serie**, y no se estira corriendo de una en una (lo comprobé: la cola secuencial murió en el mismo muro en su primer intento).
+
+Error de procedimiento que hay que no repetir: lancé **10 búsquedas simultáneas** para probar el instrumento. Eso además de no servir para nada es presión inútil sobre un servicio ajeno; la cola correcta es secuencial, una por vez, y con el techo de 2 asumido.
+
+Rutas que quedan para cerrar las 8 preguntas restantes, todas del lado del usuario:
+1. **Crédito en Moonshot** (o facturación en la clave de Gemini): deja las 10 con un comando, y con la columna `dominios` que ya está implementada.
+2. **Cuenta propia de Perplexity / ChatGPT / Copilot**: 10 preguntas a mano, 2-3 minutos por motor; es el camino con el que se puede declarar "visibilidad en IA" sin asteriscos, porque son los motores que nombra el objetivo.
