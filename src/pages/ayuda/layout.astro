@@ -6,6 +6,7 @@ import ChatWidget from '@/components/ChatWidget.astro';
 import SearchOverlay from '@/components/SearchOverlay.astro';
 import UnifiedCart from '@/components/cart/UnifiedCart';
 import Icon from '@/components/shared/Icon.astro';
+import NodosComunes from '@/components/brand/NodosComunes.astro';
 
 interface Props {
   title: string;
@@ -69,6 +70,7 @@ function isActive(href: string): boolean {
         if (dark) document.documentElement.classList.add('dark');
       })();
     </script>
+    <NodosComunes />
   </head>
   <body class="min-h-screen flex flex-col bg-surface text-text-primary font-[Inter,system-ui,sans-serif]">
     <Navbar />

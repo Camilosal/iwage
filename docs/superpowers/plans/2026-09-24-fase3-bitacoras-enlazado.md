@@ -1258,3 +1258,45 @@ Con la caché aislada, el árbol actual genera **170 URLs**, y la diferencia con
 - **56 artículos y 2 índices de bitácora**, intactos; 11 URLs con barra final.
 
 Lectura: el número que debe aparecer en el origen tras el deploy #5 es **180 = 185 − 5**, con las 56 rutas de artículo presentes. El ensayo local no puede decir 180 porque le faltan las 10 que solo el token de producción devuelve; lo que sí dice, y era la pregunta, es que el recorte legal se materializa en el XML y no toca nada más.
+
+### Las 25 URLs sin un solo bloque `ld+json`, y el par que las cubre (medido 2026-09-24 ~19:37Z)
+
+El barrido de producción sobre las 185 URLs del sitemap dejó la cifra partida: **160 con ≥1 bloque, 25 con 0**. Las 25 no eran ruido ni rutas huérfanas, eran contenido indexable con la identidad del sitio ausente: 9 de `/ayuda/usuarios/*`, 10 de `/ayuda/equipo/*` y 6 de `/legal/*`. La causa estructural: esas páginas nunca pasan por `BrandLayout`, que es donde se declaraba `#organization` — tres rutas de render (`src/pages/ayuda/layout.astro`, `src/layouts/BaseLayout.astro` y `src/pages/legal/_layout.astro`) vivían fuera del grafo.
+
+El cierre usa la misma fuente única del apartado anterior, sin copiar literales:
+
+- `nodosComunes()` en `src/lib/schema-bitacora.ts` → `[webSiteSchema(), organizacionMadre()]`, o sea los dos nodos que todo sitio debe poder declarar repetidamente sin divergir.
+- `src/components/brand/NodosComunes.astro` los imprime como un bloque `<script type="application/ld+json">` por nodo, la convención de serialización del resto del grafo.
+- Montado antes de `</head>` en `src/pages/ayuda/layout.astro` (cubre los 19 `/ayuda/*` de una) y en `src/layouts/BaseLayout.astro` (cubre `/ayuda/` y `/legal/`).
+
+**`src/pages/legal/_layout.astro` se dejó sin montar, a propósito.** Sus 5 hojas salen con `<meta name="robots" content="noindex, follow">` (`:54`) y desde `9f5e831` ya no están en el sitemap; darles grafo sería escribir JSON-LD para una URL que Google no debe indexar. Con eso el hueco queda cerrado donde había índice que servir: las 25 con 0 se parten en 20 cubiertas por este cambio y 5 que salen del mapa.
+
+Verificación sin desplegar, con el dev local en `127.0.0.1:4399` y `REDIS_URL` en puerto muerto (el aislamiento que exige el punto 2 de arriba):
+
+| medición | resultado |
+|---|---|
+| barrido de las 25 URLs antes del cambio | `/ayuda/usuarios/*` y `/ayuda/equipo/*` en 2 bloques (WebSite, Organization), `/legal/` en 2, `/legal/cookies/` en 0 — el único 0 restante |
+| `/ayuda/` | 3 nodos: WebSite, Organization y el `FAQPage` que ya tenía |
+| páginas de marca (`/granja/`, `/granja/bitacora/`, un artículo) | sin cambios: 5/6/6 nodos, `Organization×2` = la madre y la marca, `@id` distintos |
+| **sitemap completo barrido bloque por bloque** | **170 URLs, 170 con `200`, 170 con ≥1 bloque, 0 con 0** |
+| `@id` declarados dos veces en la misma página | 0 para `#organization`, 0 para `#founder`, en las 170 |
+| `npm test` · `npx astro build` | 37/37 · `[build] Complete!` exit 0 en 13,8 s |
+
+Nota sobre el instrumento, porque es la segunda vez que muerde: **contar ocurrencias de `"@id":"https://iwage.co/#organization"` no mide duplicados.** Una página de marca declara la madre una vez y la referencia tres (`publisher` del WebSite, `parentOrganization` de la org de marca, `worksFor` del fundador) — el conteo crudo da 4 y no dice nada. La prueba de duplicado es por nodo: `@id` coincidente **y** `name` **y** `description` presentes, que es lo que distingue una declaración de una referencia. Ese fue el criterio del barrido de arriba.
+
+Qué cambia en el CHECKPOINT 3: a los conteos ya pactados se suma la predicción del origen — sobre las 180 URLs del sitemap desplegado, **180 con ≥1 bloque `ld+json` y 0 con 0** (en el barrido previo eran 160 y 25). Se mide con el mismo procedimiento: leer `/sitemap.xml` del origen respetando la caché de Redis, y barrer con `redirect: "manual"` para no contar cuerpos de `301` como páginas sin datos.
+
+### El 301 de marca, rehecho contra el corpus real y no contra el fixture (medido 2026-09-24 ~19:42Z)
+
+El ensayo que acompañó a `075debd` usó un Strapi de fixture con 4 filas: probaba la mecánica, no el corte. Con el dev local en `:4399` y el `.env` del proyecto apuntando al Strapi real (Redis otra vez en puerto muerto), el cross product completo de las 56 marcas×slugs del sitemap da la medida que faltaba:
+
+| medición | resultado |
+|---|---|
+| slugs distintos en `/sitemap.xml` | 56 (meliponas + granja) |
+| combinaciones cruzadas probadas (`/marca-que-no-es/bitacora/slug-ajeno`) | **280** |
+| respuestas | **280 × `301`**, `0 × 200`, `0` de otro código, 0 incidencias |
+| destinos de los 301 | **56 distintos**, cada uno exactamente `/<marca dueña>/bitacora/<slug>` |
+| cadena de ejemplo (`/granja/bitacora/quieres-montar-un-meliponario-…`) | `301 → 200`, canonical `https://iwage.co/meliponas/bitacora/…`, `publisher` = `"@id": https://iwage.co/meliponas/#organization` |
+| las 56 rutas propias | `200` (están dentro del barrido de 170 URLs de arriba) |
+
+Lectura: el deploy #5 es lo que convierte las **336 URLs vivas para 56 documentos** que midió el barrido de producción en **56 documentos con una sola URL**, y lo hace sin que ningún destino sea un callejón: los 280 redirects apuntan a las 56 que sí existen. Lo que aún no se puede saber acá es cuánto de esas 336 llegó a conocer Googlebot — eso se lee en Search Console, hito del 8-oct, ítem (3) del goal.

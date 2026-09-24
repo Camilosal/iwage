@@ -1,0 +1,6 @@
+---
+import { nodosComunes } from '@/lib/schema-bitacora';
+---
+{nodosComunes().map((node) => (
+  <script type="application/ld+json" set:html={JSON.stringify(node)} />
+))}

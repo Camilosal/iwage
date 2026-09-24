@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { blogDeBitacora, founderPersona, organizacionMadre, referenciaMadre, webSiteSchema } from '../src/lib/schema-bitacora.ts';
+import { blogDeBitacora, founderPersona, nodosComunes, organizacionMadre, referenciaMadre, webSiteSchema } from '../src/lib/schema-bitacora.ts';
 
 const fila = (slug, extras = {}) => ({ slug, titulo: `Título de ${slug}`, ...extras });
 
@@ -115,4 +115,17 @@ test('organizacionMadre: la misma identidad en todas las páginas que la declara
   assert.equal(madre.address.addressLocality, 'Ibagué');
   assert.equal(madre.address.addressRegion, 'Tolima');
   assert.equal(madre.address.addressCountry, 'CO');
+});
+
+// Medido en el origen 2026-09-24 sobre las 185 URLs del sitemap: 160 salen con datos
+// estructurados y 25 con cero bloques ld+json --las 19 de /ayuda y las 6 de /legal, que
+// usan sus propios layouts y nunca pasaron por BrandLayout. Son los anfitriones de la
+// entidad #organization: sin este par, el grafo queda declarado solo desde las marcas.
+test('nodosComunes: el par que va en toda página fuera del layout de marca', () => {
+  const nodos = nodosComunes();
+
+  assert.equal(nodos.length, 2);
+  assert.deepEqual(nodos.map((n) => n['@type']), ['WebSite', 'Organization']);
+  assert.equal(nodos[0]['@id'], webSiteSchema()['@id']);
+  assert.equal(nodos[1]['@id'], organizacionMadre()['@id']);
 });

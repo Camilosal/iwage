@@ -88,6 +88,15 @@ export function webSiteSchema(): Record<string, unknown> {
 }
 
 /**
+ * El par que va en toda página fuera del layout de marca. Medido en el origen sobre las
+ * 185 URLs del sitemap: las 25 de `/ayuda` y `/legal` salían con cero bloques `ld+json`,
+ * porque sus layouts nunca pasaron por `BrandLayout` y ahí se declaraba `#organization`.
+ */
+export function nodosComunes(): Record<string, unknown>[] {
+  return [webSiteSchema(), organizacionMadre()];
+}
+
+/**
  * `null` con la marca vacía: un índice sin publicaciones no debe declararse Blog,
  * es el mismo criterio que el `noindex` de la fase 3.
  */

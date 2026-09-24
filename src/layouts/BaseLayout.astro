@@ -5,6 +5,7 @@ import Footer from '@/components/Footer.astro';
 import ChatWidget from '@/components/ChatWidget.astro';
 import SearchOverlay from '@/components/SearchOverlay.astro';
 import UnifiedCart from '@/components/cart/UnifiedCart';
+import NodosComunes from '@/components/brand/NodosComunes.astro';
 import { GOOGLE, FACEBOOK, SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
 
 interface Props {
@@ -92,6 +93,7 @@ const { title, description } = Astro.props;
         fbq('track', 'PageView');
       </script>
     )}
+    <NodosComunes />
   </head>
   <body class="min-h-screen flex flex-col">
     <Navbar />
