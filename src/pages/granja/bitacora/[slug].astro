@@ -3,11 +3,13 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import { getBitacoraBySlug, formatFecha } from '@/lib/bitacora';
 import { renderMarkdown } from '@/lib/render-markdown';
 import Icon from '@/components/shared/Icon.astro';
+import { BITACORA_MARCAS } from '@/config/bitacora-marcas';
 
-const BRAND = 'granja';
-const BRAND_NAME = 'Iwagé Granja';
-const AUTHOR = 'Manuel Camilo Saldarriaga Acosta';
-const LOCATION = 'Corredor Ambalá, Ibagué, Tolima';
+const MARCA = BITACORA_MARCAS['granja'];
+const BRAND = MARCA.slug;
+const BRAND_NAME = MARCA.nombre;
+const AUTHOR = MARCA.autor;
+const LOCATION = MARCA.lugar;
 
 const { slug } = Astro.params;
 const article = await getBitacoraBySlug(slug!);
@@ -27,15 +29,17 @@ const articleMeta = {
   title: article.titulo,
   description: article.extracto || article.titulo,
   datePublished: article.fecha || new Date().toISOString().split('T')[0],
-  dateModified: article.updatedAt || article.fecha,
-  author: AUTHOR,
+  dateModified: article.fecha_actualizacion || article.updatedAt || article.fecha,
+  author: article.autor || AUTHOR,
+  authorPlace: MARCA.lugar,
+  keywords: (article.etiquetas ?? []).slice(0, 8),
   image: article.imagen || undefined,
   section: article.categoria || 'Bitácora',
   wordCount,
 };
 ---
 
-<BrandLayout brand={BRAND} title={`${article.titulo} · ${BRAND_NAME}`} description={article.extracto || article.titulo} ogType="article" article={articleMeta} ogImage={article.imagen || undefined}>
+<BrandLayout brand={BRAND} title={`${article.meta_title || article.titulo} · ${BRAND_NAME}`} description={article.meta_description || article.extracto || article.titulo} ogType="article" article={articleMeta} ogImage={article.imagen || undefined}>
   <article class="mx-auto max-w-3xl px-6 py-12 md:py-16">
     <!-- Breadcrumb -->
     <nav class="mb-8 flex items-center gap-2 text-sm text-text-muted flex-wrap">

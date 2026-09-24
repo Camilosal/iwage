@@ -18,6 +18,8 @@ interface ArticleMeta {
   image?: string;
   section?: string;
   wordCount?: number;
+  keywords?: string[];
+  authorPlace?: string;
 }
 
 interface Props {
@@ -148,8 +150,10 @@ if (props.article) {
     "author": {
       "@type": "Person",
       "name": a.author || "Manuel Camilo Saldarriaga Acosta",
-      "url": "https://camilosaldarriaga.com"
+      "url": "https://camilosaldarriaga.com",
+      ...(a.authorPlace && { "address": { "@type": "PostalAddress", "addressLocality": a.authorPlace } })
     },
+    ...(a.keywords?.length && { "keywords": a.keywords.join(", ") }),
     "publisher": { "@id": `https://iwage.co/${brandConfig.slug}/#organization` },
     ...(a.image && { "image": a.image }),
     ...(a.section && { "articleSection": a.section }),

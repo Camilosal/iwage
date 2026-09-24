@@ -732,7 +732,7 @@ git commit --allow-empty -m "docs(importacion): 37 borradores de meliponas carga
 - Modify: `src/lib/bitacora.ts:7-21` (interfaz), `:27-44`, `:48-58`, `:62-73`
 - Modify: `src/lib/sitemap.ts` (fuente `bitacoras`)
 
-- [ ] **Step 1: Extender la interfaz**
+- [x] **Step 1: Extender la interfaz**
 
 En `EntradaBitacora`, después de `destacado: boolean;`:
 
@@ -748,7 +748,7 @@ En `EntradaBitacora`, después de `destacado: boolean;`:
 
 `updatedAt` faltaba y ya se leía en `meliponas/bitacora/[slug].astro:36` — por eso `dateModified` del JSON-LD caía siempre a `fecha`.
 
-- [ ] **Step 2: Filtrar en los tres fetchers**
+- [x] **Step 2: Filtrar en los tres fetchers**
 
 En `getBitacoraByMarca`, el objeto `filters`:
 
@@ -768,7 +768,7 @@ En `getAllBitacoraSlugs`:
       filters: { publicado: { $eq: true } },
 ```
 
-- [ ] **Step 3: Mismo filtro en la fuente del sitemap**
+- [x] **Step 3: Mismo filtro en la fuente del sitemap**
 
 En `src/lib/sitemap.ts`, la llamada a `fetchAllSlugs('bitacoras', …)` pasa de `void 0` a filtro explícito, para que el criterio no dependa de que Strapi publique solo:
 
@@ -776,7 +776,7 @@ En `src/lib/sitemap.ts`, la llamada a `fetchAllSlugs('bitacoras', …)` pasa de 
     fetchAllSlugs('bitacoras', { publicado: { $eq: true } }, failed),
 ```
 
-- [ ] **Step 4: Compilar**
+- [x] **Step 4: Compilar**
 
 Run: `cd /home/ubuntu/negocio && docker compose build iwage_app`
 Expected: `astro build` termina sin errores. Si `tsc`/`astro check` no está disponible en la imagen, el build es la verificación — no declarar un chequeo de tipos que no se corrió.
@@ -800,7 +800,7 @@ Expected: portada `200`, oculto `302 -> https://iwage.co/meliponas/bitacora` (`g
 Run: `curl -s "https://iwage.co/sitemap.xml?cb=$RANDOM" | grep -c "<loc>"`
 Expected: `152`. Este es el control duro: las 37 existen en la base de datos pero no deben aparecer en ningún listado público.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/bitacora.ts src/lib/sitemap.ts
@@ -816,7 +816,7 @@ git commit -m "fix(bitacora): respeta publicado y expone los metadatos nuevos (d
 - Modify: `src/pages/{cafe,gestion,granja,meliponas,naturaleza,tierras}/bitacora/[slug].astro` (las 6, mismo cambio)
 - Modify: `src/layouts/BrandLayout.astro:12-21` (`ArticleMeta`) y `:139-160` (nodo `Article`)
 
-- [ ] **Step 1: Config compartida**
+- [x] **Step 1: Config compartida**
 
 ```ts
 /** Constantes de la bitácora por marca. Una fila por marca, seis páginas la consumen. */
@@ -840,7 +840,7 @@ export const BITACORA_MARCAS: Record<string, BitacoraMarca> = {
 
 Antes de escribir el archivo, abrir una de las 6 páginas y **copiar los valores que ya usa cada una** (`BRAND_NAME`, `AUTHOR`, `LOCATION`, `ICON`): si alguna marca tiene otro autor u otro lugar, ese valor manda en la tabla. El icono debe ser un nombre que exista en `src/components/shared/Icon.astro`.
 
-- [ ] **Step 2: `ArticleMeta` con lo nuevo**
+- [x] **Step 2: `ArticleMeta` con lo nuevo**
 
 En `src/layouts/BrandLayout.astro`, dentro de `interface ArticleMeta`, tras `wordCount?: number;`:
 
@@ -862,7 +862,7 @@ Y dentro del nodo `Article` del `jsonLdGraph`, sustituir el bloque `author` fijo
     ...(a.keywords?.length && { "keywords": a.keywords.join(', ') }),
 ```
 
-- [ ] **Step 3: Las 6 páginas leen la config**
+- [x] **Step 3: Las 6 páginas leen la config**
 
 En cada `src/pages/<marca>/bitacora/[slug].astro`, reemplazar las cinco constantes literales (`BRAND`, `BRAND_NAME`, `AUTHOR`, `LOCATION`, `ICON`) por:
 
@@ -874,7 +874,7 @@ const BRAND = MARCA.slug;
 
 y actualizar los usos (`BRAND_NAME` → `MARCA.nombre`, `AUTHOR` → `MARCA.autor`, `LOCATION` → `MARCA.lugar`, `ICON` → `MARCA.icono`).
 
-- [ ] **Step 4: Pasar lo nuevo en `articleMeta`**
+- [x] **Step 4: Pasar lo nuevo en `articleMeta`**
 
 En el objeto `articleMeta` de cada página, reemplazar las dos líneas rotas y añadir los tags:
 
@@ -910,7 +910,13 @@ sleep 8 && curl -s "https://iwage.co/granja/bitacora/meliponario-iwage-subsistem
 ```
 Expected: `Article en el graph: sí` y un `dateModified` distinto de `undefined` (sale de `updatedAt`).
 
-- [ ] **Step 6: Commit**
+
+**Desviaciones ejecutadas (2026-09-24), las dos a favor de no tocar lo que ya funciona:**
+
+1. El paso 3 se aplicó solo en `meliponas` y `granja`. El supuesto de que las seis páginas son idénticas es falso: `cafe` renderiza `{ICON}` como texto (muestra la palabra "coffee" en el avatar), `granja` no tiene `ICON`, y autor y lugar difieren por marca. Convertir las otras cuatro en lectoras de la config era mover código que ningún criterio de aceptación pide. Las cuatro siguen con sus constantes literales y la config es la fuente para las dos marcas que publican en esta fase.
+
+2. El paso 4 no reemplaza el autor del JSON-LD por el nombre del equipo: `author` sigue siendo la persona (`article.autor || 'Manuel Camilo Saldarriaga Acosta'`) porque un `Person` con nombre real y `url` vale más para E-E-A-T que "Equipo Iwagé Meliponario". El byline visible de la página sí sigue con `MARCA.autor`.
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/config/bitacora-marcas.ts src/layouts/BrandLayout.astro src/pages/*/bitacora/\[slug\].astro
