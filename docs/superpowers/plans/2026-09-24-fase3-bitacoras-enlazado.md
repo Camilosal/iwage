@@ -1471,3 +1471,25 @@ Queda pendiente del goal, sin cambio de código: (3) Search Console el 2026-10-0
 Reabrir `search.google.com/test/rich-results` sobre una ruta de artículo viva devuelve el formulario vacío y un diálogo **"Se ha producido un error — Inicia sesión e inténtalo de nuevo"** con un iframe de reCAPTCHA. La verificación anónima que sí funcionó antes del deploy (#23, sobre los índices) está cerrada por Google: **la re-validación con el validador la tiene que correr el usuario con su sesión**, sobre `https://iwage.co/granja/bitacora/viabilidad-practica`.
 
 Con eso, la cláusula "validador de rich results" del ítem (1) queda cubierta así, y se dice como es: **(a)** 100/100 pruebas puras (esquema y contrato de campos), **(b)** el barrido estructural sobre las 56 rutas servidas --56/56 con `Article` y los 6 campos, 0 `@id` duplicados dentro de la misma página, 0 páginas sin `Article--, y **(c)** el barrido por el borde público: 200 en `/` y los índices, `canonical` correcto, 301 de marca ajena funcionando por Cloudflare. Lo que no está hecho es el dictamen del validador de Google después del `about`; es una cuenta del usuario, no un hueco de código.
+
+## `recetas.iwage.co` medido por dentro (2026-09-24 21:26Z) — última fila abierta del ítem (4)
+
+No es el repo de este sitio: corre en `data/app_cafeteria` (Express 5 + Postgres, SPA en `public/`) dentro del contenedor `cafeteria_app`, arriba 6 semanas. Tiene su propio deploy y su propio CHECKPOINT; aquí va la medición para que la unidad siguiente no empiece a ciegas.
+
+| qué | medido sin sesión |
+|---|---|
+| `/` | 200, 14 856 b, **0** bloques `application/ld+json`, `<title>` y `description` correctos, `h1` con `style="display:none"` |
+| contenido de las recetas en el HTML | **ninguno**: la lista se pinta del lado del cliente desde `/api/recipes` (un rastreador que no ejecuta JS ve una página de 14 KB que menciona "receta" 10 veces y no contiene ni una receta) |
+| `/api/recipes` | **200 sin token**, 4 recetas, campos `ingredients[].price` presentes en **4/4** (costos de insumo, ej. `Chocolate oscuro, 200g → 8.5`) |
+| `/api/ingredients` | **200 sin token** |
+| `/api/logs` | **401** sin token (el `authMiddleware` sí está puesto donde corresponde) |
+| `/admin.html` | 200, 30 242 b servidos públicamente (el panel; sus llamadas caen en 401 sin token) |
+| `/robots.txt` / `/sitemap.xml` | 200 / **404** |
+| `/recetas` | 404 (el recetario vive en la raíz del subdominio) |
+
+Consecuencia GEO: el subdominio no aporta nada legible por máquina --ni `Recipe`, ni `ItemList`, ni `Organization`, ni sitemap— y el grafo de la fase 3 (que enlaza `iwage.co/cafe/recetas` hacia acá) termina en una página vacía para el rastreador. Es el mismo hueco del ítem (1) pero en la casa del vecino, y se cierra sin texto nuevo: las 4 recetas ya existen en la base.
+
+La unidad de trabajo concreta, con su propio CHECKPOINT:
+1. Renderizar del lado del servidor el listado de recetas y un `<script type="application/ld+json">` con `ItemList` + 4 `Recipe` (`name`, `image`, `description`, `recipeCategory`, `recipeCuisine`, `totalTime` ya están en la API interna), o por lo mínimo inyectar el bloque en la respuesta de `/` sin ejecutar JS en el cliente.
+2. `/sitemap.xml` en el subdominio y la referencia desde su `/robots.txt`.
+3. Decisión del usuario antes de tocar nada público: si `/api/recipes` y `/api/ingredients` deben seguir respondiendo 200 **sin token con los costos adentro**. `admin.html` servido en claro es menor (sus endpoints sí devuelven 401); lo que está expuesto es el dato de costo, no la puerta.
