@@ -477,7 +477,7 @@ Expected: `19 entradas, 19 con publicado!=false`. Si salen `publicado: undefined
 
 **Verificado en producción (2026-09-24, tras `docker compose up -d --build iwage_strapi`):** el esquema aplicó, la API pública devuelve las 19 entradas, pero todas con `publicado: null` — Strapi aplica `default` solo al crear, nunca sobre filas que ya existían. El backfill del paso 4 **sí** hace falta, y mientras no corra, el filtro de la Tarea 8 no puede ser `publicado: true` porque escondería la bitácora de granja completa de la SERP.
 
-- [ ] **Step 4: Backfill explícito solo si hace falta**
+- [x] **Step 4: Backfill explícito solo si hace falta**
 
 El token se saca del `.env` del despliegue y se usa **dentro** del contenedor de la app, que ya lo tiene en su entorno: nunca se imprime ni va en la línea de comandos.
 
@@ -781,7 +781,7 @@ En `src/lib/sitemap.ts`, la llamada a `fetchAllSlugs('bitacoras', …)` pasa de 
 Run: `cd /home/ubuntu/negocio && docker compose build iwage_app`
 Expected: `astro build` termina sin errores. Si `tsc`/`astro check` no está disponible en la imagen, el build es la verificación — no declarar un chequeo de tipos que no se corrió.
 
-- [ ] **Step 5: Desplegar y verificar en la calle — CHECKPOINT**
+- [x] **Step 5: Desplegar y verificar en la calle — CHECKPOINT**
 
 Recrea `iwage_app`. **Pedir confirmación.**
 
@@ -795,7 +795,7 @@ printf "artículo de granja: %s\n" "$(curl -s -o /dev/null -w '%{http_code}' 'ht
 ```
 Expected: portada `200`, oculto `302 -> https://iwage.co/meliponas/bitacora` (`getBitacoraBySlug` devuelve null y la página hace `Astro.redirect` a la portada: no es un 404, y es el comportamiento correcto), y granja `200`. Si el oculto da `200`, el filtro `publicado` no está aplicando: **no publicar todavía** y volver al paso 2.
 
-- [ ] **Step 5b: Comprobar que el filtro llega al sitemap**
+- [x] **Step 5b: Comprobar que el filtro llega al sitemap**
 
 Run: `curl -s "https://iwage.co/sitemap.xml?cb=$RANDOM" | grep -c "<loc>"`
 Expected: `152`. Este es el control duro: las 37 existen en la base de datos pero no deben aparecer en ningún listado público.
@@ -892,7 +892,7 @@ Y en el `<BrandLayout …>` de esas páginas, usar los metadatos si existen:
   description={article.meta_description || article.extracto || article.titulo}
 ```
 
-- [ ] **Step 5: Compilar y ver el HTML de un artículo publicado**
+- [x] **Step 5: Compilar y ver el HTML de un artículo publicado**
 
 Sin publicar todavía no hay artículo meliponas que renderizar; usar uno de granja:
 
@@ -909,6 +909,8 @@ sleep 8 && curl -s "https://iwage.co/granja/bitacora/meliponario-iwage-subsistem
 })'
 ```
 Expected: `Article en el graph: sí` y un `dateModified` distinto de `undefined` (sale de `updatedAt`).
+
+**Ojo al verificar (aprendido ejecutando):** `BrandLayout` no emite un solo `@graph`, son cuatro bloques `ld+json` sueltos (Organization, Person, BreadcrumbList, Article). Leer el primer bloque da `Article en el graph: NO` aunque esté. El `Article` es el ultimo bloque, o el unico que trae `headline`.
 
 
 **Desviaciones ejecutadas (2026-09-24), las dos a favor de no tocar lo que ya funciona:**
