@@ -1493,3 +1493,73 @@ La unidad de trabajo concreta, con su propio CHECKPOINT:
 1. Renderizar del lado del servidor el listado de recetas y un `<script type="application/ld+json">` con `ItemList` + 4 `Recipe` (`name`, `image`, `description`, `recipeCategory`, `recipeCuisine`, `totalTime` ya están en la API interna), o por lo mínimo inyectar el bloque en la respuesta de `/` sin ejecutar JS en el cliente.
 2. `/sitemap.xml` en el subdominio y la referencia desde su `/robots.txt`.
 3. Decisión del usuario antes de tocar nada público: si `/api/recipes` y `/api/ingredients` deben seguir respondiendo 200 **sin token con los costos adentro**. `admin.html` servido en claro es menor (sus endpoints sí devuelven 401); lo que está expuesto es el dato de costo, no la puerta.
+
+---
+
+## Cierre del barrido de datos estructurados: los 6 `/legal` (commit `29c79d8`)
+
+El barrido de las 185 URLs servidas dejó `con_0_bloques = 5`, todas bajo `/legal`.
+Causa: `src/pages/legal/_layout.astro` pintaba un documento completo (`<title>` + `<slot>`)
+sin pasar por `BrandLayout` ni por `NodosComunes`, así que ahí no se declaraba
+`#organization` ni `#website`.
+
+Arreglo con test de contrato (`tests/nodos-comunes-contrato.test.mjs`): recorre `src/` y
+exige que toda plantilla con `<title>` y `<slot>` declare `NodosComunes` o un bloque
+`application/ld+json` propio. RED primero (listó exactamente el layout de `/legal`), GREEN
+después. Prueba de render en `astro preview` sobre el `dist` de esta misma construcción, con
+Redis apuntando a un puerto muerto:
+
+| ruta | status | bloques ld+json | `@type` | JSON inválido |
+|---|---|---|---|---|
+| `/legal/` | 200 | 2 | WebSite, Organization | 0 |
+| `/legal/cookies` | 200 | 2 | WebSite, Organization | 0 |
+| `/legal/terminos-y-condiciones` | 200 | 2 | WebSite, Organization | 0 |
+| `/legal/tratamiento-de-datos` | 200 | 2 | WebSite, Organization | 0 |
+| `/legal/devoluciones-y-retracto` | 200 | 2 | WebSite, Organization | 0 |
+| `/legal/cancelaciones-y-reembolsos` | 200 | 2 | WebSite, Organization | 0 |
+
+Son 6 rutas, no 5: `/legal/` (índice) también estaba en cero y el barrido solo cuenta las
+URLs que aparecen en el sitemap.
+
+**Esto queda esperando el deploy #6** (con su CHECKPOINT). Con ese deploy, el inventario del
+ítem (1) queda así sobre las URLs servidas: 56 artículos con `Article` completo, 6 índices con
+`Blog`, `/` con 3 nodos, `/legal` con 2, y `con_0_bloques = 0`.
+
+## Dedup de los 6 grids de bitácora: medido y aplazado a propósito
+
+`wc -l src/pages/*/bitacora/index.astro` = 122, 122, 122, 136, 122, 122 (746 líneas).
+Normalizando el nombre de la marca, `cafe` vs `granja` difiere en 3 bloques (9 líneas):
+`BRAND_TITLE`, `BRAND_DESC`, el `<h1>` y los dos párrafos de copy. Es decir ~110 de 122 líneas
+son idénticas por construcción.
+
+Pero la copia ya tuvo su costo real y visible: entre `cafe` y `tierras` hay **deriva de clases**
+(`mx-auto mb-4 text-brand` vs `mb-4 mx-auto text-text-muted` en los íconos del vacío y del grid)
+y un orden distinto de `import BitacoraSidebar`. Unificar los 6 en un componente cambiaría el
+render de al menos dos marcas, y el efecto visual no se puede verificar sin desplegar.
+Aplazado con criterio: cero impacto GEO (no toca URLs, ni schema, ni robots), riesgo visual no
+verificable en esta fase, y la decisión explícita del usuario sobre el ítem (4) era "caso por caso".
+Si se hace, la unidad es: componente `BitacoraIndex.astro` con props de copy + pasar las 6 rutas
+a una sola y un barrido visual de las 6 marcas antes de desplegar.
+
+## `recetas.iwage.co`: dos hallazgos que cambian la unidad de trabajo
+
+1. **La fila de receta no tiene pasos.** Medido sobre `/api/recipes` (4 filas):
+   `id, category, name, description, image_url, difficulty, total_time_seconds, metadata,
+   accessories, ingredients`; `metadata = { tips[], servings, cook_time, prep_time }` e
+   `ingredients[] = { item, unit, price, buyable, quantity }`. No existe una lista de
+   instrucciones, así que un `Recipe` con `recipeInstructions` implicaría **inventar contenido**,
+   que está fuera de este goal por instrucción expresa. Lo honesto y suficiente:
+   `ItemList` + 4 `Recipe` con `name`, `description`, `image` absoluta, `recipeCategory`,
+   `recipeYield` (servings), `prepTime`/`cookTime`/`totalTime` en ISO 8601 y
+   `recipeIngredient` derivada de `quantity + unit + item` --todo dato que ya está en la base--
+   más el mismo bloque en HTML legible en el `<body>` (hoy el `body` no tiene ni una palabra de
+   las recetas). Sin `recipeInstructions` Google no da el rich result completo, pero el rastreador
+   y los motores de respuesta por fin leen las recetas.
+2. **Esta sesión no puede escribir en `data/app_cafeteria`.** El runtime de esta sesión tiene por
+   raíz del espacio de trabajo `data/app_iwage` y rechaza cualquier escritura fuera de ella
+   (`远端路径必须位于当前工作区根目录内`). Además `app_cafeteria` no es submodule: está versionado
+   directo en el repo padre `/home/ubuntu/negocio`, cuyo árbol está sucio de otros trabajos
+   (`AGENTS.md`, `data/gatus/gatus.db`, 5 gitlinks), y no tiene `node_modules` ni test propio
+   (`npm test` es un `exit 1`). La unidad de trabajo de recetas necesita su propia sesión sobre
+   el repo padre, con su CHECKPOINT y su build de `cafeteria_app` (contenedor compartido: 6 semanas
+   arriba, no lo toco desde acá).
