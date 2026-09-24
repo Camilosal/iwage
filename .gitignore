@@ -34,3 +34,4 @@ public/images/cafe-menu/*.png
 # 3 scripts de seed de agosto con credenciales en claro (TOKEN y PGPASSWORD literales):
 # no van al repo, que es publico. Rotar esos credenciales antes de versionar nada.
 scripts/
+/.superpowers/
