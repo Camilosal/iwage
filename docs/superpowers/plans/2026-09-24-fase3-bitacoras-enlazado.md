@@ -32,7 +32,7 @@ Medido el 2026-09-24 con Search Console: **0 impresiones y 1 sola página indexa
 | `src/lib/strapi.ts` | Modificar | Soportar `fields?: string[]` (consulta sin `contenido`). |
 | `src/lib/bitacora-resumen.ts` | Crear | `ResumenBitacora`, `filasAResumen()`, `conteoDe()`. Puro, testeable en el host. |
 | `src/lib/bitacora.ts` | Modificar | `getResumenBitacora()` (única pasada a Strapi) + re-exportar lo puro. |
-| `tests/bitacora-resumen.test.mjs` | Crear | 4 tests de la agrupación. |
+| `tests/bitacora-resumen.test.mjs` | Crear | 5 tests de la agrupación; el quinto codifica el contrato del grafo con las 56 filas publicadas. |
 | `src/components/brand/BitacoraEcosistema.astro` | Crear | Sección del hub: chips de portadas con contenido + tira de 6 recientes. |
 | `src/pages/index.astro` | Modificar | `resumen` en frontmatter, pie `"Bitácora · N publicaciones"` por tarjeta, montar la sección. |
 | `src/components/brand/UltimasDeBitacora.astro` | Crear | Fila `"Desde la bitácora"` (3 `BitacoraCard`), oculta si la marca está vacía. |
@@ -742,13 +742,14 @@ Escribir: *"Listos los N commits locales; `origin/master` sigue atrás. ¿Los su
 
 ## Estado de ejecución y mediciones estáticas (2026-09-24, antes del despliegue)
 
-Tasks 1-6 ejecutados y commiteados: `18c1449` capa de datos, `611afb2` hub, `550ff9a` las 5 landings, `c32d29c` pie global + menú de granja. `git diff --stat e48eb20..HEAD` → 15 archivos, 1027 inserciones, 1 borrón. El árbol conserva sin tocar los dos no rastreados preexistentes (`public/Iwage_Granja_Diseno_y_Plan_de_Accion.docx`, `scripts/`).
+Tasks 1-6 ejecutados y commiteados: `18c1449` capa de datos, `611afb2` hub, `550ff9a` las 5 landings, `c32d29c` pie global + menú de granja, `0acb674` auditoría estática + degradado con log. `git diff --stat e48eb20..HEAD` → 15 archivos, 1027 inserciones, 1 borrón. El árbol conserva sin tocar los dos no rastreados preexistentes (`public/Iwage_Granja_Diseno_y_Plan_de_Accion.docx`, `scripts/`).
 
 Medido sin tocar producción:
 
 | Comprobación | Comando | Salida |
 |---|---|---|
-| Tests en verde | `node --test tests/*.test.mjs` | `# pass 14` / `# fail 0` |
+| Tests en verde | `node --test tests/*.test.mjs` | `# pass 15` / `# fail 0` |
+| El contrato del grafo, medido sin desplegar | `node --test tests/bitacora-resumen.test.mjs` | con las 56 filas reales de Strapi (37 meliponas + 19 granja): 2 marcas con enlace (`/meliponas/bitacora`, `/granja/bitacora`), 6 hrefs distintos en la tira del hub, 3 tarjetas por landing con contenido y `0` en las 4 vacías |
 | Cero dependencias nuevas | `git diff --name-only e48eb20..HEAD -- package.json package-lock.json \| wc -l` | `0` |
 | Las 6 rutas de bitácora existen | `find src/pages -path '*bitacora*' -name '*.astro'` | 12 archivos: `index.astro` + `[slug].astro` en las 6 marcas → todo href emitido resuelve |
 | La forma del href coincide con la preexistente | `grep -n 'bitacora/' src/pages/granja/bitacora/index.astro src/pages/meliponas/index.astro` | `:64` y `:264` usan `` `/${marca}/bitacora/${post.slug}` `` / `` `/meliponas/bitacora/${post.slug}` ``, idéntico a lo que generan `BitacoraEcosistema` y `UltimasDeBitacora` |

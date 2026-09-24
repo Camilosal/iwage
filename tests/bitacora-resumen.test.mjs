@@ -40,3 +40,30 @@ test('conteoDe: 0 sin bitácora, el conteo real con contenido', () => {
   assert.equal(conteoDe(r, 'cafe'), 0);
   assert.equal(conteoDe(r, 'cualquier-cosa'), 0);
 });
+
+// Distribución real medida el 2026-09-24 en Strapi: 37 de meliponas + 19 de granja,
+// y las otras cuatro marcas sin filas publicadas. Es el contrato del grafo expresado
+// en datos: `/` debe dar 2 portadas y 6 artículos, cada landing con contenido 3 tarjetas,
+// y ninguna vacía un enlace.
+test('contrato del grafo con los 56 artículos publicados', () => {
+  const filas = [
+    ...Array.from({ length: 37 }, (_, i) => fila(`m${i}`, 'meliponas')),
+    ...Array.from({ length: 19 }, (_, i) => fila(`g${i}`, 'granja')),
+  ];
+  const r = filasAResumen(filas);
+  const MARCAS = ['tierras', 'naturaleza', 'meliponas', 'cafe', 'gestion', 'granja'];
+
+  assert.equal(r.total, 56);
+  // `/.`: chips de portada (misma condición que BitacoraEcosistema/BrandFooter)
+  const marcasConEnlace = MARCAS.filter((m) => conteoDe(r, m) > 0);
+  assert.deepEqual(marcasConEnlace, ['meliponas', 'granja']);
+  assert.deepEqual(marcasConEnlace.map((m) => `/${m}/bitacora`), ['/meliponas/bitacora', '/granja/bitacora']);
+  assert.equal(r.recientes.length, 6);
+  assert.equal(new Set(r.recientes.map((f) => `/${f.marca}/bitacora/${f.slug}`)).size, 6);
+  // Landings: 3 tarjetas donde hay contenido, 0 donde no
+  assert.equal((r.porMarca.meliponas?.ultimas ?? []).length, 3);
+  assert.equal((r.porMarca.granja?.ultimas ?? []).length, 3);
+  for (const m of ['tierras', 'naturaleza', 'cafe', 'gestion']) {
+    assert.equal(r.porMarca[m]?.ultimas.length ?? 0, 0, `${m} no debe ganar enlaces`);
+  }
+});
