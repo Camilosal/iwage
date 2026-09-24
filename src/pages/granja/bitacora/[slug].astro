@@ -32,7 +32,8 @@ const articleMeta = {
   dateModified: article.fecha_actualizacion || article.updatedAt || article.fecha,
   author: article.autor || AUTHOR,
   authorPlace: MARCA.lugar,
-  keywords: (article.etiquetas ?? []).slice(0, 8),
+  // sin etiquetas en el borrador, la sección y la marca sostienen las keywords
+  keywords: [...new Set([...(article.etiquetas ?? []), ...(article.categoria ? [article.categoria] : []), BRAND_NAME])].slice(0, 8),
   image: article.imagen || undefined,
   section: article.categoria || 'Bitácora',
   wordCount,

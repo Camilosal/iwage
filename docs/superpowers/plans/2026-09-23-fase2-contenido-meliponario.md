@@ -964,6 +964,8 @@ echo -n "artículo meliponas: " && curl -s -o /dev/null -w "%{http_code}\n" "htt
 ```
 Expected: `189` (152 + 37), `content="index, follow"` (la portada se volteó sola, sin tocar código) y `200`.
 
+> **Medido:** `189` y `56` en el sitemap sí, pero `/meliponas/bitacora` respondía **500 desde el origen**. La tarjeta de la portada usaba `<Icon name={ICON}>` y `ICON` nunca estuvo definido en `src/pages/meliponas/bitacora/index.astro` (arrastre de `da9765a`). Con el índice vacío el `.map` no corría nunca, así que la fase 1 --justo el estado "noindex porque no hay nada"-- tapó el fallo durante todo este tiempo. Arreglado en `6b26abb` tomando el icono de `BITACORA_MARCAS`, la misma fuente de la página de artículo.
+
 - [ ] **Step 4: IndexNow directo y reindex del RAG**
 
 El proxy propio `/api/indexnow` **no** sirve para esto: medido en el contenedor, `INDEXNOW_SECRET` y `INDEXNOW_KEY` vienen en longitud 0, o sea que su guardia cae en el valor por defecto que está escrito en `src/pages/api/indexnow.ts:15-16`. Usar ese default es parte de la deuda de la fase 3, no una solución. Se envía a `api.indexnow.org` con la llave que el propio sitio publica en `https://iwage.co/iwage-indexnow-2024-key.txt` (verificado: `HTTP 200`, 24 bytes):
@@ -1213,8 +1215,10 @@ chequear "robots meliponas"      'name="robots" content="index, follow"' "curl -
 chequear "llms publicaciones"     "56 publicaciones" "curl -s 'https://iwage.co/llms.txt?cb=2' | grep -oE '[0-9]+ publicaciones'"
 chequear "llms propiedades"       "4 propiedades"    "curl -s 'https://iwage.co/llms.txt?cb=2' | grep -oE '[0-9]+ propiedades'"
 chequear "/gestion/propiedades"   301          "curl -s -o /dev/null -w '%{http_code}' https://iwage.co/gestion/propiedades"
-chequear "feed"                   200          "curl -s -o /dev/null -w '%{http_code}' https://iwage.co/feed"
+chequear "feed google-merchant"   200          "curl -s -o /dev/null -w '%{http_code}' https://iwage.co/feed/google-merchant.xml"
 ```
+
+`/feed` no existe en esta app (medido: 404 en `/feed`, `/rss.xml`, `/atom.xml` y `/feed.xml`); la única ruta de feed real es `src/pages/feed/google-merchant.xml.ts`. La comprobación apunta ahí en lugar de a un fantasma.
 
 Expected: siete líneas `ok`. Un `MAL` en `robots meliponas` con `content="noindex, follow"` significa que la portada sigue vacía para la app — o sea, el despliegue de la Tarea 9 no corrió o Strapi no publicó.
 
