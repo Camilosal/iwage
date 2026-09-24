@@ -23,6 +23,10 @@ function esObjeto(valor: unknown): boolean {
   return typeof valor === 'object' && valor !== null;
 }
 
+function esTexto(valor: unknown): boolean {
+  return typeof valor === 'string';
+}
+
 /**
  * Strapi puede estar caído; una landing de marca no puede ser un 500 por eso.
  * El costo de fallar blando es un hero sin foto, no una página fuera de línea.
@@ -32,8 +36,9 @@ function esObjeto(valor: unknown): boolean {
  *    es JSON (nginx devolviendo HTML) y el `AbortSignal.timeout(8000)` expirado;
  *  - lo que `strapiFetch` devuelve pero nadie pidió: un 200 con forma sorpresa
  *    (`null`, un string, `{ data: "no-array" }`, `[null]`). `res.data` y el
- *    `map(normalize)` de abajo viven FUERA de este try, así que aquí se devuelve
- *    SIEMPRE la forma utilizable `{ data: T[] }` y nada más.
+ *    `map(normalizeSeguro)` de abajo viven FUERA de este try, así que aquí se devuelve
+ *    SIEMPRE la forma utilizable `{ data: T[] }` y nada más; lo que haya DENTRO de un
+ *    registro lo remata `normalizeSeguro`, que descarta el registro y no la página.
  *
  * No se traga el fallo en silencio: sale una línea al stderr por request intentado, con
  * el endpoint y el motivo. Un array vacío no es una anomalía (una página puede no tener
@@ -58,7 +63,7 @@ async function fetchSeguro<T>(
     console.warn(`[heroes] Strapi respondió con una forma inesperada para ${endpoint}`);
     return vacio;
   }
-  // Un elemento `null` dentro del array tampoco puede tirar el `map(normalize)` del llamador.
+  // Un elemento `null` dentro del array tampoco puede tirar el `map(normalizeSeguro)` del llamador.
   return { data: filas.filter(esObjeto), meta: res?.meta ?? {} };
 }
 
@@ -117,6 +122,39 @@ function normalize(rec: StrapiHeroRecord): HeroConfig | null {
   };
 }
 
+/**
+ * El paso por registro del `map` de los tres puntos de entrada.
+ *
+ * `fetchSeguro` garantiza la forma del sobre (`{ data: T[] }`), pero el `map(normalize)`
+ * vive FUERA de ese `try` y un solo registro podrido de un 200 tiraba la página igual que
+ * una caída de Strapi. Dos caminos medidos:
+ *  - `imagen: { url: 5 }` → `media.ts:67` hace `(o.url || '').trim()` y lanza TypeError;
+ *  - `slug_ruta: 123` → `normalize` lo deja pasar (es truthy) y `h.slug_ruta.startsWith`
+ *    lanza en `getHeroesByPrefix`, y además sale al HTML un `HeroConfig` que miente en sus
+ *    tipos (y en el `.trim()`/`.toLowerCase()` de cualquiera de las ~40 páginas).
+ *
+ * Aquí eso degrada a UN registro descartado (o sin foto), nunca a una promesa rechazada.
+ * El aviso es una línea con el tipo del problema: ni el registro ni el payload. Un
+ * `null` de `normalize` por campos que faltan NO avisa: es el estado normal de una página
+ * sin hero configurado, y llenar stderr de falsas alarmas ocultaría la caída real.
+ */
+function normalizeSeguro(rec: StrapiHeroRecord): HeroConfig | null {
+  let hero: HeroConfig | null;
+  try {
+    hero = normalize(rec);
+  } catch (err) {
+    console.warn(`[heroes] Registro descartado en ${ENDPOINT}: ${motivo(err)}`);
+    return null;
+  }
+  if (hero && (!esTexto(hero.slug_ruta) || !esTexto(hero.titulo))) {
+    console.warn(
+      `[heroes] Registro descartado en ${ENDPOINT}: slug_ruta o titulo no son texto (${typeof hero.slug_ruta}, ${typeof hero.titulo})`,
+    );
+    return null;
+  }
+  return hero;
+}
+
 // ── Public API ─────────────────────────────────────────
 
 /** Get all hero configurations (sorted by orden asc). */
@@ -127,7 +165,7 @@ export async function getHeroes(): Promise<HeroConfig[]> {
     pagination: { pageSize: 100 },
   });
   return (res.data ?? [])
-    .map(normalize)
+    .map(normalizeSeguro)
     .filter((h): h is HeroConfig => h !== null);
 }
 
@@ -147,7 +185,7 @@ export async function getHeroBySlug(slug: string): Promise<HeroConfig | null> {
       pagination: { pageSize: 1 },
     });
     const rec = res.data?.[0];
-    if (rec) return normalize(rec);
+    if (rec) return normalizeSeguro(rec);
   }
   return null;
 }
@@ -160,6 +198,6 @@ export async function getHeroesByPrefix(prefix: string): Promise<HeroConfig[]> {
     pagination: { pageSize: 100 },
   });
   return (res.data ?? [])
-    .map(normalize)
+    .map(normalizeSeguro)
     .filter((h): h is HeroConfig => h !== null && h.slug_ruta.startsWith(prefix));
 }
