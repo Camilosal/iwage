@@ -44,3 +44,17 @@ test('los índices de bitácora ya no viven en STATIC_PAGES: si volvieran, la de
   const indices = rutasEstaticas.filter((p) => /^\/[a-z]+\/bitacora$/.test(p));
   assert.deepEqual(indices, []);
 });
+
+test('STATIC_PAGES no envía al sitemap ninguna ruta que el sitio sirve con noindex', () => {
+  // Medido en el origen 2026-09-24: src/pages/legal/_layout.astro declara
+  // `noindex, follow` en las 5 hojas, pero las 6 seguían declaradas en el sitemap.
+  const noindexServidas = [
+    '/legal/terminos-y-condiciones',
+    '/legal/tratamiento-de-datos',
+    '/legal/cookies',
+    '/legal/cancelaciones-y-reembolsos',
+    '/legal/devoluciones-y-retracto',
+  ];
+  const rutasEstaticas = STATIC_PAGES.map(([path]) => path);
+  assert.deepEqual(rutasEstaticas.filter((p) => noindexServidas.includes(p)), []);
+});

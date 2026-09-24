@@ -126,13 +126,10 @@ export const STATIC_PAGES: Array<[path: string, priority: number, changefreq: Si
   ['/ayuda/equipo/sincronizacion', 0.3, 'monthly'],
   ['/ayuda/equipo/strapi-cms', 0.3, 'monthly'],
 
-  // Legal
+  // Legal: solo el índice, porque `legal/_layout.astro:54` sirve las 5 hojas con
+  // `noindex, follow`; declararlas sería pedirle a Google que las rastree para
+  // que las descarte y llenar el informe de cobertura de "enviado y excluido".
   ['/legal/', 0.3, 'yearly'],
-  ['/legal/terminos-y-condiciones', 0.3, 'yearly'],
-  ['/legal/tratamiento-de-datos', 0.3, 'yearly'],
-  ['/legal/cookies', 0.3, 'yearly'],
-  ['/legal/cancelaciones-y-reembolsos', 0.3, 'yearly'],
-  ['/legal/devoluciones-y-retracto', 0.3, 'yearly'],
 ];
 
 /**
