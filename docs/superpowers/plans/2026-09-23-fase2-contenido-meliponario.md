@@ -516,7 +516,7 @@ git commit -m "feat(strapi): bitacora gana publicado, autor, etiquetas y metadat
 **Files:**
 - Create: `strapi/scripts/importar-bitacora.mjs`
 
-- [ ] **Step 1: Escribir el script**
+- [x] **Step 1: Escribir el script**
 
 ```js
 /**
@@ -649,7 +649,7 @@ if (fallidos > 0) process.exit(1);
 
 `crear` siempre manda `publicado: false` porque `aRegistroBitacora` ya lo trae: no hay una ruta del script que publique por accidente sin `--publicar`.
 
-- [ ] **Step 2: Dry run — no toca nada**
+- [x] **Step 2: Dry run — no toca nada**
 
 Run:
 ```bash
@@ -660,12 +660,12 @@ El `--dry-run` no escribe, pero sí lee los slugs existentes por la API, y esa l
 
 Expected: `37 archivos en Publicaciones/Meliponario, 19 entradas en Strapi`, 37 líneas `[dry]`, y `creados=37 omitidos=0 fallidos=0`. Cualquier `omitidos>0` aquí significa colisión de slug con granja: detener y revisar antes de crear nada.
 
-- [ ] **Step 3: Dry run sobre Granja, que debe ser vacío**
+- [x] **Step 3: Dry run sobre Granja, que debe ser vacío**
 
 Run: `cd /home/ubuntu/negocio && set -a && . ./.env && set +a && cd data/app_iwage && STRAPI_API_TOKEN="$IWAGE_STRAPI_API_TOKEN" node strapi/scripts/importar-bitacora.mjs Granja --marca granja --dry-run`
 Expected: `creados=0 omitidos=19 fallidos=0`. Esta línea es la prueba de seguridad de todo el plan: `limpiarSlug` tiene que ser no-op sobre un slug ya limpio, porque los 19 de granja están en Strapi con el slug exacto del export. Si sale `creados>0`, la normalización está deformando slugs y el importador duplicaría contenido existente — detener y arreglar la función, no publicar.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add strapi/scripts/importar-bitacora.mjs
