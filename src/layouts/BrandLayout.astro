@@ -9,6 +9,8 @@ import { getBrandFromPath, defaultBrand } from '@/config/brands';
 import type { BrandConfig } from '@/config/brands/types';
 import { GOOGLE, FACEBOOK, SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
 import { articuloSchema, blogDeBitacora, founderPersona, organizacionMadre, referenciaMadre, webSiteSchema, type FilaDeBlog, type MetaArticulo } from '@/lib/schema-bitacora';
+import { mediaSrc, absUrl } from '@/lib/media';
+import { ogImageDe } from '@/lib/og-image';
 
 interface Props {
   title?: string;
@@ -33,7 +35,10 @@ const title = props.title ?? brandConfig.seo.defaultTitle;
 const description = props.description ?? brandConfig.seo.defaultDescription;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://iwage.co');
 const ogType = props.ogType ?? 'website';
-const ogImage = props.ogImage ?? `https://iwage.co/images/hero-${brandConfig.slug === 'meliponas' ? 'meliponas' : brandConfig.slug}.webp`;
+// El borde de las 7 rutas de bitácora/experimentos: `props.ogImage` llega tal cual lo
+// guardó Strapi (ruta relativa, o absoluta con el host interno de Docker). Se absolutea
+// aquí una vez, no página por página, para que ninguna ruta pelada salga a los metadatos.
+const ogImage = ogImageDe({ brand: brandConfig.slug, imagen: props.ogImage ?? null });
 const robots = props.noindex ? 'noindex, follow' : 'index, follow';
 
 // Structured data: Organization with founder + parentOrganization
@@ -120,7 +125,10 @@ if (props.article) {
       brand: brandConfig.slug,
       url: canonicalURL.href,
       imagen: ogImage,
-      article: props.article,
+      // Mismo borde que `og:image`: `articuloSchema` prefiere `article.image` sobre la
+      // imagen del layout, y las rutas de bitácora la entregan relativa. Sin esta línea
+      // el JSON-LD saldría con `/uploads/...` y Google lo descartaría como imagen inválida.
+      article: { ...props.article, image: absUrl(mediaSrc(props.article.image)) ?? undefined },
     }),
   );
 }
