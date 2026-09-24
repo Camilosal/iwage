@@ -37,6 +37,22 @@ export const MOTORES = [
   { slug: 'openai/gpt-4o', engine: 'OpenAI (búsqueda hospedada)', busqueda: true, verificado: '2026-09-24' },
 ];
 
+/**
+ * Los host que el motor cita en su propia prosa, sin contar los nuestros: es la columna que
+ * dice quien esta ocupando el lugar que se quiere. Moonshot no siempre devuelve
+ * `search_citations`, asi que lo que se puede anotar son los enlaces que escribio en la respuesta.
+ */
+export function dominiosCitados(texto) {
+  if (typeof texto !== 'string') return [];
+  const salida = [];
+  for (const m of texto.matchAll(/(?:https?:\/\/|www\.)([^\s)\]"'>]+)/gi)) {
+    const host = m[1].toLowerCase().split('/')[0];
+    if (!host.includes('.') || /(^|\.)iwage\.co$/.test(host)) continue;
+    if (!salida.includes(host)) salida.push(host);
+  }
+  return salida;
+}
+
 const CANDIDATOS = /(https?:\/\/)?((?:[a-z0-9-]+\.)*iwage\.co)([^\s<>"'(),;\]]*)/gi;
 
 function* coincidencias(texto) {
@@ -81,23 +97,84 @@ export function urlsPropias(textos) {
   return encontradas;
 }
 
-const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+/**
+ * `GEO_MODELS` corre la misma serie contra un relay OpenAI-compatible distinto de OpenRouter.
+ * No es un adorno: la clave de OpenRouter respondió `401 User not found` al medirla el
+ * 2026-09-24, así que sin el relay no hay ninguna medición de visibilidad en IA. La búsqueda
+ * hospedada se declara modelo por modelo porque no todos la tienen, y sin `busqueda` lo que se
+ * mide es la memoria del modelo, no un motor de respuesta — hay que decirlo en el registro.
+ */
+export const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
-async function llamar(motor, pregunta, key) {
+export function configDesdeAmbiente(env) {
+  if (!env.GEO_MODELS) return { endpoint: ENDPOINT, key: env.OPENROUTER_API_KEY, motores: MOTORES };
+  if (!env.GEO_KEY) throw new Error('Falta GEO_KEY en el ambiente. No se hizo ninguna llamada.');
+  const endpoint = env.GEO_ENDPOINT ?? ENDPOINT;
+  const conBusqueda = new Set((env.GEO_BUSQUEDA ?? '').split(',').map((x) => x.trim()).filter(Boolean));
+  // Cada proveedor declara la busqueda hospedada a su manera; con `moonshot` el cuerpo lleva
+  // `builtin_function` y la respuesta trae `search_citations`.
+  const busquedaFormato = env.GEO_FORMATO_BUSQUEDA ?? (endpoint.includes('moonshot') ? 'moonshot' : 'openrouter');
+  const motores = (env.GEO_MODELS ?? '').split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .map((slug) => ({ slug, engine: slug, busqueda: conBusqueda.has(slug), busquedaFormato, verificado: null }));
+  return { endpoint, key: env.GEO_KEY, motores };
+}
+
+export function cuerpoDe(motor, pregunta) {
   const cuerpo = { model: motor.slug, messages: [{ role: 'user', content: pregunta }] };
-  if (motor.busqueda) cuerpo.web_search_options = { search_context_size: 'medium' };
-  const res = await fetch(ENDPOINT, {
+  if (!motor.busqueda) return cuerpo;
+  if (motor.busquedaFormato === 'moonshot') {
+    cuerpo.tools = [{ type: 'builtin_function', function: { name: '$web_search' } }];
+    return cuerpo;
+  }
+  cuerpo.web_search_options = { search_context_size: 'medium' };
+  return cuerpo;
+}
+
+/**
+ * Moonshot ejecuta `$web_search` del lado del servidor y devuelve el `search_id` dentro de
+ * `arguments`: ese `arguments` es la `content` que hay que devolverle. Con `'[]'` el segundo
+ * completion responde de memoria y la medicion sale falsa (0 fuentes, sin citas).
+ */
+export function mensajesTrasHerramienta(mensaje) {
+  const llamadas = mensaje?.tool_calls ?? [];
+  if (!llamadas.length) return [];
+  return [
+    mensaje,
+    ...llamadas.map((c) => ({
+      role: 'tool',
+      tool_call_id: c.id,
+      name: c.function?.name,
+      content: c.function?.arguments ?? '[]',
+    })),
+  ];
+}
+
+/** URLs citadas por el motor: `search_citations` (Moonshot) o `provider_metadata` (OpenRouter). */
+export function fuentesDelMensaje(mensaje) {
+  const citas = (mensaje?.search_citations ?? []).map((c) => c?.url).filter(Boolean);
+  const hospedadas = (mensaje?.provider_metadata?.search_results ?? []).map((r) => r?.url ?? r?.content).filter(Boolean);
+  return [...new Set([...citas, ...hospedadas])];
+}
+
+async function unaLlamada(motor, mensajes, key, endpoint) {
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-    body: JSON.stringify(cuerpo),
+    body: JSON.stringify({ ...cuerpoDe(motor, mensajes[0].content), messages: mensajes }),
   });
   if (!res.ok) throw new Error(`${motor.slug} respondió ${res.status}: ${(await res.text()).slice(0, 160)}`);
-  const data = await res.json();
-  const mensaje = data?.choices?.[0]?.message ?? {};
-  const fuentes = (mensaje?.provider_metadata?.search_results ?? [])
-    .map((r) => r?.url ?? r?.content)
-    .filter(Boolean);
-  return { texto: mensaje.content ?? '', fuentes };
+  return (await res.json())?.choices?.[0]?.message ?? {};
+}
+
+async function llamar(motor, pregunta, key, endpoint) {
+  let mensaje = await unaLlamada(motor, [{ role: 'user', content: pregunta }], key, endpoint);
+  const continuacion = mensajesTrasHerramienta(mensaje);
+  if (continuacion.length) {
+    mensaje = await unaLlamada(motor, [{ role: 'user', content: pregunta }, ...continuacion], key, endpoint);
+  }
+  return { texto: mensaje.content ?? '', fuentes: fuentesDelMensaje(mensaje), vacio: !mensaje.content };
 }
 
 function parseLista(argv, nombre) {
@@ -106,47 +183,51 @@ function parseLista(argv, nombre) {
 }
 
 async function main(argv = process.argv.slice(2)) {
-  const key = process.env.OPENROUTER_API_KEY;
+  const { endpoint, key, motores: disponibles } = configDesdeAmbiente(process.env);
   if (!key) {
-    console.error('Falta OPENROUTER_API_KEY en el ambiente. No se hizo ninguna llamada.');
+    console.error('Falta OPENROUTER_API_KEY (o GEO_KEY con GEO_MODELS) en el ambiente. No se hizo ninguna llamada.');
     process.exit(1);
   }
   const ids = parseLista(argv, 'preguntas')?.map(Number);
   const slugs = parseLista(argv, 'motores');
   const preguntas = ids ? PREGUNTAS.filter((p) => ids.includes(p.id)) : PREGUNTAS;
-  const motores = slugs ? MOTORES.filter((m) => slugs.includes(m.slug)) : MOTORES;
+  const motores = slugs ? disponibles.filter((m) => slugs.includes(m.slug)) : disponibles;
   const filas = [];
+  const jsonl = argv.includes('--formato=jsonl');
 
   for (const p of preguntas) {
     for (const m of motores) {
+      let fila;
       try {
-        const { texto, fuentes } = await llamar(m, p.pregunta, key);
-        filas.push({
+        const { texto, fuentes, vacio } = await llamar(m, p.pregunta, key, endpoint);
+        fila = {
           id: p.id,
           marca: p.marca,
           motor: m.slug,
           mencion: mencionar(texto).esMencion,
           urls: urlsPropias([texto, ...fuentes]),
+          dominios: dominiosCitados(texto),
           fuentes: fuentes.length,
           primeraFuente: fuentes[0] ? safeHost(fuentes[0]) : null,
-        });
+          ...(vacio ? { textoVacio: true } : {}),
+        };
       } catch (e) {
-        filas.push({ id: p.id, marca: p.marca, motor: m.slug, error: e.message });
+        fila = { id: p.id, marca: p.marca, motor: m.slug, error: e.message };
       }
-      console.error(`#${p.id} ${m.slug} → ${filas.at(-1).error ?? `${filas.at(-1).urls?.length ?? 0} URL(s) propia(s) de ${filas.at(-1).fuentes ?? 0} fuentes`}`);
+      filas.push(fila);
+      console.error(`#${p.id} ${m.slug} → ${fila.error ?? `${fila.urls?.length ?? 0} URL(s) propia(s) de ${fila.fuentes ?? 0} fuentes`}`);
+      // Cada fila se escribe al producirse: una interrupción no borra las preguntas ya respondidas.
+      if (jsonl) console.log(JSON.stringify(fila));
     }
   }
 
-  if (argv.includes('--formato=jsonl')) {
-    for (const f of filas) console.log(JSON.stringify(f));
-    return filas;
-  }
-  console.log('| # | motor | menciona | URL propia | fuentes citadas | primera fuente |');
+  if (jsonl) return filas;
+  console.log('| # | motor | menciona | URL propia | fuentes citadas | dominios que si aparecen |');
   console.log('|---|---|---|---|---|---|');
   for (const f of filas) {
     console.log(
       `| ${f.id} | \`${f.motor}\` | ${f.error ? `error: ${f.error}` : f.mencion ? '**sí**' : 'no'} | ` +
-        `${(f.urls ?? []).map((u) => `\`${u}\``).join('<br>') || '—'} | ${f.fuentes ?? '—'} | ${f.primeraFuente ?? '—'} |`,
+        `${(f.urls ?? []).map((u) => `\`${u}\``).join('<br>') || '—'} | ${f.fuentes ?? '—'} | ${(f.dominios ?? []).slice(0, 4).join(', ') || '—'} |`,
     );
   }
   return filas;

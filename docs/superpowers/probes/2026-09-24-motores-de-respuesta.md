@@ -137,3 +137,46 @@ No se pudo registrar una sola respuesta de los dos motores, y la causa es de cue
 | `OPENAI_API_KEY` del mismo `.env` contra `api.openai.com/v1/models` | `401` clave incorrecta (no sirve como alternativa) |
 
 Qué hace falta para cerrar el ítem (2) con los motores correctos, en orden de costo: **recargar créditos de OpenRouter** (una corrida completa son 20 llamadas, centavos) y entonces `node tools/geo-probe.mjs` agrega la columna a la tabla de arriba; o correr las 10 preguntas a mano en ChatGPT, Perplexity y Copilot con las cuentas del usuario y anotar la misma columna. Ambas son decisiones del usuario --la primera gasta su dinero, la segunda necesita su cuenta--, y ninguna se puede sustituir con más código. Lo que sí queda hecho es la parte que faltaba para que cualquiera de las dos sea comparable: preguntas fijas versionadas, motores verificados, detector con las trampas bajo test.
+
+---
+
+## Actualización 2026-09-24 20:32-20:50Z -- hay motor con búsqueda que responde, y cuánto dura
+
+### El instrumento cambió (y por eso la serie anterior no era re-ejecutable)
+
+`tools/geo-probe.mjs` ahora lee el proveedor del ambiente, así que la misma serie de 10 preguntas se puede correr contra cualquier endpoint sin tocar código:
+
+| variable | para qué |
+|---|---|
+| `GEO_ENDPOINT` | URL `chat/completions` del proveedor (por defecto OpenRouter) |
+| `GEO_KEY` | clave de ese proveedor; sin ella el script se niega y **no hace ninguna llamada** |
+| `GEO_MODELS` | lista de slugs que se corren, separada por comas |
+| `GEO_BUSQUEDA` | qué slugs tienen recuperación hospedada (Moonshot usa `$web_search`, OpenRouter usa `web_search_options`) |
+| `GEO_FORMATO_BUSQUEDA` | se deduce del endpoint; explícita si el endpoint no es obvio |
+
+Dos correcciones que nacieron de medir, no de imaginar:
+
+1. **`dateModified`/`search_citations` no bastan.** Moonshot ejecuta `$web_search` en el servidor pero puede devolver `search_citations` vacío; las menciones hay que leerlas del texto de la respuesta. Por eso la fila ahora guarda también `dominios`: los hosts ajenos que el motor efectivamente escribió en su respuesta. Es la columna "quién ocupa el lugar" para el caso en que el motor no expose fuentes.
+2. **Cada fila se escribe al producirse.** La corrida de las 20:32Z respondió bien las dos primeras preguntas y el proceso murió con las filas en el búfer de `stdout`: perdimos el dato. Verificado en vivo con la corrida de las 20:40: las 10 filas estaban en el archivo mientras el proceso seguía vivo.
+
+Pruebas: `tests/geo-probe.test.mjs` pasó de 9 a 16 (config de ambiente, forma del cuerpo por proveedor, eco del `tool_call`, dominios citados). Suite propia: **79/79**; la única falla del repo sigue siendo `tests/media-contract.test.mjs`, que pertenece a la otra migración en curso y no toqué.
+
+### Medición de motores, con estado de cuenta real
+
+| proveedor | cómo se probó | resultado medido |
+|---|---|---|
+| Moonshot `kimi-k2.6` + `$web_search` | serie real, 2 preguntas respondidas (20:32-20:34Z) | `#1 → 0 URL(s) propia(s) de 0 fuentes`, `#2 → 0 de 0`. **iwage.co no aparece.** Luego: `429 Your credit balance is running low` en las 10 preguntas de la re-corrida -- el saldo se agotó con esas dos. |
+| Gemini directo `gemini-3.8-flash` + `google_search` | una llamada al endpoint oficial | clave válida, `429 RESOURCE_EXHAUSTED` (sin facturación). Nota: `gemini-2.5-flash` ya devolvió `404` -- *"no longer available to new users"* -- o sea que cualquier receta vieja de este endpoint está muerta. |
+| DashScope (Qwen) | una llamada | `401 Incorrect API key` |
+| OpenRouter (`perplexity/sonar-pro`, `openai/gpt-4o`) | ya medido arriba | `402 Insufficient credits` (saldo $12,58 consumido) |
+| Perplexity por interfaz web, **sin cuenta** | `https://www.perplexity.ai/search?q=...` | responde de verdad: *"Investigado 8s"*, `10 fuentes`. Las 2 preguntas obtenidas **no mencionan iwage.co**. Al lanzar 10 búsquedas concurrentes el mismo origen pasó a muro de sesión (`Continuar con correo electrónico / Inicio de sesión único (SSO)`): **tope medido de ~2 consultas anónimas por sesión.** |
+
+Lo que **no** se pudo extraer de la interfaz anónima: en esa vista no hay ni un `<a href>` externo (0 en el DOM), las fuentes viven detrás de la pestaña `Enlaces` y no se leen sin sesión. La columna "quién ocupa el lugar" sigue dependiendo de una API con crédito o de la cuenta del usuario.
+
+Consecuencia honesta para el ítem (2): el instrumento existe, es re-ejecutable, ya probó que **iwage.co no aparece en ninguna de las 4 respuestas obtenidas hoy** (2 por Kimi con búsqueda, 2 por Perplexity anónimo), y está bloqueado para las otras 6 preguntas por dinero, no por código. Recargar Moonshot o activar facturación en la clave de Gemini deja la serie completa a un comando:
+
+```bash
+GEO_ENDPOINT=https://api.moonshot.ai/v1/chat/completions \
+GEO_KEY=<la del .env> GEO_MODELS=kimi-k2.6 GEO_BUSQUEDA=kimi-k2.6 \
+node tools/geo-probe.mjs --formato=jsonl >> docs/superpowers/probes/<fecha>-kimi-k2.6.jsonl
+```
