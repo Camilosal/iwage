@@ -1347,3 +1347,24 @@ Acción del usuario, en orden de preferencia: quitar el registro/proxy de `cafe.
 ### Lectura del renglón
 
 De las cuatro cosas medidas, **cero son código de este repo**: tres son de Cloudflare/DNS (siempre-https, `www`, el placeholder) y una (`recetas`) es un sitio en otro despliegue que necesitaría su propio `sitemap.xml`, su `robots.txt` con `Sitemap:` y su `ld+json`. Nada de esto entra al bundle del deploy #5. Quedan como acciones del usuario, y el ítem (4) de la deuda de hosts pasa a estar **medido y repartido**, que es lo que se puede hacer sin tocar contenido ni Search Console.
+
+## Estado del ítem (4) y contenido real del bundle del deploy #5 (medido 2026-09-24 ~19:59Z)
+
+Al repasar los cinco renglones del ítem (4) contra el árbol de `master`, dos resultaron **ya cerrados** y solo quedaban por verificar; se anota cuál es cuál, porque el registro los trataba como abiertos.
+
+| renglón | estado | evidencia |
+|---|---|---|
+| blip de Strapi que deja un índice con contenido en `noindex` | **cerrado** en `7c62a7b` | `noindexDeIndice({total, fallo})` (`src/lib/bitacora-noindex.ts:9`, `total === 0 && !fallo`) montado en los 6 `src/pages/*/bitacora/index.astro`; `getBitacoraByMarca` devuelve `fallo: true` en el `catch` (`src/lib/bitacora.ts:54`); 4 tests en `tests/bitacora-noindex.test.mjs` |
+| la misma clase de blip en `/sitemap.xml` | **cerrado** | `src/pages/sitemap.xml.ts:24` cachea **60 s** (no 3600) cuando `failed.length > 0`, y registra `[sitemap] incompleto — colecciones fallidas: …`. Un índice caído no queda servido una hora |
+| validación de marca en `/cafe/bitacora/<slug ajeno>` | **cerrado y medido** | los 280 cruces marca×slug dan `301` con 56 destinos, arriba en este documento |
+| `pageSize: 100` del resumen | **abierto, decisión pendiente** | su criterio de decisión es el volumen de la fase 4, que está bloqueado por el ítem (3). No se toca |
+| dedup de los 6 grids copiados | **fuera** por instrucción del usuario | — |
+
+Y una verificación que incumbía al CHECKPOINT 3, porque `master` se movió mientras este goal esperaba el deploy: el bundle ya no es solo lo de la fase 3-b. Sobre `bbc85e2` entraron además los commits de otro flujo, y medido cómo afectan al sitio servido:
+
+- `781704f` añade `src/lib/media.ts` (169 líneas) y su test. **Ningún archivo de `src/` lo importa** —`grep -rln "lib/media" src/` devuelve vacío; el único importador es `tests/media.test.mjs`. Es decir: cero bytes servidos cambian con ese commit, y el `dist/` del deploy #5 es el mismo grafo ya verificado localmente.
+- `e84e6d3` (medido a las 20:01Z, entró mientras se escribía esto) cambia `src/lib/media.ts` y su test: `git grep -ln "lib/media" HEAD -- src/` sigue devolviendo vacío, así que tampoco llega al sitio servido.
+- `198e2a3` y `83edd0c` son `docs/` y `.gitignore`.
+- `tools/geo-probe.mjs`, `tests/geo-probe.test.mjs` y las correcciones de `b745fc7` tampoco tocan el bundle: `tools/` no se compila y el test extra corre en la suite.
+
+Estado de las dos puertas, medido ahora sobre el árbol de trabajo con `node_modules` presente: **`npm test` 61/61 (`# fail 0`)** y **`npx astro build` `[build] Complete!` exit 0 en 12,65 s**. Con eso el deploy #5 queda sin condición técnica: lo único que falta es el mensaje del usuario que lo autoriza, y la lista de verificación en el origen (180 URLs en `/sitemap.xml`, ≥1 bloque `ld+json` en las 180, 0 dobles declaraciones, cadena de 301 de marca cerrando en `200`, `/` con `idx=2 art=6`, ráfaga 60@12 sin `resumen degradado`, y **0 advertencias** del validador en `/granja/bitacora`).
