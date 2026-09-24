@@ -53,3 +53,40 @@ Qué hace este número de útil: es la cifra contra la que se mide la fase 4. Si
 - Hito 1: **2026-10-08**, junto con la verificación de Search Console. Mismas 10 preguntas, misma tabla, una columna nueva por fecha.
 - Hito 2: después del empujón de contenido de la fase 4.
 - Regla: no se editan las preguntas. Si una deja de tener sentido, se retira al final de la tabla con la fecha y el por qué, y se agrega la nueva abajo --nunca se reemplaza en el medio, porque eso rompe la serie.
+
+---
+
+## Serie complementaria 1 -- presencia de marca (medida 2026-09-24 ~18:40Z)
+
+No son las 10 preguntas del nicho: son tres consultas que responden una pregunta distinta y no participan en la serie de arriba. Mismos instrumento y advertencia que en la línea base --índice de web, no ChatGPT/Perplexity/Copilot.
+
+| Consulta | Tipo | iwage.co | Puesto 1 |
+|---|---|---|---|
+| `iwage.co Iwagé Ibagué Tolima meliponario` | marca | **1** | `https://iwage.co/` (título: "Iwagé · Ecosistema de Desarrollo Rural · Tolima, Colombia") |
+| `iwage.co bitacora meliponario pureza miel de angelita adulteración` | tema de artículo | **0** | `ecocolmena.org/como-saber-si-tu-miel-es-pura-o-esta-adulterada/` |
+| `"El agroecosistema productivo" iwage granja tres formas de cultivar` | título exacto | **0** | `camilosaldarriaga.com/es/bitacora/agroecosistema-productivo` |
+
+### Qué significa el tercer renglón
+
+El documento **está indexado y rankea #1**, pero el motor no puede saber que es de Iwagé: la URL que gana es el dominio personal del autor, y `https://iwage.co/granja/bitacora/agroecosistema-productivo` no aparece. Verificado con `curl` en las dos copias, no por apariencia:
+
+| | `camilosaldarriaga.com/es/...` | `iwage.co/granja/bitacora/...` |
+|---|---|---|
+| tamaño | 129,261 bytes | -- |
+| `rel=canonical` | self | self |
+| `robots` | ausente | -- |
+| `og:url` | self | -- |
+| menciones del otro dominio | 2 → `iwage.co` | 6 → `camilosaldarriaga.com` |
+| bloques `ld+json` | 2 | -- |
+| `datePublished` / `dateModified` | -- | `2026-07-16` / `2026-09-24T02:05:21.171Z` |
+| `author.url` | -- | `https://camilosaldarriaga.com` |
+
+Cada copia se declara canónica a sí misma. No hay `rel=canonical` cruzado ni anotación de duplicado en ningún lado: desde afuera son dos propiedades distintas publicando el mismo texto, y el grafo de schema que acabamos de cerrar incluso **refuerza** la atribución al dominio personal (`author.url` apunta allá).
+
+### Lectura
+
+- La marca existe en el índice: la consulta de marca devuelve `https://iwage.co/` en el puesto 1. El problema no es "Google no sabe que Iwagé existe".
+- El contenido del nicho tampoco: 0 de 10 en la serie fija + 0 en la consulta por tema.
+- Y hay una tercera variable que las fases 1-3 no habían medido: para el único artículo probado por título exacto, **el ranking ya está ocupado por la copia del dominio personal**. Subir volumen de contenido sin resolver la propiedad del duplicado compra participación en una consulta donde Iwagé compite contra sí mismo y pierde.
+
+Qué hacer con esto: no es una decisión de código, y no se decide acá. Se lleva como pregunta al hito del **2026-10-08** --Search Console sobre `iwage.co` dice cuántos de los 56 están descubiertos y con qué consulta; con ese número se decide si la fase 4 se escribe sobre `iwage.co` o sobre el otro dominio. Mientras no se resuelva, la hipótesis de contenido de la fase 4 queda con una condición agregada, no refutada.
