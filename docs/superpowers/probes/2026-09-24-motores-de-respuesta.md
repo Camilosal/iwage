@@ -95,3 +95,45 @@ Los dos `robots.txt`: iwage solo declara `User-agent: * / Allow: /` más los `Di
 - Y aparece una variable que las fases 1-3 no midieron: **la mitad del corpus (`granja`, los 19) compite por su propio título contra el dominio personal**, en 4 idiomas, y es la otra URL la que aparece al buscar el texto. `meliponas` (37 artículos) es el único territorio sin esa contienda --y también el que sigue en 0 menciones en la serie fija, así que la contienda no explica el cero de las otras marcas.
 
 Qué hacer con esto: no es una decisión de código y no se decide acá. Va como pregunta al hito del **2026-10-08**: Search Console sobre `iwage.co` dice cuántos de los 56 están descubiertos y con qué consulta, y si las 19 de `granja` están canibalizadas por `camilosaldarriaga.com`. Con esa respuesta se decide sobre qué dominio se escribe la fase 4 y qué pasa con esas 19. Mientras no se resuelva, esto es una **condición agregada** a la hipótesis de contenido, no su refutación.
+
+---
+
+## El instrumento re-ejecutable (añadido 2026-09-24 ~19:49Z)
+
+Arriba está la verdad incómoda de esta serie: la línea base y las dos series complementarias se corrieron contra **el índice de web de la sesión**, no contra ChatGPT / Perplexity / Copilot, que es lo que pide el objetivo. Un instrumento que no se puede volver a correr contra los mismos motores no es una serie. Esto cierra ese hueco del lado del instrumento.
+
+`tools/geo-probe.mjs` (versionado, cero dependencias --solo el `fetch` de Node--):
+
+```
+OPENROUTER_API_KEY=… node tools/geo-probe.mjs                        # las 10 × los 2 motores
+node tools/geo-probe.mjs --preguntas=1,7 --motores=perplexity/sonar-pro
+node tools/geo-probe.mjs --formato=jsonl                              # para pegar en la tabla de arriba
+```
+
+Las 10 preguntas viven en el módulo, no en la cabeza de quien corre la prueba, y `tests/geo-probe.test.mjs` fija su texto literal: mover una pregunta ahora rompe un test antes que romper la serie.
+
+**Motores, leídos del catálogo público de OpenRouter (`/api/v1/models`) el 2026-09-24, no de memoria.** Se exige que el modelo declare `web_search_options` entre sus `supported_parameters`: sin recuperación no es un motor de respuesta, es un modelo recordando. `perplexity/sonar-pro` (Perplexity) y `openai/gpt-4o` (búsqueda hospedada de OpenAI, lo más cerca de ChatGPT a que se puede llegar sin una cuenta de chat). Copilot no tiene ruta por API: queda a mano desde su interfaz, como siempre.
+
+**El detector de menciones (`mencionar`) y por qué no es un `includes`.** Las dos trampas que ya inflaron una lectura en esta misma serie están fijadas como tests:
+
+| entrada | decisión |
+|---|---|
+| `https://camilosaldarriaga.com/es/bitacora/meliponario-iwage-subsistema-vivo` | **no** es mención (subcadena dentro del slug de otro dominio) |
+| `https://iwage.co.mirror.example/x` | **no** es mención (`iwage.co` como prefijo de un host mayor) |
+| `https://iwage.co/granja/bitacora/agroecosistema-productivo` | mención, con esa URL exacta |
+| `citó iwage.co como fuente` | mención, URL canónica `https://iwage.co/` |
+| `https://recetas.iwage.co/moka` | mención, y se anota el host (`recetas.iwage.co` es propio --deuda del ítem 4—, no un dominio ajeno) |
+| `iwage.co/meliponas/bitacora/…` sin esquema (como viene en una lista de fuentes) | mención, con el esquema canónico añadido |
+
+### Lo que bloquea la extensión de la serie, medido hoy
+
+No se pudo registrar una sola respuesta de los dos motores, y la causa es de cuenta, no de código:
+
+| intento | resultado |
+|---|---|
+| clave `OPENROUTER_API_KEY` (primera de las dos líneas en `/home/ubuntu/negocio/.env`) | `401 User not found` -- clave muerta |
+| segunda línea `OPENROUTER_API_KEY` | `200`, etiqueta y uso de **$12,58**, sin límite propio |
+| llamada real con la clave viva (`perplexity/sonar-pro` y `openai/gpt-4o`) | **`402 Insufficient credits`** en los dos motores -- el saldo de la cuenta está agotado |
+| `OPENAI_API_KEY` del mismo `.env` contra `api.openai.com/v1/models` | `401` clave incorrecta (no sirve como alternativa) |
+
+Qué hace falta para cerrar el ítem (2) con los motores correctos, en orden de costo: **recargar créditos de OpenRouter** (una corrida completa son 20 llamadas, centavos) y entonces `node tools/geo-probe.mjs` agrega la columna a la tabla de arriba; o correr las 10 preguntas a mano en ChatGPT, Perplexity y Copilot con las cuentas del usuario y anotar la misma columna. Ambas son decisiones del usuario --la primera gasta su dinero, la segunda necesita su cuenta--, y ninguna se puede sustituir con más código. Lo que sí queda hecho es la parte que faltaba para que cualquiera de las dos sea comparable: preguntas fijas versionadas, motores verificados, detector con las trampas bajo test.
