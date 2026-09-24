@@ -1204,3 +1204,57 @@ Deduplicar el grid copiado en los 6 `<marca>/bitacora/index.astro`, subir volume
   - Prueba en HTML generado: `dist/client/tierras/herramientas/evaluacion-vap/index.html` conserva 3 `href="/tierras/bitacora"` (2 del navbar, 1 de la columna "Recursos"; los tres preexistentes) y **0** ocurrencias de `publicaciones`. Con el resumen vacío el bloque nuevo no emite ni un enlace — es el criterio "ninguna bitácora vacía gana enlace" observado desde el lado inverso.
   - Qué **no** prueba: `/`, las 6 landings y las rutas de bitácora no llevan `prerender` (no existe `dist/client/index.html`), así que se renderizan por petición y sus conteos servidos —criterios 2, 3 y 4— siguen dependiendo del Step 4 en el origen. Un build con Strapi muerto tampoco dice si Strapi honra `fields[]`.
   - Costo medido: los 400MB de artefactos movieron `/` de 93% a 94% (14G libres). Ambos directorios son regenerables en 19 s y se pueden borrar cuando cierre la fase; por ahora sostienen la render-fixture local opcional.
+
+## Validador de rich results sobre URLs vivas, y el defecto que sacó (medido 2026-09-24 ~19:20Z)
+
+Era el último hueco del ítem (1): los tests puros prueban el contrato del grafo, pero no que un interpreteur lo lea. Pasado **validator.schema.org** sobre dos URLs Production reales:
+
+| URL | Errores | Advertencias | Elementos detectados |
+|---|---|---|---|
+| `/granja/bitacora/agroecosistema-productivo` | 0 | 0 | 3 |
+| `/granja/bitacora` | 0 | **1** | — |
+
+El texto de la advertencia: *«El tipo `Blog` no admite la propiedad `numberOfItems`, o bien esta propiedad es obligatoria en un contexto diferente»* — `numberOfItems` es de `ItemList`, no de `Blog`. Arreglado declarando el nodo con los dos tipos (`'@type': ['Blog', 'ItemList']`), que es lo que la propiedad venía a decir. La confirmación no se puede obtener acá: el validador descarga la URL pública, así que repetir `/granja/bitacora` y leer **0 advertencias** queda dentro de la lista de verificación del CHECKPOINT 3.
+
+### El síntoma del validador era otra cosa, y era sitewide
+
+En la misma pasada, la vista aplanada del validador mostraba `url` y `publisher` "dos veces". No había claves duplicadas —eso se descartó con un `json.loads(..., object_pairs_hook=...)` estricto sobre 7 URLs vivas: **0 duplicados**—; lo que había era **el mismo `@id` declarado dos veces en la misma página con valores distintos**:
+
+- `BrandLayout.astro` declaraba la Organización madre dentro de `parentOrganization` con `"url": "https://iwage.co"` (sin barra), y encima la declaraba de nuevo como nodo del grafo con `url: 'https://iwage.co/'` (con barra).
+- El `Person` del fundador estaba copiado en dos lados con `knowsAbout` distinto: 8 materias en la home, 6 en el layout de marca.
+
+Con JSON-LD, un `@id` repetido se **fusiona** y el fusor elige al azar qué valor se queda. Es decir: el sitio publicaba dos identidades para la misma entidad. El arreglo no es tocar un literal, es que exista una sola fuente:
+
+- `organizacionMadre()` — única declaración de `#organization`, ahora con `description`, `founder` y `address` (lo que antes estaba repartido y divergiendo).
+- `referenciaMadre()` — solo `{ '@id': ... }`, para `parentOrganization` en las páginas de marca.
+- `founderPersona()` — único `Person` con las 8 materias, usado por la home y por el layout.
+
+Medido sobre `src/`: queda **una** declaración de `#organization` y **una** de `#founder`; la única ocurrencia restante de `#founder` en el layout es una referencia (`"founder": { "@id": ... }`, `BrandLayout.astro:60`), que es lo que debe ser.
+
+### Cómo se verificó sin desplegar
+
+Las 6 landings, la home y las 56 rutas de artículo son SSR, así que `dist/` no las contiene (22 HTML prerenderizados de 336 rutas). Se subió un `astro dev` local en `127.0.0.1:4399` y se audó el HTML renderizado bloque por bloque:
+
+| Página | nodos ld+json | `@id` declarados 2 veces | valores de `url` en `#organization` |
+|---|---|---|---|
+| `/` | 3 (Organization, Person, WebSite) | 0 | `https://iwage.co/` |
+| `/granja`, `/tierras`, `/gestion`, `/naturaleza`, `/cafe/bitacora` | 5 (WebSite, Organization×2, Person, BreadcrumbList) | 0 | `https://iwage.co/` |
+| `/granja/bitacora`, `/meliponas/bitacora` | 6 (+ `Blog,ItemList`) | 0 | `https://iwage.co/` |
+| `/granja/bitacora/agroecosistema-productivo` | 6 (+ Article) | 0 | `https://iwage.co/` |
+
+Los dos `Organization` de una página de marca son entidades distintas (la marca y la madre), con `@id` distintos: por eso la columna de duplicados sigue en 0. `/cafe/bitacora` no emite nodo Blog — el índice vacío devuelve `null`, el mismo criterio del `noindex` de la fase 1. `npm test` 36/36 y `npx astro build` 10,9 s sobre el árbol corregido.
+
+### Dos cosas de infraestructura que salieron al medir (y cambian el procedimiento del CHECKPOINT 3)
+
+1. **`/sitemap.xml` sale de Redis, no del código.** La clave `iwage:sitemap:xml` (TTL 3600 s, `src/pages/sitemap.xml.ts:13-14`) se cachea una hora entera; medida en vivo con TTL 194 s. Consecuencia directa: recién desplegado, el endpoint puede seguir sirviendo **185 URLs** hasta que expire la clave. La verificación del sitemap en el origen debe leer el TTL antes de dar el número por malo, o repetirse pasada la hora; no hace falta borrar nada en Redis.
+2. **`astro dev` en este host escribe en la caché de producción.** `src/lib/redis.ts:6` usa `process.env.REDIS_URL` con defecto `redis://localhost:6379`, en el proyecto `.env` no declara `REDIS_URL`, y `redis_app` publica `127.0.0.1:6379` **sin contraseña** — así que una instancia local comparte las 158 claves `iwage:*` con el contenedor. Se midió leyendo, sin escribir: la primera petición local a `/sitemap.xml` devolvió el valor cacheado por producción (185 con las 5 hojas legales), no el del árbol. Para medir el generador propio hay que arrancar el dev con `REDIS_URL` apuntando a un puerto vacío; hecho así, salió el número de abajo. Queda registrado como riesgo operativo: un `astro dev` local puede dejar en Redis respuestas generadas por código sin desplegar.
+
+### El conteo del sitemap, medido en local (y por qué no es 180)
+
+Con la caché aislada, el árbol actual genera **170 URLs**, y la diferencia con las 185 servidas se cierra renglón por renglón:
+
+- **−5 hojas legales**: el corte de `9f5e831` funciona sobre el XML renderizado, no solo sobre `STATIC_PAGES`. Del bloque `/legal` queda exactamente `['/legal/']`; las 5 hojas con `noindex` ya no están.
+- **−10 `/granja/experimentos/*`**: locales, no estructurales. `/api/experimentos` exige token (medido: `curl` sin credencial → `403 ForbiddenError`) y el `.env` del proyecto no tiene `STRAPI_API_TOKEN`, así que la colección entra en `failed` y sale incompleta. La recuperación de esas 10 URLs es previa a este cambio y sigue en pie en producción.
+- **56 artículos y 2 índices de bitácora**, intactos; 11 URLs con barra final.
+
+Lectura: el número que debe aparecer en el origen tras el deploy #5 es **180 = 185 − 5**, con las 56 rutas de artículo presentes. El ensayo local no puede decir 180 porque le faltan las 10 que solo el token de producción devuelve; lo que sí dice, y era la pregunta, es que el recorte legal se materializa en el XML y no toca nada más.

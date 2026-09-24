@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { blogDeBitacora, organizacionMadre, webSiteSchema } from '../src/lib/schema-bitacora.ts';
+import { blogDeBitacora, founderPersona, organizacionMadre, referenciaMadre, webSiteSchema } from '../src/lib/schema-bitacora.ts';
 
 const fila = (slug, extras = {}) => ({ slug, titulo: `Título de ${slug}`, ...extras });
 
@@ -19,7 +19,7 @@ test('blogDeBitacora: un BlogPosting por artículo, con URL absoluta y su fecha'
     ],
   });
 
-  assert.equal(blog['@type'], 'Blog');
+  assert.deepEqual(blog['@type'], ['Blog', 'ItemList']);
   assert.equal(blog.numberOfItems, 2);
   assert.deepEqual(
     blog.blogPost.map((p) => p.url),
@@ -78,4 +78,41 @@ test('webSiteSchema: un solo WebSite de iwage.co en español, publicado por la O
   assert.equal(sitio.url, 'https://iwage.co/');
   assert.equal(sitio.inLanguage, 'es');
   assert.equal(sitio.publisher['@id'], 'https://iwage.co/#organization');
+});
+
+// El validador schema.org encontró la Organización madre declarada dos veces en la misma
+// página y con `url` en conflicto ('https://iwage.co/' contra 'https://iwage.co'): el layout
+// repetía el nodo dentro de parentOrganization. Desde acá solo sale la referencia.
+test('referenciaMadre: las páginas de marca apuntan a la madre sin volver a declararla', () => {
+  const ref = referenciaMadre();
+
+  assert.deepEqual(Object.keys(ref), ['@id']);
+  assert.equal(ref['@id'], organizacionMadre()['@id']);
+});
+
+// Las dos declaraciones que quedaron en el repo no decían lo mismo: la de `index.astro`
+// traía descripción, fundador y dirección; la del módulo, no. Una sola fuente de verdad.
+// El mismo `@id` del fundador se declaraba dos veces con `knowsAbout` distintos (6 en el
+// layout de marca, 8 en la home). Sale del módulo con una sola lista.
+test('founderPersona: un solo Person para el fundador, con su contexto y sus materias', () => {
+  const p = founderPersona();
+
+  assert.equal(p['@context'], 'https://schema.org');
+  assert.equal(p['@type'], 'Person');
+  assert.equal(p['@id'], 'https://iwage.co/#founder');
+  assert.equal(p.name, 'Manuel Camilo Saldarriaga Acosta');
+  assert.equal(p.url, 'https://camilosaldarriaga.com');
+  assert.equal(p.jobTitle, 'Fundador');
+  assert.equal(p.worksFor['@id'], 'https://iwage.co/#organization');
+  assert.equal(p.knowsAbout.length, 8);
+});
+
+test('organizacionMadre: la misma identidad en todas las páginas que la declaran', () => {
+  const madre = organizacionMadre();
+
+  assert.equal(madre.description, 'Ecosistema de desarrollo rural en el Tolima, Colombia');
+  assert.equal(madre.founder['@id'], 'https://iwage.co/#founder');
+  assert.equal(madre.address.addressLocality, 'Ibagué');
+  assert.equal(madre.address.addressRegion, 'Tolima');
+  assert.equal(madre.address.addressCountry, 'CO');
 });

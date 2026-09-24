@@ -33,8 +33,47 @@ export function organizacionMadre(): Record<string, unknown> {
     '@id': `${SITIO}/#organization`,
     name: 'Iwagé Ecosistema',
     url: `${SITIO}/`,
+    description: 'Ecosistema de desarrollo rural en el Tolima, Colombia',
+    founder: { '@id': `${SITIO}/#founder` },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Ibagué',
+      addressRegion: 'Tolima',
+      addressCountry: 'CO',
+    },
   };
 }
+
+/** El fundador es una sola entidad en todo el sitio: `knowsAbout` era distinto en la home
+ *  (8 materias) y en el layout de marca (6). */
+export function founderPersona(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': `${SITIO}/#founder`,
+    name: 'Manuel Camilo Saldarriaga Acosta',
+    url: 'https://camilosaldarriaga.com',
+    sameAs: [
+      'https://camilosaldarriaga.com',
+      'https://www.linkedin.com/in/camilosaldarriaga',
+      SITIO,
+    ],
+    jobTitle: 'Fundador',
+    worksFor: { '@id': `${SITIO}/#organization` },
+    knowsAbout: [
+      'Meliponicultura', 'Desarrollo rural', 'Turismo regenerativo',
+      'Café de especialidad', 'Inmobiliaria rural', 'Property management',
+      'Tetragonisca angustula', 'Corredor Ambalá',
+    ],
+  };
+}
+
+/** La referencia, sin repetir la entidad: dos declaraciones del mismo `@id` con `url`
+ *  distinto hacen que el fusor JSON-LD elija una al azar. */
+export function referenciaMadre(): Record<string, unknown> {
+  return { '@id': `${SITIO}/#organization` };
+}
+
 export function webSiteSchema(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
@@ -58,7 +97,7 @@ export function blogDeBitacora({ brand, nombre, descripcion, articulos }: Opcion
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'Blog',
+    '@type': ['Blog', 'ItemList'],
     '@id': `${SITIO}/${brand}/bitacora#blog`,
     name: `Bitácora · ${nombre}`,
     ...(descripcion ? { description: descripcion } : {}),

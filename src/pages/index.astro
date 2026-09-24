@@ -10,7 +10,7 @@ import { SITE_METRICS } from '@/config/site-metrics';
 import { getHeroBySlug } from '@/lib/heroes';
 import { getResumenBitacora, conteoDe } from '@/lib/bitacora';
 import BitacoraEcosistema from '@/components/brand/BitacoraEcosistema.astro';
-import { webSiteSchema } from '@/lib/schema-bitacora';
+import { founderPersona, organizacionMadre, webSiteSchema } from '@/lib/schema-bitacora';
 
 const hero = await getHeroBySlug('/');
 const resumen = await getResumenBitacora();
@@ -26,20 +26,10 @@ const stats = [
   { value: SITE_METRICS.kmCorredorBiologico, label: 'Corredor biológico' },
 ];
 
+// La Organización y el Fundador se declaran una sola vez en todo el sitio: salen del
+// módulo. Acá solo se agrega el subOrganization, que es propio de la home.
 const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "@id": "https://iwage.co/#organization",
-  "name": "Iwagé Ecosistema",
-  "description": "Ecosistema de desarrollo rural en el Tolima, Colombia",
-  "url": "https://iwage.co",
-  "founder": { "@id": "https://iwage.co/#founder" },
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Ibagué",
-    "addressRegion": "Tolima",
-    "addressCountry": "CO"
-  },
+  ...organizacionMadre(),
   "subOrganization": brandList.map((b) => ({
     "@type": "Organization",
     "name": b.name,
@@ -48,25 +38,7 @@ const jsonLd = {
   })),
 };
 
-const founderJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "@id": "https://iwage.co/#founder",
-  "name": "Manuel Camilo Saldarriaga Acosta",
-  "url": "https://camilosaldarriaga.com",
-  "sameAs": [
-    "https://camilosaldarriaga.com",
-    "https://www.linkedin.com/in/camilosaldarriaga",
-    "https://iwage.co"
-  ],
-  "jobTitle": "Fundador",
-  "worksFor": { "@id": "https://iwage.co/#organization" },
-  "knowsAbout": [
-    "Meliponicultura", "Desarrollo rural", "Turismo regenerativo",
-    "Café de especialidad", "Inmobiliaria rural", "Property management",
-    "Tetragonisca angustula", "Corredor Ambalá"
-  ]
-};
+const founderJsonLd = founderPersona();
 ---
 
 <!doctype html>

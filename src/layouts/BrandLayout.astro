@@ -8,7 +8,7 @@ import UnifiedCart from '@/components/cart/UnifiedCart';
 import { getBrandFromPath, defaultBrand } from '@/config/brands';
 import type { BrandConfig } from '@/config/brands/types';
 import { GOOGLE, FACEBOOK, SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
-import { blogDeBitacora, organizacionMadre, webSiteSchema, type FilaDeBlog } from '@/lib/schema-bitacora';
+import { blogDeBitacora, founderPersona, organizacionMadre, referenciaMadre, webSiteSchema, type FilaDeBlog } from '@/lib/schema-bitacora';
 
 interface ArticleMeta {
   title: string;
@@ -49,25 +49,6 @@ const ogType = props.ogType ?? 'website';
 const ogImage = props.ogImage ?? `https://iwage.co/images/hero-${brandConfig.slug === 'meliponas' ? 'meliponas' : brandConfig.slug}.webp`;
 const robots = props.noindex ? 'noindex, follow' : 'index, follow';
 
-// Founder Person (reused across schemas)
-const founderPerson = {
-  "@type": "Person",
-  "@id": "https://iwage.co/#founder",
-  "name": "Manuel Camilo Saldarriaga Acosta",
-  "url": "https://camilosaldarriaga.com",
-  "sameAs": [
-    "https://camilosaldarriaga.com",
-    "https://www.linkedin.com/in/camilosaldarriaga",
-    "https://iwage.co"
-  ],
-  "jobTitle": "Fundador",
-  "worksFor": { "@id": "https://iwage.co/#organization" },
-  "knowsAbout": [
-    "Meliponicultura", "Desarrollo rural", "Turismo regenerativo",
-    "Café de especialidad", "Inmobiliaria rural", "Property management"
-  ]
-};
-
 // Structured data: Organization with founder + parentOrganization
 const orgJsonLd = {
   "@context": "https://schema.org",
@@ -77,12 +58,7 @@ const orgJsonLd = {
   "url": `https://iwage.co/${brandConfig.slug}/`,
   "description": brandConfig.seo.defaultDescription,
   "founder": { "@id": "https://iwage.co/#founder" },
-  "parentOrganization": {
-    "@id": "https://iwage.co/#organization",
-    "@type": "Organization",
-    "name": "Iwagé Ecosistema",
-    "url": "https://iwage.co"
-  },
+  "parentOrganization": referenciaMadre(),
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Ibagué",
@@ -136,7 +112,7 @@ const breadcrumbJsonLd = breadcrumbItems.length > 1 ? {
 } : null;
 
 // Combined JSON-LD graph (Organization + Person + Breadcrumb + optional Article)
-const jsonLdGraph: Record<string, any>[] = [webSiteSchema(), organizacionMadre(), orgJsonLd, { "@context": "https://schema.org", ...founderPerson }];
+const jsonLdGraph: Record<string, any>[] = [webSiteSchema(), organizacionMadre(), orgJsonLd, founderPersona()];
 if (breadcrumbJsonLd) jsonLdGraph.push(breadcrumbJsonLd);
 
 // Blog de la marca: solo cuando el índice tiene artículos
