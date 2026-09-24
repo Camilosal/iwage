@@ -1445,3 +1445,23 @@ Cinco deudas declaradas en el goal. Tres ya no son código, son una palanca de C
 Strapi **ignora la sintaxis de punto**: `?pagination.pageSize=100` responde `pageSize: 25`, `pageCount: 3` y **devuelve las mismas 25 filas aunque se pida la página 2** -- o sea, 25 distintos y no 56. Con corchetes (`pagination[pageSize]=100`) responde las 56 de una. El `strapiFetch` del sitio ya usa corchetes, así que el sitio está bien; lo que se equivocó fue mi sonda de medición, que usó punto y concluyó "Strapi capa en 25".
 
 Regla para las próximas sondas: cualquier afirmación sobre conteos de Strapi se verifica contra `pagination[page]`/`pagination[pageSize]` y se contrasta con el HTML servido (enlaces distintos en el índice vs `total` de la API). Los dos números tienen que cerrar; si cierran, no hay truncamiento.
+
+## Deploy #5 ejecutado (2026-09-24 21:19Z) y su verificación medida
+
+CHECKPOINT confirmado por el usuario con mensaje de texto. Imagen `negocio-iwage_app` rehecha desde el árbol limpio de `1685585` y contenedor `iwage_web` recreado (el suyo propio; ningún contenedor compartido tocado). Puertas antes del build de imagen: `npm test` **100/100**, `npx astro build` **rc=0**.
+
+| qué | antes (mismo origen, 21:14Z) | después (21:19Z) |
+|---|---|---|
+| rutas de artículo con nodo `Article` | 56 con `ld+json`, **0** con `"about"` | **56/56** con `Article` y con los 6 campos (`headline`, `datePublished`, `dateModified`, `author`, `about`, `publisher`) |
+| `@id` duplicados dentro de la misma página | sin medir | **0** en las 56 + **0** en `/` (3 bloques: `#organization`, `#founder`, `#website`) |
+| `/cafe/bitacora/<slug ajeno>` | 200 (la deuda del goal) | **301 → `/granja/bitacora/viabilidad-practica`**, cadena verificada |
+| URLs del sitemap | 185 | **185** (mi predicción de 180 estaba mal: las 6 URLs de `seo-landings` ya no estaban en el archivo antes del deploy -- `grep -c landing` = 0 -- así que no había 5 que quitar) |
+| `/llms.txt` | 200, **1** URL propia, **0** URLs de artículo, mientras presumía de "56 publicaciones" | 200, **80** líneas de URL absoluta: 56 artículos + 24 rutas, con los 2 índices vivos y su conteo (`meliponas — 37`, `granja — 19`); 0 marcadores `{{}}` sueltos |
+| ráfaga 60 peticiones a `/granja/bitacora` | -- | **0** líneas `degradado` y **0** `error` en `docker logs` |
+| borde público | -- | `https://iwage.co/llms.txt` = 200 ya con las 80 líneas (Cloudflare no sirvió copia vieja) |
+
+### El hueco de `/llms.txt` (descubierto al auditar los índices, cerrado sin texto nuevo)
+
+El archivo enumeraba 24 rutas relativas (`` `/granja/bitacora` ``) y una cifra hueca: `56 publicaciones en bitácora` sin nombrar ninguna. Un lector de IA que solo lee `llms.txt` no podía resolver ni un artículo: las rutas relativas no tienen base en un `.txt` y las absolutas eran 1 (`https://iwage.co` en Datos de contacto). `seccionBitacora()` en `src/lib/llms.ts` arma el catálogo con las filas que ya se consultan (título y slug existen en Strapi; cero prosa nueva), agrupado por marca de mayor a menor, con la URL del índice de cada marca; `src/pages/llms.txt.ts` paginas de a 100 igual que el sitemap y filtra con `MARCAS_BITACORA`, que es la misma regla que decide qué entra al sitemap: una URL que no resuelve en `llms.txt` es peor que ninguna. TDD: 6 tests nuevos en `tests/llms.test.mjs`, vistos fallar antes de escribir `seccionBitacora`.
+
+Queda pendiente del goal, sin cambio de código: (3) Search Console el 2026-10-08, (5) rotación de credenciales, las palancas de Cloudflare (*Always Use HTTPS*, HSTS, `www`), el `about` = `keywords` y el `dateModified` = `updatedAt`, `recetas.iwage.co`.
