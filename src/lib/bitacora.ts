@@ -3,6 +3,9 @@
  * Each brand filters by `marca` field.
  */
 import { strapiFetch, CACHE_TTL } from './strapi';
+import { filasAResumen, type ResumenBitacora } from './bitacora-resumen';
+
+export { conteoDe, type ResumenBitacora } from './bitacora-resumen';
 
 export interface EntradaBitacora {
   id: number;
@@ -48,6 +51,36 @@ export async function getBitacoraByMarca(
     };
   } catch {
     return { data: [], total: 0 };
+  }
+}
+
+/** Campos que necesitan las tiras de resumen; `contenido` queda fuera a propósito. */
+const CAMPOS_RESUMEN = [
+  'titulo', 'slug', 'marca', 'fecha', 'extracto', 'imagen', 'categoria', 'tiempo_lectura',
+];
+
+/**
+ * Una sola pasada a Strapi para todas las superficies que muestran bitácora
+ * (hub, 5 landings y BrandFooter). `porMarca`/`recientes` son de post-proceso:
+ * no entran al cache key, así que las 7 superficies comparten una única entrada
+ * de Redis con TTL `CACHE_TTL.list`.
+ * Si Strapi falla, devuelve el resumen vacío: el bloque se degrada a nada, nunca
+ * a un 500 en la portada.
+ */
+export async function getResumenBitacora(
+  opts: { porMarca?: number; recientes?: number } = {}
+): Promise<ResumenBitacora> {
+  try {
+    const res = await strapiFetch<EntradaBitacora>('bitacoras', {
+      ttl: CACHE_TTL.list,
+      filters: { publicado: { $eq: true } },
+      sort: ['fecha:desc', 'publishedAt:desc'],
+      pagination: { page: 1, pageSize: 100 },
+      fields: CAMPOS_RESUMEN,
+    });
+    return filasAResumen(res.data || [], opts);
+  } catch {
+    return filasAResumen([], opts);
   }
 }
 

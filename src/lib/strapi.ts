@@ -40,6 +40,11 @@ interface StrapiFetchOptions {
   /** Pagination */
   pagination?: { page?: number; pageSize?: number };
   /**
+   * Subconjunto de atributos (Strapi v5 `fields[]`). En colecciones con `contenido`
+   * largo evita arrastrar el texto completo al caché de Redis.
+   */
+  fields?: string[];
+  /**
    * Strapi v5 publication state filter.
    * Use 'live' to return only published records (excludes drafts and their locale duplicates).
    * Leave undefined to return all records (default Strapi behavior).
@@ -81,6 +86,7 @@ export async function strapiFetch<T = any>(
     filters,
     sort,
     pagination,
+    fields,
     publicationState,
   } = options;
 
@@ -93,6 +99,7 @@ export async function strapiFetch<T = any>(
       params.set('populate', populate);
     }
   }
+  if (fields) fields.forEach((f) => params.append('fields[]', f));
   if (filters) filterParams(filters).forEach(([k, v]) => params.append(k, v));
   if (sort) {
     const sorts = Array.isArray(sort) ? sort : [sort];
