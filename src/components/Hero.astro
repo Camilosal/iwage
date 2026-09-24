@@ -1,5 +1,6 @@
 ---
 import Icon from '@/components/shared/Icon.astro';
+import { embedSrc, isEmbed, mediaSrc, toMediaItem } from '@/lib/media';
 
 interface Props {
   titulo: string;
@@ -19,12 +20,17 @@ interface Props {
   align?: 'center' | 'left';
   /** Extra content rendered below the hero text (e.g. SearchBar) */
   extra?: any;
+  /** Video o recorrido embebido como medio del hero (alternativa a imagen) */
+  embed?: string | null;
+  poster?: string | null;
 }
 
 const {
   titulo,
   subtitulo,
   imagen,
+  embed,
+  poster,
   cta_primario_texto,
   cta_primario_url,
   cta_secundario_texto,
@@ -37,10 +43,20 @@ const {
 } = Astro.props;
 
 const isCenter = align === 'center';
+
+// El medio del hero puede ser audiovisual, no solo un archivo subido. `mediaSrc`/`toMediaItem`
+// son los dueños de la URL: aquí no se interpola ningún base de Strapi a mano.
+const posterSrc = mediaSrc(poster);
+const embedItem = toMediaItem(embed);
+// Embed de tercero (YouTube/Vimeo/Drive/360) va en <iframe>; archivo propio va en <video>.
+// Una imagen colada en `embed` se ignora a propósito: para eso están `imagen` y `poster`.
+const esEmbedTercero = !!embedItem && isEmbed(embedItem);
+const esVideoPropio = !!embedItem && !esEmbedTercero && embedItem.kind === 'video';
 ---
 
 <header class:list={[
-  'relative overflow-hidden bg-[#1a1a17] min-h-[38vh] flex items-center',
+  'relative overflow-hidden min-h-[38vh] flex items-center',
+  imagen || embed || poster ? 'bg-[#1a1a17]' : 'bg-surface-sunken',
   isCenter && 'justify-center',
 ]}>
   {imagen && (
@@ -52,6 +68,34 @@ const isCenter = align === 'center';
       loading="eager"
     />
   )}
+  {posterSrc && !imagen && !esVideoPropio && (
+    <img src={posterSrc} alt="" aria-hidden="true"
+      class="absolute inset-0 h-full w-full object-cover opacity-70 dark:opacity-50" loading="eager" />
+  )}
+  {embedItem && !imagen && (esEmbedTercero ? (
+    <iframe
+      src={embedSrc(embedItem.url)}
+      title=""
+      aria-hidden="true"
+      tabindex="-1"
+      class="absolute inset-0 h-full w-full object-cover pointer-events-none"
+      loading="eager"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen
+    ></iframe>
+  ) : esVideoPropio ? (
+    <video
+      src={embedItem.url}
+      poster={posterSrc ?? undefined}
+      muted
+      autoplay
+      loop
+      playsinline
+      preload="metadata"
+      aria-hidden="true"
+      class="absolute inset-0 h-full w-full object-cover"
+    ></video>
+  ) : null)}
   <div class:list={['absolute inset-0 bg-gradient-to-b', color_overlay || 'from-black/50 via-black/40 to-black/70']}></div>
   <div class:list={[
     'relative w-full mx-auto px-6 py-16 md:py-20',

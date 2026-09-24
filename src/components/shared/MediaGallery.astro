@@ -102,7 +102,11 @@ function ytEmbed(url: string) {
 
   <!-- Main content -->
   <div class="absolute inset-0 flex items-center justify-center p-16" data-gal-stage>
-    <img data-gal-img src={items[0].tipo === 'imagen' ? items[0].url : ''} alt="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+    {items[0].tipo === 'imagen' ? (
+      <img data-gal-img src={items[0].url} alt="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+    ) : (
+      <div data-gal-img-placeholder class="w-full max-w-4xl aspect-video rounded-lg bg-surface-sunken"></div>
+    )}
   </div>
 
   <!-- Title -->
@@ -176,10 +180,18 @@ function ytEmbed(url: string) {
         stage.innerHTML = `<iframe src="${item.url}" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl" frameborder="0" allowfullscreen></iframe>`;
       } else {
         stage.innerHTML = '';
-        stage.appendChild(img);
-        img.src = item.url;
-        img.alt = item.titulo || '';
-        img.style.display = '';
+        if (img) {
+          img.src = item.url;
+          img.alt = item.titulo || '';
+          img.style.display = '';
+          stage.appendChild(img);
+        } else {
+          const el = document.createElement('img');
+          el.src = item.url;
+          el.alt = item.titulo || '';
+          el.className = 'max-w-full max-h-full object-contain rounded-lg shadow-2xl';
+          stage.appendChild(el);
+        }
       }
     }
 
