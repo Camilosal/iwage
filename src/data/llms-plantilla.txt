@@ -122,10 +122,10 @@ Productos y servicios:
 ## Cifras clave
 
 - 120+ colmenas activas de abejas nativas
-- 50+ propiedades en portafolio (Tierras + Gestión)
+- {{PROPIEDADES}} propiedades en portafolio (Tierras + Gestión)
 - 6 líneas de acción integradas
 - 12 km de corredor biológico
-- 76+ publicaciones en bitácora (guías técnicas, territorio, sostenibilidad)
+- {{PUBLICACIONES}} publicaciones en bitácora (guías técnicas, territorio, sostenibilidad)
 
 ## Notas técnicas
 
@@ -136,7 +136,7 @@ Productos y servicios:
 - JSON-LD: Organization + Person (founder) + Article (bitácora)
 - Structured data: Schema.org Organization, Person, Article, WebSite
 - Open Graph y Twitter Cards en todas las páginas
-- Sitemap dinámico en /sitemap.xml (188+ URLs)
+- Sitemap dinámico en /sitemap.xml ({{URLS}} URLs)
 - robots.txt con referencia a sitemap
 
 ## Relación con camilosaldarriaga.com
