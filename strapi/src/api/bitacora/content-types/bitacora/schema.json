@@ -69,6 +69,12 @@
       "relation": "manyToOne",
       "target": "api::experimento.experimento",
       "inversedBy": "bitacoras"
-    }
+    },
+    "publicado": { "type": "boolean", "default": true },
+    "autor": { "type": "string" },
+    "etiquetas": { "type": "json" },
+    "fecha_actualizacion": { "type": "date" },
+    "meta_title": { "type": "string" },
+    "meta_description": { "type": "text" }
   }
 }

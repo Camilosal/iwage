@@ -444,7 +444,7 @@ git commit -m "feat(importacion): mapeo de borrador a registro de bitácora"
 
 Sin tests: es un cambio de esquema. La verificación es contra la API y la base de datos.
 
-- [ ] **Step 1: Añadir los campos**
+- [x] **Step 1: Añadir los campos**
 
 En `attributes`, después de `"experimento"` (respetar el JSON existente; no reordenar nada):
 
@@ -459,7 +459,7 @@ En `attributes`, después de `"experimento"` (respetar el JSON existente; no reo
 
 `publicado` con `default: true` es deliberado: las 19 entradas de granja que ya existen deben seguir visibles después de la migración. Un `default: false` las escondería del sitemap sin que nadie lo pida.
 
-- [ ] **Step 2: Reconstruir y reiniciar Strapi — CHECKPOINT**
+- [x] **Step 2: Reconstruir y reiniciar Strapi — CHECKPOINT**
 
 Strapi valida el esquema al arrancar. **Pedir confirmación al usuario antes de ejecutar**: reinicia un servicio compartido.
 
@@ -467,13 +467,15 @@ Strapi valida el esquema al arrancar. **Pedir confirmación al usuario antes de 
 cd /home/ubuntu/negocio && docker compose up -d --build iwage_strapi
 ```
 
-- [ ] **Step 3: Verificar que el esquema aplicó y que nada se escondió**
+- [x] **Step 3: Verificar que el esquema aplicó y que nada se escondió**
 
 ```bash
 curl -s "http://127.0.0.1:1338/api/bitacoras?pagination%5BpageSize%5D=100&fields%5B0%5D=slug&fields%5B1%5D=publicado" \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s).data;console.log(`${d.length} entradas, ${d.filter(e=>e.publicado!==false).length} con publicado!=false`)})'
 ```
 Expected: `19 entradas, 19 con publicado!=false`. Si salen `publicado: undefined` en las 19, la columna existe pero quedó `null` para los registros viejos: aplicar el backfill del paso 4. Si salen 0 visibles, **detenerse**: la portada de granja desaparecería de la SERP.
+
+**Verificado en producción (2026-09-24, tras `docker compose up -d --build iwage_strapi`):** el esquema aplicó, la API pública devuelve las 19 entradas, pero todas con `publicado: null` — Strapi aplica `default` solo al crear, nunca sobre filas que ya existían. El backfill del paso 4 **sí** hace falta, y mientras no corra, el filtro de la Tarea 8 no puede ser `publicado: true` porque escondería la bitácora de granja completa de la SERP.
 
 - [ ] **Step 4: Backfill explícito solo si hace falta**
 
@@ -498,7 +500,7 @@ console.log("backfill a publicado=true en", n, "de", lista.data.length);
 
 Volver al paso 3 y confirmar `19 entradas, 19 con publicado!=false`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add strapi/src/api/bitacora/content-types/bitacora/schema.json
@@ -508,6 +510,8 @@ git commit -m "feat(strapi): bitacora gana publicado, autor, etiquetas y metadat
 ---
 
 ## Tarea 6: CLI de importación idempotente
+
+> **Corregido tras ver el esquema:** `bitacora` tiene `draftAndPublish: true`, así que `crear` manda además `publishedAt` en el payload, el truco ya probado en `strapi/scripts/seed-granja.mjs:139`. Sin eso los registros quedarían en borrador de Strapi, y con el token actual los borradores no se vuelven a leer (`?status=draft` devuelve los mismos 19) ni hay forma probada de publicarlos. Quién esconde el artículo es `publicado: false`, no el estado de Strapi.
 
 **Files:**
 - Create: `strapi/scripts/importar-bitacora.mjs`
@@ -564,7 +568,7 @@ async function crear(data) {
   const res = await fetch(`${STRAPI_URL}/api/bitacoras`, {
     method: 'POST',
     headers: cabeceras,
-    body: JSON.stringify({ data }),
+    body: JSON.stringify({ data: { ...data, publishedAt: new Date().toISOString() } }),
   });
   if (!res.ok) return { ok: false, error: `${res.status} ${(await res.text()).slice(0, 180)}` };
   return { ok: true, documentId: (await res.json()).data.documentId };
@@ -672,6 +676,8 @@ git commit -m "feat(importacion): CLI idempotente para pasar borradores a bitaco
 
 ## Tarea 7: Importar los 37 en modo oculto
 
+> **Orden corregido:** esta tarea se ejecuta DESPUÉS de la Tarea 8. El filtro que respeta `publicado` vive en la app; si se importa primero, `getBitacoraByMarca` (aún sin filtro) metería los 37 en el índice y en el sitemap.
+
 **Files:** ninguno (datos).
 
 - [ ] **Step 1: Verificar que la portada de meliponas sigue vacía antes de empezar**
@@ -719,6 +725,8 @@ git commit --allow-empty -m "docs(importacion): 37 borradores de meliponas carga
 ---
 
 ## Tarea 8: Que la capa de lectura respete `publicado` (y arreglar `dateModified`)
+
+> **Pasa a ser la primera tarea con efectos:** su despliegue debe estar arriba antes de que exista un solo registro con `publicado: false`, y requiere hecho el backfill de la Tarea 5 paso 4.
 
 **Files:**
 - Modify: `src/lib/bitacora.ts:7-21` (interfaz), `:27-44`, `:48-58`, `:62-73`
