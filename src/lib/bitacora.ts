@@ -17,8 +17,15 @@ export interface EntradaBitacora {
   fecha: string | null;
   marca: string;
   destacado: boolean;
+  publicado: boolean;
+  autor: string | null;
+  etiquetas: string[] | null;
+  fecha_actualizacion: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
   subsistema: string | null;
   publishedAt: string;
+  updatedAt: string;
 }
 
 export type Marca = 'tierras' | 'naturaleza' | 'meliponas' | 'cafe' | 'gestion' | 'granja';
@@ -31,7 +38,7 @@ export async function getBitacoraByMarca(
   try {
     const res = await strapiFetch<EntradaBitacora>('bitacoras', {
       ttl: CACHE_TTL.list,
-      filters: { marca: { $eq: marca } },
+      filters: { marca: { $eq: marca }, publicado: { $eq: true } },
       sort: ['fecha:desc', 'publishedAt:desc'],
       pagination: { page: opts.page || 1, pageSize: opts.pageSize || 20 },
     });
@@ -49,7 +56,7 @@ export async function getBitacoraBySlug(slug: string): Promise<EntradaBitacora |
   try {
     const res = await strapiFetch<EntradaBitacora>('bitacoras', {
       ttl: CACHE_TTL.single,
-      filters: { slug: { $eq: slug } },
+      filters: { slug: { $eq: slug }, publicado: { $eq: true } },
       pagination: { pageSize: 1 },
     });
     return res.data?.[0] || null;
@@ -63,6 +70,7 @@ export async function getAllBitacoraSlugs(): Promise<{ slug: string; marca: stri
   try {
     const res = await strapiFetch<EntradaBitacora>('bitacoras', {
       ttl: CACHE_TTL.list,
+      filters: { publicado: { $eq: true } },
       pagination: { pageSize: 100 },
       sort: ['fecha:desc'],
     });

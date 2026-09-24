@@ -220,7 +220,7 @@ export async function collectSitemapUrls(): Promise<{ urls: SitemapUrl[]; failed
     paquetes,
     landings,
   ] = await Promise.all([
-    fetchAllSlugs('bitacoras', void 0, failed),
+    fetchAllSlugs('bitacoras', { publicado: { $eq: true } }, failed),
     fetchAllSlugs('experimentos', void 0, failed),
     fetchAllSlugs('productos', void 0, failed),
     fetchAllSlugs('proyecto-meliponarios', void 0, failed),
