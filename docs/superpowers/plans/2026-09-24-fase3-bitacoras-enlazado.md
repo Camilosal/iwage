@@ -669,10 +669,10 @@ docker exec iwage_web curl -s http://127.0.0.1:4321/ | grep -oE 'href="/(melipon
 ```
 Expected: `200`; **≥ 6** hrefs de artículo; y exactamente dos portadas (`/granja/bitacora`, `/meliponas/bitacora`). Si los artículos salen `0`, el `fields[]` está siendo rechazado por Strapi (400 → `catch` → degradación a nada): revisar Step 3 de Task 1 antes de seguir.
 
-- [ ] **Step 5: Contract de cada superficie, ya por el borde público tras expirar el SWR**
+- [ ] **Step 5: Contract de cada superficie por el borde público, partiendo de una caché vacía**
 
 ```bash
-sleep 125
+curl -s -D - -o /dev/null -w 'primera / → %{http_code} en %{time_total}s\n' https://iwage.co/ | tr -d '\r' | grep -iE 'x-cache-status|cf-cache-status|primera /'
 for m in granja cafe tierras naturaleza gestion; do
   printf '%s: artículos=%s banda=%s\n' "$m" \
     "$(curl -s "https://iwage.co/$m/" | grep -oE "href=\"/$m/bitacora/[^\"]+\"" | wc -l)" \
@@ -681,7 +681,9 @@ done
 curl -s https://iwage.co/meliponas/ | grep -oE 'href="/meliponas/bitacora/[^"]+"' | wc -l
 curl -s https://iwage.co/granja/ | grep -oE 'href="/granja/bitacora"' | wc -l
 ```
-Expected: `granja` → `artículos=3 banda=1`; `cafe`/`tierras`/`naturaleza`/`gestion` → `artículos=0 banda=0` (bitácora vacía: sin enlace y sin cambio visual); la línea de `meliponas` → `4` (el bloque preexistente sigue); la de granja con menú → `≥ 2` (cabecera + fila nueva). Se cuenta con `grep -o | wc -l` y no con `grep -c` porque `-c` cuenta **líneas** que coinciden, y Astro sirve varios enlaces por línea.
+Expected en la primera línea: `X-Cache-Status: MISS`. No hace falta dormir nada: `iwage_app` no declara `volumes:` y `Dockerfile:32` solo hace `mkdir -p /var/cache/nginx`, así que el `html_cache` vive en la capa escribible y **muere con el contenedor** — la primera petición pública siempre choca contra la aplicación nueva. Su `%{time_total}` es el dato que importa: el coste del render en frío con `getResumenBitacora()` dentro, que es lo que verá un rastreador. `X-Cache-Status` lo escribe nginx, así que una lectura con esa cabecera **ausente**, o con `cf-cache-status: HIT`, significa que la petición no llegó al origen y el HTML puede seguir siendo el previo al despliegue: en ese caso hay que purgar esa URL en Cloudflare antes de creer ningún conteo. Es la misma razón por la que el Step 4 mide el origen primero. Si en la primera línea saliera `HIT` o `STALE` con `X-Cache-Status` presente, la caché sobrevivió al recreate y **ningún conteo de este Step es válido**: invalidar y repetir.
+
+Y después: `granja` → `artículos=3 banda=1`; `cafe`/`tierras`/`naturaleza`/`gestion` → `artículos=0 banda=0` (bitácora vacía: sin enlace y sin cambio visual); la línea de `meliponas` → `4` (el bloque preexistente sigue); la de granja con menú → `≥ 2` (cabecera + fila nueva). Se cuenta con `grep -o | wc -l` y no con `grep -c` porque `-c` cuenta **líneas** que coinciden, y Astro sirve varios enlaces por línea.
 
 - [ ] **Step 6: Las bitácoras vacías siguen en `noindex` y la con contenido indexable**
 
@@ -698,6 +700,8 @@ Expected: los 4 vacíos con `noindex` (comportamiento de la fase 1, intocado); `
 seq 1 60 | xargs -P12 -I{} curl -s -o /dev/null -w '%{http_code}\n' https://iwage.co/ | sort | uniq -c
 ```
 Expected: una sola línea `60 200`. Cualquier `429`/`500` ⇒ revertir el paso del hub (`git revert`) y volver a construir, porque el costo extra de `getResumenBitacora()` no puede pagar un 5xx en la portada.
+
+Dos hechos del `nginx.conf` que hacen que esta medición signifique algo: (1) `location /` (:192) **no lleva `limit_req`** — la zona `general:300r/m` de `:10` solo se aplica en `/api/` (:176), en el bloque de propiedades (:137) y en los de reserva/lead; se quitó en la fase 1 porque los 503 caían sobre los rastreadores. Así que un 429/503 en la ráfaga no puede ser un falso positivo de rate limiting: solo puede venir de la app o del upstream, y la regla de revertir es correcta. (2) `proxy_cache_lock on` con clave `$scheme$request_method$host$request_uri` derrite las 60 peticiones simultáneas a la misma URL contra **una sola** render de upstream: la ráfaga mide el camino HIT, y el camino frío ya quedó medido en el `%{time_total}` del Step 5. Pedirle a esta prueba lo que no puede dar (que estrese el render) sería un falso verde.
 
 - [ ] **Step 8: Rastreo de la profundidad dos (los dos índices, no solo uno)**
 
@@ -748,7 +752,7 @@ Medido sin tocar producción:
 
 | Comprobación | Comando | Salida |
 |---|---|---|
-| Tests en verde | `node --test tests/*.test.mjs` | `# pass 15` / `# fail 0` |
+| Tests en verde | `npm test` (que en `package.json:12` es `node --test tests/*.test.mjs`) | `# pass 15` / `# fail 0` |
 | El contrato del grafo, medido sin desplegar | `node --test tests/bitacora-resumen.test.mjs` | con las 56 filas reales de Strapi (37 meliponas + 19 granja): 2 marcas con enlace (`/meliponas/bitacora`, `/granja/bitacora`), 6 hrefs distintos en la tira del hub, 3 tarjetas por landing con contenido y `0` en las 4 vacías |
 | Cero dependencias nuevas | `git diff --name-only e48eb20..HEAD -- package.json package-lock.json \| wc -l` | `0` |
 | Las 6 rutas de bitácora existen | `find src/pages -path '*bitacora*' -name '*.astro'` | 12 archivos: `index.astro` + `[slug].astro` en las 6 marcas → todo href emitido resuelve |
@@ -782,6 +786,7 @@ Dos hallazgos más, ambos de coherencia:
 - **"56 artículos en dos saltos", probado por el código antes de medirlo en producción**: `grep -n "pageSize\|articulos.map\|\.slice(" src/pages/*/bitacora/index.astro` devuelve 12 líneas —seis llamadas `getBitacoraByMarca(BRAND as any, { pageSize: 100 })` (meliponas :15, las otras cinco :12) y seis `articulos.map(...)` (:56, meliponas :59)— y **cero `.slice(`**. Es decir: el salto 2 no recorta. El default `pageSize: 20` de `getBitacoraByMarca` no aplica porque todas las llamadas lo pisan, y 20 < 37 habría partido la melipona. Con `/` enlazando los dos índices, el grafo medido es 19 + 37 = 56 artículos a distancia 2.
 - **Formato de las tarjetas nuevas, revisado contra el bloque preexistente**: `src/pages/meliponas/index.astro:262-263` ya hace `date={post.fecha ?? ''}` y `readTime={String(post.tiempo_lectura ?? 5)}`, que es literalmente lo que hace `UltimasDeBitacora`. `BitacoraCard` imprime `{readTime} min lectura`. No hay divergencia visual que corregir.
 - **Lo que `astro check` no puede cubrir aquí porque no corre en este repo, cubierto a mano**: (a) los 4 imports de los componentes nuevos resuelven —`@/components/BitacoraCard.astro` (vive en `src/components/`, **no** en `brand/`), `@/components/shared/Icon.astro`, `@/config/brands` exporta `brandList` (:22), `@/lib/bitacora` exporta `type Marca` (:34) junto con `getResumenBitacora`/`conteoDe` —; (b) las 7 props que pasa `UltimasDeBitacora` son exactamente las de `interface Props` de `BitacoraCard` (`title, excerpt, category, date, readTime, href, image?`), con `?? ''`/`?? 'General'`/`?? undefined` para que un `null` de Strapi no imprima "null"; (c) existen los 12 archivos `src/pages/*/bitacora/{index,[slug]}.astro`, así que ningún href nuevo del hub puede caer en 404; (d) `marca` es un atributo **escalar, tipo `string`** (`EntradaBitacora.marca: string`, y `getBitacoraByMarca` filtra `marca: {$eq: marca}`), no una relación: por eso `fields[]` lo devuelve y `MARCAS.includes(f.marca)` tiene con qué comparar —y los valores almacenados son las 6 slugs en minúscula, las mismas que hoy producen 19 y 37 artículos en los índices.
+- **Por qué el cambio en `granja.ts` necesita las dos líneas, y no solo el `href` del grupo**: `BrandNavbar` renderiza las entradas con `children` como `<button>` —en escritorio (:39) y en el panel móvil (:142)— y **solo los `children` salen como `<a href>`** (:53 y :151). El `href` del grupo alimenta únicamente `isActive()` para el resaltado. Por eso `/granja/bitacora` aparece dos veces en el HTML (hijo del dropdown + hijo del menú móvil) gracias a la línea `{ label: 'Bitácora', href: '/granja/bitacora' }`; si se hubiera añadido solo el `href` del grupo, el criterio "el menú de granja enlaza la bitácora" habría fallado en silencio, sin error ni síntoma visible. Dos matices para la lectura de la medición: ambos `<a>` viven dentro de contenedores ocultos por CSS (`opacity-0 invisible` el dropdown, `hidden` el panel móvil), así que el enlace con peso real en la landing es el "Ver todo →" de `UltimasDeBitacora`, que siempre está visible.
 - **Estado de git para el cierre**: la fase son 7 commits —`e48eb20` y `2e193b2` (spec y plan), `18c1449` capa de datos (`fields`, `filasAResumen`, `getResumenBitacora`), `611afb2` sección del hub, `550ff9a` fila en las 5 landings, `c32d29c` pie global + menú de granja, y el de esta auditoría (degradado con log + plan)— más el de docs del Task 8. El número de commits locales sin subir se recalcula al cerrar con `git rev-list --count origin/master..HEAD` (estaba en 24 antes de este commit; 18 son de las fases 1 y 2, retenidos por la misma regla) y el gitlink del padre en `2a2cfac`.
 
 ### Dos correcciones a lo escrito arriba
