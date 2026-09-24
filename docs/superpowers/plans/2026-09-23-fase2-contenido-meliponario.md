@@ -1264,10 +1264,11 @@ Anotar en `docs/superpowers/plans/2026-09-23-fase2-contenido-meliponario.md`, al
 | Artículos meliponas | 37, los 37 con `index, follow` y JSON-LD Article completo | barrido de las 37 URLs del sitemap |
 | Índice RAG | 224 chunks | `POST /api/reindex` con `Content-Type: application/json` |
 | IndexNow | 200 con las 37 URLs | `api.indexnow.org/IndexNow`, llave `iwage-indexnow-2024-key` |
-| Impresiones en Search Console el día del cierre | **pendiente, las lee el usuario** en `https://search.google.com/search-console?resource_id=sc-domain%3Aiwage.co` | corte: 2026-09-24 · comparación: 2026-10-08 y 2026-10-22 |
-| Clics / impresiones / posición Media | **pendiente, mismo informe** | el mismo informe, pestaña Rendimiento |
+| Impresiones en Search Console el día del cierre | **0** | leído por el usuario en su cuenta, 2026-09-24 |
+| Páginas indexadas | **1** --solo la portada `/` | informe de Páginas del mismo Search Console |
+| Comparación programada | 2026-10-08 y 2026-10-22 | misma pantalla, mismo filtro de dominio |
 
-Las dos filas pendientes no son olvido: el acceso a Search Console es del usuario y la fase no toca su cuenta. Sin ese número la fase 4 no tiene con qué comparar, así que se anota apenas se lea.
+**Qué dice este punto de partida.** Cero impresiones con 189 URLs publicadas y una sola página indexada no es un problema de contenido: es que Google casi no llegó a ver el sitio. Hasta la fase 1 el `robots.txt` bloqueaba rutas, la portada de cada bitácora estaba en `noindex` por estar vacía y `www`/`http` no convergían, así que la portada era literalmente lo único indexable. El orden de espera, entonces, es **rastreo → indexación → impresiones → clics**, y la métrica que hay que mirar a las dos semanas no es el gráfico de Rendimiento (va a seguir en 0 un tiempo, aunque todo esté bien) sino **Páginas indexadas**: si 189 URLs en el sitemap y con `index, follow` no se traducen en un crecimiento de páginas indexadas, el cuello está en otra parte (autoridad del dominio, presupuesto de rastreo o el propio borde de Cloudflare) y ninguna cantidad de textos nuevos lo arregla. La fase 3 se prioriza sobre eso, no sobre suposiciones.
 
 ## Deuda de contenido que dejó la verificación
 
@@ -1300,5 +1301,5 @@ Cerrados el 2026-09-24, con la medición al lado de cada uno:
 
 Quedan abiertos, y no por descuido:
 
-- **Impresiones de Search Console del día del cierre**: las lee el usuario en su cuenta (la fase no toca credenciales ajenas). Sin ese número no hay comparación a 2 y 4 semanas.
+- **La lectura de seguimiento, no la inicial**: el usuario ya leyó el punto de partida (0 impresiones, 1 página indexada --la portada--). Lo que decide si esta fase sirvió es **Páginas indexadas** a las 2 y 4 semanas (2026-10-08 y 2026-10-22), y eso solo se puede ver en su cuenta.
 - **Los 16 artículos con `keywords` flacas** (4 solo con la marca, 12 con marca + sección) y el caso `de-la-colmena-a-la-taza`, etiquetado `Café Iwagé` dentro de `/meliponas/`. Es escritura sobre el borrador, no código: ver *Deuda de contenido que dejó la verificación*.
