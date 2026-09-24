@@ -1075,7 +1075,33 @@ Medición después del parche, sobre el bundle con el mismo Strapi de fixture de
 
 `npm test`: 24 pruebas (19 de la fase 3 + 5 nuevas), 0 fallas. `npx astro build`: exit 0 en 11,8 s. Líneas `resumen degradado`: 0 con Strapi alcanzable.
 
-**Nada de esto está desplegado.** El parche espera un CHECKPOINT, y la agrupación es a propósito: el deploy #4 llevaría schema y nada más, porque el resto de la fase 3-b no toca el árbol servido.
+**Autorización del CHECKPOINT 2:** "si" (mensaje de texto del usuario, ~18:14Z). El deploy #4 se agrupó con el arreglo del blip `noindex`, que estaba registrado como deuda con su criterio: son 2 archivos de lógica y 6 líneas de cableado, y un deploy separado habría costado el cuádruple de tiempo en verificación por el mismo cambio.
+
+### El validador de grafo encontró un defecto que no se veía leyendo el código
+
+Correr el JSON-LD servido contra reglas de integridad (referencias `@id` resueltas, posiciones de breadcrumb, `numberOfItems` vs `blogPost`, campos obligatorios de `Article`) dio **12 referencias colgadas**: `parentOrganization`, `worksFor` y el `publisher` de mi propio WebSite apuntaban a `https://iwage.co/#organization`, que solo se declaraba en el hub. Dos de las tres eran preexistentes; la tercera la introduje yo.
+
+Arreglo: `organizacionMadre()` declara la entidad en las páginas de marca, con su test. Después del arreglo, el mismo validador cierra con **11 checks OK, 0 fallas** sobre 5 superficies (`/`, `/granja/`, los 2 índices con contenido, `/cafe/bitacora` y un artículo).
+
+### Deuda del blip `noindex`, cerrada con medición
+
+`getBitacoraByMarca` devuelve ahora `fallo: boolean` y el robots se decide con `noindexDeIndice({ total, fallo })` (módulo puro, 4 tests). Medido con el bundle de la fase contra dos fixtures en el mismo puerto muerto de Redis:
+
+| robots de los 6 índices | Strapi sano | Strapi contestando 400 a `bitacoras` |
+|---|---|---|
+| `/granja/bitacora` (19) y `/meliponas/bitacora` (37) | `index, follow` | **`index, follow`** ← esto es el arreglo |
+| `cafe` / `tierras` / `naturaleza` / `gestion` (0) | `noindex, follow` | `index, follow` ← el costo aceptado, cara visible del bug viejo |
+
+Con el 400 puesto: las 3 páginas muestreadas siguen respondiendo 200, no se publica un `Blog` vacío, y el log marca 9 líneas `resumen degradado` (el síntoma legible sigue ahí). Antes de este cambio, el mismo escenario dejaba los índices con 19 y 37 artículos quemándose en `noindex` durante los 120 s de nginx.
+
+### Las tres deudas que **no** entraron en este deploy, y por qué
+
+- `pageSize: 100`: con 56 publicados no trunca; el arreglo real es paginar hasta `total`, y su criterio de decisión es la fase 4 (volumen de contenido), no esta.
+- Validación de marca en `/cafe/bitacora/<slug ajeno>`: cambiarlo a redirect toca las 6 rutas de artículo y su `getBitacoraBySlug`, y el riesgo que cubre es de adivinanza de URL, no de rastreo. No se mezcla con un deploy de schema sin medirlo antes.
+- Dedup de los 6 grids: fuera de alcance por decisión explícita del usuario.
+
+El build del host también hizo su trabajo acá: la primera pasada de `npx astro build` reventó con `Expected `,` or `)` but found `:`` en `src/lib/bitacora.ts:40` --un paréntesis que me comí al editar la firma-- y `npm test` estaba verde. Sin el build, eso llegaba al deploy.
+
 
 ## Rehearsal en local con un Strapi de fixture (medido 2026-09-24, sin tocar producción)
 

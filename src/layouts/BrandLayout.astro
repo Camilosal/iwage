@@ -8,7 +8,7 @@ import UnifiedCart from '@/components/cart/UnifiedCart';
 import { getBrandFromPath, defaultBrand } from '@/config/brands';
 import type { BrandConfig } from '@/config/brands/types';
 import { GOOGLE, FACEBOOK, SWETRIX, ANALYTICS_ENABLED } from '@/config/analytics';
-import { blogDeBitacora, webSiteSchema, type FilaDeBlog } from '@/lib/schema-bitacora';
+import { blogDeBitacora, organizacionMadre, webSiteSchema, type FilaDeBlog } from '@/lib/schema-bitacora';
 
 interface ArticleMeta {
   title: string;
@@ -136,7 +136,7 @@ const breadcrumbJsonLd = breadcrumbItems.length > 1 ? {
 } : null;
 
 // Combined JSON-LD graph (Organization + Person + Breadcrumb + optional Article)
-const jsonLdGraph: Record<string, any>[] = [webSiteSchema(), orgJsonLd, { "@context": "https://schema.org", ...founderPerson }];
+const jsonLdGraph: Record<string, any>[] = [webSiteSchema(), organizacionMadre(), orgJsonLd, { "@context": "https://schema.org", ...founderPerson }];
 if (breadcrumbJsonLd) jsonLdGraph.push(breadcrumbJsonLd);
 
 // Blog de la marca: solo cuando el índice tiene artículos

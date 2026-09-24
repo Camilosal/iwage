@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { blogDeBitacora, webSiteSchema } from '../src/lib/schema-bitacora.ts';
+import { blogDeBitacora, organizacionMadre, webSiteSchema } from '../src/lib/schema-bitacora.ts';
 
 const fila = (slug, extras = {}) => ({ slug, titulo: `Título de ${slug}`, ...extras });
 
@@ -61,6 +61,15 @@ test('blogDeBitacora: ancla el nodo a la organización de la marca y al sitio', 
   assert.equal(blog.blogPost[0].datePublished, '2026-01-02');
 });
 
+// El validador de grafo midió 12 referencias colgadas: parentOrganization, worksFor y
+// publisher apuntan a https://iwage.co/#organization, que solo se declaraba en el hub.
+test('organizacionMadre: la entidad que sostienen las referencias @id de las marcas', () => {
+  const madre = organizacionMadre();
+  assert.equal(madre['@type'], 'Organization');
+  assert.equal(madre['@id'], 'https://iwage.co/#organization');
+  assert.equal(madre.name, 'Iwagé Ecosistema');
+  assert.equal(madre.url, 'https://iwage.co/');
+});
 test('webSiteSchema: un solo WebSite de iwage.co en español, publicado por la Organización madre', () => {
   const sitio = webSiteSchema();
 

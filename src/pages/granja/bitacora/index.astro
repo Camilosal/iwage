@@ -3,13 +3,14 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import BitacoraSidebar from '@/components/brand/BitacoraSidebar.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
+import { noindexDeIndice } from '@/lib/bitacora-noindex';
 import type { EntradaBitacora } from '@/lib/bitacora';
 
 const BRAND = 'granja';
 const BRAND_TITLE = 'Bitácora · Iwagé Granja Autosustentable';
 const BRAND_DESC = 'Diario técnico del sistema autosustentable: agua, energía solar, bio-refinería, agroecosistema, gemelo digital y modelo financiero.';
 
-const { data: articulos } = await getBitacoraByMarca(BRAND as any, { pageSize: 100 });
+const { data: articulos, fallo } = await getBitacoraByMarca(BRAND as any, { pageSize: 100 });
 
 // Dynamic categories with counts (no hardcoding)
 const catMap = new Map<string, number>();
@@ -29,7 +30,7 @@ function normalizeSearch(a: EntradaBitacora): string {
 }
 ---
 
-<BrandLayout brand={BRAND} title={BRAND_TITLE} description={BRAND_DESC} noindex={articulos.length === 0} bitacora={articulos}>
+<BrandLayout brand={BRAND} title={BRAND_TITLE} description={BRAND_DESC} noindex={noindexDeIndice({ total: articulos.length, fallo })} bitacora={articulos}>
   <!-- Header -->
   <section class="bg-surface pt-12 pb-8">
     <div class="max-w-7xl mx-auto px-6">

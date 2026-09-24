@@ -37,7 +37,7 @@ export type Marca = 'tierras' | 'naturaleza' | 'meliponas' | 'cafe' | 'gestion' 
 export async function getBitacoraByMarca(
   marca: Marca,
   opts: { pageSize?: number; page?: number } = {}
-): Promise<{ data: EntradaBitacora[]; total: number }> {
+): Promise<{ data: EntradaBitacora[]; total: number; fallo: boolean }> {
   try {
     const res = await strapiFetch<EntradaBitacora>('bitacoras', {
       ttl: CACHE_TTL.list,
@@ -48,9 +48,11 @@ export async function getBitacoraByMarca(
     return {
       data: res.data || [],
       total: res.meta?.pagination?.total || 0,
+      fallo: false,
     };
   } catch {
-    return { data: [], total: 0 };
+    // `fallo` es lo que permite al índice no quemar su `noindex` por un timeout
+    return { data: [], total: 0, fallo: true };
   }
 }
 

@@ -21,6 +21,20 @@ export interface OpcionesBlog {
   articulos: FilaDeBlog[];
 }
 
+/**
+ * La Organización madre. Las páginas de marca referencian su `@id` en
+ * `parentOrganization`, `worksFor` y en el `publisher` del WebSite, pero solo el hub
+ * la declaraba: el validador de grafo midió 12 referencias colgadas.
+ */
+export function organizacionMadre(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${SITIO}/#organization`,
+    name: 'Iwagé Ecosistema',
+    url: `${SITIO}/`,
+  };
+}
 export function webSiteSchema(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
