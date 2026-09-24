@@ -680,12 +680,12 @@ git commit -m "feat(importacion): CLI idempotente para pasar borradores a bitaco
 
 **Files:** ninguno (datos).
 
-- [ ] **Step 1: Verificar que la portada de meliponas sigue vacía antes de empezar**
+- [x] **Step 1: Verificar que la portada de meliponas sigue vacía antes de empezar**
 
 Run: `curl -s -o /dev/null -w "%{http_code}\n" "https://iwage.co/meliponas/bitacora?cb=$RANDOM"` y `curl -s "https://iwage.co/meliponas/bitacora?cb=$RANDOM" | grep -o 'content="[^"]*"' | head -1`
 Expected: `200` y `content="noindex, follow"`. Es la línea base: al final debe ser `index, follow`.
 
-- [ ] **Step 2: Importar — CHECKPOINT**
+- [x] **Step 2: Importar — CHECKPOINT**
 
 Escribe en la base de datos de producción (aunque con `publicado: false`, no visible). **Confirmar con el usuario.**
 
@@ -695,7 +695,7 @@ cd /home/ubuntu/negocio && set -a && . ./.env && set +a && cd data/app_iwage && 
 ```
 Expected: `creados=37 omitidos=0 fallidos=0`. El token se referencia por nombre de variable, no por valor: no se imprime, no queda en el historial de la shell y no aparece en `ps`.
 
-- [ ] **Step 3: Verificar en la API, filtrando por publicado**
+- [x] **Step 3: Verificar en la API, filtrando por publicado**
 
 Run:
 ```bash
@@ -705,7 +705,7 @@ curl -s "http://127.0.0.1:1338/api/bitacoras?pagination%5BpageSize%5D=100&filter
 ```
 Expected: `37 meliponas, ocultas=37, con extracto=37, con tags=21, sin slug roto=0`.
 
-- [ ] **Step 4: Confirmar que la calle sigue igual**
+- [x] **Step 4: Confirmar que la calle sigue igual**
 
 Run: `curl -s "https://iwage.co/sitemap.xml?cb=$RANDOM" | grep -c "<loc>"`
 
@@ -716,7 +716,9 @@ Aquí hay dos resultados posibles y ambos informan, porque no está resuelto si 
 
 Cualquier otro número es un fallo real y hay que detenerse.
 
-- [ ] **Step 5: Commit** (no hay código; se ancla el estado del repo)
+- [x] **Step 5: Commit** (no hay código; se ancla el estado del repo)
+
+El ancla ya está puesta con `52107ac` (tareas 5 a 9 ejecutadas, 37 importadas ocultas), así que no hace falta un commit vacío aparte.
 
 ```bash
 git commit --allow-empty -m "docs(importacion): 37 borradores de meliponas cargados como no publicados"
@@ -1011,7 +1013,9 @@ git commit --allow-empty -m "docs(contenido): 37 artículos de meliponas publica
 
 Hoy el archivo miente en tres líneas exactas: `125:- 50+ propiedades en portafolio (Tierras + Gestión)`, `128:- 76+ publicaciones en bitácora …`, `139:- Sitemap dinámico en /sitemap.xml (188+ URLs)`. Valores reales al cierre de la fase 2: **4 propiedades** (0 de `propiedades` + 4 de `propiedades-gestion`), **56 publicaciones**, **189 URLs**.
 
-- [ ] **Step 1: Mover y marcar la plantilla**
+- [x] **Step 1: Mover y marcar la plantilla**
+
+> **Ejecución — dos desviaciones del plan.** La plantilla quedó en `src/data/llms-plantilla.txt`, no en `src/content/`: ese directorio es el que Astro reserva para content collections, aquí no se usa ninguna, y un `.txt` suelto dentro solo siembra confusión. Y `total()` pide `CACHE_TTL.list` (300 s) en lugar del `3600` escrito a mano, porque la constante ya existe en `src/lib/strapi.ts`.
 
 ```bash
 git mv public/llms.txt src/content/llms-plantilla.txt
@@ -1024,7 +1028,7 @@ Editar las tres líneas para que ya no afirmen nada:
 - Sitemap dinámico en /sitemap.xml ({{URLS}} URLs)
 ```
 
-- [ ] **Step 2: Test fallante del reemplazo**
+- [x] **Step 2: Test fallante del reemplazo**
 
 `tests/llms.test.mjs`:
 
@@ -1049,7 +1053,7 @@ test('aplicarConteos: una plantilla sin marcadores sale intacta', () => {
 
 Run: `npm test` → Expected: fallo por módulo inexistente. Que el test importe un `.ts` desde un `.mjs` no pide ningún flag: Node 22.23 en esta máquina trae el type stripping activado (verificado: `node --help` solo expone `--no-experimental-strip-types` como opt-out).
 
-- [ ] **Step 3: Implementar `src/lib/llms.ts`**
+- [x] **Step 3: Implementar `src/lib/llms.ts`**
 
 ```ts
 export interface ConteosLlms {
@@ -1068,7 +1072,7 @@ export function aplicarConteos(plantilla: string, c: ConteosLlms | Partial<Conte
 
 Run: `npm test` → Expected: `pass 10`.
 
-- [ ] **Step 4: La ruta**
+- [x] **Step 4: La ruta**
 
 `src/pages/llms.txt.ts`:
 
@@ -1148,7 +1152,7 @@ git commit -m "fix(llms): llms.txt generado con conteos reales en lugar de cifra
 
 El sitemap de la fase 1 ya no anuncia `/gestion/propiedades`; las páginas se movieron a `/gestion/alojamientos`. Pero los enlaces viejos (y lo que Google llegó a tener) siguen pidiendo la ruta antigua y hoy mueren en 404.
 
-- [ ] **Step 1: Comprobar el estado actual**
+- [x] **Step 1: Comprobar el estado actual**
 
 Run:
 ```bash
@@ -1158,7 +1162,7 @@ done
 ```
 Expected: `404 / 404 / 200`. Si el primero da 301 o 200, no hace falta nada: cerrar la tarea sin tocar código.
 
-- [ ] **Step 2: Añadir las dos reglas**
+- [x] **Step 2: Añadir las dos reglas**
 
 En `DYNAMIC_REDIRECTS`, justo antes del comentario de `/cafe/:anything`:
 
