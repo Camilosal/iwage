@@ -231,9 +231,35 @@ function caminar(dir) {
 }
 
 /**
- * Archivos de bitácora: TODAS las rutas bajo un directorio `bitacora` (así una página
- * nueva no se libra del barrido por no estar en una lista) más los dos componentes que
- * pintan tapas de bitácora.
+ * ¿Este archivo consume el módulo `bitacora`? Se mira el ÚLTIMO segmento del
+ * especificador, no una subcadena: `\bbitacora` también casaba `@/lib/schema-bitacora`
+ * y `@/lib/sitemap-bitacora` (el guion es un límite de palabra) y metía en el barrido a
+ * archivos que no ven una fila de bitácora. Y se aceptan las dos sintaxis que existen en
+ * el árbol: estática (`from '@/lib/bitacora'`, `from './bitacora'`) y dinámica
+ * (`import('@/lib/bitacora')`, lo único que usa
+ * `src/pages/granja/sistema/[subsistema].astro:101`, que un regex de `from` perdía).
+ */
+function consumeBitacora(contenido) {
+  return [...contenido.matchAll(/\b(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)].some(
+    ([, esp]) => esp.split('/').pop() === 'bitacora',
+  );
+}
+
+/**
+ * Archivos barridos. Tres orígenes, unidos y deduplicados:
+ *  · TODAS las rutas bajo un directorio `bitacora` (así una página nueva no se libra del
+ *    barrido por no estar en una lista);
+ *  · los componentes que pintan tapas de bitácora sin vivir dentro de la carpeta
+ *    `bitacora` de una marca;
+ *  · TODO consumidor del módulo `bitacora` (I4): el `MediaItem` viaja con la fila, no con el
+ *    directorio. Un `<img src={post.imagen}>` en `src/pages/granja/novedad.astro` —fuera de
+ *    cualquier carpeta `bitacora`— pinta `[object Object]` igual que dentro, y hasta hoy se
+ *    libraba del gate por su dirección. Medido: 21 consumidores bajo `src/` (los 18 que
+ *    importan `@/lib/bitacora` + `src/lib/{bitacora-resumen,granja-experimentos}` y
+ *    `src/lib/rag/indexer.ts`, que importan `./bitacora`) frente a los 14 que veía el
+ *    barrido por directorio.
+ * Se mantienen los dos orígenes anteriores aunque ya estén cubiertos, para que el barrido
+ * no dependa de que un archivo recuerde escribir el import.
  */
 function archivosDeBitacora() {
   const paginas = caminar(join(RAIZ, 'src/pages')).filter((f) => `${relative(RAIZ, f)}`.split('/').includes('bitacora'));
@@ -241,7 +267,8 @@ function archivosDeBitacora() {
     'src/components/BitacoraCard.astro',
     'src/components/brand/UltimasDeBitacora.astro',
   ].map((r) => join(RAIZ, r)).filter((f) => existsSync(f));
-  return [...new Set([...paginas, ...componentes])].sort();
+  const importadores = caminar(join(RAIZ, 'src')).filter((f) => consumeBitacora(readFileSync(f, 'utf8')));
+  return [...new Set([...paginas, ...componentes, ...importadores])].sort();
 }
 
 /** Convierte el bloque de comentario en espacios: se va el texto, se queda la línea. */
@@ -335,7 +362,7 @@ function violacionesDeMedios(archivo) {
   return culpables;
 }
 
-test('el barrido tiene a quién mirar: las 12 rutas de bitácora y sus componentes están en la lista', () => {
+test('el barrido tiene a quién mirar: las 12 rutas, los componentes y TODOS los importadores de @/lib/bitacora', () => {
   const lista = archivosDeBitacora().map((f) => relative(RAIZ, f).replace(/\\/g, '/'));
   assert.ok(lista.length >= 13, `barrido vacío o recortado (${lista.length} archivos): ${lista.join(', ')}`);
   for (const marca of ['meliponas', 'granja', 'naturaleza', 'cafe', 'gestion', 'tierras']) {
@@ -345,6 +372,23 @@ test('el barrido tiene a quién mirar: las 12 rutas de bitácora y sus component
     );
   }
   assert.ok(lista.includes('src/components/BitacoraCard.astro'), 'falta BitacoraCard.astro del barrido');
+  // I4: los cinco consumidores que reciben filas de bitácora fuera de un directorio
+  // `bitacora/`. Si el barrido vuelve a ser "el que está en la carpeta", estos cuatro
+  // nombres dan rojo y la regresión se ve.
+  for (const fuera of [
+    'src/pages/index.astro',
+    'src/pages/meliponas/index.astro',
+    'src/components/brand/BitacoraEcosistema.astro',
+    'src/components/brand/BrandFooter.astro',
+    'src/pages/granja/sistema/[subsistema].astro',
+  ]) {
+    assert.ok(lista.includes(fuera), `el barrido deja fuera a ${fuera}, que también pinta filas de bitácora`);
+  }
+  // 21 consumidores del módulo bajo `src/` (medido con este mismo criterio: 18 vía
+  // `@/lib/bitacora` + 3 vía `./bitacora` desde `src/lib`), más los componentes que pintan
+  // tapas sin tener el import. Si alguien vuelve al barrido por directorio, cae a 14 y esto
+  // da rojo.
+  assert.ok(lista.length >= 21, `barrido más chico que el conjunto de consumidores (${lista.length}): ${lista.join(', ')}`);
 });
 
 test('ningún <img src> de bitácora pinta un MediaItem sin resolverlo (.url o el contrato)', () => {
