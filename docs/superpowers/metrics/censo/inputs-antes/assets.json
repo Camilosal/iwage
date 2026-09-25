@@ -1,0 +1,1185 @@
+[
+ {
+  "src": "https://iwage.co/favicon.svg",
+  "pages": [
+   "/",
+   "/ayuda/",
+   "/ayuda/equipo/",
+   "/ayuda/equipo/configuracion",
+   "/ayuda/equipo/contenido-tipos",
+   "/ayuda/equipo/gestion-reservas",
+   "/ayuda/equipo/ordenes",
+   "/ayuda/equipo/pagos",
+   "/ayuda/equipo/portal-aliados",
+   "/ayuda/equipo/reservas-admin",
+   "/ayuda/equipo/sincronizacion",
+   "/ayuda/equipo/strapi-cms",
+   "/ayuda/usuarios/",
+   "/ayuda/usuarios/carrito",
+   "/ayuda/usuarios/explorar-plataforma",
+   "/ayuda/usuarios/herramientas",
+   "/ayuda/usuarios/marcas",
+   "/ayuda/usuarios/mi-cuenta",
+   "/ayuda/usuarios/pedidos",
+   "/ayuda/usuarios/reservas",
+   "/ayuda/usuarios/tienda",
+   "/cafe/",
+   "/cafe/ayuda",
+   "/cafe/contacto",
+   "/cafe/menu",
+   "/cafe/nosotros",
+   "/cafe/proveedores",
+   "/cafe/recetas",
+   "/gestion/",
+   "/gestion/alojamientos",
+   "/gestion/alojamientos/casa-guamo-renta-corta",
+   "/gestion/alojamientos/ecoretiro-ambala-operacion-turistica",
+   "/gestion/alojamientos/finca-el-carmen-productiva",
+   "/gestion/alojamientos/villa-serena-segunda-residencia",
+   "/gestion/ayuda",
+   "/gestion/contacto",
+   "/gestion/experiencias",
+   "/gestion/propietarios",
+   "/gestion/propietarios/finca-productiva",
+   "/gestion/propietarios/modelo-alianzas",
+   "/gestion/propietarios/operacion-turistica",
+   "/gestion/propietarios/renta-corta",
+   "/gestion/propietarios/segunda-residencia",
+   "/granja/",
+   "/granja/ayuda",
+   "/granja/bitacora",
+   "/granja/bitacora/agroecosistema-productivo",
+   "/granja/bitacora/bioarquitectura-terrenos",
+   "/granja/bitacora/biorefineria-domestica",
+   "/granja/bitacora/climatizacion-olores",
+   "/granja/bitacora/compostaje-rural-como-cerrar-el-ciclo-de-nutrientes-en-la-finca",
+   "/granja/bitacora/cuaderno-campo",
+   "/granja/bitacora/diario-sistema-autosustentable",
+   "/granja/bitacora/edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable",
+   "/granja/bitacora/esg-sin-greenwashing",
+   "/granja/bitacora/estrategia-de-financiacion-por-fases-escalar-sin-pedir-capital-antes-de-tener-ev",
+   "/granja/bitacora/gestion-hidrica",
+   "/granja/bitacora/granja-peri-urbana",
+   "/granja/bitacora/home-assistant",
+   "/granja/bitacora/marco-regulatorio",
+   "/granja/bitacora/meliponario-iwage-subsistema-vivo",
+   "/granja/bitacora/muebles-airbnb",
+   "/granja/bitacora/sistema-autosustentable-ancla",
+   "/granja/bitacora/solar-offgrid",
+   "/granja/bitacora/viabilidad-practica",
+   "/granja/contacto",
+   "/granja/experimentos",
+   "/granja/experimentos/agroecosistema-productivo",
+   "/granja/experimentos/bioarquitectura",
+   "/granja/experimentos/biorefineria-domestica",
+   "/granja/experimentos/gemelo-digital-granja",
+   "/granja/experimentos/gestion-hidrica-ciclo-cerrado",
+   "/granja/experimentos/marco-regulatorio-sistema-autosustentable",
+   "/granja/experimentos/meliponario-iwage",
+   "/granja/experimentos/modelo-financiero-granja-peri-urbana",
+   "/granja/experimentos/sistema-autosustentable-iwage",
+   "/granja/experimentos/sistema-solar-off-grid",
+   "/granja/nosotros",
+   "/granja/sistema",
+   "/granja/tienda",
+   "/granja/tienda/canasta-hortalizas-temporada",
+   "/granja/tienda/compost-madurado-bulto",
+   "/granja/tienda/granja-visita-guiada",
+   "/granja/tienda/huevos-gallina-feliz-docena",
+   "/granja/tienda/plantulas-nativas",
+   "/granja/visitas",
+   "/legal/",
+   "/legal/cancelaciones-y-reembolsos",
+   "/legal/cookies",
+   "/legal/devoluciones-y-retracto",
+   "/legal/terminos-y-condiciones",
+   "/legal/tratamiento-de-datos",
+   "/meliponas/",
+   "/meliponas/ayuda",
+   "/meliponas/bitacora",
+   "/meliponas/bitacora/abejas-sin-aguijon-cosmovision-pijao",
+   "/meliponas/bitacora/cafe-agroecologico-iwage",
+   "/meliponas/bitacora/cajas-inpa-vs-af-c2-b7-comparativas",
+   "/meliponas/bitacora/caso-la-finca-de-don-manuel",
+   "/meliponas/bitacora/como-atraer-una-colonia-de-angelitas-sin-comprarla-batumen-feromonas-y-la-trampa-que-funciona",
+   "/meliponas/bitacora/conservacion-y-cosecha-de-miel",
+   "/meliponas/bitacora/conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion",
+   "/meliponas/bitacora/corredor-ambala-parque-tacuray",
+   "/meliponas/bitacora/cuando-la-abeja-llega-al-cultivo",
+   "/meliponas/bitacora/de-la-colmena-a-la-taza",
+   "/meliponas/bitacora/division-colonias-angelita-tetragonisca-angustula",
+   "/meliponas/bitacora/el-botiquin-natural-recetas-con-miel-de-angelita-y-propoleos",
+   "/meliponas/bitacora/el-jardin-suspendido-10-plantas-en-matera-que-complementan-la-flora-del-meliponario",
+   "/meliponas/bitacora/el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida",
+   "/meliponas/bitacora/fermentacion-burbujas-y-un-frasco-que-explota",
+   "/meliponas/bitacora/flora-melifera-nativa",
+   "/meliponas/bitacora/guia-completa-de-meliponicultura-atraccion-captura-trasiego-manejo-y-division-de-colonias-de-angelita",
+   "/meliponas/bitacora/la-miel-de-angelita-y-el-chef-maridajes-y-aplicaciones-en-la-alta-cocina",
+   "/meliponas/bitacora/la-ruta-de-la-miel-del-nido-silvestre-a-tu-frasco",
+   "/meliponas/bitacora/las-heroinas-de-la-guadua-rota",
+   "/meliponas/bitacora/lote-l25-05-001-cosecha-mayo",
+   "/meliponas/bitacora/miel-angelita-recetas-cocteleria-preparaciones",
+   "/meliponas/bitacora/miel-angelita-vs-apis-mellifera",
+   "/meliponas/bitacora/modulo-1-que-son-las-abejas-meliponas",
+   "/meliponas/bitacora/modulo-2-c2-b7-especies-de-meliponas-en-colombia-region-central",
+   "/meliponas/bitacora/modulo-3-c2-b7-el-nido-por-dentro",
+   "/meliponas/bitacora/modulo-4-c2-b7-el-trasiego-o-mudanza-de-nido",
+   "/meliponas/bitacora/modulo-5-c2-b7-manejo-y-revision-periodica",
+   "/meliponas/bitacora/modulo-7-c2-b7-alimentacion-suplementaria-cuando-que-y-como",
+   "/meliponas/bitacora/modulo-8-c2-b7-plagas-y-enfermedades-identificacion-y-control",
+   "/meliponas/bitacora/por-que-la-miel-del-corredor-ambala-sabe-diferente-a-la-del-huila",
+   "/meliponas/bitacora/propiedades-medicinales-miel-angelita",
+   "/meliponas/bitacora/pureza-en-la-miel-de-angelita-lo-que-no-es-adulteracion",
+   "/meliponas/bitacora/quieres-montar-un-meliponario-en-tu-finca-o-ciudad",
+   "/meliponas/bitacora/resultados-polinizacion-aguacate-hass",
+   "/meliponas/bitacora/resultados-polinizacion-maracuya",
+   "/meliponas/bitacora/resultados-polinizacion-mora-castilla",
+   "/meliponas/contacto",
+   "/meliponas/herramientas",
+   "/meliponas/nosotros",
+   "/meliponas/polinizacion",
+   "/meliponas/proyectos",
+   "/meliponas/proyectos/lineas/fincas-productivas",
+   "/meliponas/proyectos/lineas/paisajismo-residencial",
+   "/meliponas/proyectos/lineas/prae-educativo",
+   "/meliponas/proyectos/lineas/turismo-naturaleza",
+   "/meliponas/tienda",
+   "/meliponas/tienda/asistencia-tecnica-mensual",
+   "/meliponas/tienda/caja-af-estandar",
+   "/meliponas/tienda/caja-inpa-con-atril",
+   "/meliponas/tienda/caja-inpa-nogal-cafetero",
+   "/meliponas/tienda/kit-educativo-prae",
+   "/meliponas/tienda/kit-inicio-meliponicultor",
+   "/meliponas/trazabilidad",
+   "/meliponas/trazabilidad/cajas",
+   "/meliponas/trazabilidad/miel",
+   "/meliponas/trazabilidad/polinizacion",
+   "/naturaleza/",
+   "/naturaleza/anfitriones",
+   "/naturaleza/anfitriones/don-hernando-caficultor",
+   "/naturaleza/anfitriones/hub",
+   "/naturaleza/anfitriones/luz-elenia-herbalista",
+   "/naturaleza/ayuda",
+   "/naturaleza/clasificacion",
+   "/naturaleza/contacto",
+   "/naturaleza/escalafon",
+   "/naturaleza/experiencias",
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla",
+   "/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana",
+   "/naturaleza/impacto",
+   "/naturaleza/programas",
+   "/naturaleza/se-anfitrion",
+   "/tierras/",
+   "/tierras/ayuda",
+   "/tierras/comprar",
+   "/tierras/contacto",
+   "/tierras/herramientas/calculadora-notarial",
+   "/tierras/herramientas/evaluacion-vap",
+   "/tierras/herramientas/roi-calculator",
+   "/tierras/lab",
+   "/tierras/nosotros",
+   "/tierras/perfiles",
+   "/tierras/perfiles/campestre",
+   "/tierras/perfiles/nomada",
+   "/tierras/perfiles/patrimonial",
+   "/tierras/perfiles/productivo",
+   "/tierras/perfiles/turistico",
+   "/tierras/propiedades",
+   "/tierras/protocolo-vap",
+   "/tierras/vender"
+  ],
+  "n": 185,
+  "kinds": [
+   "icon"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://analitica.camilosaldarriaga.com/backend/log/noscript?pid=4RwWYkPcU082",
+  "pages": [
+   "/",
+   "/ayuda/",
+   "/cafe/",
+   "/cafe/ayuda",
+   "/cafe/contacto",
+   "/cafe/menu",
+   "/cafe/nosotros",
+   "/cafe/proveedores",
+   "/cafe/recetas",
+   "/gestion/",
+   "/gestion/alojamientos",
+   "/gestion/alojamientos/casa-guamo-renta-corta",
+   "/gestion/alojamientos/ecoretiro-ambala-operacion-turistica",
+   "/gestion/alojamientos/finca-el-carmen-productiva",
+   "/gestion/alojamientos/villa-serena-segunda-residencia",
+   "/gestion/ayuda",
+   "/gestion/contacto",
+   "/gestion/experiencias",
+   "/gestion/propietarios",
+   "/gestion/propietarios/finca-productiva",
+   "/gestion/propietarios/modelo-alianzas",
+   "/gestion/propietarios/operacion-turistica",
+   "/gestion/propietarios/renta-corta",
+   "/gestion/propietarios/segunda-residencia",
+   "/granja/",
+   "/granja/ayuda",
+   "/granja/bitacora",
+   "/granja/bitacora/agroecosistema-productivo",
+   "/granja/bitacora/bioarquitectura-terrenos",
+   "/granja/bitacora/biorefineria-domestica",
+   "/granja/bitacora/climatizacion-olores",
+   "/granja/bitacora/compostaje-rural-como-cerrar-el-ciclo-de-nutrientes-en-la-finca",
+   "/granja/bitacora/cuaderno-campo",
+   "/granja/bitacora/diario-sistema-autosustentable",
+   "/granja/bitacora/edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable",
+   "/granja/bitacora/esg-sin-greenwashing",
+   "/granja/bitacora/estrategia-de-financiacion-por-fases-escalar-sin-pedir-capital-antes-de-tener-ev",
+   "/granja/bitacora/gestion-hidrica",
+   "/granja/bitacora/granja-peri-urbana",
+   "/granja/bitacora/home-assistant",
+   "/granja/bitacora/marco-regulatorio",
+   "/granja/bitacora/meliponario-iwage-subsistema-vivo",
+   "/granja/bitacora/muebles-airbnb",
+   "/granja/bitacora/sistema-autosustentable-ancla",
+   "/granja/bitacora/solar-offgrid",
+   "/granja/bitacora/viabilidad-practica",
+   "/granja/contacto",
+   "/granja/experimentos",
+   "/granja/experimentos/agroecosistema-productivo",
+   "/granja/experimentos/bioarquitectura",
+   "/granja/experimentos/biorefineria-domestica",
+   "/granja/experimentos/gemelo-digital-granja",
+   "/granja/experimentos/gestion-hidrica-ciclo-cerrado",
+   "/granja/experimentos/marco-regulatorio-sistema-autosustentable",
+   "/granja/experimentos/meliponario-iwage",
+   "/granja/experimentos/modelo-financiero-granja-peri-urbana",
+   "/granja/experimentos/sistema-autosustentable-iwage",
+   "/granja/experimentos/sistema-solar-off-grid",
+   "/granja/nosotros",
+   "/granja/sistema",
+   "/granja/tienda",
+   "/granja/tienda/canasta-hortalizas-temporada",
+   "/granja/tienda/compost-madurado-bulto",
+   "/granja/tienda/granja-visita-guiada",
+   "/granja/tienda/huevos-gallina-feliz-docena",
+   "/granja/tienda/plantulas-nativas",
+   "/granja/visitas",
+   "/legal/",
+   "/meliponas/",
+   "/meliponas/ayuda",
+   "/meliponas/bitacora",
+   "/meliponas/bitacora/abejas-sin-aguijon-cosmovision-pijao",
+   "/meliponas/bitacora/cafe-agroecologico-iwage",
+   "/meliponas/bitacora/cajas-inpa-vs-af-c2-b7-comparativas",
+   "/meliponas/bitacora/caso-la-finca-de-don-manuel",
+   "/meliponas/bitacora/como-atraer-una-colonia-de-angelitas-sin-comprarla-batumen-feromonas-y-la-trampa-que-funciona",
+   "/meliponas/bitacora/conservacion-y-cosecha-de-miel",
+   "/meliponas/bitacora/conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion",
+   "/meliponas/bitacora/corredor-ambala-parque-tacuray",
+   "/meliponas/bitacora/cuando-la-abeja-llega-al-cultivo",
+   "/meliponas/bitacora/de-la-colmena-a-la-taza",
+   "/meliponas/bitacora/division-colonias-angelita-tetragonisca-angustula",
+   "/meliponas/bitacora/el-botiquin-natural-recetas-con-miel-de-angelita-y-propoleos",
+   "/meliponas/bitacora/el-jardin-suspendido-10-plantas-en-matera-que-complementan-la-flora-del-meliponario",
+   "/meliponas/bitacora/el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida",
+   "/meliponas/bitacora/fermentacion-burbujas-y-un-frasco-que-explota",
+   "/meliponas/bitacora/flora-melifera-nativa",
+   "/meliponas/bitacora/guia-completa-de-meliponicultura-atraccion-captura-trasiego-manejo-y-division-de-colonias-de-angelita",
+   "/meliponas/bitacora/la-miel-de-angelita-y-el-chef-maridajes-y-aplicaciones-en-la-alta-cocina",
+   "/meliponas/bitacora/la-ruta-de-la-miel-del-nido-silvestre-a-tu-frasco",
+   "/meliponas/bitacora/las-heroinas-de-la-guadua-rota",
+   "/meliponas/bitacora/lote-l25-05-001-cosecha-mayo",
+   "/meliponas/bitacora/miel-angelita-recetas-cocteleria-preparaciones",
+   "/meliponas/bitacora/miel-angelita-vs-apis-mellifera",
+   "/meliponas/bitacora/modulo-1-que-son-las-abejas-meliponas",
+   "/meliponas/bitacora/modulo-2-c2-b7-especies-de-meliponas-en-colombia-region-central",
+   "/meliponas/bitacora/modulo-3-c2-b7-el-nido-por-dentro",
+   "/meliponas/bitacora/modulo-4-c2-b7-el-trasiego-o-mudanza-de-nido",
+   "/meliponas/bitacora/modulo-5-c2-b7-manejo-y-revision-periodica",
+   "/meliponas/bitacora/modulo-7-c2-b7-alimentacion-suplementaria-cuando-que-y-como",
+   "/meliponas/bitacora/modulo-8-c2-b7-plagas-y-enfermedades-identificacion-y-control",
+   "/meliponas/bitacora/por-que-la-miel-del-corredor-ambala-sabe-diferente-a-la-del-huila",
+   "/meliponas/bitacora/propiedades-medicinales-miel-angelita",
+   "/meliponas/bitacora/pureza-en-la-miel-de-angelita-lo-que-no-es-adulteracion",
+   "/meliponas/bitacora/quieres-montar-un-meliponario-en-tu-finca-o-ciudad",
+   "/meliponas/bitacora/resultados-polinizacion-aguacate-hass",
+   "/meliponas/bitacora/resultados-polinizacion-maracuya",
+   "/meliponas/bitacora/resultados-polinizacion-mora-castilla",
+   "/meliponas/contacto",
+   "/meliponas/herramientas",
+   "/meliponas/nosotros",
+   "/meliponas/polinizacion",
+   "/meliponas/proyectos",
+   "/meliponas/proyectos/lineas/fincas-productivas",
+   "/meliponas/proyectos/lineas/paisajismo-residencial",
+   "/meliponas/proyectos/lineas/prae-educativo",
+   "/meliponas/proyectos/lineas/turismo-naturaleza",
+   "/meliponas/tienda",
+   "/meliponas/tienda/asistencia-tecnica-mensual",
+   "/meliponas/tienda/caja-af-estandar",
+   "/meliponas/tienda/caja-inpa-con-atril",
+   "/meliponas/tienda/caja-inpa-nogal-cafetero",
+   "/meliponas/tienda/kit-educativo-prae",
+   "/meliponas/tienda/kit-inicio-meliponicultor",
+   "/meliponas/trazabilidad",
+   "/meliponas/trazabilidad/cajas",
+   "/meliponas/trazabilidad/miel",
+   "/meliponas/trazabilidad/polinizacion",
+   "/naturaleza/",
+   "/naturaleza/anfitriones",
+   "/naturaleza/anfitriones/don-hernando-caficultor",
+   "/naturaleza/anfitriones/hub",
+   "/naturaleza/anfitriones/luz-elenia-herbalista",
+   "/naturaleza/ayuda",
+   "/naturaleza/clasificacion",
+   "/naturaleza/contacto",
+   "/naturaleza/escalafon",
+   "/naturaleza/experiencias",
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla",
+   "/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana",
+   "/naturaleza/impacto",
+   "/naturaleza/programas",
+   "/naturaleza/se-anfitrion",
+   "/tierras/",
+   "/tierras/ayuda",
+   "/tierras/comprar",
+   "/tierras/contacto",
+   "/tierras/herramientas/calculadora-notarial",
+   "/tierras/herramientas/evaluacion-vap",
+   "/tierras/herramientas/roi-calculator",
+   "/tierras/lab",
+   "/tierras/nosotros",
+   "/tierras/perfiles",
+   "/tierras/perfiles/campestre",
+   "/tierras/perfiles/nomada",
+   "/tierras/perfiles/patrimonial",
+   "/tierras/perfiles/productivo",
+   "/tierras/perfiles/turistico",
+   "/tierras/propiedades",
+   "/tierras/protocolo-vap",
+   "/tierras/vender"
+  ],
+  "n": 161,
+  "kinds": [
+   "img"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/hero-meliponas.webp",
+  "pages": [
+   "/ayuda/",
+   "/legal/",
+   "/meliponas/",
+   "/meliponas/ayuda",
+   "/meliponas/bitacora",
+   "/meliponas/bitacora/abejas-sin-aguijon-cosmovision-pijao",
+   "/meliponas/bitacora/cafe-agroecologico-iwage",
+   "/meliponas/bitacora/cajas-inpa-vs-af-c2-b7-comparativas",
+   "/meliponas/bitacora/caso-la-finca-de-don-manuel",
+   "/meliponas/bitacora/como-atraer-una-colonia-de-angelitas-sin-comprarla-batumen-feromonas-y-la-trampa-que-funciona",
+   "/meliponas/bitacora/conservacion-y-cosecha-de-miel",
+   "/meliponas/bitacora/conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion",
+   "/meliponas/bitacora/corredor-ambala-parque-tacuray",
+   "/meliponas/bitacora/cuando-la-abeja-llega-al-cultivo",
+   "/meliponas/bitacora/de-la-colmena-a-la-taza",
+   "/meliponas/bitacora/division-colonias-angelita-tetragonisca-angustula",
+   "/meliponas/bitacora/el-botiquin-natural-recetas-con-miel-de-angelita-y-propoleos",
+   "/meliponas/bitacora/el-jardin-suspendido-10-plantas-en-matera-que-complementan-la-flora-del-meliponario",
+   "/meliponas/bitacora/el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida",
+   "/meliponas/bitacora/fermentacion-burbujas-y-un-frasco-que-explota",
+   "/meliponas/bitacora/flora-melifera-nativa",
+   "/meliponas/bitacora/guia-completa-de-meliponicultura-atraccion-captura-trasiego-manejo-y-division-de-colonias-de-angelita",
+   "/meliponas/bitacora/la-miel-de-angelita-y-el-chef-maridajes-y-aplicaciones-en-la-alta-cocina",
+   "/meliponas/bitacora/la-ruta-de-la-miel-del-nido-silvestre-a-tu-frasco",
+   "/meliponas/bitacora/las-heroinas-de-la-guadua-rota",
+   "/meliponas/bitacora/lote-l25-05-001-cosecha-mayo",
+   "/meliponas/bitacora/miel-angelita-recetas-cocteleria-preparaciones",
+   "/meliponas/bitacora/miel-angelita-vs-apis-mellifera",
+   "/meliponas/bitacora/modulo-1-que-son-las-abejas-meliponas",
+   "/meliponas/bitacora/modulo-2-c2-b7-especies-de-meliponas-en-colombia-region-central",
+   "/meliponas/bitacora/modulo-3-c2-b7-el-nido-por-dentro",
+   "/meliponas/bitacora/modulo-4-c2-b7-el-trasiego-o-mudanza-de-nido",
+   "/meliponas/bitacora/modulo-5-c2-b7-manejo-y-revision-periodica",
+   "/meliponas/bitacora/modulo-7-c2-b7-alimentacion-suplementaria-cuando-que-y-como",
+   "/meliponas/bitacora/modulo-8-c2-b7-plagas-y-enfermedades-identificacion-y-control",
+   "/meliponas/bitacora/por-que-la-miel-del-corredor-ambala-sabe-diferente-a-la-del-huila",
+   "/meliponas/bitacora/propiedades-medicinales-miel-angelita",
+   "/meliponas/bitacora/pureza-en-la-miel-de-angelita-lo-que-no-es-adulteracion",
+   "/meliponas/bitacora/quieres-montar-un-meliponario-en-tu-finca-o-ciudad",
+   "/meliponas/bitacora/resultados-polinizacion-aguacate-hass",
+   "/meliponas/bitacora/resultados-polinizacion-maracuya",
+   "/meliponas/bitacora/resultados-polinizacion-mora-castilla",
+   "/meliponas/contacto",
+   "/meliponas/herramientas",
+   "/meliponas/nosotros",
+   "/meliponas/polinizacion",
+   "/meliponas/proyectos",
+   "/meliponas/proyectos/lineas/fincas-productivas",
+   "/meliponas/proyectos/lineas/paisajismo-residencial",
+   "/meliponas/proyectos/lineas/prae-educativo",
+   "/meliponas/proyectos/lineas/turismo-naturaleza",
+   "/meliponas/tienda",
+   "/meliponas/tienda/asistencia-tecnica-mensual",
+   "/meliponas/tienda/caja-af-estandar",
+   "/meliponas/tienda/caja-inpa-con-atril",
+   "/meliponas/tienda/caja-inpa-nogal-cafetero",
+   "/meliponas/tienda/kit-educativo-prae",
+   "/meliponas/tienda/kit-inicio-meliponicultor",
+   "/meliponas/trazabilidad",
+   "/meliponas/trazabilidad/cajas",
+   "/meliponas/trazabilidad/miel",
+   "/meliponas/trazabilidad/polinizacion"
+  ],
+  "n": 62,
+  "kinds": [
+   "img",
+   "jsonld",
+   "meta-og"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/hero-granja.webp",
+  "pages": [
+   "/granja/",
+   "/granja/ayuda",
+   "/granja/bitacora",
+   "/granja/bitacora/agroecosistema-productivo",
+   "/granja/bitacora/bioarquitectura-terrenos",
+   "/granja/bitacora/biorefineria-domestica",
+   "/granja/bitacora/climatizacion-olores",
+   "/granja/bitacora/compostaje-rural-como-cerrar-el-ciclo-de-nutrientes-en-la-finca",
+   "/granja/bitacora/cuaderno-campo",
+   "/granja/bitacora/diario-sistema-autosustentable",
+   "/granja/bitacora/edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable",
+   "/granja/bitacora/esg-sin-greenwashing",
+   "/granja/bitacora/estrategia-de-financiacion-por-fases-escalar-sin-pedir-capital-antes-de-tener-ev",
+   "/granja/bitacora/gestion-hidrica",
+   "/granja/bitacora/granja-peri-urbana",
+   "/granja/bitacora/home-assistant",
+   "/granja/bitacora/marco-regulatorio",
+   "/granja/bitacora/meliponario-iwage-subsistema-vivo",
+   "/granja/bitacora/muebles-airbnb",
+   "/granja/bitacora/sistema-autosustentable-ancla",
+   "/granja/bitacora/solar-offgrid",
+   "/granja/bitacora/viabilidad-practica",
+   "/granja/contacto",
+   "/granja/experimentos",
+   "/granja/experimentos/agroecosistema-productivo",
+   "/granja/experimentos/bioarquitectura",
+   "/granja/experimentos/biorefineria-domestica",
+   "/granja/experimentos/gemelo-digital-granja",
+   "/granja/experimentos/gestion-hidrica-ciclo-cerrado",
+   "/granja/experimentos/marco-regulatorio-sistema-autosustentable",
+   "/granja/experimentos/meliponario-iwage",
+   "/granja/experimentos/modelo-financiero-granja-peri-urbana",
+   "/granja/experimentos/sistema-autosustentable-iwage",
+   "/granja/experimentos/sistema-solar-off-grid",
+   "/granja/nosotros",
+   "/granja/sistema",
+   "/granja/tienda",
+   "/granja/tienda/canasta-hortalizas-temporada",
+   "/granja/tienda/compost-madurado-bulto",
+   "/granja/tienda/granja-visita-guiada",
+   "/granja/tienda/huevos-gallina-feliz-docena",
+   "/granja/tienda/plantulas-nativas",
+   "/granja/visitas"
+  ],
+  "n": 43,
+  "kinds": [
+   "img",
+   "jsonld",
+   "meta-og"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/hero-tierras.webp",
+  "pages": [
+   "/tierras/",
+   "/tierras/ayuda",
+   "/tierras/comprar",
+   "/tierras/contacto",
+   "/tierras/herramientas/calculadora-notarial",
+   "/tierras/herramientas/evaluacion-vap",
+   "/tierras/herramientas/roi-calculator",
+   "/tierras/lab",
+   "/tierras/nosotros",
+   "/tierras/perfiles",
+   "/tierras/perfiles/campestre",
+   "/tierras/perfiles/nomada",
+   "/tierras/perfiles/patrimonial",
+   "/tierras/perfiles/productivo",
+   "/tierras/perfiles/turistico",
+   "/tierras/propiedades",
+   "/tierras/protocolo-vap",
+   "/tierras/vender"
+  ],
+  "n": 18,
+  "kinds": [
+   "img",
+   "meta-og"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/hero-gestion.webp",
+  "pages": [
+   "/gestion/",
+   "/gestion/alojamientos",
+   "/gestion/alojamientos/casa-guamo-renta-corta",
+   "/gestion/alojamientos/ecoretiro-ambala-operacion-turistica",
+   "/gestion/alojamientos/finca-el-carmen-productiva",
+   "/gestion/alojamientos/villa-serena-segunda-residencia",
+   "/gestion/ayuda",
+   "/gestion/contacto",
+   "/gestion/experiencias",
+   "/gestion/propietarios",
+   "/gestion/propietarios/finca-productiva",
+   "/gestion/propietarios/modelo-alianzas",
+   "/gestion/propietarios/operacion-turistica",
+   "/gestion/propietarios/renta-corta",
+   "/gestion/propietarios/segunda-residencia"
+  ],
+  "n": 15,
+  "kinds": [
+   "img",
+   "meta-og"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/hero-naturaleza.webp",
+  "pages": [
+   "/naturaleza/",
+   "/naturaleza/anfitriones",
+   "/naturaleza/anfitriones/don-hernando-caficultor",
+   "/naturaleza/anfitriones/hub",
+   "/naturaleza/anfitriones/luz-elenia-herbalista",
+   "/naturaleza/ayuda",
+   "/naturaleza/clasificacion",
+   "/naturaleza/contacto",
+   "/naturaleza/escalafon",
+   "/naturaleza/experiencias",
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla",
+   "/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana",
+   "/naturaleza/impacto",
+   "/naturaleza/programas",
+   "/naturaleza/se-anfitrion"
+  ],
+  "n": 15,
+  "kinds": [
+   "img",
+   "meta-og"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/hero-cafe.webp",
+  "pages": [
+   "/cafe/",
+   "/cafe/ayuda",
+   "/cafe/contacto",
+   "/cafe/menu",
+   "/cafe/nosotros",
+   "/cafe/proveedores",
+   "/cafe/recetas"
+  ],
+  "n": 7,
+  "kinds": [
+   "img",
+   "meta-og"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&q=80",
+  "pages": [
+   "/gestion/experiencias",
+   "/naturaleza/",
+   "/naturaleza/experiencias",
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla"
+  ],
+  "n": 4,
+  "kinds": [
+   "img",
+   "jsonld"
+  ],
+  "alts": [
+   "Amanecer en el Bosque de Niebla"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&q=80",
+  "pages": [
+   "/gestion/experiencias",
+   "/naturaleza/",
+   "/naturaleza/experiencias",
+   "/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana"
+  ],
+  "n": 4,
+  "kinds": [
+   "img",
+   "jsonld"
+  ],
+  "alts": [
+   "Jardín Medicinal y Saberes de Montaña"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&q=80",
+  "pages": [
+   "/naturaleza/",
+   "/naturaleza/anfitriones",
+   "/naturaleza/anfitriones/don-hernando-caficultor",
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla"
+  ],
+  "n": 4,
+  "kinds": [
+   "img",
+   "jsonld"
+  ],
+  "alts": [
+   "Don Hernando Martínez"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1544005516-d186bc47c4e8?w=300&q=80",
+  "pages": [
+   "/naturaleza/",
+   "/naturaleza/anfitriones",
+   "/naturaleza/anfitriones/luz-elenia-herbalista",
+   "/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana"
+  ],
+  "n": 4,
+  "kinds": [
+   "img",
+   "jsonld"
+  ],
+  "alts": [
+   "Luz Elenia Rojas"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=800&q=80",
+  "pages": [
+   "/gestion/",
+   "/gestion/propietarios"
+  ],
+  "n": 2,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Gestión profesional de propiedades rurales",
+   "Reportes de gestión de propiedades"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=70",
+  "pages": [
+   "/naturaleza/anfitriones/don-hernando-caficultor",
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla"
+  ],
+  "n": 2,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Don en su territorio",
+   "Valle al amanecer"
+  ]
+ },
+ {
+  "src": "https://iwage.co/naturaleza/anfitriones/$%7BembedUrl%7D",
+  "pages": [
+   "/naturaleza/anfitriones/don-hernando-caficultor",
+   "/naturaleza/anfitriones/luz-elenia-herbalista"
+  ],
+  "n": 2,
+  "kinds": [
+   "iframe"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/naturaleza/anfitriones/$%7Bitem.url%7D",
+  "pages": [
+   "/naturaleza/anfitriones/don-hernando-caficultor",
+   "/naturaleza/anfitriones/luz-elenia-herbalista"
+  ],
+  "n": 2,
+  "kinds": [
+   "iframe"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=70",
+  "pages": [
+   "/naturaleza/anfitriones/luz-elenia-herbalista",
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla"
+  ],
+  "n": 2,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Luz en su territorio",
+   "Sendero entre guaduales"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/hero-ecosistema.webp",
+  "pages": [
+   "/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img",
+   "meta-og"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/linea-meliponas.webp",
+  "pages": [
+   "/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Meliponario"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/linea-cafe.webp",
+  "pages": [
+   "/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Café"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/linea-tierras.webp",
+  "pages": [
+   "/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Tierras"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/linea-naturaleza.webp",
+  "pages": [
+   "/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Naturaleza"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/linea-gestion.webp",
+  "pages": [
+   "/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Gestión"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/linea-granja.webp",
+  "pages": [
+   "/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Granja"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/promo-reutilizable.webp",
+  "pages": [
+   "/cafe/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Trae tu reutilizable"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/promo-duos-perfectos.webp",
+  "pages": [
+   "/cafe/"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Dúos perfectos"
+  ]
+ },
+ {
+  "src": "https://maps.google.com/?q=Corredor+Ambala+Ibague",
+  "pages": [
+   "/cafe/"
+  ],
+  "n": 1,
+  "kinds": [
+   "iframe"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/cafe-origen-ambala.webp",
+  "pages": [
+   "/cafe/menu"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Desayuno del territorio",
+   "Café de origen Ambalá"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/cold-brew-ambala.webp",
+  "pages": [
+   "/cafe/menu"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Cold brew y queso",
+   "Cold brew Ambalá"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/espresso-doble.webp",
+  "pages": [
+   "/cafe/menu"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Espresso doble"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/miel-angelita-cafe.webp",
+  "pages": [
+   "/cafe/menu"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Miel de Angelita con café"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/latte-miel-canela.webp",
+  "pages": [
+   "/cafe/menu"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Latte de miel y canela"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/queso-cumbre-arepa.webp",
+  "pages": [
+   "/cafe/menu"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Queso de la Cumbre con arepa"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/aromatica-flora-nativa.webp",
+  "pages": [
+   "/cafe/menu"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Aromática de flora nativa"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/cafe-menu/chocolate-cacao-local.webp",
+  "pages": [
+   "/cafe/menu"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Chocolate de cacao local"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1600&q=80",
+  "pages": [
+   "/gestion/propietarios/modelo-alianzas"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Alianza colaborativa rural"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80",
+  "pages": [
+   "/gestion/propietarios/renta-corta"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Propiedad de renta corta"
+  ]
+ },
+ {
+  "src": "https://www.openstreetmap.org/export/embed.html?bbox=-75.2522%2C4.423900000000001%2C-75.21220000000001%2C4.4539&layer=mapnik&marker=4.4389%2C-75.2322",
+  "pages": [
+   "/meliponas/"
+  ],
+  "n": 1,
+  "kinds": [
+   "iframe"
+  ],
+  "alts": []
+ },
+ {
+  "src": "https://iwage.co/images/galeria/proyecto-poblado-1.webp",
+  "pages": [
+   "/meliponas/proyectos/lineas/paisajismo-residencial"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Jardín Residencial El Poblado"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=70",
+  "pages": [
+   "/naturaleza/anfitriones/don-hernando-caficultor"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Don Hernando Martínez 1"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=70",
+  "pages": [
+   "/naturaleza/anfitriones/don-hernando-caficultor"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Don Hernando Martínez 2"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=70",
+  "pages": [
+   "/naturaleza/anfitriones/luz-elenia-herbalista"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Luz Elenia Rojas 1"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=70",
+  "pages": [
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Cafetal bajo sombra"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800&q=70",
+  "pages": [
+   "/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Rayos de sol entre la niebla"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&q=70",
+  "pages": [
+   "/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Jardín de hierbas"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=800&q=70",
+  "pages": [
+   "/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Infusión artesanal"
+  ]
+ },
+ {
+  "src": "https://images.unsplash.com/photo-1508610048659-a06b669e3321?w=800&q=70",
+  "pages": [
+   "/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Plantas medicinales"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/perfiles/productivo.jpg",
+  "pages": [
+   "/tierras/perfiles"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Finca productiva con cultivos y sistema de riego en el Tolima"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/perfiles/campestre.jpg",
+  "pages": [
+   "/tierras/perfiles"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Casa campestre moderna con vista a montañas del Tolima"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/perfiles/nomada.jpg",
+  "pages": [
+   "/tierras/perfiles"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Espacio de trabajo con laptop y vista al campo verde"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/perfiles/turistico.jpg",
+  "pages": [
+   "/tierras/perfiles"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Glamping con domo geodésico y vista panorámica al valle"
+  ]
+ },
+ {
+  "src": "https://iwage.co/images/perfiles/patrimonial.jpg",
+  "pages": [
+   "/tierras/perfiles"
+  ],
+  "n": 1,
+  "kinds": [
+   "img"
+  ],
+  "alts": [
+   "Vista aérea de terreno rural con linderos definidos y escritura"
+  ]
+ }
+]
