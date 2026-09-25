@@ -1324,8 +1324,10 @@ git commit -m "feat(media): importador idempotente de assets huérfanos con mape
 
 **Files:**
 - Modify: `strapi/src/api/bitacora/content-types/bitacora/schema.json` (`imagen`: string → media)
-- Modify: idem en `producto`, `lote-miel`, `experimento`, `cultivo-polinizacion`, `proyecto-meliponario`, `hero-configuracion`, `anfitrion` (`foto_territorio`)
-- Modify: `producto`, `lote-miel`, `cultivo-polinizacion`, `proyecto-meliponario`, `anfitrion` (`galeria*`: json → media multiple), `experiencia.galeria_urls`
+- Modify: idem en `producto`, `lote-miel`, `experimento`, `cultivo-polinizacion`, `proyecto-meliponario` — **6 campos con `bitacora`, los seis medidos vacíos**
+- Modify (paso aparte, con gate): `hero-configuracion.imagen`. **No** entra en el grupo anterior: es el único campo de portada con datos (39/39 filas) y sus valores (`/images/hero-*.webp`, 7 archivos) viven en `public/images/` del repo de Astro, no en la librería de Strapi. Convertirlo de tipo los pone a `null` y apaga los 7 hérores del sitio. Primero se suben los 7 archivos y se enlazan (paso H below), después se cambia el tipo.
+- Modify: `producto`, `lote-miel`, `cultivo-polinizacion`, `proyecto-meliponario`, `anfitrion` (`galeria*`: json → media multiple)
+- Modify: `experiencia.galeria_urls` → media multiple **renombrando a `galeria`** donde hoy `galeria` está vacío. **No borrar `galeria_urls` antes de eso**: medido, `experiencia.galeria` (ya `media multiple`) está VACÍO y `galeria_urls` tiene las 2 únicas galerías del collection. La premisa original ("es la misma lista duplicada") es falsa.
 - Modify: `complemento`, `experiencia`, `anfitrion` (fuera los twins `*_url`)
 - Modify: `anfitrion`, `experiencia`, `propiedad` (embeds: `video_url`/`tour_360_url`/`tour_virtual_url`/`link_drone` → `embed_video`/`embed_tour`; fuera `video_thumbnail`, `mapa_imagen_url`)
 
@@ -1347,12 +1349,14 @@ Expected: un `.sql` del tamaño esperable de la BD. Si `/home/ubuntu/backup` no 
 Un `string` con una ruta no sobrevive a la conversión a media: el campo queda `null`. Por eso el volcado va antes:
 
 ```bash
-docker exec sostenibilidad_db psql -U "$PGUSER" -d iwage -At -F'|' -c \
-  "select id, documentid, slug, imagen from bitacoras where imagen is not null and imagen <> ''" \
+docker exec sostenibilidad_db psql -U admin -d iwage -At -F'|' -c \
+  "select id, document_id, slug, imagen from bitacoras where coalesce(imagen,'') <> ''" \
   > /tmp/volcado-bitacoras.txt
 wc -l /tmp/volcado-bitacoras.txt
 ```
-Repetir por cada campo de los 8 que cambian de tipo. El `/tmp` es transitorio y **no** se versiona (puede contener rutas internas).
+Repetir por cada campo de los **7** que cambian de tipo. El `/tmp` es transitorio y **no** se versiona (puede contener rutas internas).
+
+Medido ya (2026-09-25), para que nadie vuelva a adivinar: `bitacoras.imagen` 0/112 · `productos.imagen` 0/28 · `lote_miels.imagen` 0/1 · `experimentos.imagen` 0/20 · `cultivo_polinizacions.imagen` 0/12 · `proyecto_meliponarios.imagen` 0/12 → **el volcado de esos seis es vacío y la conversión no pierde nada**. `anfitriones.foto_territorio` 2/2 con URLs de `images.unsplash.com` → no son material propio: se deciden con el dueño (decisión F1 = sin hotlinks externos), no se convierten en media. La columna real es `document_id`, no `documentid`.
 
 - [ ] **Step 3: Cambiar los esquemas, en grupos que se puedan revisar juntos**
 
@@ -1370,7 +1374,7 @@ por:
       "allowedTypes": ["images"]
     },
 ```
-(aplicar a `producto.imagen`, `lote-miel.imagen`, `experimento.imagen`, `cultivo-polinizacion.imagen`, `proyecto-meliponario.imagen`, `hero-configuracion.imagen`, `anfitrion.foto_territorio`). Las cuatro claves del bloque son exactamente las que entiende Strapi v5; no agregar `allowedKinds` ni ninguna otra. Dejar `required: false`: no hay material para el 100% de los registros y un `required` bloquearía publicar.
+(aplicar a `producto.imagen`, `lote-miel.imagen`, `experimento.imagen`, `cultivo-polinizacion.imagen`, `proyecto-meliponario.imagen` y `bitacora.imagen`). **`hero-configuracion.imagen` va en el Paso H, y `anfitrion.foto_territorio` no se convierte**: sus 2 valores son hotlinks de Unsplash que la decisión F1 manda retirar, no hospedar. Las cuatro claves del bloque son exactamente las que entiende Strapi v5; no agregar `allowedKinds` ni ninguna otra. Dejar `required: false`: no hay material para el 100% de los registros y un `required` bloquearía publicar.
 
 Grupo B — galerías `json` → `media multiple`, en `producto`, `lote-miel`, `cultivo-polinizacion`, `proyecto-meliponario`, `anfitrion`:
 
@@ -1382,7 +1386,9 @@ Grupo B — galerías `json` → `media multiple`, en `producto`, `lote-miel`, `
       "allowedTypes": ["images", "videos"]
     },
 ```
-Renombrar `galeria_fotos` → `galeria` en `anfitrion` y eliminar `experiencia.galeria_urls` (su contenido es la misma lista duplicada; lo que sea externo vive en `embed_video`/`embed_tour`). Unificar el nombre en B **sí** aplica, porque el campo estaba en JSON libre y no hay consumidores que dependan del nombre de columna de una relación media.
+Renombrar `galeria_fotos` → `galeria` en `anfitrion`. En `experiencia`, **`galeria_urls` NO es un duplicado**: medido, `experiencia.galeria` (que ya es `media multiple`) está **vacío** y `galeria_urls` contiene las únicas 2 galerías del collection. La orden correcta es: migrar el contenido de `galeria_urls` a la relación `galeria` (paso explícito, con `--apply` o con `connect` por `id`), verificar que la ficha publica las pinta, y **solo entonces** eliminar el campo json. Borrarlo antes borra la única galería de las experiencias.
+
+Lo que hay dentro de `galeria_urls` y de `anfitrion.galeria_fotos` son URLs de `images.unsplash.com` con `tipo`/`titulo`/`caption`: hotlinks externos que la decisión F1 manda retirar. La migración a media multiple no puede ser un copia-y-pega de esas URLs (Strapi no hospeda lo que no sube); exige decidir qué asset propio las reemplaza, o dejar la galería vacía hasta que Task 15 produzca material. **Es una decisión del dueño, no un paso mecánico.**
 
 Grupo C — embeds con allowlist, en `anfitrion`, `experiencia`, `propiedad`:
 
@@ -1390,11 +1396,15 @@ Grupo C — embeds con allowlist, en `anfitrion`, `experiencia`, `propiedad`:
     "embed_video": { "type": "string", "required": false, "format": "uri" },
     "embed_tour": { "type": "string", "required": false, "format": "uri" },
 ```
-con `link_drone` fusionado en `embed_tour`, `video_thumbnail` eliminado (el `poster` sale de la galería o del propio video; una miniatura duplicada es otro foco de dispersión) y `mapa_imagen_url` eliminado (cero UI que lo consuma — verificar con `grep -rn "mapa_imagen_url" src/`).
+con `link_drone` fusionado en `embed_tour`, `video_thumbnail` eliminado (el `poster` sale de la galería o del propio video; una miniatura duplicada es otro foco de dispersión) y `mapa_imagen_url` eliminado (cero UI que lo consuma — **verificado**: 1 sola aparición en `src/`, la declaración de tipo en `src/lib/naturaleza.ts:41`).
+
+Medido en la BD lo que hay dentro de estos campos, porque cambia el riesgo del grupo: `experiencias.video_url` y `experiencias.link_drone` contienen el mismo `https://www.youtube.com/watch?v=dQw4w9WgXcQ` (placeholder, no contenido del sitio), `experiencias.tour_360_url` es `https://momento360.com/e/u/demo` (demo del proveedor), `mapa_imagen_url` es Unsplash y `video_thumbnail` tiene 1 valor. **Grupo C está jubilando datos de ejemplo, no contenido real**: fusionar o borrar no cuesta nada visible, y por eso puede ir en el mismo commit del esquema. La única pieza que sí necesita material propio es el mapa del café (`cafe-config.mapa_url`, un iframe de Google Maps): queda **fuera** del contrato de media, porque `classify()` no reconoce `maps.google` y normalizarlo a `MediaItem` lo pintaría como tile roto.
 
 La validación de **dominio** no puede expresarse en `schema.json`: se hace en el modelo. Añadir a cada content-type con embed un archivo `src/api/<ct>/content-types/<ct>/lifecycles.ts`... no: Strapi v5 no valida dominios con lifecycle sin escribir el `beforeSave` a mano, y eso es código de CMS que duplica la regla. La decisión es más simple y vive en un solo sitio: **`classify()` de `src/lib/media.ts` ya etiqueta el `provider`, y `MediaGallery` solo abre un `<iframe>` si `provider ∈ {youtube, vimeo, drive}` o `kind === 'tour360'`.** Un valor arbitrario en `embed_video` queda como un tile roto, no como HTML inyectado. Se anota en el Step 6 como límite aceptado del diseño.
 
 - [ ] **Step 4: Reconstruir y validar el esquema**
+
+Medido: el contenedor `iwage_strapi` corre `npm run start` con `MOUNTS=[]` y la app en `/app` (el código entra por `COPY . .` del `Dockerfile`, y su línea 14 copia cada `schema.json` de `src/` a `dist/src/`). Consecuencia útil: **los cambios del Step 3 en el árbol están inertes hasta el rebuild**, así que se pueden escribir, commitear y revisar sin tocar el servicio en marcha. Nada de este task afecta a producción hasta que el dueño autorice el rebuild. (Y la misma medida corrige el Step 1 de Task 1: el volumen que hace falta montar es `/app/public/uploads`, no `/opt/app/...`.)
 
 Con autorización (recrea el contenedor):
 ```bash
@@ -1407,13 +1417,36 @@ Expected: `sin errores de esquema` y `200` o `403` (403 = endpoint existe pero p
 
 - [ ] **Step 5: Re-enlazar lo volcado**
 
-Con el `--apply` del Task 10 sobre los campos ya convertidos. Y verificar en la BD:
+Con el `--apply` del Task 10 sobre los campos ya convertidos. **Primero, la sonda obligatoria de UN registro** (no se lanza el lote sin su respuesta): `bitacoras` tiene 112 filas para 56 `document_id` — 56 con `published_at not null` (las que sirve la API) y 56 borradores — y el vínculo de media cuelga de `files_related_mph.related_id`, que es **el `id` de la fila**. Hay que comprobar si el `PUT /api/bitacoras/{documentId}` escribe en la fila publicada o solo en el borrador; si es el borrador, el importador necesita el `POST …/publish` detras del mismo guard `--apply`, o un `--apply` "exitoso" no cambia una sola fila de lo que ve un visitante. Anotar la respuesta en el reporte de la tarea.
+
+Nota: `hero_configuracions` tiene **0 borradores** (sus 39 filas entraron por SQL crudo desde `strapi/scripts/seed-heroes-pg.mjs`, salteándose el servicio de documentos). Un `PUT` por `documentId` ahí puede crear la fila borrador que no existe; verificar que no rompe ningún `uid` antes de tocar los hérores.
+
+Verificar en la BD. **La consulta del plan estaba mal**: `files_links` con `parent_id`/`parent_table` no existe en Strapi v5. Tablas medidas: `files`, `files_related_mph(id, file_id, related_id, related_type, field, "order")`, `files_folder_lnk`, `upload_folders`. Y hoy `select count(*) from files` = **0**, o sea la librería está vacía antes de cualquier `--apply`:
 
 ```bash
-docker exec sostenibilidad_db psql -U "$PGUSER" -d iwage -Atc \
-  "select (select count(*) from bitacoras b where exists (select 1 from files_links fl join files f on f.id=fl.file_id where fl.parent_id=b.id and fl.parent_table='bitacoras')) as con_imagen, count(*) from bitacoras"
+# 1. Cómo escribe v5 el `related_type` en esta instalación (una vez hay un vínculo de prueba)
+docker exec sostenibilidad_db psql -U admin -d iwage -Atc \
+  "select distinct related_type, field from files_related_mph"
+
+# 2. Entonces contar bitácoras con imagen EN LA FILA PUBLICADA
+docker exec sostenibilidad_db psql -U admin -d iwage -Atc \
+  "select count(distinct b.document_id) filter (where exists (
+      select 1 from files_related_mph r where r.related_id = b.id and r.field = 'imagen'
+     ))::text || '|' || count(distinct b.document_id)::text
+   from bitacoras b where b.published_at is not null"
 ```
-Expected: `36|56` o más, no `0|56`.
+Expected: `36|56` o más, no `0|56`. Y `count(*) from files` ≥ 36 con `/app/public/uploads` (el volumen del Task 1) conteniendo los archivos — si el volumen no está montado, el `--apply` no corre.
+
+- [ ] **Paso H (gate del dueño): los 7 hérores antes de cambiar su tipo**
+
+`hero_configuracions.imagen` es el único campo de portada con datos: **39/39 filas**, con 7 valores distintos `/images/hero-{cafe,ecosistema,gestion,granja,meliponas,naturaleza,tierras}.webp`. Esos 7 archivos existen, pero en `public/images/` del **repo de Astro** (contados en el inventario del Task 10 dentro del `chrome` de la raíz), no en la librería de Strapi. Por eso el Grupo A no puede tocarlo: cambiar el tipo pone los 39 a `null` y apaga los hérores de las 6 portadas de marca más la home.
+
+Orden forzado, todo detras de una respuesta del dueño:
+1. Decidir si el héroe es material de Strapi (decisión F1: Strapi único dueño) o si `/images/hero-*.webp` son parte del *diseño* del sitio y se quedan en el repo. Si se quedan, `hero-configuracion.imagen` **se excluye del contrato de media** y la excepción se anota en la spec — no se elimina el Grupo A entero.
+2. Si es de Strapi: montar el volumen de Task 1, subir los 7 `.webp` con el importador, enlazarlos a las 39 filas, verificar la ficha pública.
+3. Solo después, cambiar el tipo en `hero-configuracion/content-types/hero-configuracion/schema.json`.
+
+Sin ese paso, el Step 3 deja el sitio con 7 hérores rotos — es el único daño visible que puede causar esta fase.
 
 - [ ] **Step 6: Commit**
 
@@ -1424,6 +1457,8 @@ git commit -m "refactor(strapi): un campo media por portada, galerías media mul
 ```
 
 ### Task 12: Las plantillas de ficha leen media, no string
+
+> **Ejecución en 3 rebanadas revisadas por separado** — 12a bitácora (`bitacora.ts` + sus fichas y tiras), 12b tienda + proyectos + polinización, 12c gestión + tierras + naturaleza + café. Motivo medido: en este repo **no hay compilador de TypeScript** (`node_modules/typescript` no existe; `astro build` solo borra tipos), así que un `imagen: MediaItem` migrado a medias compila verde y pinta `[object Object]` o degrada en silencio. Cada rebanada debe aterrizar con **todos sus consumidores** del dominio, y con el barrido de texto que lo demuestra. La biblioteca afecta a ~66 archivos: un solo diff de ese tamaño no es revisable.
 
 **Files:**
 - Modify: `src/lib/bitacora.ts`, `src/pages/meliponas/bitacora/[slug].astro`, `src/pages/granja/bitacora/[slug].astro` y el resto de bitácoras de marca
