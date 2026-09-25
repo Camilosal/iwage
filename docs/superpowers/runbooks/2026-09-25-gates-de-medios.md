@@ -133,6 +133,13 @@ sabe qué otros proyectos las usan.
 `docker compose up -d iwage_strapi`. El volumen queda inofensivo;
 `docker volume rm negocio_iwage_strapi_uploads` si se quiere borrar.
 
+**Cómo se lee el estado del volumen (para no tropezar igual):** el path del host
+`/var/lib/docker/volumes/negocio_iwage_strapi_uploads/_data` es `root:root` y un usuario normal no lo
+piste (`Permission denied`, y `du` ahí no es fuente fiable). Las dos lecturas válidas son a través del
+mount: `docker exec iwage_strapi du -sh /app/public/uploads` o
+`docker run --rm -v negocio_iwage_strapi_uploads:/v:ro alpine:3 sh -c 'du -sh /v; ls -a /v'`. Hoy
+concuerdan: **4.0K, solo `.gitkeep`**.
+
 ## G2 · Reconstruir Strapi con los esquemas de `fa240b2`
 
 **Desbloquea:** todo el F2 visible. Hoy el contenedor sirve el esquema **anterior**, así que los
