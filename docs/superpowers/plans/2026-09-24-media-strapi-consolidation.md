@@ -1590,7 +1590,7 @@ git commit -m "refactor(cafe): el menú y sus proveedores salen de Strapi, no de
 
 **Files:**
 - Delete (solo en el servidor): los 19 `public/images/cafe-menu/*.png` con gemelo `.webp`
-- Delete: `strapi/scripts/populate-galerias.sql`, `populate-galerias-productos.sql`, `populate-polinizacion.sql` (escriben en la tabla legacy `proyecto_meliponarios` de Flask, no en Strapi)
+- Delete: `strapi/scripts/populate-galerias.sql`, `populate-galerias-productos.sql`, `populate-polinizacion.sql`. **La premisa del plan original ("escriben en la tabla legacy `proyecto_meliponarios` de Flask, no en Strapi") es FALSA, medida el 2026-09-25:** los tres apuntan a tablas vivas de Strapi v5 (`UPDATE proyecto_meliponarios` 6, `UPDATE productos` 11, `UPDATE cultivo_polinizacions` 6, y las tres existen en la BD con `published_at`). Se retiran por otra razón, que es la buena: escriben JSON crudo en la columna `galeria` por `id` de fila sin API ni publish, que es exactamente el mecanismo de dispersión que este plan elimina.
 - Modify: `src/pages/tierras/propiedades/[slug].astro` (el slot `fotos_evidencia` que nunca renderiza, ancla `VAPEvidenceGallery`)
 
 - [ ] **Step 1: Verificar cero referencias antes de borrar, otra vez, ahora**
@@ -1621,7 +1621,9 @@ Expected: build sin errores y ninguna referencia rota en `dist/`. Se deja en `ba
 grep -n "proyecto_meliponarios\|meliponarios" strapi/scripts/populate-*.sql
 git rm strapi/scripts/populate-galerias.sql strapi/scripts/populate-galerias-productos.sql strapi/scripts/populate-polinizacion.sql
 ```
-Expected: el `grep` confirma que escriben en la tabla Flask. Si alguna sentencia apunta a una tabla `strapi` (`bitacoras`, `productos`), **no** se borra ese archivo y se reporta: sería el último cable vivo de un seed.
+Expected: el `grep` confirma que los tres escriben en tablas **de Strapi**, no de Flask. Lo que hay que probar antes de borrar es que **ese contenido nunca llegó a la BD** (medido el 2026-09-25 con la comprobación correcta para `jsonb`, que es `count(galeria)` y no una comparación contra `''`): `productos` 0 de 28, `proyecto_meliponarios` 0 de 12, `cultivo_polinizacions` 0 de 12, `lote_miels` 0 de 1 columnas `galeria` no nulas. Con la columna vacía, el script es un cable muerto y se retira; **si alguna columna tuviera valor, no se borra ese archivo** y se reporta, porque entonces es el único lugar donde vive esa galería.
+
+Y como el `git rm` borra el archivo pero no el dato (queda en el historial), el mensaje del commit y el reporte de la tarea tienen que dejar la receta de recuperación, porque estos tres `.sql` son el **único registro del intento editorial**: galerías por proyecto con sus webp locales (`/images/galeria/proyecto-ambala-1.webp` …) y **el único video real documentado del sitio** (`https://www.youtube.com/watch?v=Vv1b4Vvq0fM`, "Meliponas nativas de Colombia", en `populate-galerias.sql:7`) mezclado con un hotlink de Unsplash. Ese par de URLs es insumo directo del Task 15 (la banda de video de `/meliponas`) y de la decisión del dueño sobre los hotlinks; recuperar el archivo: `git show <commit>^:strapi/scripts/populate-galerias.sql`.
 
 - [ ] **Step 4: Quitar el slot muerto de la propiedad**
 
