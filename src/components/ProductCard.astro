@@ -7,6 +7,8 @@ interface Props {
   price: number;
   presentation?: string;
   image?: string;
+  /** `alternativeText` del admin; si falta, la card cae en el nombre del producto. */
+  imageAlt?: string;
   destacado?: boolean;
   slug?: string;
   precioComparativo?: number | null;
@@ -29,7 +31,7 @@ interface Props {
   /** Ruta base de la tienda para el enlace de la card (default: /meliponas/tienda). */
   basePath?: string;
 }
-const { name, description, price, presentation, image, destacado = false, slug, precioComparativo, envioGratis = false, stockDisponible = true, recursoSlug, tipo = 'producto', tipoDisponibilidad = 'inmediato', requierePago = true, origen = 'iwage_meliponas', brand = 'meliponas', categoriaLabel, variaciones = 1, ejeVariacion = null, precioDesde = false, basePath = '/meliponas/tienda' } = Astro.props;
+const { name, description, price, presentation, image, imageAlt, destacado = false, slug, precioComparativo, envioGratis = false, stockDisponible = true, recursoSlug, tipo = 'producto', tipoDisponibilidad = 'inmediato', requierePago = true, origen = 'iwage_meliponas', brand = 'meliponas', categoriaLabel, variaciones = 1, ejeVariacion = null, precioDesde = false, basePath = '/meliponas/tienda' } = Astro.props;
 const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 const formattedPrice = fmt.format(price);
 const descuento = precioComparativo ? Math.round((1 - price / precioComparativo) * 100) : null;
@@ -52,7 +54,7 @@ const variacionesLabel = `${variaciones} ${pluralEje(ejeVariacion)}`;
       {image ? (
         <img
           src={image}
-          alt={name}
+          alt={imageAlt || name}
           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />

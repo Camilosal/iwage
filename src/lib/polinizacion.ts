@@ -4,8 +4,9 @@
  * Strapi es el único dueño de las fichas de cultivo: si no responde o no tiene filas,
  * las consultas devuelven [] / null y la tarjeta pinta el mosaico Icon. Nunca un seed.
  */
-import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc, toMediaList, type MediaItem } from './media.ts';
+import { strapiFetch, CACHE_TTL } from './strapi.ts';
+import { type MediaItem } from './media.ts';
+import { normalizarParaPlantilla } from './normalizar-medio.ts';
 
 // ── Types ──────────────────────────────────────────────
 // El único tipo de galería del sitio es `MediaItem` (./media.ts). Se re-exporta desde
@@ -34,7 +35,7 @@ export interface CultivoPolinizacion {
   nombre_cientifico: string | null;
   familia_botanica: string | null;
   icono: string | null;
-  imagen: string | null;
+  imagen: MediaItem | null;
   galeria: MediaItem[] | null;
   descripcion: string | null;
   descripcion_corta: string | null;
@@ -81,8 +82,8 @@ export const MESES_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'A
 export const ICONO_DEFAULT = 'flower-2';
 
 // ── Mapper ─────────────────────────────────────────────
-function mapCultivo(raw: any): CultivoPolinizacion {
-  const galeria = Array.isArray(raw.galeria) ? toMediaList(raw.galeria) : null;
+export function normalizeCultivo(raw: any): CultivoPolinizacion {
+  const { imagen, galeria } = normalizarParaPlantilla(raw);
 
   return {
     id: raw.id,
@@ -92,7 +93,7 @@ function mapCultivo(raw: any): CultivoPolinizacion {
     nombre_cientifico: raw.nombre_cientifico ?? null,
     familia_botanica: raw.familia_botanica ?? null,
     icono: raw.icono ?? null,
-    imagen: mediaSrc(raw.imagen) ?? raw.imagen ?? (galeria?.[0]?.url ?? null),
+    imagen,
     galeria,
     descripcion: raw.descripcion ?? null,
     descripcion_corta: raw.descripcion_corta ?? null,
@@ -140,10 +141,11 @@ export async function getCultivos(opts?: { destacado?: boolean }): Promise<Culti
     const res = await strapiFetch<any>('cultivo-polinizaciones', {
       ttl: CACHE_TTL.list,
       filters,
+      populate: ['imagen', 'galeria'],
       sort: ['nombre:asc'],
       pagination: { pageSize: 50 },
     });
-    return (res.data ?? []).map(mapCultivo);
+    return (res.data ?? []).map(normalizeCultivo);
   } catch {
     // Con Strapi caído no hay fichas que mostrar: []. El `catch` no es un seed de
     // reserva — inventar cultivos, tarifas y métricas de amarre sería peor que un
@@ -158,9 +160,10 @@ export async function getCultivoBySlug(slug: string): Promise<CultivoPolinizacio
       ttl: CACHE_TTL.single,
       filters: { slug: { $eq: slug } },
       pagination: { pageSize: 1 },
+      populate: ['imagen', 'galeria'],
     });
     const item = res.data?.[0];
-    return item ? mapCultivo(item) : null;
+    return item ? normalizeCultivo(item) : null;
   } catch {
     // Strapi caído o sin esa ficha: null → la ruta responde con Astro.redirect al índice,
     // nunca una ficha inventada (tarifas, métricas de amarre, casos de éxito del seed).

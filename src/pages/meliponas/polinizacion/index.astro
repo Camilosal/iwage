@@ -172,7 +172,7 @@ const planes = [
           <a href={`/meliponas/polinizacion/${c.slug}`} class="block group bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
             {c.imagen ? (
               <div class="aspect-[16/10] overflow-hidden bg-surface-sunken">
-                <img src={c.imagen} alt={c.nombre} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" width="400" height="250" />
+                <img src={c.imagen.url} alt={c.imagen.alt || c.nombre} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" width="400" height="250" />
               </div>
             ) : (
               <div class="aspect-[16/10] bg-brand-muted/30 flex items-center justify-center">

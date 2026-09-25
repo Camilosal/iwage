@@ -4,8 +4,9 @@
  * Strapi es el único dueño del catálogo: si no responde o no tiene filas, las
  * consultas devuelven [] y la tarjeta pinta el mosaico Icon. Nunca un seed.
  */
-import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc, toMediaList, type MediaItem } from './media.ts';
+import { strapiFetch, CACHE_TTL } from './strapi.ts';
+import { type MediaItem } from './media.ts';
+import { normalizarParaPlantilla } from './normalizar-medio.ts';
 
 // ── Types ──────────────────────────────────────────────
 // El único tipo de galería del sitio es `MediaItem` (./media.ts). Se re-exporta desde
@@ -57,7 +58,7 @@ export interface Producto {
   categoria: 'miel' | 'caja' | 'kit' | 'asistencia' | 'accesorio' | 'propoleo' | 'ceras' | 'cosecha' | 'huevos' | 'plantas' | 'abono' | 'experiencia';
   /** Marca dueña del producto ('meliponas' por defecto; 'granja' para la tienda de la granja). */
   marca?: 'meliponas' | 'granja';
-  imagen: string | null;
+  imagen: MediaItem | null;
   galeria: MediaItem[] | null;
   stock_disponible: boolean;
   stock_cantidad: number | null;
@@ -108,7 +109,8 @@ export const CATEGORIAS_GRANJA: { id: CategoriaSlug; label: string }[] = [
 ];
 
 // ── Helpers ────────────────────────────────────────────
-function normalizeProducto(raw: any): Producto {
+export function normalizeProducto(raw: any): Producto {
+  const { imagen, galeria } = normalizarParaPlantilla(raw);
   return {
     id: raw.id,
     documentId: raw.documentId ?? String(raw.id),
@@ -122,8 +124,8 @@ function normalizeProducto(raw: any): Producto {
     presentacion: raw.presentacion ?? null,
     categoria: raw.categoria,
     marca: raw.marca ?? 'meliponas',
-    imagen: raw.imagen ? mediaSrc(raw.imagen) : null,
-    galeria: Array.isArray(raw.galeria) ? toMediaList(raw.galeria) : null,
+    imagen,
+    galeria,
     stock_disponible: raw.stock_disponible ?? true,
     stock_cantidad: raw.stock_cantidad ?? null,
     destacado: raw.destacado ?? false,
@@ -177,6 +179,7 @@ export async function getProductos(opts?: {
       ttl: CACHE_TTL.list,
       filters: Object.keys(filters).length > 0 ? filters : undefined,
       sort: ['categoria:asc', 'orden:asc', 'nombre:asc'],
+      populate: ['imagen', 'galeria'],
       pagination: { pageSize: 100 },
     });
 
@@ -195,6 +198,7 @@ export async function getProductoBySlug(slug: string): Promise<Producto | null> 
       ttl: CACHE_TTL.single,
       filters: { slug: { $eq: slug } },
       pagination: { pageSize: 1 },
+      populate: ['imagen', 'galeria'],
     });
 
     const first = res.data?.[0];
@@ -235,6 +239,7 @@ export async function getProductosPorFamilia(familia: string | null): Promise<Pr
       ttl: CACHE_TTL.list,
       filters: { familia: { $eq: familia } },
       sort: ['precio:asc'],
+      populate: ['imagen', 'galeria'],
       pagination: { pageSize: 50 },
     });
     return (res.data ?? []).map(normalizeProducto);

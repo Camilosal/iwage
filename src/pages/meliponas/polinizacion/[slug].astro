@@ -61,7 +61,7 @@ const diasTotales = (cultivo.dias_alistamiento ?? 0) + (cultivo.dias_en_campo ??
     <!-- Image -->
     {cultivo.imagen && (
       <div class="aspect-[21/9] rounded-2xl overflow-hidden bg-surface-sunken border border-border mb-6">
-        <img src={cultivo.imagen} alt={`Polinización de ${cultivo.nombre}`} class="w-full h-full object-cover" />
+        <img src={cultivo.imagen.url} alt={cultivo.imagen.alt || `Polinización de ${cultivo.nombre}`} class="w-full h-full object-cover" />
       </div>
     )}
 

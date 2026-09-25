@@ -44,7 +44,7 @@ const variacionesData = tieneVariaciones
         stock_cantidad: v.stock_cantidad,
         orden_minima: v.orden_minima,
         etiqueta: v.etiqueta_variacion ?? v.nombre,
-        imagen: v.imagen,
+        imagen: v.imagen?.url ?? null,
         recurso_slug: vRec?.slug ?? `meliponas-${v.slug}`,
         tipo: vRec?.tipo ?? 'producto',
         tipo_disponibilidad: vRec?.tipo_disponibilidad ?? 'inmediato',
@@ -60,7 +60,7 @@ const descuento = producto.precio_comparativo ? Math.round((1 - producto.precio 
 
 // ── Galería audiovisual: imagen principal + galería ──
 const mediaItems: MediaItem[] = [
-  ...(producto.imagen ? [{ url: producto.imagen, kind: 'imagen' as const, caption: producto.nombre }] : []),
+  ...(producto.imagen ? [{ ...producto.imagen, caption: producto.imagen.caption ?? producto.nombre }] : []),
   ...(producto.galeria ?? []),
 ];
 
@@ -82,7 +82,7 @@ const productJsonLd: Record<string, any> = {
   description: producto.descripcion_corta ?? producto.descripcion,
   sku: producto.sku,
   url: `https://iwage.co/meliponas/tienda/${producto.slug}`,
-  ...(producto.imagen && { image: absUrl(producto.imagen) }),
+  ...(producto.imagen && { image: absUrl(producto.imagen.url) }),
   brand: { '@type': 'Brand', name: 'Iwagé Meliponario' },
   ...(producto.categoria && { category: categoriaLabel }),
   offers: {
@@ -433,7 +433,7 @@ if (faq.length > 0) {
             <a href={`/meliponas/tienda/${p.slug}`} class="group bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
               <div class="aspect-video overflow-hidden bg-surface-sunken">
                 {p.imagen ? (
-                  <img src={p.imagen} alt={p.nombre} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  <img src={p.imagen.url} alt={p.imagen.alt || p.nombre} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 ) : (
                   <div class="w-full h-full flex items-center justify-center text-text-muted">
                     <Icon name="package" class="w-8 h-8" />

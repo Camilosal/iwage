@@ -107,7 +107,8 @@ const pills = CATEGORIAS_GRANJA.filter((c) => agrupados.some((g) => g.producto.c
                   description={p.descripcion_corta ?? p.descripcion ?? ''}
                   price={g.precioDesde}
                   presentation={g.numVariaciones > 1 ? g.etiquetas.join(' · ') : p.presentacion ?? undefined}
-                  image={p.imagen ?? undefined}
+                  image={p.imagen?.url}
+                  imageAlt={p.imagen?.alt}
                   destacado={p.destacado}
                   slug={p.slug}
                   precioComparativo={g.numVariaciones > 1 ? undefined : p.precio_comparativo}

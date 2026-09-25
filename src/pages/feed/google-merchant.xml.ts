@@ -9,7 +9,7 @@
 import type { APIRoute } from 'astro';
 import { getProductos, type Producto } from '@/lib/tienda';
 import { cacheGet, cacheSet } from '@/lib/redis';
-import { mediaSrc, absUrl } from '@/lib/media';
+import { absUrl } from '@/lib/media';
 import { SITE } from '@/config/site';
 
 const CACHE_KEY = 'feed:google-merchant';
@@ -74,9 +74,9 @@ function renderProduct(p: Producto): string {
   const condition = 'new';
   const brand = escXml('Iwagé');
   const productType = escXml(gmcProductType(p));
-  // Google Merchant exige image_link ABSOLUTO y público. mediaSrc normaliza lo que
-  // Strapi dejó guardado; absUrl le pone el host del sitio (nunca el de Docker).
-  const imageUrl = absUrl(mediaSrc(p.imagen));
+  // Google Merchant exige image_link ABSOLUTO y público. `normalizeProducto` ya redujo
+  // el objeto media a ruta de sitio; absUrl le pone el host del propio (nunca el de Docker).
+  const imageUrl = p.imagen ? absUrl(p.imagen.url) : null;
   const imageLink = imageUrl ? escXml(imageUrl) : '';
 
   const parts = [
