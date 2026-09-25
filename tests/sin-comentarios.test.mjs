@@ -43,11 +43,35 @@ test('un regex que casa barras no se traga el resto de la línea (el caso medido
   assert.equal(sin(`if (/^video\\//.test(o.mime)) kind = 'video';`), `if (/^video\\//.test(o.mime)) kind = 'video';`);
 });
 
-test('la evidencia real: las tres líneas de src/lib/media.ts que el stripper anterior borraba', () => {
-  const salida = sin(readFileSync(join(RAIZ, 'src/lib/media.ts'), 'utf8'));
-  for (const n of [49, 134, 154]) {
-    const cruda = readFileSync(join(RAIZ, 'src/lib/media.ts'), 'utf8').split('\n')[n - 1];
-    assert.equal(salida.split('\n')[n - 1], cruda, `la línea ${n} de src/lib/media.ts desaparece del contrato`);
+test('la evidencia real: el contrato de src/lib/media.ts llega íntegro al stripper', () => {
+  // A#6: comparar por NÚMERO de línea era débil. Si el archivo crece o se reordena, las tres
+  // posiciones señalan otras líneas y la prueba se verdea sin haber medido nada. Aquí se pinchan
+  // las EXPRESIONES, y cada una tiene que estar en la fuente cruda antes de exigérsela a la
+  // salida: la evidencia no puede evaporarse en silencio.
+  const fuente = readFileSync(join(RAIZ, 'src/lib/media.ts'), 'utf8');
+  const salida = sin(fuente);
+  assert.equal(salida.length, fuente.length, 'el stripper cambió la longitud del contrato');
+  assert.equal(
+    salida.split('\n').length,
+    fuente.split('\n').length,
+    'el stripper cambió el número de líneas del contrato',
+  );
+  const intocables = [
+    /if \(!\/\^https\?:\\\/\\\/\/i\.test\(raw\)\) return null;/, // la que abría el comentario fantasma
+    /const u = safeUrl\(raw\);/,
+    /const url = mediaSrc\(raw\);/,
+  ];
+  for (const re of intocables) {
+    const enFuente = (fuente.match(new RegExp(re.source, 'g')) ?? []).length;
+    const enSalida = (salida.match(new RegExp(re.source, 'g')) ?? []).length;
+    assert.ok(enFuente > 0, `la evidencia salió de src/lib/media.ts: ${re.source}`);
+    // Contamos, no preguntamos por existencia: `const u = safeUrl(raw);` está dos veces en el
+    // archivo, y un stripper que se coma una de las dos seguiría verde con `assert.match`.
+    assert.equal(
+      enSalida,
+      enFuente,
+      `${enFuente}× «${re.source}» en la fuente, ${enSalida} en el contrato`,
+    );
   }
 });
 
