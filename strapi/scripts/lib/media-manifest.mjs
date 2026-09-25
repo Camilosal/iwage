@@ -85,8 +85,27 @@
  *   el primero en el orden de entrada: determinista, no aleatorio;
  * · un alias que no se puede firmar (el archivo no está en el inventario, ningún
  *   registro trae ese endpoint/slug, cae fuera del directorio del endpoint, o el
- *   registro ya tiene otro alias) NO escribe nada: va a `revisar` con el motivo
- *   exacto, para que un alias viejo o mal escrito se vea y no se calle.
+ *   registro ya tiene otro alias) NO escribe nada: su motivo va a `motivosAlias`
+ *   con la razón exacta, para que un alias viejo o mal escrito se vea y no se
+ *   calle.
+ *   `motivosAlias` **no es un balde de archivos** (ver PARTICIÓN abajo): una fila
+ *   descartada habla de un archivo que ya tiene su propio balde, y ponerlo además
+ *   en `revisar` lo contaba dos veces.
+ *
+ * ---------------------------------------------------------------------------
+ * PARTICIÓN — los tres baldes de archivos son una partición del inventario, y es
+ * lo que hace que los conteos sirvan como inventario (Tareas 11 y 14):
+ *
+ *   enlazar ∪ pendientes ∪ revisar = archivos (salvo `.gitkeep`), y disjuntos.
+ *
+ * Cada archivo de entrada aparece en **exactamente un** balde, así que
+ * `enlazar.length + pendientes.length + revisar.length === archivos.length` y
+ * ningún archivo se cuenta dos veces. `ambiguos` y `motivosAlias` son listas de
+ * RAZONES, no de archivos: se imprimen y se revisan, pero no suman al inventario.
+ * La propiedad se sostiene en dos puntos: `duenio` anota el archivo en cuanto una
+ * decisión lo reclama (por eso un `revisar` por sufijo nunca cae también en
+ * `pendientes`), y `pendientes` se filtra además contra el conjunto de archivos
+ * que ya tienen balde.
  *
  * DE DÓNDE TIENE QUE SALIR EL VOCABULARIO: de `bitacoras.slug` en la base de
  * datos, que hasta hoy NADIE leyó (la lectura está gateada al dueño y F2 no está
@@ -177,10 +196,14 @@ function candidatos(reg, infos, aliasInfo) {
  *   alias?: Record<string, {endpoint: string, slug: string}>
  * }} in rutas de archivo → registro declarado, o `{}` / ausente si no hay alias
  * @returns {{
+ *   // los tres baldes de ARCHIVOS son una partición del inventario: disjuntos y
+ *   // exhaustivos (salvo `.gitkeep`). Nunca un archivo en dos.
  *   enlazar: Array<{endpoint: string, documentId: string, campo: string, archivo: string, origen?: 'alias'}>,
  *   pendientes: string[],
+ *   revisar: Array<{archivo: string, motivo: string, endpoint?: string, documentId?: string, campo?: string}>,
+ *   // y estos dos son listas de RAZONES, no de archivos: no suman al inventario.
  *   ambiguos: Array<{slug: string, documentId: string, motivo: string}>,
- *   revisar: Array<{archivo: string, motivo: string, endpoint?: string, documentId?: string, campo?: string}>
+ *   motivosAlias: Array<{archivo: string, motivo: string}>
  * }}
  */
 export function manifesto({ archivos, registros, alias = {} }) {
@@ -189,24 +212,26 @@ export function manifesto({ archivos, registros, alias = {} }) {
 
   /** índice de `registros` → archivo declarado, solo para filas firmables. */
   const aliasFirmado = new Map();
-  /** filas de alias que no producen enlace, con la razón exacta. */
-  const aliasDescartado = [];
+  /** filas de alias que no producen enlace, con la razón exacta. NO es un balde de
+   * archivos: cada una habla de un archivo que ya queda en `enlazar` o en
+   * `pendientes`, y repetirlo acá sería contarlo dos veces (ver PARTICIÓN arriba). */
+  const motivosAlias = [];
 
   // Orden de ruta, no de autoría: dos alias escritos en distinto orden dan la misma salida.
   for (const ruta of Object.keys(alias).sort()) {
     const destino = alias[ruta];
     if (!destino || typeof destino.endpoint !== 'string' || typeof destino.slug !== 'string') {
-      aliasDescartado.push({ archivo: ruta, motivo: `el alias no trae \`endpoint\` y \`slug\` de texto: ${ruta}` });
+      motivosAlias.push({ archivo: ruta, motivo: `el alias no trae \`endpoint\` y \`slug\` de texto: ${ruta}` });
       continue;
     }
     const info = porRuta.get(ruta);
     if (!info) {
-      aliasDescartado.push({ archivo: ruta, motivo: `el alias declara un archivo que no está en el inventario: ${ruta}` });
+      motivosAlias.push({ archivo: ruta, motivo: `el alias declara un archivo que no está en el inventario: ${ruta}` });
       continue;
     }
     const cfg = ENDPOINTS_CON_MEDIO[destino.endpoint];
     if (!cfg || info.dir !== cfg.dir) {
-      aliasDescartado.push({
+      motivosAlias.push({
         archivo: ruta,
         motivo: `el alias saca ${ruta} del directorio de ${destino.endpoint} (${cfg ? cfg.dir : 'endpoint fuera de la tabla'})`,
       });
@@ -214,11 +239,11 @@ export function manifesto({ archivos, registros, alias = {} }) {
     }
     const i = registros.findIndex((r) => r.endpoint === destino.endpoint && r.slug === destino.slug);
     if (i < 0) {
-      aliasDescartado.push({ archivo: ruta, motivo: `ningún registro de la lectura trae ${destino.endpoint}/${destino.slug}` });
+      motivosAlias.push({ archivo: ruta, motivo: `ningún registro de la lectura trae ${destino.endpoint}/${destino.slug}` });
       continue;
     }
     if (aliasFirmado.has(i)) {
-      aliasDescartado.push({ archivo: ruta, motivo: `${destino.endpoint}/${destino.slug} ya tiene otro alias declarado; se ignora esta fila` });
+      motivosAlias.push({ archivo: ruta, motivo: `${destino.endpoint}/${destino.slug} ya tiene otro alias declarado; se ignora esta fila` });
       continue;
     }
     aliasFirmado.set(i, info);
@@ -284,10 +309,19 @@ export function manifesto({ archivos, registros, alias = {} }) {
     enlazar.push(enlace);
   });
 
-  for (const fila of aliasDescartado) revisar.push(fila);
+  // `revisar` son SOLO las propuestas por sufijo. Las filas de alias que no se
+  // pudieron firmar se nombran en `motivosAlias` y NO crean balde: cada una habla
+  // de un archivo que ya quedó en `enlazar` o en `pendientes`, y repetirlas acá
+  // era contar dos veces el mismo archivo (lo que arregla este round).
+  //
+  // PARTICIÓN (ver header): un archivo de entrada, un balde. `duenio` anota todo
+  // archivo reclamado —enlazado o pasado a `revisar`—, y se filtran además los que
+  // ya tienen balde explícito, para que `pendientes` no pueda repetir un archivo
+  // aunque cambie la contabilidad de arriba.
+  const conBalde = new Set([...duenio.keys(), ...enlazar.map((e) => e.archivo), ...revisar.map((r) => r.archivo)]);
 
-  const pendientes = archivos.filter((a) => !duenio.has(a) && !/\.gitkeep$/.test(a));
-  return { enlazar, pendientes, ambiguos, revisar };
+  const pendientes = archivos.filter((a) => !conBalde.has(a) && !/\.gitkeep$/.test(a));
+  return { enlazar, pendientes, ambiguos, revisar, motivosAlias };
 }
 
 /** Directorios que el inventario debe recorrer: los que la tabla declara, sin inventar. */

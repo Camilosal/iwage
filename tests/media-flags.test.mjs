@@ -4,12 +4,23 @@
  * credenciales: es el único guard que impide que esta herramienta escriba en la
  * BD, y un guard que no se puede romper en un teste no es un guard.
  *
- * El último teste sí corre el CLI, pero con una invocación que tiene que salir
- * antes de mirar el entorno: nada de aquí toca un host.
+ * Varios testes corren el CLI como proceso hijo. Los dos primeros, con una
+ * invocación que tiene que salir antes de mirar el entorno: nada de aquí toca un
+ * host. El último (Fix round 2) sí ejercita la DECISIÓN DE ESCRITURA: levanta un
+ * stub propio en `127.0.0.1` con puerto efímero, un inventario de juguete en un
+ * `/tmp` desechable y credenciales falsas, y cuenta cada petición que recibe. Es
+ * el teste que faltaba: medido en una copia mutada de `f32dd88`, `ESCRIBIR = true`,
+ * `if (!ESCRIBIR)` → `if (false)` y `aplicar()` iterando `[...enlazar, ...revisar]`
+ * dejaban los 20 testes verdes, porque las dos corridas de CLI existentes morían en
+ * el guard del entorno sin llegar nunca a la decisión.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parsearFlags } from '../strapi/scripts/lib/media-flags.mjs';
 
@@ -69,4 +80,189 @@ test('el CLI con --apply y sin credenciales aborta en el guard del entorno', () 
   const r = spawnSync(process.execPath, [SCRIPT, '--apply'], { encoding: 'utf8', env: SIN_ENV });
   assert.equal(r.status, 1);
   assert.match(r.stderr, /STRAPI_URL y STRAPI_TOKEN/);
+});
+
+// --- y la obediencia del guard, del lado del proceso completo ------------------
+//
+// Parsear bien `--dry-run` no sirve de nada si el script después no lo obedece.
+// Este teste corre `strapi/scripts/media-import.mjs` tal cual (copia byte-idéntica
+// hecha a tiempo de teste, para que una mutación en el archivo real se vea acá)
+// contra un servidor desechable en 127.0.0.1 con PUERTO EFÍMERO (`listen(0)`): el
+// puerto se elige a runtime, así que no invade el de nadie. Cero contacto con la
+// API real: el stub nunca ve un token auténtico — el valor de `STRAPI_TOKEN` es
+// texto claramente falso y ni siquiera se imprime en las aserciones — y el único
+// host alcanzado es el loopback.
+//
+// El árbol de trabajo va a `mkdtemp` con un inventario de cuatro archivos de
+// juguete, porque el script resuelve `public/images/` desde su propia ubicación:
+// así la corrida no depende del árbol real de producción ni de sus 86 archivos, y
+// lo que se asienta acá son decisiones, no datos. Limpieza en `finally`: servidor
+// cerrado (con las conexiones abiertas cortadas) y directorio borrado; cada corrida
+// del hijo lleva su propio plazo, así que una cuelga no cuelga `npm test`.
+
+/** Lo que el stub finge ser: una Strapi con 4 registros y 1 archivo en librería. */
+const LECTURAS_STUB = {
+  '/api/upload/files': [
+    { id: 501, name: 'bitacora-la-miel.webp', url: '/uploads/501/bitacora-la-miel.webp', mime: 'image/webp' },
+  ],
+  // `la-miel` enlaza por regla y su nombre YA está en la librería → PUT sin POST.
+  '/api/bitacoras': { data: [{ documentId: 'b1', slug: 'la-miel', marca: null }] },
+  '/api/historia-visitantes': { data: [] },
+  '/api/proveedors': { data: [] },
+  // `miel-crema` enlaza por regla y hay que subirlo; `meliponario` solo coincide por
+  // sufijo (`proveedor-` no es namespace de `item-menus`) → es un `revisar`.
+  '/api/item-menus': {
+    data: [{ documentId: 'i1', slug: 'miel-crema' }, { documentId: 'r1', slug: 'meliponario' }],
+  },
+  '/api/proyecto-meliponarios': { data: [] },
+};
+/** El orden exacto en que el importador lee: seis GET, uno por tabla + librería. */
+const SECUENCIA_LECTURA = [
+  'GET /api/upload/files',
+  'GET /api/bitacoras',
+  'GET /api/historia-visitantes',
+  'GET /api/proveedors',
+  'GET /api/item-menus',
+  'GET /api/proyecto-meliponarios',
+];
+/** Lo único que `--apply` puede escribir: dos enlaces, y solo dos peticiones más. */
+const ESCRITURAS_ESPERADAS = ['POST /api/upload', 'PUT /api/bitacoras/b1', 'PUT /api/item-menus/i1'];
+
+const PLAZO_CORRIDA = 20_000;
+
+/** Inventario de juguete + copia byte-idéntica del script y sus dos módulos. */
+function arbolDePrueba() {
+  const raiz = mkdtempSync(join(tmpdir(), 'media-import-cli-'));
+  const scripts = join(raiz, 'strapi', 'scripts');
+  mkdirSync(join(scripts, 'lib'), { recursive: true });
+  copyFileSync(SCRIPT, join(scripts, 'media-import.mjs'));
+  for (const modulo of ['media-manifest.mjs', 'media-flags.mjs']) {
+    copyFileSync(join(dirname(SCRIPT), 'lib', modulo), join(scripts, 'lib', modulo));
+  }
+  const arte = {
+    'bitacora': ['bitacora-la-miel.webp'],
+    'cafe-menu': ['miel-crema.webp', 'proveedor-meliponario.webp'],
+    'galeria': ['proyecto-ambala-1.webp'],
+  };
+  for (const [dir, nombres] of Object.entries(arte)) {
+    const abs = join(raiz, 'public', 'images', dir);
+    mkdirSync(abs, { recursive: true });
+    for (const nombre of nombres) writeFileSync(join(abs, nombre), 'stub-iwage-bytes-de-prueba');
+  }
+  return raiz;
+}
+
+/** Corre el CLI como hijo y devuelve exit code, salida y lo que escuchó el stub. */
+function correr(cli, args, env) {
+  return new Promise((resolve, reject) => {
+    const hijo = spawn(process.execPath, [cli, ...args], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '';
+    let stderr = '';
+    hijo.stdout.on('data', (d) => { stdout += d; });
+    hijo.stderr.on('data', (d) => { stderr += d; });
+    const temporizador = setTimeout(() => {
+      hijo.kill('SIGKILL');
+      reject(new Error(`el CLI no terminó en ${PLAZO_CORRIDA} ms (${args.join(' ') || 'sin flags'})`));
+    }, PLAZO_CORRIDA);
+    hijo.once('error', (e) => { clearTimeout(temporizador); reject(e); });
+    hijo.once('close', (status) => {
+      clearTimeout(temporizador);
+      resolve({ status, stdout, stderr });
+    });
+  });
+}
+
+test('el CLI obedece sus flags: en seco no escribe ni una petición, y con --apply solo escribe los enlazar', async (t) => {
+  const peticiones = [];
+  const servidor = createServer((req, res) => {
+    const ruta = (req.url ?? '').split('?')[0];
+    peticiones.push(`${req.method} ${ruta}`);
+    req.resume(); // el cuerpo del POST no se inspecciona: hay que drenarlo igual
+    if (req.method === 'GET' && ruta in LECTURAS_STUB) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(LECTURAS_STUB[ruta]));
+      return;
+    }
+    if (ruta === '/api/upload') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify([{ id: 777, name: 'miel-crema.webp', url: '/uploads/777/miel-crema.webp' }]));
+      return;
+    }
+    if (req.method === 'PUT' && ruta.startsWith('/api/')) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end('{}');
+      return;
+    }
+    // Cualquier otra cosa no existe en este stub: 404/501 para que se note.
+    res.writeHead(501, { 'Content-Type': 'application/json' });
+    res.end('{}');
+  });
+  try {
+    // Bind: si el entorno no deja escuchar en loopback, esto se SALTA, no falla.
+    const escuchando = await new Promise((resolve) => {
+      const fallo = (e) => resolve({ ok: false, codigo: e.code ?? e.message });
+      servidor.once('error', fallo);
+      servidor.listen(0, '127.0.0.1', () => {
+        servidor.removeListener('error', fallo);
+        resolve({ ok: true });
+      });
+    });
+    if (!escuchando.ok) {
+      t.skip(`no se pudo abrir un socket propio en 127.0.0.1 (${escuchando.codigo})`);
+      return;
+    }
+    const base = `http://127.0.0.1:${servidor.address().port}`;
+    const raiz = arbolDePrueba();
+    const cli = join(raiz, 'strapi', 'scripts', 'media-import.mjs');
+    // Credenciales falsas y evidentes; el valor nunca se reimprime en las aserciones.
+    const CON_ENV = { ...process.env, STRAPI_URL: base, STRAPI_TOKEN: 'falso-para-stub-127' };
+    const SIN_CREDENCIALES = { ...process.env, STRAPI_URL: '', STRAPI_TOKEN: '' };
+    const cuenta = (lista) => lista.filter((p) => !p.startsWith('GET '));
+    try {
+      // 1) sin entorno: sale antes de hablar con cualquier host.
+      peticiones.length = 0;
+      const sin = await correr(cli, [], SIN_CREDENCIALES);
+      assert.notEqual(sin.status, 0, 'sin credenciales tiene que salir con exit != 0');
+      assert.deepEqual(peticiones, [], 'sin credenciales no se puede pedir nada');
+
+      // 2) invocación pelada = dry-run: lee y no escribe.
+      peticiones.length = 0;
+      const seco = await correr(cli, [], CON_ENV);
+      assert.equal(seco.status, 0, seco.stderr);
+      assert.deepEqual(peticiones, SECUENCIA_LECTURA, 'la corrida en seco hace exactamente las lecturas');
+      assert.deepEqual(cuenta(peticiones), [], 'invocación sin flags: cero peticiones que no sean GET');
+      assert.match(seco.stdout, /^dry-run: /m, 'y lo dice en la salida');
+
+      // 3) `--dry-run` explícito: el mismo camino.
+      peticiones.length = 0;
+      const explicito = await correr(cli, ['--dry-run'], CON_ENV);
+      assert.equal(explicito.status, 0, explicito.stderr);
+      assert.deepEqual(cuenta(peticiones), [], '--dry-run: cero peticiones que no sean GET');
+      // Que sí hubo decisiones que no escribir: 2 enlaces y 1 propuesta en revisar.
+      assert.match(explicito.stdout, /2 enlaces · 1 en revisar \(NO se escriben\) · 1 pendientes/);
+      assert.match(explicito.stdout, /revisar: public\/images\/cafe-menu\/proveedor-meliponario\.webp/);
+
+      // 4) `--dry-run --apply`: aborta con exit 2 antes de la primera petición.
+      peticiones.length = 0;
+      const conflicto = await correr(cli, ['--dry-run', '--apply'], CON_ENV);
+      assert.equal(conflicto.status, 2);
+      assert.deepEqual(peticiones, [], 'con flags contradictorias no se pide nada, ni lectura');
+
+      // 5) `--apply`: se escriben SOLO los enlaces; el `revisar` no genera nada.
+      peticiones.length = 0;
+      const apply = await correr(cli, ['--apply'], CON_ENV);
+      assert.equal(apply.status, 0, apply.stderr);
+      assert.deepEqual(cuenta(peticiones).slice().sort(), ESCRITURAS_ESPERADAS, 'los únicos escritos son los de `enlazar`');
+      assert.ok(!peticiones.some((p) => p.includes('/r1')), 'el `revisar` (item-menus/r1) no recibe ni una petición');
+      assert.ok(!peticiones.some((p) => p.includes('proyecto-ambala')), 'un `pendiente` no recibe ni una petición');
+      assert.doesNotMatch(apply.stdout + apply.stderr, /falso-para-stub|Bearer/i, 'ni el token ni la cabecera se imprimen');
+    } finally {
+      rmSync(raiz, { recursive: true, force: true });
+    }
+  } finally {
+    // Nadie se queda escuchando: `close()` espera a las conexiones abiertas, así
+    // que se cortan primero. Si el bind falló, cerrar no hace nada.
+    servidor.closeAllConnections?.();
+    await new Promise((resolve) => servidor.close(() => resolve()));
+  }
 });

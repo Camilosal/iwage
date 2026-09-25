@@ -196,7 +196,12 @@ async function construir(alias) {
 
 function imprimir({ manifiesto: m, porNombre, leidos, registros, archivos, filasAlias }) {
   console.log(`lectura: ${leidos.join(' ')} · ${registros.length} registros · ${archivos.length} archivos · ${filasAlias} filas de alias`);
-  console.log(`${m.enlazar.length} enlaces · ${m.revisar.length} en revisar (NO se escriben) · ${m.pendientes.length} pendientes · ${m.ambiguos.length} ambigüedades`);
+  // CONTABILIDAD (Tareas 11 y 14): `enlazar`, `pendientes` y `revisar` son una
+  // partición del inventario —cada archivo leído cae en exactamente un balde, así
+  // que sus tres longitudes suman `archivos.length` (salvo `.gitkeep`)—. Nunca se
+  // suma un cuarto arreglo a ese total: `ambiguos` y `motivosAlias` son listas de
+  // RAZONES, no de archivos, y un mismo archivo puede tener varias.
+  console.log(`${m.enlazar.length} enlaces · ${m.revisar.length} en revisar (NO se escriben) · ${m.pendientes.length} pendientes · ${m.ambiguos.length} ambigüedades · ${m.motivosAlias.length} motivo(s) de alias sin firmar`);
   for (const e of m.enlazar) {
     const estado = porNombre.has(nombreDe(e.archivo)) ? 'el nombre ya está en la librería' : 'nombre nuevo: hay que subirlo';
     console.log(`  enlace${e.origen === 'alias' ? ' (alias)' : ''}: ${e.archivo} → ${e.endpoint}/${e.documentId}.${e.campo} (${estado})`);
@@ -206,13 +211,17 @@ function imprimir({ manifiesto: m, porNombre, leidos, registros, archivos, filas
   for (const r of m.revisar) console.log(`  revisar: ${r.archivo} · ${r.motivo}`);
   for (const p of m.pendientes) console.log('  pendiente:', p);
   for (const a of m.ambiguos) console.log('  ambiguo:', a.slug, '·', a.motivo);
+  // Y la fila de alias que no se pudo firmar se nombra, sin contar su archivo dos
+  // veces: ese archivo ya está en `enlazar` o en `pendientes`.
+  for (const s of m.motivosAlias) console.log(`  alias sin firmar: ${s.archivo} · ${s.motivo}`);
 }
 
 /** Sube lo que falte y enlaza. Solo se llega aquí con --apply y con modo `aplicar`. */
 async function aplicar({ manifiesto: m, porNombre }) {
   // El balde `revisar` no se escribe ni con --apply: son coincidencias solo por
-  // sufijo y filas de alias que ningún registro pudo firmar. Se nombran y se
-  // dejan; promoverlas es decisión de un humano, con una fila de alias.
+  // sufijo, una propuesta con nombre y apellido que requiere la fila de alias de un
+  // humano. Las filas de alias que ningún registro pudo firmar ya no están acá (van
+  // a `motivosAlias`, que no es un balde de archivos) y tampoco se escriben.
   if (m.revisar.length) console.warn(`  ${m.revisar.length} emparejamiento(s) en revisar: se omite(n), no se escribe(n).`);
   let errores = 0;
   for (const { endpoint, documentId, campo, archivo } of m.enlazar) {

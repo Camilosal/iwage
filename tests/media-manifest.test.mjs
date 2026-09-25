@@ -7,7 +7,7 @@
  * aserciones no se aflojan ni se tocan: son byte-idénticos a los de la brief, y eso
  * es propiedad revisada.
  *
- * Los diez siguientes fijan lo que la brief no decía o decía mal, resuelto en el
+ * Los once siguientes fijan lo que la brief no decía o decía mal, resuelto en el
  * módulo (ver el header de strapi/scripts/lib/media-manifest.mjs):
  *   · `campo` lo deriva la tabla por endpoint (y un valor explícito manda),
  *   · separar emparejar de reclamar hace que la razón de ambigüedad exista,
@@ -21,7 +21,13 @@
  *     `aplicar()` se niega a escribir,
  *   · y el `alias` declarado resuelve lo que ningún nombre puede deducir (las 36
  *     tapas de bitácora, cuyo nombre trae el slug recortado), le gana a la regla
- *     y sale etiquetado.
+ *     y sale etiquetado;
+ *   · y los tres baldes de archivos (`enlazar`, `pendientes`, `revisar`) son una
+ *     PARTICIÓN del inventario: cada archivo en exactamente uno, las longitudes
+ *     suman los archivos leídos, y una fila de alias descartada reporta su motivo
+ *     en `motivosAlias` sin crear una segunda entrada para un archivo ya baldado.
+ *     Es lo que las Tareas 11 y 14 van a leer como inventario, y medido en
+ *     `f32dd88` no cerraba: 86 entradas con suma 88 y filas fantasma.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -254,7 +260,7 @@ test('un alias le gana a la regla sobre la misma tapa y su enlace sale etiquetad
   assert.deepEqual(m.pendientes, []);
 });
 
-test('un alias que no se puede firmar no escribe: va a revisar con el motivo exacto', () => {
+test('un alias que no se puede firmar no escribe: su motivo se nombra sin crear un segundo balde', () => {
   const archivo = 'public/images/bitacora/bitacora-miel-chef.webp';
   // Slug que la lectura no trae (un alias mal escrito o un rename en la BD).
   const sinRegistro = manifesto({
@@ -269,8 +275,14 @@ test('un alias que no se puede firmar no escribe: va a revisar con el motivo exa
     endpoint: 'bitacoras', documentId: 'd1', campo: 'imagen', archivo,
   }]);
   assert.deepEqual(sinRegistro.pendientes, []);
-  assert.equal(sinRegistro.revisar.length, 1);
-  assert.match(sinRegistro.revisar[0].motivo, /ningún registro de la lectura trae bitacoras\/chef-de-miel/);
+  // El archivo YA tiene balde (`enlazar`): reportarlo además en `revisar` era
+  // contarlo dos veces. La razón se nombra aparte, y `motivosAlias` no es un balde
+  // de archivos — ver la PARTICIÓN del header del módulo.
+  assert.deepEqual(sinRegistro.revisar, []);
+  assert.deepEqual(sinRegistro.motivosAlias, [{
+    archivo,
+    motivo: 'ningún registro de la lectura trae bitacoras/chef-de-miel',
+  }]);
 
   // Y el alias tampoco abre la puerta del directorio: esto es `galeria/`, no `bitacora/`.
   const fuera = manifesto({
@@ -282,8 +294,78 @@ test('un alias que no se puede firmar no escribe: va a revisar con el motivo exa
   });
   assert.deepEqual(fuera.enlazar, []);
   assert.deepEqual(fuera.pendientes, ['public/images/galeria/proyecto-ambala-1.webp']);
-  assert.deepEqual(fuera.revisar, [{
+  assert.deepEqual(fuera.revisar, []);
+  assert.deepEqual(fuera.motivosAlias, [{
     archivo: 'public/images/galeria/proyecto-ambala-1.webp',
     motivo: 'el alias saca public/images/galeria/proyecto-ambala-1.webp del directorio de bitacoras (bitacora)',
   }]);
+});
+
+// --- PARTICIÓN: los tres baldes de archivos son una partición del inventario.
+//
+// Medido sobre `f32dd88` con los 86 archivos reales de public/images/ (reporte
+// §12.2): sin filas de alias descartadas los conteos cerraban (2 + 0 + 84 = 86),
+// pero con dos de ellas el mismo archivo aparecía en `revisar` estando ya en
+// `enlazar` o en `pendientes` ⇒ suma 88 sobre 86 entradas, 2 archivos en dos
+// baldes y una fila fantasma. Este teste fija la propiedad que las Tareas 11 y 14
+// van a leer como inventario: cada archivo de entrada, en exactamente un balde.
+test('los tres baldes son una partición del inventario, también con filas de alias descartadas', () => {
+  const enlaceRegla = 'public/images/bitacora/bitacora-la-miel.webp';
+  const enlaceAlias = 'public/images/bitacora/bitacora-caso-don-manuel.webp';
+  const porSufijo = 'public/images/cafe-menu/proveedor-meliponario.webp';
+  const pendiente = 'public/images/galeria/proyecto-ambala-1.webp';
+  const fantasma = 'public/images/bitacora/la-miel-fantasma.webp';
+  const archivos = [enlaceRegla, enlaceAlias, porSufijo, pendiente, 'public/images/bitacora/.gitkeep'];
+  const m = manifesto({
+    archivos,
+    registros: [
+      { endpoint: 'bitacoras', documentId: 'd1', slug: 'la-miel' },
+      { endpoint: 'bitacoras', documentId: 'd2', slug: 'caso-la-finca-de-don-manuel' },
+      { endpoint: 'item-menus', documentId: 'm1', slug: 'meliponario' },
+    ],
+    alias: {
+      // firmable: el único camino de las tapas con el slug recortado.
+      [enlaceAlias]: { endpoint: 'bitacoras', slug: 'caso-la-finca-de-don-manuel' },
+      // descartadas las tres, y las tres sobre archivos que YA tienen balde (o que
+      // no están en el inventario): ninguna puede crear una segunda entrada.
+      [enlaceRegla]: { endpoint: 'bitacoras', slug: 'miel-de-mesa' },
+      [fantasma]: { endpoint: 'bitacoras', slug: 'la-miel' },
+      [pendiente]: { endpoint: 'bitacoras', slug: 'ambala' },
+    },
+  });
+
+  const baldeados = [
+    ...m.enlazar.map((e) => e.archivo),
+    ...m.pendientes,
+    ...m.revisar.map((r) => r.archivo),
+  ];
+  // El `.gitkeep` no va a ningún balde (lo excluye el inventario), así que la
+  // suma se mide sobre las entradas que sí son arte producida.
+  const entradas = archivos.filter((a) => !a.endsWith('.gitkeep'));
+
+  // 1. cada archivo, en exactamente un balde:
+  assert.deepEqual(
+    baldeados.slice().sort(),
+    entradas.slice().sort(),
+    'la suma de los tres baldes tiene que ser exactamente el inventario, sin repetidos',
+  );
+  assert.equal(new Set(baldeados).size, baldeados.length, 'ningún archivo en dos baldes');
+  assert.equal(
+    m.enlazar.length + m.pendientes.length + m.revisar.length,
+    entradas.length,
+    'las longitudes suman el número de archivos de entrada',
+  );
+  // 2. y cada balde trae lo que le toca, por nombre:
+  assert.deepEqual(m.enlazar.map((e) => e.archivo), [enlaceRegla, enlaceAlias]);
+  assert.deepEqual(m.revisar.map((r) => r.archivo), [porSufijo]);
+  assert.deepEqual(m.pendientes, [pendiente]);
+  // 3. los tres motivos de alias descartados se ven, y en ninguna parte cuentan
+  // como archivos: `motivosAlias` es una lista de razones.
+  assert.deepEqual(m.motivosAlias, [
+    { archivo: enlaceRegla, motivo: 'ningún registro de la lectura trae bitacoras/miel-de-mesa' },
+    { archivo: fantasma, motivo: `el alias declara un archivo que no está en el inventario: ${fantasma}` },
+    { archivo: pendiente, motivo: `el alias saca ${pendiente} del directorio de bitacoras (bitacora)` },
+  ]);
+  // Un `.gitkeep` no se enlaza ni se revisa: no es arte.
+  assert.ok(!baldeados.includes('public/images/bitacora/.gitkeep'));
 });

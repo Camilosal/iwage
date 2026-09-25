@@ -7,7 +7,7 @@
     "Forma de una fila: la clave es la ruta EXACTA que produce el inventario y el valor nombra al registro por endpoint y slug. El documentId no va acá: lo aporta la lectura de la API, y un alias no puede inventar un id.",
     "  \"public/images/bitacora/bitacora-caso-don-manuel.webp\": { \"endpoint\": \"bitacoras\", \"slug\": \"caso-la-finca-de-don-manuel\" }",
     "Esa línea de ejemplo está ESCRITA como ejemplo: el par es real (medido en el repo), pero la lista no se activa mientras `alias` siga vacío; no la copie sin verificar el slug contra la BD.",
-    "Qué hace el importador con una fila que no se puede firmar (archivo ausente del inventario, endpoint/slug que no aparece en la lectura, o ruta fuera del directorio del endpoint): no escribe nada, la deja en `revisar` con el motivo exacto.",
+    "Qué hace el importador con una fila que no se puede firmar (archivo ausente del inventario, endpoint/slug que no aparece en la lectura, o ruta fuera del directorio del endpoint): no escribe nada y reporta el motivo exacto en `motivosAlias`. Esa lista es de RAZONES, no de archivos: el archivo del que habla sigue contando una sola vez, en `enlazar` o en `pendientes` (los tres baldes son una partición del inventario).",
     "Y con una coincidencia apenas sospechosa (el nombre base termina en -slug con un prefijo que no es del endpoint): tampoco. Solo una fila de alias convierte un `revisar` en enlace.",
     "La clave `aviso` se ignora al leer; lo único que se parsea es el objeto `alias`."
   ],
