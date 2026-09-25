@@ -388,15 +388,26 @@ test('una portada absoluta de Strapi no llega con el host interno al <img> de la
   );
 });
 
-test('la bitácora expone MediaItem y sus tres funciones entregan filas normalizadas', () => {
-  const fuente = readFileSync(join(RAIZ, 'src/lib/bitacora.ts'), 'utf-8');
-  assert.match(fuente, /imagen:\s*MediaItem\s*\|\s*null/, 'EntradaBitacora.imagen no es MediaItem | null');
-  for (const fn of ['getBitacoraByMarca', 'getBitacoraBySlug', 'getResumenBitacora']) {
-    const cuerpo = new RegExp(`export async function ${fn}[\\s\\S]*?\\n\\}`);
-    const sin = sinComentarios(fuente).match(cuerpo);
-    assert.ok(sin, `no se encontró ${fn}`);
-    assert.match(sin[0], /filasParaPlantilla/, `${fn} entrega filas crudas a la plantilla`);
-  }
+test('la bitácora expone MediaItem: la DECLARACIÓN de EntradaBitacora lo dice, no la prosa', () => {
+  // I1: la versión anterior de este teste casaba `/imagen:\s*MediaItem\s*\|\s*null/` sobre
+  // el archivo CRUDO, y `src/lib/bitacora.ts` tiene comentarios que contienen esa cadena
+  // literal — o sea lo satisfacía la prosa. Medido en el review: revertir el tipo de la
+  // interfaz a `string | null` dejaba los 16 testes verdes (mutante MT4). Por eso ahora el
+  // texto pasa primero por `sinComentarios()` y la aserción se ancla a la línea de la
+  // declaración dentro de `interface EntradaBitacora`, con su `;` y su `| null`.
+  const fuente = sinComentarios(readFileSync(join(RAIZ, 'src/lib/bitacora.ts'), 'utf8'));
+  const interfaz = fuente.match(/\bexport interface EntradaBitacora \{[\s\S]*?\n\}/);
+  assert.ok(interfaz, 'no se encontró `export interface EntradaBitacora { … }` en src/lib/bitacora.ts');
+  assert.match(
+    interfaz[0],
+    /^\s*imagen:\s*MediaItem\s*\|\s*null;$/m,
+    'EntradaBitacora.imagen ya no declara `MediaItem | null;`: las plantillas vuelven a recibir un string (o un objeto crudo) y el build sigue verde',
+  );
+  assert.doesNotMatch(
+    interfaz[0],
+    /^\s*imagen:[^;]*\bstring\b[^;]*;$/m,
+    'EntradaBitacora.imagen menciona `string` en su declaración',
+  );
 });
 
 /**
