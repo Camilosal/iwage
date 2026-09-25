@@ -4,7 +4,6 @@ import Icon from '@/components/shared/Icon.astro';
 import FichaTecnica from '@/components/tierras/FichaTecnica.astro';
 import SelloVAP from '@/components/tierras/SelloVAP.astro';
 import VAPHub from '@/components/tierras/VAPHub.astro';
-import VAPEvidenceGallery from '@/components/tierras/VAPEvidenceGallery.astro';
 import BusinessInsights from '@/components/tierras/BusinessInsights.astro';
 import ProtectionPeriodAlert from '@/components/tierras/ProtectionPeriodAlert.astro';
 import Storytelling from '@/components/tierras/Storytelling.astro';
@@ -204,11 +203,6 @@ const placeJsonLd = (prop.ubicacion_latitud && prop.ubicacion_longitud) ? {
           reporteBanderas={prop.verificacion_vap?.reporte_banderas || []}
           fechaVencimiento={prop.verificacion_vap?.fecha_vencimiento}
         />
-
-        <!-- VAP Evidence Gallery -->
-        {prop.fotos_evidencia && prop.fotos_evidencia.length > 0 && (
-          <VAPEvidenceGallery fotos={prop.fotos_evidencia} />
-        )}
 
         <!-- Media Links -->
         {(prop.video_url || prop.tour_virtual_url || prop.link_drone) && (

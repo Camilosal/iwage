@@ -36,7 +36,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mediaSrc } from '../src/lib/media.ts';
@@ -282,7 +282,6 @@ test('el barrido tiene a quién mirar: las tarjetas y la ficha de tierras están
     'src/pages/tierras/perfiles/[perfil].astro',
     'src/pages/tierras/propiedades/[slug].astro',
     'src/components/tierras/PropertyCard.astro',
-    'src/components/tierras/VAPEvidenceGallery.astro',
   ]) {
     assert.ok(lista.includes(f), `falta ${f} del barrido`);
   }
@@ -350,9 +349,14 @@ test('la ficha ya no re-normaliza: propiedadGaleria desde el módulo, cero media
   assert.doesNotMatch(src, /mediaSrc\(/, 'la ficha sigue resolviendo rutas que ya vienen reducidas del módulo');
 });
 
-test('VAPEvidenceGallery no pinta una ruta cruda (si algún día llega el campo, sale con host interno)', () => {
-  const src = codigo('src/components/tierras/VAPEvidenceGallery.astro');
-  assert.match(src, /mediaSrc\(|toMediaItem\(|\.url\s*\?\?|RESUELTA/, 'la galería de evidencia interpola `foto.url` sin resolver');
+test('el slot muerto de fotos_evidencia no vuelve: se retiró con la Task 14', () => {
+  // `fotos_evidencia` no es atributo de `propiedades` en el esquema ni campo de `Propiedad`,
+  // así que el bloque no renderizaba nunca — y sin type-check en el repo, `astro build` verde
+  // no lo decía. Se retira el bloque y el componente; esta prueba es lo único que impide
+  // que reaparezcan como "inofensivos".
+  assert.ok(!existsSync(join(RAIZ, 'src/components/tierras/VAPEvidenceGallery.astro')), 'revivió VAPEvidenceGallery.astro');
+  const culpables = ARCHIVOS_TIERRAS().filter((rel) => /fotos_evidencia|VAPEvidenceGallery/.test(codigo(rel)));
+  assert.deepEqual(culpables, [], 'una plantilla de tierras vuelve a leer un campo que el esquema no entrega');
 });
 
 // ── 4. Fila 9 del censo: `/tierras/perfiles/*` no puede volver a pedir `/images/perfiles/*.jpg` ─
@@ -401,7 +405,6 @@ test('las plantillas de tierras que toqué transforman a JS y ese JS parsea (ast
     ['src/pages/tierras/perfiles/[perfil].astro', ['propiedadImagen(prop)', 'img.alt || prop.titulo']],
     ['src/pages/tierras/propiedades/[slug].astro', ['propiedadGaleria(prop)']],
     ['src/components/tierras/PropertyCard.astro', ['propiedadImagen(prop)', 'img.alt || prop.titulo']],
-    ['src/components/tierras/VAPEvidenceGallery.astro', ['toMediaItem(']],
   ];
 
   const transformar = async (rel, src) => {
