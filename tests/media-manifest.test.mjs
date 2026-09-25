@@ -31,7 +31,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { manifesto } from '../strapi/scripts/lib/media-manifest.mjs';
+import { manifesto, archivosDelEnlace, esCampoMultiple, formaDeCampo } from '../strapi/scripts/lib/media-manifest.mjs';
 
 const tapas = [
   'public/images/bitacora/meliponas-la-caja-de-angelita.webp',
@@ -368,4 +368,293 @@ test('los tres baldes son una partición del inventario, también con filas de a
   ]);
   // Un `.gitkeep` no se enlaza ni se revisa: no es arte.
   assert.ok(!baldeados.includes('public/images/bitacora/.gitkeep'));
+});
+
+// ===========================================================================
+// F2-a — identidad por `nombre`, series de varios archivos y colisiones medidas
+//
+// Los fixtures de acá salen de `.superpowers/sdd/2026-09-24-media-strapi-
+// consolidation/f2-vocabulario-medido.md` (nombres, slugs y documentIds REALES
+// medidos por el dueño; `historia-visitantes` quedó fuera porque sin token la
+// lectura es 403 y no se puede fixturear sin red). Nada de esto abre `public/
+// images/` ni la API: `manifesto()` recibe listas de strings.
+//
+// Lo que fija este bloque, con un teste por propiedad:
+//   · identidad nivel `nombre` con acentos, `I.E.` y tokens de parada (los 6
+//     `proyecto-meliponario` medidos, que NO tienen `slug`),
+//   · el `-N` final es un ÍNDICE: una tapa reclama varios archivos y la entrada
+//     trae la lista ORDENADA que `aplicar()` tiene que escribir,
+//   · `documentId` como clave de alias, que es lo único que firma un registro sin
+//     `slug`, y su prioridad sobre la regla,
+//   · las dos formas de colisión medida (dos archivos sobre un registro; un
+//     archivo sobre varios registros sin `slug`) → `revisar`, nunca "gana el
+//     primero" ni "gana el más largo" donde eso no es un desempate,
+//   · y que las 36 tapas de bitácora siguen siendo CERO por regla, no por
+//     olvido: la contención de tokens no se aplica a un título.
+// ===========================================================================
+
+/** Los nueve archivos de `galeria/` que el vocabulario F2 ya casó con un proyecto. */
+const GALERIA_AMBALA = [
+  'public/images/galeria/proyecto-ambala-1.webp',
+  'public/images/galeria/proyecto-ambala-2.webp',
+];
+
+test('F2-a identidad por `nombre`: un proyecto sin `slug` se enlaza y su galería sale ORDENADA', () => {
+  // Medido: `proyecto-meliponarios` trae `slug: null` en 6 de 6 registros, así
+  // que la identidad real es `nombre`. El archivo se escribió `proyecto-ambala-N`
+  // y el nombre, con acento y abreviatura: `Meliponario I.E. Ambalá`.
+  const m = manifesto({
+    archivos: [GALERIA_AMBALA[1], GALERIA_AMBALA[0]], // deliberadamente en desorden
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p-ambala', slug: null, nombre: 'Meliponario I.E. Ambalá' },
+    ],
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'proyecto-meliponarios',
+    documentId: 'p-ambala',
+    campo: 'galeria',
+    archivos: GALERIA_AMBALA,
+    origen: 'nombre',
+  }]);
+  // El par no es "un enlace y un sobrante": la unidad son LOS DOS archivos.
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.ambiguos, []);
+});
+
+test('F2-a el orden de una serie es el índice numérico, no el texto', () => {
+  // Medido en `galeria`: el orden del campo repetible lo dice el `-N`, así que
+  // `-10` NO puede adelantarse a `-2`. La raíz sin índice abre en la posición 0.
+  const m = manifesto({
+    archivos: [
+      'public/images/galeria/proyecto-cumbre-10.webp',
+      'public/images/galeria/proyecto-cumbre-2.webp',
+      'public/images/galeria/proyecto-cumbre-3.webp',
+      'public/images/galeria/proyecto-cumbre.webp',
+    ],
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p-cumbre', slug: null, nombre: 'EcoHotel La Cumbre' },
+    ],
+  });
+  assert.equal(m.enlazar.length, 1);
+  assert.deepEqual(archivosDelEnlace(m.enlazar[0]), [
+    'public/images/galeria/proyecto-cumbre.webp',
+    'public/images/galeria/proyecto-cumbre-2.webp',
+    'public/images/galeria/proyecto-cumbre-3.webp',
+    'public/images/galeria/proyecto-cumbre-10.webp',
+  ]);
+});
+
+test('F2-a entre los gemelos de extensión de una serie gana el .webp y el .png queda en pendientes', () => {
+  const m = manifesto({
+    archivos: [
+      'public/images/galeria/proyecto-ambala-1.png',
+      ...GALERIA_AMBALA,
+    ],
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Meliponario I.E. Ambalá' },
+    ],
+  });
+  assert.deepEqual(m.enlazar.map((e) => archivosDelEnlace(e)), [GALERIA_AMBALA]);
+  assert.deepEqual(m.pendientes, ['public/images/galeria/proyecto-ambala-1.png']);
+  assert.deepEqual(m.revisar, []);
+});
+
+test('F2-a un alias por `documentId` le gana a la regla y firma a un registro que la regla no ve', () => {
+  // `p-cumbre` pierde ante el alias; `p1` no tiene NINGÚN reclamo por regla (su
+  // nombre no aparece en ningún archivo): solo escribe lo declarado por humano.
+  const m = manifesto({
+    archivos: GALERIA_AMBALA,
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p-cumbre', slug: 'ambala', nombre: 'Meliponario I.E. Ambalá' },
+      { endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: 'cumbre', nombre: 'EcoHotel La Cumbre' },
+    ],
+    alias: {
+      p1: { endpoint: 'proyecto-meliponarios', campo: 'galeria', archivos: GALERIA_AMBALA },
+    },
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'proyecto-meliponarios',
+    documentId: 'p1',
+    campo: 'galeria',
+    archivos: GALERIA_AMBALA,
+    origen: 'alias',
+  }]);
+  assert.deepEqual(m.ambiguos, [{
+    slug: 'ambala',
+    documentId: 'p-cumbre',
+    motivo: 'la tapa ya está asignada a cumbre',
+  }]);
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.pendientes, []);
+});
+
+test('F2-a dos producciones para el mismo registro y el mismo campo: ninguna gana', () => {
+  // Forma de la colisión medida con `bitacora-miel-chef` + `bitacora-miel-cocina`
+  // sobre un artículo: dos archivos que casan con la misma identidad.
+  const m = manifesto({
+    archivos: [
+      'public/images/galeria/producto-miel-angelita.webp',
+      'public/images/galeria/producto-angelita-miel.webp',
+    ],
+    registros: [
+      { endpoint: 'productos', documentId: 'prd1', slug: null, nombre: 'Miel Angelita 120ml' },
+    ],
+  });
+  assert.deepEqual(m.enlazar, []);
+  assert.deepEqual(m.revisar, [
+    {
+      archivo: 'public/images/galeria/producto-angelita-miel.webp',
+      endpoint: 'productos',
+      documentId: 'prd1',
+      campo: 'imagen',
+      motivo: 'varias producciones reclaman Miel Angelita 120ml en imagen: producto-angelita-miel, producto-miel-angelita',
+    },
+    {
+      archivo: 'public/images/galeria/producto-miel-angelita.webp',
+      endpoint: 'productos',
+      documentId: 'prd1',
+      campo: 'imagen',
+      motivo: 'varias producciones reclaman Miel Angelita 120ml en imagen: producto-angelita-miel, producto-miel-angelita',
+    },
+  ]);
+  assert.deepEqual(m.pendientes, []);
+});
+
+test('F2-a un archivo que reclaman tres productos sin `slug` no se reparte: `producto-caja-1`', () => {
+  // Medido: `producto-caja-1.webp` casa por `nombre` con `Caja AF Estándar`,
+  // `Caja INPA con atril` y `Caja INPA Nogal Cafetero`, y los tres traen
+  // `slug: null`. Sin slug no hay largo que desempate: se revisa, no se adivina.
+  const m = manifesto({
+    archivos: ['public/images/galeria/producto-caja-1.webp'],
+    registros: [
+      { endpoint: 'productos', documentId: 'caja-af', slug: null, nombre: 'Caja AF Estándar' },
+      { endpoint: 'productos', documentId: 'caja-atril', slug: null, nombre: 'Caja INPA con atril' },
+      { endpoint: 'productos', documentId: 'caja-nogal', slug: null, nombre: 'Caja INPA Nogal Cafetero' },
+    ],
+  });
+  assert.deepEqual(m.enlazar, []);
+  assert.deepEqual(m.pendientes, []);
+  assert.equal(m.revisar.length, 1);
+  assert.deepEqual(m.revisar[0], {
+    archivo: 'public/images/galeria/producto-caja-1.webp',
+    endpoint: 'productos',
+    campo: 'galeria',
+    motivo: 'varios registros reclaman el mismo archivo sin que la identidad lo desempate: '
+      + 'productos/caja-af, productos/caja-atril, productos/caja-nogal',
+  });
+  // Sin UN destinatario no hay a quién escribirle: `documentId` no puede salir.
+  assert.equal('documentId' in m.revisar[0], false);
+});
+
+test('F2-a una serie en disputa no escribe a medias: ninguno de sus archivos cae a pendientes', () => {
+  const m = manifesto({
+    archivos: GALERIA_AMBALA,
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Meliponario I.E. Ambalá' },
+      { endpoint: 'proyecto-meliponarios', documentId: 'p2', slug: null, nombre: 'Proyecto Ambala' },
+    ],
+  });
+  assert.deepEqual(m.enlazar, []);
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.revisar.map((r) => r.archivo), GALERIA_AMBALA);
+  assert.match(m.revisar[0].motivo, /p1, proyecto-meliponarios\/p2$/);
+});
+
+test('F2-a las tapas de bitácora siguen siendo cero por regla: un título no es una identidad', () => {
+  // La regla de tokens del dueño casaba 29 de 36 tapas, pero contra el TÍTULO.
+  // `bitacora` no declara `identidadNombre` (tiene `titulo`, no `nombre`), así
+  // que ni siquiera mirar el campo: las 36 terminan en `pendientes`, no enlazadas
+  // a medias. Pasar de ahí cuesta una fila de alias, que es lo que sigue abajo.
+  const chef = 'public/images/bitacora/bitacora-miel-chef.webp';
+  const cocina = 'public/images/bitacora/bitacora-miel-cocina.webp';
+  const registros = [{
+    endpoint: 'bitacoras',
+    documentId: 'xv5ia6c4xumhfl4imtvhbryi',
+    slug: 'la-miel-de-angelita-y-el-chef-maridajes-y-aplicaciones-en-la-alta-cocina',
+    nombre: 'La miel de Angelita y el chef: maridajes y aplicaciones en la alta cocina',
+  }];
+  const m = manifesto({ archivos: [chef, cocina], registros });
+  assert.deepEqual(m.enlazar, []);
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.motivosAlias, []);
+  assert.deepEqual(m.pendientes, [chef, cocina]);
+
+  // Y el único camino que existe para ese archivo es la fila declarada.
+  const conAlias = manifesto({
+    archivos: [chef, cocina],
+    registros,
+    alias: { [chef]: { endpoint: 'bitacoras', slug: 'la-miel-de-angelita-y-el-chef-maridajes-y-aplicaciones-en-la-alta-cocina' } },
+  });
+  assert.deepEqual(conAlias.enlazar, [{
+    endpoint: 'bitacoras',
+    documentId: 'xv5ia6c4xumhfl4imtvhbryi',
+    campo: 'imagen',
+    archivo: chef,
+    origen: 'alias',
+  }]);
+  assert.deepEqual(conAlias.pendientes, [cocina]);
+});
+
+test('F2-a frontera letra/dígito: `modulo1` ≡ `modulo-1` y `120ml` ≡ `120 ml`', () => {
+  // Cuatro combinaciones del mismo empaquetado: nombre pegado o con espacio,
+  // archivo con guion o pegado. Solo las dos extremas coinciden por suerte; las
+  // cruzadas (`120ml` en el nombre, `120-ml` en el archivo, y a la inversa) son
+  // las que sostienen la regla de la frontera letra/dígito en `normalizar()`.
+  // Además: una serie de UN archivo se escribe igual como lista porque el campo
+  // es repetible — la aridad la decide la tabla, no el conteo (CONTRATO 2).
+  const casos = [
+    ['nombre pegado / archivo pegado', 'Miel Angelita 120ml', 'producto-miel-angelita-120ml'],
+    ['nombre separado / archivo separado', 'Miel Angelita 120 ml', 'producto-miel-angelita-120-ml'],
+    ['nombre pegado / archivo con guion', 'Miel Angelita 120ml', 'producto-miel-angelita-120-ml'],
+    ['nombre separado / archivo pegado', 'Miel Angelita 120 ml', 'producto-miel-angelita-120ml'],
+  ];
+  for (const [etiqueta, nombre, raiz] of casos) {
+    const archivo = `public/images/galeria/${raiz}-1.webp`;
+    const m = manifesto({
+      archivos: [archivo],
+      registros: [{ endpoint: 'productos', documentId: 'prd1', slug: null, nombre }],
+    });
+    assert.deepEqual(m.enlazar, [{
+      endpoint: 'productos',
+      documentId: 'prd1',
+      campo: 'galeria',
+      archivo,
+      origen: 'nombre',
+    }], etiqueta);
+    assert.deepEqual(m.pendientes, [], etiqueta);
+    assert.deepEqual(m.revisar, [], etiqueta);
+  }
+  // Y la tabla es la que dice qué campo es repetible y de qué forma es cada valor.
+  assert.equal(esCampoMultiple('productos', 'galeria'), true);
+  assert.equal(esCampoMultiple('productos', 'imagen'), false);
+  assert.equal(formaDeCampo('productos', 'galeria'), 'json');
+  assert.equal(formaDeCampo('productos', 'imagen'), 'string');
+});
+
+test('F2-a la salida no depende del orden de entrada: mismos baldes con el inventario barajado', () => {
+  const archivos = [
+    ...GALERIA_AMBALA,
+    'public/images/bitacora/bitacora-la-miel.webp',
+    'public/images/bitacora/bitacora-caso-don-manuel.webp',
+    'public/images/cafe-menu/proveedor-meliponario.webp',
+    'public/images/galeria/proyecto-poblado-1.webp',
+  ];
+  const registros = [
+    { endpoint: 'bitacoras', documentId: 'd1', slug: 'la-miel' },
+    { endpoint: 'bitacoras', documentId: 'd2', slug: 'caso-la-finca-de-don-manuel' },
+    { endpoint: 'item-menus', documentId: 'm1', slug: 'meliponario' },
+    { endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Meliponario I.E. Ambalá' },
+    { endpoint: 'proyecto-meliponarios', documentId: 'p2', slug: null, nombre: 'Jardín Residencial El Poblado' },
+  ];
+  const alias = {
+    'public/images/bitacora/bitacora-caso-don-manuel.webp': { endpoint: 'bitacoras', slug: 'caso-la-finca-de-don-manuel' },
+  };
+  const ida = JSON.stringify(manifesto({ archivos, registros, alias }));
+  const vuelta = JSON.stringify(manifesto({
+    archivos: archivos.slice().reverse(),
+    registros,
+    alias: { ...alias }, // misma fila, insertada en otro orden de clave
+  }));
+  assert.equal(vuelta, ida, 'barajar el inventario no puede cambiar ningún balde');
 });

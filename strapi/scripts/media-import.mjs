@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Inventario accionable de los assets huérfanos de public/images/ e importador
- * a la media library de Strapi, con el enlace por slug.
+ * a la media library de Strapi, con el enlace por identidad.
  *
  *   STRAPI_URL=... STRAPI_TOKEN=... node strapi/scripts/media-import.mjs            # dry-run
  *   STRAPI_URL=... STRAPI_TOKEN=... node strapi/scripts/media-import.mjs --dry-run  # ídem, explícito
@@ -15,10 +15,26 @@
  * contradictoria no se resuelve a favor de la escritura (parsea
  * ./lib/media-flags.mjs, que es pura y se testea sin servidor).
  *
- * `--alias=<ruta>` lee un JSON `{"alias": {"<ruta de archivo>": {"endpoint","slug"}}}`
- * con los emparejamientos que ningún nombre permite deducir — hoy, las 36 tapas de
- * bitácora, que traen el slug recortado. Ver el bloque ALIAS de
- * ./lib/media-manifest.mjs: sin ese archivo, esas tapas quedan en `pendientes`.
+ * Qué decide cada enlace, y con qué grado de confianza, vive en
+ * ./lib/media-manifest.mjs: cuatro niveles (`alias` declarado → `slug` exacto →
+ * `nombre` normalizado → coincidencia solo por sufijo, esta última NO se
+ * enlaza). Un enlace puede llevar una LISTA ORDENADA de archivos —la galería de
+ * un proyecto, en el orden de su `-N`—; `aplicar()` escribe la unidad COMPLETA o
+ * no escribe ese enlace, porque una galería de dos archivos cuyo segundo upload
+ * falla no puede dejar detrás una galería de un elemento.
+ *
+ * Por eso la lectura pide `nombre` además de `slug` donde el content-type tiene
+ * la identidad en el nombre: medido, los 6 `proyecto-meliponario` traen
+ * `slug: null`, y sin `nombre` no habría ningún enlace posible.
+ *
+ * `--alias=<ruta>` lee un JSON `{"alias": {...}}` con los emparejamientos que
+ * ningún nombre permite deducir — hoy, las 36 tapas de bitácora, que traen el
+ * slug recortado—. Acepta dos formas de fila: la de siempre, clave = ruta de
+ * archivo y valor `{endpoint, slug}`, y una con clave = `documentId` y valor
+ * `{endpoint, campo, archivos: [...]}`, que es la única que puede firmar a un
+ * registro SIN `slug` y la única que escribe un campo repetible en el orden
+ * declarado. Ver el bloque ALIAS de ./lib/media-manifest.mjs: sin ese archivo,
+ * esas tapas quedan en `pendientes`.
  *
  * Idempotencia REAL y declarada: por NOMBRE. Se indexa la media library y un
  * nombre que ya existe no se vuelve a subir; enlazar vuelve a asignar el mismo
@@ -36,7 +52,15 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ENDPOINTS_CON_MEDIO, RAIZ, directoriosDeInventario, manifesto } from './lib/media-manifest.mjs';
+import {
+  ENDPOINTS_CON_MEDIO,
+  RAIZ,
+  archivosDelEnlace,
+  directoriosDeInventario,
+  esCampoMultiple,
+  formaDeCampo,
+  manifesto,
+} from './lib/media-manifest.mjs';
 import { parsearFlags } from './lib/media-flags.mjs';
 
 /** El repo se resuelve desde este archivo, no desde el cwd: el script corre desde cualquier carpeta. */
@@ -93,17 +117,23 @@ const nombreDe = (archivo) => archivo.split('/').pop();
 const extensionDe = (archivo) => nombreDe(archivo).split('.').pop().toLowerCase();
 
 /**
- * Valor que se le manda al campo. Los dos casos existen hoy (medido en los
- * schema.json y repetido en ENDPOINTS_CON_MEDIO.campoForma):
+ * Valor que se le manda al campo. La forma la pregunta `formaDeCampo(endpoint,
+ * campo)` —portada y galería pueden ser de tipo distinto en el mismo
+ * content-type— y los tres casos existen hoy (medido en los schema.json y
+ * repetido en ENDPOINTS_CON_MEDIO):
  *   · `string`  → ruta relativa de sitio. Nunca el host interno de Strapi:
  *                 ese fue justo el bug que cerró F0 con `mediaSrc`.
+ *   · `json`    → el tipo ACTUAL de la galería repetible: una lista de esas
+ *                 mismas rutas relativas, así que cada elemento se arma igual.
  *   · `media`   → id numérico del archivo. `connect` NO está soportado para
  *                 atributos media según la doc de REST de Strapi, y el doc de
  *                 la brief lo dejaba como variante a comprobar: hay que
  *                 validar el formato con UN registro antes de lanzar el lote.
+ * `null` = no hay forma utilizable, y el enlace no se escribe.
  */
-function valorDeEnlace(file, cfg) {
-  if (cfg.campoForma === 'media') return file.id;
+function valorDeEnlace(file, forma) {
+  if (forma === 'media') return file.id;
+  if (forma !== 'string' && forma !== 'json') return null;
   const url = file.url ?? '';
   if (url.startsWith('/')) return url;
   try {
@@ -114,10 +144,13 @@ function valorDeEnlace(file, cfg) {
 }
 
 /**
- * Archivo de alias declarados (`--alias=<ruta>`): `{"aviso": "…", "alias": {"<ruta>": {"endpoint","slug"}}}`.
- * `aviso` y cualquier otra clave de arriba se ignoran: lo único que se lee es
- * `alias`, que tiene que ser un objeto. La forma la valida el módulo puro, que
- * reporta la fila que no puede firmar en vez de reventar la corrida.
+ * Archivo de alias declarados (`--alias=<ruta>`): `{"aviso": "…", "alias": {...}}`
+ * con filas de dos formas — clave = ruta de archivo y valor `{endpoint, slug}`, o
+ * clave = `documentId` y valor `{endpoint, campo, archivos: [...]}` en el orden en
+ * que hay que escribirlos—. `aviso` y cualquier otra clave de arriba se ignoran:
+ * lo único que se lee es `alias`, que tiene que ser un objeto. La forma la valida
+ * el módulo puro, que reporta la fila que no puede firmar en vez de reventar la
+ * corrida.
  *
  * Ni este mensaje ni ninguno echoea el valor de `--alias`: la política del script
  * es no reimprimir argumentos (un secreto podría viajar ahí), y el que pasó la
@@ -171,7 +204,9 @@ async function construir(alias) {
   const registros = [];
   const leidos = [];
   for (const [endpoint, cfg] of Object.entries(ENDPOINTS_CON_MEDIO)) {
-    const campos = ['slug', ...(cfg.tieneMarca ? ['marca'] : [])];
+    // `nombre` solo donde el content-type lo tiene y la tabla lo declara identidad:
+    // pedir un field que no existe es un 400 garantizado.
+    const campos = ['slug', ...(cfg.tieneMarca ? ['marca'] : []), ...(cfg.identidadNombre ? ['nombre'] : [])];
     const qs = new URLSearchParams({ 'pagination[pageSize]': '200', 'pagination[page]': '1', sort: 'slug:asc' });
     campos.forEach((c, i) => qs.set(`fields[${i}]`, c));
     const j = await pedir(`/api/${endpoint}?${qs}`);
@@ -180,7 +215,7 @@ async function construir(alias) {
     if (datos.length >= 200) console.warn(`  ${endpoint}: 200 registros, puede que hayan más (paginar)`);
     for (const d of datos) {
       // `campo` no se pasa: lo deriva la tabla del módulo puro. Un valor aquí mandaría.
-      registros.push({ endpoint, documentId: d.documentId, slug: d.slug, marca: d.marca });
+      registros.push({ endpoint, documentId: d.documentId, slug: d.slug, nombre: d.nombre, marca: d.marca });
     }
   }
 
@@ -197,20 +232,35 @@ async function construir(alias) {
 function imprimir({ manifiesto: m, porNombre, leidos, registros, archivos, filasAlias }) {
   console.log(`lectura: ${leidos.join(' ')} · ${registros.length} registros · ${archivos.length} archivos · ${filasAlias} filas de alias`);
   // CONTABILIDAD (Tareas 11 y 14): `enlazar`, `pendientes` y `revisar` son una
-  // partición del inventario —cada archivo leído cae en exactamente un balde, así
-  // que sus tres longitudes suman `archivos.length` (salvo `.gitkeep`)—. Nunca se
-  // suma un cuarto arreglo a ese total: `ambiguos` y `motivosAlias` son listas de
-  // RAZONES, no de archivos, y un mismo archivo puede tener varias.
+  // PARTICIÓN de los archivos leídos — cada archivo cae en exactamente un balde—.
+  // Como una entrada de `enlazar` puede traer VARIOS archivos (la galería de un
+  // proyecto), la suma que cierra contra el inventario es por archivos, no por
+  // líneas: se imprimen las dos y la de archivos es la que vale como inventario.
+  // Nunca se suma un cuarto arreglo a ese total: `ambiguos` y `motivosAlias` son
+  // listas de RAZONES, no de archivos, y un mismo archivo puede tener varias.
+  const enlazados = m.enlazar.flatMap(archivosDelEnlace);
   console.log(`${m.enlazar.length} enlaces · ${m.revisar.length} en revisar (NO se escriben) · ${m.pendientes.length} pendientes · ${m.ambiguos.length} ambigüedades · ${m.motivosAlias.length} motivo(s) de alias sin firmar`);
+  console.log(`archivos: ${enlazados.length} enlazados + ${m.revisar.length} en revisar + ${m.pendientes.length} pendientes = ${enlazados.length + m.revisar.length + m.pendientes.length} de ${archivos.length}`);
+  if (enlazados.length + m.revisar.length + m.pendientes.length !== archivos.length) {
+    console.warn('  LA PARTICIÓN NO CIERRA: hay archivos sin balde o en dos baldes. No usar esta salida como inventario.');
+  }
   for (const e of m.enlazar) {
-    const estado = porNombre.has(nombreDe(e.archivo)) ? 'el nombre ya está en la librería' : 'nombre nuevo: hay que subirlo';
-    console.log(`  enlace${e.origen === 'alias' ? ' (alias)' : ''}: ${e.archivo} → ${e.endpoint}/${e.documentId}.${e.campo} (${estado})`);
+    const lista = archivosDelEnlace(e);
+    const porSubir = lista.filter((a) => !porNombre.has(nombreDe(a))).length;
+    const estado = porSubir === lista.length
+      ? (lista.length > 1 ? `${lista.length} nombres nuevos: hay que subirlos` : 'nombre nuevo: hay que subirlo')
+      : porSubir ? `${porSubir} de ${lista.length} por subir` : 'los nombres ya están en la librería';
+    // El origen va siempre en la salida: omitido significa «regla de `slug`», que
+    // es el caso que el contrato del módulo deja sin etiqueta.
+    console.log(`  enlace (${e.origen ?? 'slug'}): ${lista.join(' + ')} → ${e.endpoint}/${e.documentId}.${e.campo} (${estado})`);
   }
   // Un `revisar` es una propuesta con nombre y apellido: se imprime para el humano,
   // y la única forma de volverla escribible es declararla en el archivo de alias.
   for (const r of m.revisar) console.log(`  revisar: ${r.archivo} · ${r.motivo}`);
   for (const p of m.pendientes) console.log('  pendiente:', p);
-  for (const a of m.ambiguos) console.log('  ambiguo:', a.slug, '·', a.motivo);
+  // Un registro sin `slug` se nombra por `documentId`: medido, 6 de 6
+  // `proyecto-meliponario` y 3 de 14 `producto` no tienen otra identidad.
+  for (const a of m.ambiguos) console.log('  ambiguo:', a.slug ?? a.documentId, '·', a.motivo);
   // Y la fila de alias que no se pudo firmar se nombra, sin contar su archivo dos
   // veces: ese archivo ya está en `enlazar` o en `pendientes`.
   for (const s of m.motivosAlias) console.log(`  alias sin firmar: ${s.archivo} · ${s.motivo}`);
@@ -219,40 +269,46 @@ function imprimir({ manifiesto: m, porNombre, leidos, registros, archivos, filas
 /** Sube lo que falte y enlaza. Solo se llega aquí con --apply y con modo `aplicar`. */
 async function aplicar({ manifiesto: m, porNombre }) {
   // El balde `revisar` no se escribe ni con --apply: son coincidencias solo por
-  // sufijo, una propuesta con nombre y apellido que requiere la fila de alias de un
-  // humano. Las filas de alias que ningún registro pudo firmar ya no están acá (van
-  // a `motivosAlias`, que no es un balde de archivos) y tampoco se escriben.
+  // sufijo y colisiones sin desempate, es decir, propuestas con nombre y apellido
+  // que requieren la fila de alias de un humano. Las filas de alias que ningún
+  // registro pudo firmar ya no están acá (van a `motivosAlias`, que no es un balde
+  // de archivos) y tampoco se escriben.
   if (m.revisar.length) console.warn(`  ${m.revisar.length} emparejamiento(s) en revisar: se omite(n), no se escribe(n).`);
   let errores = 0;
-  for (const { endpoint, documentId, campo, archivo } of m.enlazar) {
-    const nombre = nombreDe(archivo);
+  for (const enlace of m.enlazar) {
+    const { endpoint, documentId, campo } = enlace;
+    // Un enlace puede traer VARIOS archivos, ya en el orden en que hay que
+    // escribirlos (ver CONTRATO 2 del módulo). Se preparan TODOS antes de tocar
+    // el registro: escribir la mitad de una galería borra la otra mitad, y ese es
+    // exactamente el daño que esta fase no puede hacer.
+    const archivos = archivosDelEnlace(enlace);
+    const forma = formaDeCampo(endpoint, campo);
+    const multiple = esCampoMultiple(endpoint, campo);
     // Un enlace roto no corta el lote: se cuenta y se sigue, y el script termina con exit 1.
     try {
-      let file = porNombre.get(nombre);
-      if (!file) {
-        const form = new FormData();
-        form.append('files', new Blob([readFileSync(join(RAIZ_REPO, archivo))], { type: MIME[extensionDe(archivo)] ?? 'application/octet-stream' }), nombre);
-        const sub = await pedir('/api/upload', { method: 'POST', body: form });
-        file = (Array.isArray(sub) ? sub : sub?.data)?.[0];
-        if (!file?.id) {
-          console.warn('  sin archivo devuelto al subir:', nombre);
-          errores += 1;
-          continue;
+      if (!forma) throw new Error(`${endpoint}.${campo} no es un campo de medio de la tabla`);
+      const valores = [];
+      for (const archivo of archivos) {
+        const nombre = nombreDe(archivo);
+        let file = porNombre.get(nombre);
+        if (!file) {
+          const form = new FormData();
+          form.append('files', new Blob([readFileSync(join(RAIZ_REPO, archivo))], { type: MIME[extensionDe(archivo)] ?? 'application/octet-stream' }), nombre);
+          const sub = await pedir('/api/upload', { method: 'POST', body: form });
+          file = (Array.isArray(sub) ? sub : sub?.data)?.[0];
+          if (!file?.id) throw new Error('el upload no devolvió archivo');
+          porNombre.set(nombre, file);
         }
-        porNombre.set(nombre, file);
-      }
-      const valor = valorDeEnlace(file, ENDPOINTS_CON_MEDIO[endpoint]);
-      if (valor === null) {
-        console.warn('  sin ruta utilizable para enlazar:', nombre);
-        errores += 1;
-        continue;
+        const valor = valorDeEnlace(file, forma);
+        if (valor === null) throw new Error(`sin ruta utilizable para ${nombre}`);
+        valores.push(valor);
       }
       await pedir(`/api/${endpoint}/${documentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: { [campo]: valor } }),
+        body: JSON.stringify({ data: { [campo]: multiple ? valores : valores[0] } }),
       });
-      console.log('  ok', endpoint, documentId, campo, '←', nombre);
+      console.log('  ok', endpoint, documentId, campo, '←', archivos.map(nombreDe).join(' + '));
     } catch (e) {
       console.warn('  falló el enlace:', endpoint, documentId, '·', e.message);
       errores += 1;

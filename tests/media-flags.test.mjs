@@ -115,8 +115,12 @@ const LECTURAS_STUB = {
     data: [{ documentId: 'i1', slug: 'miel-crema' }, { documentId: 'r1', slug: 'meliponario' }],
   },
   '/api/proyecto-meliponarios': { data: [] },
+  // F2-a: `productos` entra a la tabla para que las colisiones medidas de
+  // `galeria/producto-*` se reporten en `revisar` en vez de quedar en `pendientes`.
+  // Aquí la lectura viene vacía: el inventario de juguete no trae arte de producto.
+  '/api/productos': { data: [] },
 };
-/** El orden exacto en que el importador lee: seis GET, uno por tabla + librería. */
+/** El orden exacto en que el importador lee: siete GET, uno por tabla + librería. */
 const SECUENCIA_LECTURA = [
   'GET /api/upload/files',
   'GET /api/bitacoras',
@@ -124,6 +128,7 @@ const SECUENCIA_LECTURA = [
   'GET /api/proveedors',
   'GET /api/item-menus',
   'GET /api/proyecto-meliponarios',
+  'GET /api/productos',
 ];
 /** Lo único que `--apply` puede escribir: dos enlaces, y solo dos peticiones más. */
 const ESCRITURAS_ESPERADAS = ['POST /api/upload', 'PUT /api/bitacoras/b1', 'PUT /api/item-menus/i1'];
@@ -131,7 +136,11 @@ const ESCRITURAS_ESPERADAS = ['POST /api/upload', 'PUT /api/bitacoras/b1', 'PUT 
 const PLAZO_CORRIDA = 20_000;
 
 /** Inventario de juguete + copia byte-idéntica del script y sus dos módulos. */
-function arbolDePrueba() {
+function arbolDePrueba(arte = {
+  'bitacora': ['bitacora-la-miel.webp'],
+  'cafe-menu': ['miel-crema.webp', 'proveedor-meliponario.webp'],
+  'galeria': ['proyecto-ambala-1.webp'],
+}) {
   const raiz = mkdtempSync(join(tmpdir(), 'media-import-cli-'));
   const scripts = join(raiz, 'strapi', 'scripts');
   mkdirSync(join(scripts, 'lib'), { recursive: true });
@@ -139,11 +148,6 @@ function arbolDePrueba() {
   for (const modulo of ['media-manifest.mjs', 'media-flags.mjs']) {
     copyFileSync(join(dirname(SCRIPT), 'lib', modulo), join(scripts, 'lib', modulo));
   }
-  const arte = {
-    'bitacora': ['bitacora-la-miel.webp'],
-    'cafe-menu': ['miel-crema.webp', 'proveedor-meliponario.webp'],
-    'galeria': ['proyecto-ambala-1.webp'],
-  };
   for (const [dir, nombres] of Object.entries(arte)) {
     const abs = join(raiz, 'public', 'images', dir);
     mkdirSync(abs, { recursive: true });
@@ -262,6 +266,121 @@ test('el CLI obedece sus flags: en seco no escribe ni una petición, y con --app
   } finally {
     // Nadie se queda escuchando: `close()` espera a las conexiones abiertas, así
     // que se cortan primero. Si el bind falló, cerrar no hace nada.
+    servidor.closeAllConnections?.();
+    await new Promise((resolve) => servidor.close(() => resolve()));
+  }
+});
+
+// --- F2-a: el multi-asset llega hasta el cuerpo del PUT -----------------------
+//
+// El módulo puro ya promete que una galería es UNA unidad de N archivos en el
+// orden de su `-N`. Esa promesa no vale nada si `aplicar()` la escribe como un
+// escalar: con un array de un elemento, Strapi borra la segunda foto. Este teste
+// corre el CLI completo contra un stub propio y lee el CUERPO del PUT, que es
+// donde se ve la aridad y el orden. Mide además el all-or-nothing: si el segundo
+// upload no devuelve archivo, el enlace no se escribe NADA.
+
+/** La lectura del stub: un proyecto SIN `slug`, con su nombre real de producción. */
+const LECTURAS_GALERIA = {
+  '/api/upload/files': [],
+  '/api/bitacoras': { data: [] },
+  '/api/historia-visitantes': { data: [] },
+  '/api/proveedors': { data: [] },
+  '/api/item-menus': { data: [] },
+  '/api/productos': { data: [] },
+  '/api/proyecto-meliponarios': {
+    data: [{ documentId: 'p1', slug: null, nombre: 'Meliponario I.E. Ambalá' }],
+  },
+};
+
+test('un enlace de varios archivos se escribe COMPLETO, en orden y en un solo PUT', async (t) => {
+  const peticiones = [];
+  const put = [];
+  let nombreQueNoSube = null;
+  const servidor = createServer((req, res) => {
+    const ruta = (req.url ?? '').split('?')[0];
+    const trozos = [];
+    req.on('data', (c) => trozos.push(c));
+    req.on('end', () => {
+      const cuerpo = Buffer.concat(trozos).toString('utf8');
+      peticiones.push(`${req.method} ${ruta}`);
+      const json = (v) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(v));
+      };
+      if (req.method === 'GET' && ruta in LECTURAS_GALERIA) return json(LECTURAS_GALERIA[ruta]);
+      if (req.method === 'POST' && ruta === '/api/upload') {
+        const nombre = /filename="([^"]+)"/.exec(cuerpo)?.[1] ?? '';
+        if (nombre === nombreQueNoSube) return json([]); // el upload no devuelve archivo
+        return json([{ id: 900, name: nombre, url: `/uploads/900/${nombre}` }]);
+      }
+      if (req.method === 'PUT' && ruta.startsWith('/api/')) {
+        put.push({ ruta, cuerpo: JSON.parse(cuerpo) });
+        return json({});
+      }
+      res.writeHead(501, { 'Content-Type': 'application/json' });
+      res.end('{}');
+    });
+  });
+  let raiz = null;
+  try {
+    const escuchando = await new Promise((resolve) => {
+      const fallo = (e) => resolve({ ok: false, codigo: e.code ?? e.message });
+      servidor.once('error', fallo);
+      servidor.listen(0, '127.0.0.1', () => {
+        servidor.removeListener('error', fallo);
+        resolve({ ok: true });
+      });
+    });
+    if (!escuchando.ok) {
+      t.skip(`no se pudo abrir un socket propio en 127.0.0.1 (${escuchando.codigo})`);
+      return;
+    }
+    const base = `http://127.0.0.1:${servidor.address().port}`;
+    const env = { ...process.env, STRAPI_URL: base, STRAPI_TOKEN: 'falso-para-stub-127' };
+    // En disco a PROPÓSITO en orden inverso: el orden del enlace lo da el índice,
+    // no lo que diga `readdirSync`.
+    raiz = arbolDePrueba({ galeria: ['proyecto-ambala-2.webp', 'proyecto-ambala-1.webp'] });
+    const cli = join(raiz, 'strapi', 'scripts', 'media-import.mjs');
+
+    // 1) en seco: decide la galería y no escribe nada.
+    peticiones.length = 0;
+    const seco = await correr(cli, ['--dry-run'], env);
+    assert.equal(seco.status, 0, seco.stderr);
+    assert.deepEqual(peticiones.filter((p) => !p.startsWith('GET ')), [], '--dry-run: cero peticiones que no sean GET');
+    assert.match(
+      seco.stdout,
+      /enlace \(nombre\): public\/images\/galeria\/proyecto-ambala-1\.webp \+ public\/images\/galeria\/proyecto-ambala-2\.webp → proyecto-meliponarios\/p1\.galeria/,
+      'el enlace trae los DOS archivos, en el orden del índice',
+    );
+    assert.match(seco.stdout, /archivos: 2 enlazados \+ 0 en revisar \+ 0 pendientes = 2 de 2/, 'y la contabilidad cierra por archivos');
+
+    // 2) `--apply`: dos subidas y UN solo PUT con la lista completa en orden.
+    peticiones.length = 0;
+    put.length = 0;
+    const apply = await correr(cli, ['--apply'], env);
+    assert.equal(apply.status, 0, apply.stderr);
+    assert.deepEqual(
+      peticiones.filter((p) => p.startsWith('POST ') || p.startsWith('PUT ')),
+      ['POST /api/upload', 'POST /api/upload', 'PUT /api/proyecto-meliponarios/p1'],
+      'se suben los dos archivos y se enlaza una sola vez',
+    );
+    assert.deepEqual(put, [{
+      ruta: '/api/proyecto-meliponarios/p1',
+      cuerpo: { data: { galeria: ['/uploads/900/proyecto-ambala-1.webp', '/uploads/900/proyecto-ambala-2.webp'] } },
+    }], 'el PUT lleva la galería completa y en orden (aridad de la tabla, no del conteo)');
+
+    // 3) all-or-nothing: si el segundo archivo no sube, ese enlace no escribe nada.
+    peticiones.length = 0;
+    put.length = 0;
+    nombreQueNoSube = 'proyecto-ambala-2.webp';
+    const roto = await correr(cli, ['--apply'], env);
+    nombreQueNoSube = null;
+    assert.notEqual(roto.status, 0, 'un enlace incompleto tiene que terminar con exit != 0');
+    assert.deepEqual(put, [], 'y no puede dejar escrita una galería de un elemento');
+    assert.match(roto.stdout + roto.stderr, /falló el enlace: proyecto-meliponarios p1/, 'lo dice por nombre y registro');
+  } finally {
+    if (raiz) rmSync(raiz, { recursive: true, force: true });
     servidor.closeAllConnections?.();
     await new Promise((resolve) => servidor.close(() => resolve()));
   }
