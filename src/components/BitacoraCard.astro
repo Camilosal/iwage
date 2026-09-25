@@ -1,4 +1,6 @@
 ---
+import { mediaSrc, type MediaItem } from '@/lib/media';
+
 interface Props {
   title: string;
   excerpt: string;
@@ -6,12 +8,23 @@ interface Props {
   date: string;
   readTime: string;
   href: string;
-  image?: string;
+  /** La portada ya normalizada (`getBitacoraByMarca`/`getResumenBitacora`). */
+  image?: MediaItem | null;
 }
 const { title, excerpt, category, date, readTime, href, image } = Astro.props;
 
+// `mediaSrc()` hace dos cosas acá y ninguna de las dos la hacía el `src={image}` anterior:
+//  · acepta un `MediaItem`, un string o `null`, así que la tarjeta no puede pintar
+//    `[object Object]` ni con un llamador que le pase la forma vieja;
+//  · reduce una portada absoluta de Strapi (una URL con el host interno del compose,
+//    iwage_strapi:1337) a la ruta de sitio `/uploads/...`, que es lo que sirve nginx.
+//    Interpolada tal cual, la tarjeta le pediría al navegador un host inalcanzable.
+const src = mediaSrc(image ?? null);
+// El `alternativeText` del admin describe la foto; el título describe el artículo.
+const alt = image?.alt || title;
+
 // Fallback image placeholder (using a gradient div)
-const hasImage = !!image;
+const hasImage = !!src;
 ---
 
 <a
@@ -21,8 +34,8 @@ const hasImage = !!image;
   <div class={`aspect-[16/10] overflow-hidden ${hasImage ? '' : 'bg-gradient-to-br from-brand-muted/30 to-accent-muted/30'}`}>
     {hasImage ? (
       <img
-        src={image}
-        alt={title}
+        src={src}
+        alt={alt}
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         loading="lazy"
         decoding="async"

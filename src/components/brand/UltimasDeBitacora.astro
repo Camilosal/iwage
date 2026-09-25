@@ -7,6 +7,8 @@ interface Props {
 }
 
 const { marca } = Astro.props;
+// Las filas ya salen normalizadas de `getResumenBitacora` (`imagen: MediaItem | null`),
+// y `BitacoraCard` resuelve la ruta con `mediaSrc()` y prefiere el `alt` del admin.
 const resumen = await getResumenBitacora();
 const ultimas = resumen.porMarca[marca]?.ultimas ?? [];
 ---
@@ -35,7 +37,7 @@ const ultimas = resumen.porMarca[marca]?.ultimas ?? [];
             date={post.fecha ?? ''}
             readTime={String(post.tiempo_lectura ?? 5)}
             href={`/${marca}/bitacora/${post.slug}`}
-            image={post.imagen ?? undefined}
+            image={post.imagen}
           />
         ))}
       </div>
