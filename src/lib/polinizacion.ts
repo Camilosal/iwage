@@ -32,6 +32,10 @@ export interface CultivoPolinizacion {
   documentId: string;
   nombre: string;
   slug: string;
+  // Ruta de la ficha o null. Las plantillas enlazan con esto, nunca con `slug`: medido el
+  // 2026-09-25, las 12 filas de `cultivo_polinizacions` traen `slug` NULL y un
+  // `/meliponas/polinizacion/${slug}` a mano es un enlace a la propia lista.
+  ficha: string | null;
   nombre_cientifico: string | null;
   familia_botanica: string | null;
   icono: string | null;
@@ -90,6 +94,7 @@ export function normalizeCultivo(raw: any): CultivoPolinizacion {
     documentId: raw.documentId,
     nombre: raw.nombre,
     slug: raw.slug ?? '',
+    ficha: raw.slug ? `/meliponas/polinizacion/${raw.slug}` : null,
     nombre_cientifico: raw.nombre_cientifico ?? null,
     familia_botanica: raw.familia_botanica ?? null,
     icono: raw.icono ?? null,
