@@ -95,12 +95,23 @@ test('toMediaItem: entiende la forma vieja { url, tipo, titulo }', () => {
   const m = toMediaItem({ url: 'https://vimeo.com/123456', tipo: 'video', titulo: 'Recorrido' });
   assert.equal(m.provider, 'vimeo');
   assert.equal(m.caption, 'Recorrido');
-  // La mitad `tipo`: con un .webp propio classify() diría `imagen`; si TIPO_VIEJO no se
-  // aplica, estos tres asserts caen.
-  const v = toMediaItem({ url: '/uploads/x.webp', tipo: 'video' });
-  assert.equal(v.kind, 'video');
-  assert.equal(v.provider, 'strapi');
+  // La mitad `tipo`, corregida el 2026-09-25: la etiqueta a mano re-etiqueta material propio
+  // SOLO cuando el nombre del archivo no dice nada (`/uploads/clip`). Con extensión conocida
+  // manda el nombre, en los dos sentidos.
+  const sinExtension = toMediaItem({ url: '/uploads/clip', tipo: 'video' });
+  assert.equal(sinExtension.kind, 'video', 'sin extensión el `tipo` es la única señal y se pierde');
+  assert.equal(sinExtension.provider, 'strapi');
   assert.equal(toMediaItem({ url: '/uploads/x.webp', tipo: 'imagen' }).kind, 'imagen');
+  assert.equal(
+    toMediaItem({ url: '/uploads/clip.mp4', tipo: 'imagen' }).kind,
+    'video',
+    'un `tipo:\'imagen\'` bajaba un .mp4 propio a <img>: MediaGallery pedía un códec donde hay un JPG',
+  );
+  assert.equal(
+    toMediaItem({ url: '/uploads/foto.webp', tipo: 'video' }).kind,
+    'imagen',
+    'el mismo poder en sentido inverso subía una foto a <video>, que es la otra forma de elemento roto',
+  );
   // Un `tipo` que no está en la tabla no inventa nada: manda classify().
   assert.equal(toMediaItem({ url: '/uploads/x.webp', tipo: 'whatever' }).kind, 'imagen');
 });

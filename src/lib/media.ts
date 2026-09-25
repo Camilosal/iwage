@@ -81,18 +81,26 @@ function rawOf(input: unknown): string | null {
   return u || null;
 }
 
-function classify(url: string): { kind: MediaKind; provider: MediaProvider } {
+const EXT_VIDEO = /\.(mp4|webm|mov|m4v|m4a|mp3|ogg|wav)$/i;
+const EXT_IMAGEN = /\.(png|jpe?g|webp|gif|avif|svg)$/i;
+
+/**
+ * `kind`/`provider` según el host y, para lo propio, según el nombre del archivo. `ext`
+ * separa el hecho del nombre (`'.mp4'` → `'video'`, `'.webp'` → `'imagen'`, `/uploads/abc`
+ * → `null`) de la etiqueta heredada: `toMediaItem` solo escucha `tipo` cuando `ext` es null.
+ */
+function classify(url: string): { kind: MediaKind; provider: MediaProvider; ext: MediaKind | null } {
   const u = safeUrl(url);
   const host = u ? u.hostname : '';
-  if (/youtu\.?be/.test(host)) return { kind: 'video', provider: 'youtube' };
-  if (/vimeo/.test(host)) return { kind: 'video', provider: 'vimeo' };
-  if (/drive\.google/.test(host)) return { kind: 'imagen', provider: 'drive' };
+  if (/youtu\.?be/.test(host)) return { kind: 'video', provider: 'youtube', ext: null };
+  if (/vimeo/.test(host)) return { kind: 'video', provider: 'vimeo', ext: null };
+  if (/drive\.google/.test(host)) return { kind: 'imagen', provider: 'drive', ext: null };
   // tour360 solo si el HOST es un proveedor de recorridos: `embed` son enlaces de
   // terceros. Nunca sobre la ruta, o un /uploads/panorama-miel.webp propio iría a <iframe>.
-  if (/(matterport|kuula|360|pano|tourmkr)/.test(host)) return { kind: 'tour360', provider: 'otro' };
+  if (/(matterport|kuula|360|pano|tourmkr)/.test(host)) return { kind: 'tour360', provider: 'otro', ext: null };
   const path = url.split(/[?#]/)[0];
-  if (/\.(mp4|webm|mov|m4v|m4a|mp3|ogg|wav)$/i.test(path)) return { kind: 'video', provider: 'strapi' };
-  return { kind: 'imagen', provider: 'strapi' };
+  const ext = EXT_VIDEO.test(path) ? 'video' : EXT_IMAGEN.test(path) ? 'imagen' : null;
+  return { kind: ext === 'video' ? 'video' : 'imagen', provider: 'strapi', ext };
 }
 
 const TIPO_VIEJO: Record<string, MediaKind> = {
@@ -165,12 +173,16 @@ export function toMediaItem(input: unknown): MediaItem | null {
   if (input && typeof input === 'object') {
     const o = input as StrapiMedia & LegacyItem;
     if (o.mime && /^video\//.test(o.mime)) kind = 'video';
-    // Lo heredado (`tipo`/`kind` de las formas históricas, `kind` con prioridad) solo
-    // re-etiqueta material PROPIO y solo entre imagen y video. `tour360` y lo de tercero
-    // los decide el host en `classify()`: con `provider:'strapi'` y `kind:'tour360'`,
-    // `isEmbed()` mentía y MediaGallery emitía `<iframe src="/uploads/pano.webp">`.
+    // Lo heredado (`tipo`/`kind` de las formas históricas, `kind` con prioridad) re-etiqueta
+    // material PROPIO y solo cuando el nombre del archivo no dice nada. `tour360` y lo de tercero
+    // los decide el host en `classify()`: con `provider:'strapi'` y `kind:'tour360'`, `isEmbed()`
+    // mentía y MediaGallery emitía `<iframe src="/uploads/pano.webp">`. Una extensión conocida es
+    // un hecho sobre los bytes que la etiqueta a mano no contradice: medida hoy en la BD, `tipo`
+    // solo aparece en el JSON de terceros (`image`/`video`/`360` sobre Unsplash, YouTube y
+    // momento360) y en ningún material propio, así que no había testigo que justificara que un
+    // `tipo:'imagen'` bajara un `.mp4` propio a `<img>`.
     const heredado = TIPO_VIEJO[o.kind] ?? TIPO_VIEJO[o.tipo];
-    if (heredado && esPropia(url) && heredado !== 'tour360') kind = heredado;
+    if (heredado && heredado !== 'tour360' && esPropia(url) && !clas.ext) kind = heredado;
     alt = o.alternativeText ?? o.alt ?? undefined;
     caption = o.caption ?? o.titulo ?? undefined;
   }
