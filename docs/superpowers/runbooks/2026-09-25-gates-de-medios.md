@@ -116,11 +116,17 @@ que el último **no se enlaza ni con `--apply`**. Los conteos de referencia est�
 `docs/superpowers/metrics/2026-09-24-antes.md` (fila 6).
 
 **La parte mecánica ya está hecha, y en el envase correcto.** `strapi/scripts/media-alias-propuesto.json`
-trae **27 pares** archivo→bitácora dentro de `{"aviso": …, "alias": {…}}` — la forma que exige
-`leerAlias()`; un mapa directo sin la clave `alias` se aborta antes de la primera petición. Está
-generado por script desde `alias-firmes.json` (directorio SDD), no transcrito, y
-`tests/media-alias-propuesto.test.mjs` le verifica que las 27 rutas existen, que ningún slug se
-repite y que `manifesto()` las firma a todas sin mandar una a `motivosAlias`.
+trae **33 filas** dentro de `{"aviso": …, "alias": {…}}` — la forma que exige `leerAlias()`; un mapa
+directo sin la clave `alias` se aborta antes de la primera petición. Son **27 pares**
+archivo→bitácora (forma 1) y **6 series** proyecto→`galeria` (forma 2, clave = `documentId`). La
+forma 2 no es un adorno: los 6 `proyecto-meliponarios` tienen `slug: null` medido en 6/6, así que
+ninguna regla por nombre los puede firmar. Y el emparejamiento es cerrado — cada raíz de serie
+(`ambala`, `bonifacio`, `carmen`, `cumbre`, `esperanza`, `poblado`) comparte tokens con **un solo**
+registro y con **ningún** otro (0,33–0,50 contra 0,00 del segundo). Está generado por script, no
+transcrito, y `tests/media-alias-propuesto.test.mjs` le verifica rutas existentes, endpoints y
+campos de la tabla, ningún destino repetido, ningún archivo declarado dos veces, y que
+`manifesto()` firma las 33 sin mandar una a `motivosAlias` — con el inventario tomado **del disco**
+(48 archivos), no de la propia lista de la propuesta.
 
 **Lo que sigue siendo decisión del dueño** — las 9 tapas que la propuesta no toca:
 
@@ -135,8 +141,10 @@ recortado y la publicación uno más largo).
 
 **Verificación previa, de solo lectura y sin credenciales** (`GET /api/bitacoras` en el runtime
 local, medido el 2026-09-25): la BD tiene **56 bitácoras**, **0 slugs duplicados**, y **los 27
-slugs de la propuesta existen los 27**. Es decir: `--apply` con esta propuesta no puede producir un
-solo `motivosAlias` por «slug que no aparece en la lectura». Lo que queda es decisión de nombre.
+slugs de la propuesta existen los 27**. Los 6 `documentId` de las series salen de la misma clase
+de lectura (`GET /api/proyecto-meliponarios`, 6 registros, `slug: null` en 6/6), así que tampoco
+pueden caer por «registro que no aparece en la lectura». Es decir: `--apply` con esta propuesta no
+puede producir un solo `motivosAlias` por destino inexistente. Lo que queda es decisión de nombre.
 
 Candidato medido para las 9 (similitud de Jaccard sobre tokens, contra las 29 bitácoras que la
 propuesta no reclama). **Es pista, no decisión** — el que elige es el dueño:
@@ -156,6 +164,22 @@ propuesta no reclama). **Es pista, no decisión** — el que elige es el dueño:
 Las dos últimas filas cambian de puerta: una tapa sin artículo no se arregla con `--apply`, se
 arregla escribiendo el artículo o retirando la tapa (F3, hueco de contenido que ya está en el
 censo de la fila «nos falta»).
+
+**Las otras dos decisiones de esta puerta son de galería, y tampoco están tomadas:**
+
+1. **La portada de los 6 proyectos.** La propuesta escribe las 9 fotos en `galeria` y deja `imagen`
+   vacío, porque un archivo no puede declararse en dos filas del mismo envase. Si se quiere portada,
+   hay que *sacar* un archivo de su serie y ponerlo en `imagen` — con lo que `ambala`, `carmen` y
+   `cumbre` (dos fotos cada una) aceptarían portada, y `bonifacio`, `esperanza` y `poblado` (una
+   sola) se quedarían sin galería si esa foto pasa a ser portada. Medido: `imagen` de
+   `proyecto-meliponarios` está vacío en 6/6, así que hoy la ficha de proyecto no tiene portada y
+   degrada al mosaico del `Icon` (decisión de F1: sin fallback).
+2. **Los 3 archivos `producto-*` de `public/images/galeria/`.** No tienen fila y no la van a tener
+   hasta decidir: `producto-caja-1.webp` empata con tres productos (`caja-af-estandar`,
+   `caja-inpa-con-atril`, `caja-inpa-nogal-cafetero`, los tres con slug), y `producto-miel-1.webp` /
+   `producto-miel-2.webp` apuntan a los dos productos que también traen `slug: null`
+   (`Miel Angelita 120ml`, `Miel con propóleo 250ml`) — para estos dos hace falta forma 2 con
+   `documentId`, y además un orden: cuál es la 1 y cuál la 2.
 
 ```bash
 # 1) en seco con la propuesta: hay que leer el reporte antes de escribir

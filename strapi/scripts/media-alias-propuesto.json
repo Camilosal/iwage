@@ -1,8 +1,10 @@
 {
   "aviso": [
     "ESTO ES UNA PROPUESTA, NO EL ENVASE QUE LEE EL IMPORTADOR POR DEFECTO. Nadie lo aplica solo: `strapi/scripts/media-alias.json` sigue vacío y `media-import.mjs` no lee ningún alias sin `--alias=<ruta>`.",
-    "Qué hay acá: 27 pares archivo→bitácora, uno por fila, en la forma 1 del contrato (clave = ruta que produce el inventario, valor = {endpoint, slug}). Generado por script desde `.superpowers/sdd/2026-09-24-media-strapi-consolidation/alias-firmes.json` el 2026-09-25, no transcrito a mano.",
-    "Por qué hace falta un alias: medido en disco, las 36 tapas de `public/images/bitacora/` traen un slug RECORTADO (`bitacora-abeja-cultivo.webp`) mientras el slug publicado es más largo (`cuando-la-abeja-llega-al-cultivo`). Ninguna regla por nombre se dispara: 0 de 36 enlazables por regla.",
+    "Qué hay acá: 33 filas — 27 pares archivo→bitácora en la forma 1 del contrato (clave = ruta que produce el inventario, valor = {endpoint, slug}) y 6 filas proyecto→galería en la forma 2 (clave = documentId, valor = {endpoint, campo, archivos} en el orden en que se escriben). Generado por script desde `.superpowers/sdd/2026-09-24-media-strapi-consolidation/alias-firmes.json` y de la lectura pública `GET /api/proyecto-meliponarios` el 2026-09-25, no transcrito a mano.",
+    "Por qué las 6 de galería van en forma 2: los 6 `proyecto-meliponarios` tienen `slug: null` medido en 6/6. Ninguna regla por nombre puede firmarlos; solo una clave `documentId` puede. El emparejamiento es FIRME y no ambiguo: de las 6 raíces de serie (`ambala`, `bonifacio`, `carmen`, `cumbre`, `esperanza`, `poblado`), cada una comparte tokens con UN solo registro y con NINGUN otro (similitud 0,33–0,50 contra 0,00 del segundo).",
+    "Qué se decidió NO escribir: las 9 fotos de proyecto van a `galeria` completas y `imagen` (portada) queda vacío, porque un archivo no puede declararse en dos filas. Elegir la portada de cada proyecto (sacar el primer archivo de `galeria` y ponerlo en `imagen`) es decisión del dueño, no de este archivo.",
+    "Qué NO cubre: 9 de las 36 tapas de bitácora siguen sin par firme — `bitacora-calendario-manejo`, `bitacora-conservacion-cosecha`, `bitacora-cosecha-miel`, `bitacora-miel-chef`, `bitacora-miel-cocina`, `bitacora-modulo6-division`, `bitacora-modulo9-cosecha`, `bitacora-red-meliponicultores`, `bitacora-territorio-pijao`. Dos de ellas (`miel-chef` / `miel-cocina`) se disputan la misma publicación. Y 3 archivos de galería sin fila: `producto-caja-1` (empata con `Caja AF Estándar`, `Caja INPA con atril`, `Caja INPA Nogal Cafetero`) y `producto-miel-1`/`-2` (los dos `productos` de miel también traen `slug: null`).",
     "Qué NO cubre: 9 de las 36 tapas siguen sin par firme — `bitacora-calendario-manejo`, `bitacora-conservacion-cosecha`, `bitacora-cosecha-miel`, `bitacora-miel-chef`, `bitacora-miel-cocina`, `bitacora-modulo6-division`, `bitacora-modulo9-cosecha`, `bitacora-red-meliponicultores`, `bitacora-territorio-pijao`. Dos de ellas (`miel-chef` / `miel-cocina`) se disputan la misma publicación: eso es una decisión de nombre, no un dato que falta.",
     "Cómo se usa, en seco: STRAPI_URL=… STRAPI_TOKEN=… node strapi/scripts/media-import.mjs --dry-run --alias=strapi/scripts/media-alias-propuesto.json — y recién después de la lectura humana, `--apply`.",
     "El documentId no va acá: lo aporta la lectura de la API. Un alias que nombre un slug que no exista en la lectura no se escribe y aparece en `motivosAlias` con el motivo exacto.",
@@ -116,6 +118,51 @@
     "public/images/bitacora/bitacora-sabor-territorio.webp": {
       "endpoint": "bitacoras",
       "slug": "el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida"
+    },
+    "p5zx0qoqh509c7afu29i9l3x": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-ambala-1.webp",
+        "public/images/galeria/proyecto-ambala-2.webp"
+      ]
+    },
+    "d2bwg76mu4khsq4tssfd1kds": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-bonifacio-1.webp"
+      ]
+    },
+    "jh40ab12twgbym6qjdcxd40k": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-carmen-1.webp",
+        "public/images/galeria/proyecto-carmen-2.webp"
+      ]
+    },
+    "cv3sedttdehpnfu5dmp7z6az": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-cumbre-1.webp",
+        "public/images/galeria/proyecto-cumbre-2.webp"
+      ]
+    },
+    "dmhhqrkc903ezoymd7mpz97i": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-esperanza-1.webp"
+      ]
+    },
+    "iocafvy43tl2h0ighwqfge0s": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-poblado-1.webp"
+      ]
     }
   }
 }
