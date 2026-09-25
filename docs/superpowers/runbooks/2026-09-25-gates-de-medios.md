@@ -133,6 +133,30 @@ Sin fila de alias, esas 9 quedan en `pendientes` y no se escriben. Por eso hace 
 pesar de las reglas: medido en disco, **0 de 36** tapas enlazan por nombre (el archivo trae el slug
 recortado y la publicación uno más largo).
 
+**Verificación previa, de solo lectura y sin credenciales** (`GET /api/bitacoras` en el runtime
+local, medido el 2026-09-25): la BD tiene **56 bitácoras**, **0 slugs duplicados**, y **los 27
+slugs de la propuesta existen los 27**. Es decir: `--apply` con esta propuesta no puede producir un
+solo `motivosAlias` por «slug que no aparece en la lectura». Lo que queda es decisión de nombre.
+
+Candidato medido para las 9 (similitud de Jaccard sobre tokens, contra las 29 bitácoras que la
+propuesta no reclama). **Es pista, no decisión** — el que elige es el dueño:
+
+| tapa | candidato (slug libre) | sim. | lectura |
+|---|---|---|---|
+| `bitacora-conservacion-cosecha` | `conservacion-y-cosecha-de-miel` | 0,67 | disputada: es también el mejor candidato de otras dos |
+| `bitacora-cosecha-miel` | `conservacion-y-cosecha-de-miel` | 0,67 | su otra opción (`…-humedad-frio-fermentacion-y-extraccion`) **ya tiene tapa** propuesta (`bitacora-fermentacion-miel`) |
+| `bitacora-modulo9-cosecha` | `conservacion-y-cosecha-de-miel` | 0,25 | tercer reclamante del mismo slug; la alternativa es `lote-l25-05-001-cosecha-mayo` (0,14) |
+| `bitacora-miel-chef` | `la-miel-de-angelita-y-el-chef-…-alta-cocina` | 0,29 | disputa de dos sobre un artículo |
+| `bitacora-miel-cocina` | `la-miel-de-angelita-y-el-chef-…-alta-cocina` | 0,29 | el mismo, byte por byte |
+| `bitacora-territorio-pijao` | `abejas-sin-aguijon-cosmovision-pijao` | 0,17 | el token raro (`pijao`) coincide; el puntaje bajo es por longitud del slug |
+| `bitacora-modulo6-division` | `division-colonias-angelita-tetragonisca-angustula` | 0,17 | el único candidato libre **y** no disputado de la lista |
+| `bitacora-calendario-manejo` | — | 0,00 | ninguna de las 29 libres comparte un solo token: **no es falta de alias, es falta de artículo** |
+| `bitacora-red-meliponicultores` | — | 0,00 | igual que la anterior |
+
+Las dos últimas filas cambian de puerta: una tapa sin artículo no se arregla con `--apply`, se
+arregla escribiendo el artículo o retirando la tapa (F3, hueco de contenido que ya está en el
+censo de la fila «nos falta»).
+
 ```bash
 # 1) en seco con la propuesta: hay que leer el reporte antes de escribir
 STRAPI_URL=http://127.0.0.1:1338 STRAPI_TOKEN=<token> \
