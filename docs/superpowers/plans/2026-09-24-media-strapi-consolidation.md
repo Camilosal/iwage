@@ -1856,9 +1856,9 @@ i=0; while read -r u; do i=$((i+1)); bash crawl.sh "$u" "$i" >> crawl.log; done 
 bash "$C/censo.sh" . --con-bd
 ```
 
-`censo.sh` corre las nueve filas con los mismos comandos de la línea base, cada uno bajo su etiqueta, y existe justamente para que este paso no vuelva a armar un one-liner distinto. Verificado sobre la copia del "antes": reproduce los 185 hashes, 141 de 185, las 4 páginas exclusivas, `0|0` en la base, 41 campos en 4 representaciones y las 47 huérfanas (36 + 11 + 0).
+`censo.sh` corre las diez filas con los mismos comandos de la línea base, cada uno bajo su etiqueta, y existe justamente para que este paso no vuelva a armar un one-liner distinto. Verificado sobre la copia del "antes": reproduce los 185 hashes, 141 de 185, las 4 páginas exclusivas, `0|0` en la base, 41 campos en 4 representaciones y las 47 huérfanas de la herramienta histórica (36 + 11 + 0); con `huerfanas.mjs`, que quita los bloques `{/* … */}` antes de buscar, la misma foto lee **48** (36 + 12 + 0).
 
-Qué es comparable con qué, porque si no se dice, el informe miente: **las filas 3 a 8 miden el repo y la base de datos**, y esas se mueven con este plan aunque nadie despliegue. **Las filas 1, 2 y 9 miden el HTML servido**, o sea el sitio desplegado: con el gate de despliegue cerrado salen idénticas al "antes" y hay que reportarlas como "no medible todavía", no como "no mejoró". La alternativa honesta es correrlas contra un preview local de este commit en otro directorio de crawl y decir cuál de los dos se reportó.
+Qué es comparable con qué, porque si no se dice, el informe miente: **las filas 3 a 8 miden el repo y la base de datos**, y esas se mueven con este plan aunque nadie despliegue. **Las filas 1, 2, 9 y 10 miden el HTML servido**, o sea el sitio desplegado: con el gate de despliegue cerrado salen idénticas al "antes" y hay que reportarlas como "no medible todavía", no como "no mejoró". La alternativa honesta es correrlas contra un preview local de este commit en otro directorio de crawl y decir cuál de los dos se reportó.
 
 - [ ] **Step 2: Llenar la tabla comparativa**
 
@@ -1882,6 +1882,7 @@ sha256sum -c /home/ubuntu/negocio/data/app_iwage/docs/superpowers/metrics/censo/
 | Ocurrencias de `strapiImage` en `src/` | 57 | |
 | URLs de terceros en `src/` | 20 | |
 | 404 de producción por imagen | 5 | |
+| `og:image` servida que no aterriza en un archivo | 0 de 161 etiquetas (185 páginas, 7 destinos) | |
 
 Dos filas que la tabla original de la spec no tenía y que el después sí tiene que reportar, porque el plan las mueve: los **12 valores de Unsplash que quedaron en columnas de la BD** (18 URLs dentro; F1 limpió `src/` pero no la base de datos) y los **5 embeds placeholder** (6 ocurrencias: tres celdas rickroll, una de tour demo del proveedor y una quinta celda — el json de `experiencias.galeria_urls` — que dentro repite uno de cada; la cuenta por columna está en el Files de la Task 14 y la consulta de verificación en el gate 3 de `metrics/2026-09-25-despues.md`). "0 URLs de terceros" en el código sin decir nada de la BD es un verde que engaña.
 
