@@ -1609,6 +1609,20 @@ Inventario de lo que está en juego, medido con `SELECT` sobre la BD en vivo:
 
 Consecuencia para el dueño, en una línea: autorizar el rebuild con los esquemas de `fa240b2` es hoy de riesgo casi nulo y es **lo único que vuelve visible el F2 en producción**; autorizarlo con los del Grupo C sin haber corrido el `--apply` sí borra 49 valores.
 
+**Medido el 2026-09-25, y cambia el signo del gate: el rebuild ya no es solo "para ver el F2", es condición de despliegue.** El F2 pide `populate` de los campos que `fa240b2` pasó a `media`, pero el contenedor en vuelo sigue sirviendo el esquema `string` viejo, así que Strapi contesta **400 `Invalid key`** y `strapiFetch` lanza (`src/lib/strapi.ts:146`) -> la superficie se degrada a vacía. Sonda contra la API viva, solo `SELECT`/`GET` (`populate-runtime-probe.mjs` en el directorio SDD):
+
+| endpoint | populate que pide el código | sin populate | con populate |
+|---|---|---|---|
+| `bitacoras` | `imagen` | 200 | **400 Invalid key imagen** |
+| `productos` | `imagen`,`galeria` | 200 | **400 Invalid key galeria** |
+| `proyecto-meliponarios` | `imagen`,`galeria` | 200 | **400 Invalid key galeria** |
+| `cultivo-polinizaciones` | `imagen`,`galeria` | 200 | **400 Invalid key galeria** |
+| `experiencias` | `imagen_hero` | 200 | 200 |
+| `item-menus` / `proveedors` | `imagen` / `foto,…` | 200 | 200 (el populate funciona: ya son media en el runtime) |
+| `experimentos` / `historia-visitantes` | `imagen,…` | 403 | 403 (sin permiso `find`, no medible desde aquí) |
+
+Traducción operativa: desplegar la rama **antes** del rebuild deja vacías la bitácora (las 7 superficies, con su `noindex` encendido por `fallo: true`), la tienda, los proyectos meliponarios y la polinización. `imagen` en `bitacoras` falla por ser todavía `string`; `galeria` en las otras tres falla porque la columna **no existe** en el runtime. El `--apply` del importador no es lo que desbloquea esto: lo desbloquea reconstruir con los esquemas ya commiteados.
+
 ---
 
 # FASE F3 — lo que sobra y lo que falta
