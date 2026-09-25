@@ -24,7 +24,8 @@ ningún lado. Sin procedimiento versionado, el "después" no es comparable con e
 | `main-imgs.mjs` | fila 1: páginas cuyo `<main>` no renderiza ningún `<img>` | `crawl.log` + `html/` |
 | `huerfanas.mjs` | fila 6: piezas de `public/images/**` que ningún código puede emitir — quita los bloques `{/* … */}` de Astro antes de buscar, porque una cita dentro de un comentario no se pinta | `public/images/` + `src/` |
 | `campos-strapi.mjs` | fila 4: campos de medio de los esquemas y sus representaciones | `strapi/src/api/**/schema.json` |
-| `censo.sh` | **las nueve filas de una vez**, con estos mismos scripts y en este orden | un directorio de crawl; `--con-bd` agrega la fila 3 (`SELECT` por `docker exec`) y la fila 9 sale contra `CRAWL_BASE` |
+| `ogimgs.mjs` | fila 10: la `og:image` **servida** —si existe el destino, si es absoluta y si no se escapa un host interno. Clasifica `/uploads/` aparte porque viven en el volumen de Strapi y «no verificable en disco» no es «roto» | `crawl.log` + `html/` + `public/` |
+| `censo.sh` | **las diez filas de una vez**, con estos mismos scripts y en este orden | un directorio de crawl; `--con-bd` agrega la fila 3 (`SELECT` por `docker exec`) y la fila 9 sale contra `CRAWL_BASE` |
 
 ## Cómo se corre el censo completo
 
@@ -35,11 +36,12 @@ cd <dir-crawl>
 # 1. Crawl de las 185 URLs del sitio vivo (el índice es también el nombre del HTML)
 i=0; while read -r u; do i=$((i+1)); bash crawl.sh "$u" "$i" >> crawl.log; done < urls.txt
 
-# 2. Filas 1, 2 y 9 (HTML)
+# 2. Filas 1, 2, 9 y 10 (HTML)
 node main-imgs.mjs .
 node parse.mjs                # lee crawl.log + html/, escribe assets.json
 python3 analyze.py            # imprime la cobertura por sección
 python3 pages.py              # páginas exclusivas y rotas
+node <repo>/docs/superpowers/metrics/censo/ogimgs.mjs . <repo>   # fila 10, og:image servida
 
 # 3. Filas 4 y 6 (van con el repo; la fila 6 ya no es un grep suelto)
 cd <repo> && node docs/superpowers/metrics/censo/campos-strapi.mjs
@@ -96,3 +98,9 @@ advertencia que le corresponde: **`../2026-09-24-antes.md`**.
   Es media múltiple y su nombre no está en el vocabulario del regex. `campos-strapi.mjs`
   captura todo `type: media` por tipo y el resto por nombre; con esa regla salen los
   41 campos y las 5 representaciones de la spec.
+- **La fila 10 no puede tener `https://iwage.co` quemado.** El origen se deduce del `crawl.log`:
+  con el host fijo, el crawl de un preview local clasificaría el 100 % de las `og:image` como
+  externas. Y como consecuencia, el chequeo de «se escapó un host interno» **no aplica** cuando el
+  propio crawl es un preview sin `SITE_URL` —su origen ya es `localhost:4321`, y llamar fuga a eso
+  invita a «arreglar» algo que está bien. Los dos casos están fijados en `tests/censo-ogimgs.test.mjs`,
+  junto con el de `twitter:image`, que no alimenta la fila.

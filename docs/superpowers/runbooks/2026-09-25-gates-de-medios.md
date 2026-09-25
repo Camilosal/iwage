@@ -293,9 +293,10 @@ Settings → Roles Públicos, o sembrando los permisos en `strapi/src/bootstrap`
 
 ## G8 · Publicar y desplegar
 
-91 commits, 309/309 verdes, build aislado verde y 185/185 en 200 contra un preview local. Antes de
-`git push`: G0. Después de G2 y G3, el censo se mide **contra el sitio desplegado** y las filas 1,
-2 y 9 dejan de decir «no medible todavía»:
+Build aislado verde, 334/334 verdes y 185/185 en 200 contra un preview local. El rango del plan se
+recuenta con `git rev-list --count ffb0a9c..HEAD` (99 commits al cerrar la ronda de la fila 10).
+Antes de `git push`: G0. Después de G2 y G3, el censo se mide **contra el sitio desplegado** y las
+filas 1, 2, 9 y 10 dejan de decir «no medible todavía»:
 
 ```bash
 CRAWL_BASE=https://iwage.co bash docs/superpowers/metrics/censo/censo.sh <dir-del-crawl> --con-bd

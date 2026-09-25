@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Corre las nueve filas del censo con los MISMOS comandos de ../2026-09-24-antes.md.
+# Corre las diez filas del censo con los MISMOS comandos de ../2026-09-24-antes.md.
 #
 # Uso:  ./censo.sh <directorio-del-crawl> [--con-bd]
 #
@@ -83,3 +83,6 @@ for f in productivo campestre nomada turistico patrimonial; do
   printf '   %-12s %s\n' "$f" "${codigo:-sin-red}"
 done
 printf '   versionadas en public/images/perfiles: %s\n' "$( cd "$REPO" && git ls-files public/images/perfiles | wc -l )"
+
+linea "fila 10 - integridad de la og:image servida (ver ogimgs.mjs)"
+node "$CENSO/ogimgs.mjs" "$CRAWL" "$REPO"
