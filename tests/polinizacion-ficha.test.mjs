@@ -53,18 +53,28 @@ test('normalizeCultivo: `slug` sigue expuesto crudo para el respaldo del `select
   assert.equal(normalizeCultivo(crudo({ slug: 'guanabana' })).slug, 'guanabana');
 });
 
-test('la plantilla enlaza por `c.ficha` y no reconstruye la ruta a mano', () => {
-  const fuente = readFileSync(join(RAIZ, 'src/pages/meliponas/polinizacion/index.astro'), 'utf8');
-  assert.match(
-    fuente,
-    /<a\s+href=\{c\.ficha\s*\?\?\s*undefined\}/,
-    'el `href` de la tarjeta ya no sale de `c.ficha`: sin la guarda, un cultivo sin slug vuelve a enlazarse a sí mismo',
-  );
-  assert.doesNotMatch(
-    fuente,
-    /href=\{`\/meliponas\/polinizacion\/\$\{/,
-    'la tarjeta vuelve a interpolar la ruta de la ficha: con `slug` vacío eso es el lazo autoreferido',
-  );
+test('las dos plantillas enlazan por `ficha` y no reconstruyen la ruta a mano', () => {
+  // Medido el 2026-09-25: este guard estaba escrito solo contra `index.astro` y el MISMO
+  // defecto vivía tranquilo en `[slug].astro:374` («Otros cultivos» enlazaba
+  // `/meliponas/polinizacion/${r.slug}` con `slug` NULL en las 12 filas -> lazo autoreferido).
+  // Un guard que mira un archivo de los dos no es un guard: barren los dos.
+  const FUENTE = {
+    'src/pages/meliponas/polinizacion/index.astro': /<a\s+href=\{c\.ficha\s*\?\?\s*undefined\}/,
+    'src/pages/meliponas/polinizacion/[slug].astro': /<a\s+href=\{r\.ficha\s*\?\?\s*undefined\}/,
+  };
+  for (const [ruta, bueno] of Object.entries(FUENTE)) {
+    const fuente = readFileSync(join(RAIZ, ruta), 'utf8');
+    assert.match(
+      fuente,
+      bueno,
+      `${ruta}: el \`href\` ya no sale de \`ficha\`: sin la guarda, un cultivo sin slug vuelve a enlazarse a sí mismo`,
+    );
+    assert.doesNotMatch(
+      fuente,
+      /href=\{`\/meliponas\/polinizacion\/\$\{/,
+      `${ruta}: vuelve a interpolar la ruta de la ficha: con \`slug\` vacío eso es el lazo autoreferido`,
+    );
+  }
 });
 
 test('«Ver ficha completa» solo aparece cuando la ficha existe', () => {

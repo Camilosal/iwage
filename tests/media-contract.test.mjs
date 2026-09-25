@@ -274,6 +274,17 @@ const AGUJAS_SEMILLA = [
   // Registros inventados que se hacen pasar por filas de Strapi (precios, existencias, métricas).
   { motivo: 'seed que se hace pasar por filas de Strapi', re: new RegExp(`\\b${aguja('FALLBACK', '_')}[A-Za-z0-9_]*`) },
   { motivo: 'seed que se hace pasar por filas de Strapi', re: new RegExp(aguja('SEED', '_CULTIVOS')) },
+  // La firma de una fila inventada, sin importar cómo se llame la constante: el `documentId` lo
+  // pone Strapi. Medido el 2026-09-25, esta es la aguja que habría cortado SOLA la regresión de
+  // la Tarea 9 (`documentId: 'seed-1'`…`'seed-6'`) y la que caza `fallbackItems`, 17 filas con
+  // `documentId: '1'`…`'17'` que son las mismas 17 `item_menus` publicadas en la BD
+  // (`select count(*) filter (where published_at is not null) from item_menus` = 17 de 17).
+  // Por qué no se ensancha la de arriba a «cualquier identificador con fallback»: medido con
+  // `\b\w*(?i)fallback\w*\b` sobre el árbol sin comentarios, da 30 sitios en 12 archivos y la
+  // mayoría son otra cosa (el respaldo de WhatsApp de `AgendarVisita.astro`, la cadena de
+  // `ai/provider.ts`, prosa de `ayuda/*`). Una aguja que obliga a declarar 12 excepciones deja
+  // de ser una aguja.
+  { motivo: 'página que cuña documentIds propios (el documentId lo pone Strapi)', re: /documentId:\s*['"`]/ },
 ];
 
 // Excepciones DECLARADAS y ya falladas por el controller — no se "arreglan", se nombran (se citan
@@ -290,23 +301,48 @@ const AGUJAS_SEMILLA = [
 const EXCEPCIONES_SEMILLA = {
   'pages/cafe/index.astro': new Set([aguja('FALLBACK', '_HISTORIAS_HOME')]),
   'pages/naturaleza/impacto.astro': new Set([aguja('FALLBACK', '_INICIATIVAS')]),
+  // · `fallbackItems` (pages/cafe/menu.astro): 17 filas que duplican las 17 `item_menus`
+  //   published de Strapi, pero con los precios y —lo que pesa hoy— el mapa entre cada ítem y su
+  //   foto producida (`public/images/cafe-menu/*.webp`, 15 archivos que existen y están
+  //   versionados). Borrarlo antes de la Tarea 13 tiraría por la borda ese mapa, que es justo el
+  //   `alias` que consume `strapi/scripts/media-import.mjs`. Se jubila con el `--apply`, no antes.
+  //   Cota MEDIDA de esta excepción (mutante M-B, 2026-09-25): eximir por constante deja pasar
+  //   una fila nueva metida DENTRO del seed declarado (7/0, verde). Lo que sí corta es la
+  //   semilla nueva en un archivo no declarado (M-A: 6/1, rojo nombrando
+  //   `pages/granja/index.astro:276` con «documentId: '»). Se acepta la cota: la salida de la
+  //   excepción es borrar la constante entera, no achicarla fila a fila.
+  'pages/cafe/menu.astro': new Set(['fallbackItems']),
 };
 
-test('ningún seed vuelve a suplantar a Strapi en src/: ni stock de tercero, ni dominio muerto, ni FALLBACK_, ni SEED_CULTIVOS', () => {
+/**
+ * Nombre de la `const … = [` bajo la cual cae la línea `i` (mirando hacia atrás, tope 80 líneas).
+ * Hace falta porque la aguja del `documentId` casa el campo, no el nombre del seed: sin esto, la
+ * única forma de eximir una fila sería declarar el literal `documentId: '` — que eximiría TODAS
+ * las filas inventadas del archivo, incluida la que alguien agregue mañana. Eximir por constante
+ * dice lo que se quiere decir: «esta semilla está vista y nombrada».
+ */
+function contenedorDe(lineas, i) {
+  for (let j = i; j >= 0 && i - j < 80; j--) {
+    const m = lineas[j].match(/\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*(?::[^=]+)?=\s*\[/);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+test('ningún seed vuelve a suplantar a Strapi en src/: ni stock de tercero, ni dominio muerto, ni FALLBACK_, ni SEED_CULTIVOS, ni documentIds cuñados a mano', () => {
   const culpables = [];
   for (const archivo of archivosEn(SRC)) {
     const ruta = enSrc(archivo);
     const permitidos = EXCEPCIONES_SEMILLA[ruta];
-    sinComentarios(readFileSync(archivo, 'utf8'))
-      .split('\n')
-      .forEach((linea, i) => {
-        for (const { motivo, re } of AGUJAS_SEMILLA) {
-          const casa = linea.match(re);
-          if (!casa) continue;
-          if (permitidos?.has(casa[0])) continue;
-          culpables.push(`    ${ruta}:${i + 1}: ${linea.trim().slice(0, 160)}  ← ${motivo} («${casa[0]}»)`);
-        }
-      });
+    const lineas = sinComentarios(readFileSync(archivo, 'utf8')).split('\n');
+    lineas.forEach((linea, i) => {
+      for (const { motivo, re } of AGUJAS_SEMILLA) {
+        const casa = linea.match(re);
+        if (!casa) continue;
+        if (permitidos?.has(casa[0]) || permitidos?.has(contenedorDe(lineas, i))) continue;
+        culpables.push(`    ${ruta}:${i + 1}: ${linea.trim().slice(0, 160)}  ← ${motivo} («${casa[0]}»)`);
+      }
+    });
   }
 
   assert.equal(

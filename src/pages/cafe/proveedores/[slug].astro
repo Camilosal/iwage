@@ -4,23 +4,13 @@ import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getProveedores, proveedorFoto, proveedorIcono } from '@/lib/cafe';
-import type { Proveedor } from '@/lib/cafe';
 
 const proveedores = await getProveedores();
 
-// Fallback cuando Strapi no responde
-const fallback: Proveedor[] = [
-  { id: 1, documentId: '1', nombre: 'Familia Cardona', slug: 'familia-cardona', producto: 'Café de origen', ubicacion: 'Vereda El Carmen', distancia_km: 2.3, historia: 'Tres generaciones cultivando café en las laderas del Ambalá. Tueste medio, notas de panela y cítricos.', foto: { url: '/images/hero-cafe.webp' }, orden: 1 },
-  { id: 2, documentId: '2', nombre: 'Finca La Cumbre', slug: 'finca-la-cumbre', producto: 'Leche y quesos', ubicacion: 'Cajamarca', distancia_km: 3.8, historia: 'Ganadería regenerativa a pequeña escala. Leche cruda para nuestro chocolate y quesos de temporada.', foto: { url: '/images/linea-granja.webp' }, orden: 2 },
-  { id: 3, documentId: '3', nombre: 'Cacao El Espinal', slug: 'cacao-el-espinal', producto: 'Cacao fino de aroma', ubicacion: 'El Espinal', distancia_km: 38, historia: 'La excepción a nuestra regla de 4 km. Cacao fino de aroma del valle del Magdalena, fermentado 5 días.', foto: { url: '/images/linea-naturaleza.webp' }, orden: 3 },
-  { id: 4, documentId: '4', nombre: 'Meliponario Iwagé', slug: 'meliponario-iwage', producto: 'Miel de Angelita', ubicacion: 'Corredor Ambalá', distancia_km: 0.2, historia: 'Nuestra propia miel de Tetragonisca angustula. Cosecha limitada, dulzor floral único.', foto: { url: '/images/linea-meliponas.webp' }, orden: 0 },
-];
-
-const allProveedores = proveedores.length > 0 ? proveedores : fallback;
 
 // Resolve slug from URL
 const { slug } = Astro.params;
-const proveedor = allProveedores.find(p => (p.slug || slugify(p.nombre)) === slug);
+const proveedor = proveedores.find(p => (p.slug || slugify(p.nombre)) === slug);
 
 function slugify(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -43,7 +33,7 @@ const tienePropiedades = propiedades.length > 0;
 const tieneGestion = propiedadesGestion.length > 0;
 
 // Otros proveedores para cross-nav
-const otrosProveedores = allProveedores
+const otrosProveedores = proveedores
   .filter(p => p.nombre !== proveedor.nombre)
   .slice(0, 4);
 
@@ -232,7 +222,7 @@ const gestionLabel: Record<string, string> = {
                     const area = pr.area_hectareas ? `${pr.area_hectareas} ha` : '';
                     const precio = pr.precio ? `$${Number(pr.precio).toLocaleString('es-CO')}` : '';
                     return (
-                      <a href={pr.slug ? `/tierras/${pr.slug}` : '/tierras'}
+                      <a href={pr.slug ? `/tierras/propiedades/${pr.slug}` : '/tierras/propiedades'}
                         class="group flex items-start gap-3 rounded-xl border border-border bg-surface-raised p-4 hover:border-[#1a4a6b]/50 transition-colors">
                         <Icon name="home" class="w-5 h-5 text-[#1a4a6b] shrink-0 mt-0.5" />
                         <div class="min-w-0 flex-1">
@@ -261,7 +251,7 @@ const gestionLabel: Record<string, string> = {
                     const tipo = gestionLabel[pg.tipo_gestion] || pg.tipo_gestion || 'Gestión';
                     const area = pg.area_hectareas ? `${pg.area_hectareas} ha` : '';
                     return (
-                      <a href={pg.slug ? `/gestion/${pg.slug}` : '/gestion'}
+                      <a href={pg.slug ? `/gestion/alojamientos/${pg.slug}` : '/gestion/alojamientos'}
                         class="group flex items-start gap-3 rounded-xl border border-border bg-surface-raised p-4 hover:border-[#6b3fa0]/50 transition-colors">
                         <Icon name="key-round" class="w-5 h-5 text-[#6b3fa0] shrink-0 mt-0.5" />
                         <div class="min-w-0 flex-1">

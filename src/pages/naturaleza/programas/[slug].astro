@@ -3,6 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getPaqueteBySlug, getPaquetes, formatPrecioCOP, DIFICULTAD_LABELS } from '@/lib/naturaleza';
 import { getBrand } from '@/config/brands';
+import MediaGallery from '@/components/shared/MediaGallery.astro';
 import BookingWidget from '@/components/reservas/BookingWidget';
 
 export async function getStaticPaths() {
@@ -104,15 +105,9 @@ const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
           </section>
         )}
 
-        <!-- Gallery -->
         {galeria.length > 0 && (
           <section>
-            <h2 class="font-serif text-2xl text-[#1a3009] mb-4">Galería</h2>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {galeria.map((img) => (
-                <img src={img.url} alt={img.alt || pkg.titulo} class="rounded-xl w-full h-40 object-cover" loading="lazy" />
-              ))}
-            </div>
+            <MediaGallery items={galeria} title="Galería" columns={3} />
           </section>
         )}
 
