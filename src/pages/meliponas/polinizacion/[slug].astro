@@ -370,8 +370,11 @@ const diasTotales = (cultivo.dias_alistamiento ?? 0) + (cultivo.dias_en_campo ??
       <section class="mt-8 pt-8 border-t border-border">
         <h2 class="text-lg font-semibold text-text-primary mb-4">Otros cultivos</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- `ficha` es null cuando el cultivo no tiene `slug` (hoy: las 12 filas de
+               `cultivo_polinizacions`). Como en el índice, `group` y los `hover:` van dentro del
+               condicional: sin `href` la tarjeta no es un enlace y no debe fingirlo. -->
           {relacionados.map((r) => (
-            <a href={r.ficha ?? undefined} class="group flex items-center gap-3 p-4 bg-surface-raised rounded-xl border border-border hover:shadow-md transition-all">
+            <a href={r.ficha ?? undefined} aria-disabled={!r.ficha} class={`flex items-center gap-3 p-4 bg-surface-raised rounded-xl border border-border${r.ficha ? ' group hover:shadow-md transition-all' : ''}`}>
               <div class="w-10 h-10 rounded-xl bg-brand-muted flex items-center justify-center text-brand shrink-0">
                 <Icon name={r.icono || 'flower-2'} class="w-5 h-5" />
               </div>

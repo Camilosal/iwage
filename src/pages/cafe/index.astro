@@ -39,11 +39,15 @@ const fauna = historias.filter(h => h.categoria === 'fauna');
 const flora = historias.filter(h => h.categoria === 'flora');
 const personas = historias.filter(h => h.categoria === 'personas');
 
+// Sin `slug` en el relleno: la identidad la deriva `proveedorSlug()` del `nombre`, y medido el
+// 2026-09-25 los cuatro literales que había acá eran exactamente esa derivación
+// (`meliponario-iwage`, `familia-cardona`, `finca-la-cumbre`, `cacao-el-espinal`). Dos fuentes
+// de la misma cadena solo aportan la forma de que se separen al cambiar un nombre.
 const fallbackProveedores = proveedores.length > 0 ? proveedores.slice(0, 4) : [
-  { nombre: 'Meliponario Iwagé', slug: 'meliponario-iwage', producto: 'Miel de Angelita', ubicacion: 'Corredor Ambalá', distancia_km: 0.2, historia: 'Nuestra propia miel de Tetragonisca angustula. Cosecha limitada, dulzor floral único.', foto: { url: '/images/cafe-menu/proveedor-meliponario.webp' } },
-  { nombre: 'Familia Cardona', slug: 'familia-cardona', producto: 'Café de origen', ubicacion: 'Vereda El Carmen', distancia_km: 2.3, historia: 'Tres generaciones cultivando café en las laderas del Ambalá. Tueste medio, notas de panela y cítricos.', foto: { url: '/images/cafe-menu/proveedor-familia-cardona.webp' } },
-  { nombre: 'Finca La Cumbre', slug: 'finca-la-cumbre', producto: 'Leche y quesos', ubicacion: 'Cajamarca', distancia_km: 3.8, historia: 'Ganadería regenerativa a pequeña escala. Leche cruda para nuestro chocolate y quesos de temporada.', foto: { url: '/images/cafe-menu/proveedor-finca-cumbre.webp' } },
-  { nombre: 'Cacao El Espinal', slug: 'cacao-el-espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, historia: 'La excepción a nuestra regla de 4 km. Cacao fino de aroma del valle del Magdalena, fermentado 5 días.', foto: { url: '/images/cafe-menu/proveedor-cacao-espinal.webp' } },
+  { nombre: 'Meliponario Iwagé', producto: 'Miel de Angelita', ubicacion: 'Corredor Ambalá', distancia_km: 0.2, historia: 'Nuestra propia miel de Tetragonisca angustula. Cosecha limitada, dulzor floral único.', foto: { url: '/images/cafe-menu/proveedor-meliponario.webp' } },
+  { nombre: 'Familia Cardona', producto: 'Café de origen', ubicacion: 'Vereda El Carmen', distancia_km: 2.3, historia: 'Tres generaciones cultivando café en las laderas del Ambalá. Tueste medio, notas de panela y cítricos.', foto: { url: '/images/cafe-menu/proveedor-familia-cardona.webp' } },
+  { nombre: 'Finca La Cumbre', producto: 'Leche y quesos', ubicacion: 'Cajamarca', distancia_km: 3.8, historia: 'Ganadería regenerativa a pequeña escala. Leche cruda para nuestro chocolate y quesos de temporada.', foto: { url: '/images/cafe-menu/proveedor-finca-cumbre.webp' } },
+  { nombre: 'Cacao El Espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, historia: 'La excepción a nuestra regla de 4 km. Cacao fino de aroma del valle del Magdalena, fermentado 5 días.', foto: { url: '/images/cafe-menu/proveedor-cacao-espinal.webp' } },
 ];
 
 // Historias para la sección del home: mostramos 4 destacadas, con link "Ver todas" si hay más.
@@ -202,7 +206,7 @@ const whatsapp = config?.whatsapp ?? '573026693366';
     </ScrollReveal>
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
       {fallbackProveedores.map((p, i) => {
-        const foto = proveedorFoto(p as any);
+        const foto = proveedorFoto(p);
         const icono = proveedorIcono(p);
         const provSlug = proveedorSlug(p);
         return (

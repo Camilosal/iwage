@@ -271,7 +271,15 @@ export function itemImage(item: ItemMenu): string | null {
   return null;
 }
 
-export function proveedorFoto(p: Proveedor): string | null {
+/**
+ * Lo que pinta la tarjeta: la URL ya reducida a relativa de sitio, o null.
+ *
+ * El parámetro es estructural (`{ foto?: { url } | null }`) y no `Proveedor`, porque el
+ * relleno de `pages/cafe/index.astro` es una lista a mano sin el resto de campos del modelo:
+ * con `Proveedor` tenía que llamar con `as any`, que es la forma de un cast que esconde que
+ * acá solo se lee `foto.url`.
+ */
+export function proveedorFoto(p: { foto?: { url?: string | null } | null }): string | null {
   return mediaSrc(p.foto?.url);
 }
 

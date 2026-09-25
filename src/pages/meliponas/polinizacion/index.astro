@@ -168,11 +168,15 @@ const planes = [
             : 'Cada cultivo tiene condiciones específicas.'}
       />
     </ScrollReveal>
+    <!-- `group` y los `hover:` van DENTRO del condicional del `class`: un `<a>` sin `href` no
+         es un enlace, y con las clases estáticas la tarjeta se veía clicable (elevación, foto
+         que crece, título al color de marca) para llevar a ninguna parte. Las 12 filas de
+         `cultivo_polinizacions` están hoy en ese caso: `slug` vacío → `ficha` null. -->
     {cultivos.length > 0 ? (
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {cultivos.map((c, i) => (
         <ScrollReveal delay={i * 80}>
-          <a href={c.ficha ?? undefined} class="block group bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+          <a href={c.ficha ?? undefined} aria-disabled={!c.ficha} class={`block bg-surface-raised rounded-2xl border border-border overflow-hidden shadow-sm${c.ficha ? ' group hover:shadow-md hover:-translate-y-1 transition-all duration-300' : ''}`}>
             {c.imagen ? (
               <div class="aspect-[16/10] overflow-hidden bg-surface-sunken">
                 <img src={c.imagen.url} alt={c.imagen.alt || c.nombre} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" width="400" height="250" />
