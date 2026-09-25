@@ -5,7 +5,7 @@
  * Each experiment links to supporting bitácora articles as documentation.
  */
 import { strapiFetch, CACHE_TTL } from './strapi.ts';
-import { type MediaItem } from './media.ts';
+import { mediaSrc, type MediaItem } from './media.ts';
 import { normalizarParaPlantilla } from './normalizar-medio.ts';
 import { filasParaPlantilla } from './bitacora-resumen.ts';
 import type { EntradaBitacora } from './bitacora';
@@ -182,11 +182,19 @@ export function formatFecha(fecha: string | null): string {
  * portada converge una sola vez acá (`MediaItem | null`, con el `alt` del admin) y las
  * bitácoras relacionadas pasan por `filasParaPlantilla`, que es lo que declara
  * `EntradaBitacora.imagen` desde 12a.
+ *
+ * `documentos` no se vuelve `MediaItem`: `classify()` etiqueta por extensión y un PDF saldría
+ * `kind:'imagen'`, y el render elige icono y tamaño por `mime`/`size`. Solo se le reduce la
+ * `url` —lo demás pasa igual—, porque la alternativa era que cada plantilla se inventara el
+ * host de Strapi para las rutas relativas.
  */
 export function normalizeExperimento(raw: any): Experimento {
   return {
     ...raw,
     imagen: normalizarParaPlantilla(raw).imagen,
     ...(Array.isArray(raw.bitacoras) ? { bitacoras: filasParaPlantilla(raw.bitacoras) } : {}),
+    ...(Array.isArray(raw.documentos)
+      ? { documentos: raw.documentos.map((d: any) => ({ ...d, url: mediaSrc(d) ?? d.url })) }
+      : {}),
   } as Experimento;
 }

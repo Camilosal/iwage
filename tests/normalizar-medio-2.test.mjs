@@ -234,6 +234,70 @@ test('experimentos: imagen basura → null, y jamás el valor crudo de Strapi', 
   }
 });
 
+/**
+ * `experimento.documentos` es la única relación de `media` que admite `files` (PDF), y la
+ * plantilla decide icono y tamaño por `mime`, no por `kind`. Por eso no pasa por
+ * `toMediaItem()` —que lo Etiquetaría `imagen` por extensión y le botaría el `mime`— y sí por
+ * `mediaSrc()`, que es justo lo que le sobra: reduce `http://iwage_strapi:1337/uploads/x.pdf`
+ * a `/uploads/x.pdf` sin tocar los otros campos.
+ */
+test('experimentos: los documentos adjuntos salen con url de sitio y conservan mime y size', () => {
+  const e = normalizeExperimento({
+    ...EXPERIMENTO_BASE,
+    documentos: [
+      { id: 5, documentId: 'd5', name: 'informe.pdf', mime: 'application/pdf', size: 20480, url: 'http://iwage_strapi:1337/uploads/experimentos/informe.pdf' },
+      { id: 6, documentId: 'd6', name: 'tambo.jpg', mime: 'image/jpeg', size: 10240, url: '/uploads/experimentos/tambo.jpg' },
+      { id: 7, documentId: 'd7', name: 'corte.mp4', mime: 'video/mp4', size: 88000, url: 'http://localhost:1338/uploads/experimentos/corte.mp4' },
+    ],
+  });
+  assert.deepEqual(e.documentos.map((d) => d.url), [
+    '/uploads/experimentos/informe.pdf',
+    '/uploads/experimentos/tambo.jpg',
+    '/uploads/experimentos/corte.mp4',
+  ], 'una url de documento salió con host interno');
+  // El `<a href>` de un archivo de tercero no es un píxel: se conserva tal cual.
+  const tercero = normalizeExperimento({ ...EXPERIMENTO_BASE, documentos: [{ id: 8, name: 'nota.pdf', mime: 'application/pdf', size: 10, url: 'https://example.org/nota.pdf' }] });
+  assert.equal(tercero.documentos[0].url, 'https://example.org/nota.pdf');
+  assert.equal(e.documentos[0].mime, 'application/pdf', 'el render elige el icono por mime: perderlo deja la lista sin icono');
+  assert.equal(e.documentos[0].size, 20480, 'el render imprime el tamaño: perderlo pinta NaN KB');
+  assert.equal(e.documentos[2].name, 'corte.mp4');
+});
+
+/**
+ * El defecto que este barrido no deja volver: una plantilla que, porque la capa de datos le
+ * devolvió una ruta relativa, se inventa el host de Strapi. Medido en los dos crawls de las
+ * 185 URLs, hoy NO se sirve (ningún experimento tiene documentos cargados), pero deja de ser
+ * latente en cuanto la Tarea 12 los enlace: el `<a href>` saldría a `localhost` para toda
+ * visitor. Los `.ts` de `src/lib` quedan fuera a propósito —`strapi.ts` sí conoce el puerto, y
+ * es el cliente HTTP, no el HTML.
+ */
+const HOST_CON_PUERTO = /['"`]https?:\/\/[^'"`\s]*:133\d/;
+
+test('barrido: ninguna plantilla escribe una url de Strapi con puerto', () => {
+  for (const defecto of [
+    'const u = `http://localhost:1338${doc.url}`;',
+    'href={\'http://127.0.0.1:1337/uploads/a.pdf\'}',
+  ]) {
+    assert.match(defecto, HOST_CON_PUERTO, `el barrido dejó pasar ${defecto}`);
+  }
+  for (const sano of [
+    '<code class="font-mono">localhost:1338/admin</code> en desarrollo',
+    '<td>URL interna del CMS iwage_strapi (ej: http://iwage_strapi:1337).</td>',
+    'href={doc.url}',
+  ]) {
+    assert.doesNotMatch(sano, HOST_CON_PUERTO, `el barrido traga prosa sana: ${sano}`);
+  }
+  const culpables = [];
+  for (const ruta of archivosEn('src')) {
+    if (!/\.(astro|tsx)$/.test(ruta)) continue;
+    const fuente = readFileSync(join(RAIZ, ruta), 'utf8');
+    for (const [i, linea] of fuente.split('\n').entries()) {
+      if (HOST_CON_PUERTO.test(linea)) culpables.push(`${ruta}:${i + 1}`);
+    }
+  }
+  assert.deepEqual(culpables, [], `plantilla con host de Strapi escrito a mano: ${culpables.join(', ')}`);
+});
+
 test('experimentos: las tres lecturas mapean; ninguna devuelve res.data crudo', () => {
   // Sin el mapper en las tres funciones, el `[object Object]` depende de qué página se
   // acuerde de llamar `mediaSrc()`. Este barrido es el que no deja volver a ese estado.
