@@ -1,0 +1,15 @@
+{
+  "aviso": [
+    "ENVASE VACÍO A PROPÓSITO. No es un olvido: cada fila de abajo es un enlace que se escribe en la base de datos.",
+    "Para qué sirve: hay emparejamientos que ningún nombre permite deducir. Medido en disco el 2026-09-25, las 36 tapas de public/images/bitacora/ traen el slug RECORTADO (bitacora-caso-don-manuel.webp) mientras que el slug de esa publicación es más largo (caso-la-finca-de-don-manuel, front-matter de Publicaciones/Meliponario/caso-la-finca-de-don-manuel.md). Como el archivo es más corto que el slug, ninguna regla por nombre puede dispararse: 0 de 36 enlazables por regla.",
+    "De dónde sale el vocabulario: de un volcado de SOLO LECTURA de bitacoras.slug en la base de datos, con autorización del dueño. Esa lectura todavía NO se hizo (estaba gateada al dueño), así que nadie puede escribir acá ni una de las 36 filas sin adivinar. Las tareas 11 y 12 la piden.",
+    "Quién la consume: node strapi/scripts/media-import.mjs --alias=strapi/scripts/media-alias.json (por defecto no se lee ningún alias).",
+    "Forma de una fila: la clave es la ruta EXACTA que produce el inventario y el valor nombra al registro por endpoint y slug. El documentId no va acá: lo aporta la lectura de la API, y un alias no puede inventar un id.",
+    "  \"public/images/bitacora/bitacora-caso-don-manuel.webp\": { \"endpoint\": \"bitacoras\", \"slug\": \"caso-la-finca-de-don-manuel\" }",
+    "Esa línea de ejemplo está ESCRITA como ejemplo: el par es real (medido en el repo), pero la lista no se activa mientras `alias` siga vacío; no la copie sin verificar el slug contra la BD.",
+    "Qué hace el importador con una fila que no se puede firmar (archivo ausente del inventario, endpoint/slug que no aparece en la lectura, o ruta fuera del directorio del endpoint): no escribe nada, la deja en `revisar` con el motivo exacto.",
+    "Y con una coincidencia apenas sospechosa (el nombre base termina en -slug con un prefijo que no es del endpoint): tampoco. Solo una fila de alias convierte un `revisar` en enlace.",
+    "La clave `aviso` se ignora al leer; lo único que se parsea es el objeto `alias`."
+  ],
+  "alias": {}
+}

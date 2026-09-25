@@ -6,9 +6,19 @@
  *   STRAPI_URL=... STRAPI_TOKEN=... node strapi/scripts/media-import.mjs            # dry-run
  *   STRAPI_URL=... STRAPI_TOKEN=... node strapi/scripts/media-import.mjs --dry-run  # ídem, explícito
  *   STRAPI_URL=... STRAPI_TOKEN=... node strapi/scripts/media-import.mjs --apply    # ESCRIBE: requiere autorización del dueño
+ *   STRAPI_URL=... STRAPI_TOKEN=... node strapi/scripts/media-import.mjs --alias=strapi/scripts/media-alias.json
  *
  * Sin flags corre en seco: solo hace GET (lectura) y no sube ni cambia nada.
  * `--apply` es la única ruta que escribe, y es la que abre la fase F2.
+ * `--dry-run` y `--apply` a la vez ABORTAN con exit 2 antes de mirar el entorno:
+ * el dry-run es el único guard de esta herramienta, así que una invocación
+ * contradictoria no se resuelve a favor de la escritura (parsea
+ * ./lib/media-flags.mjs, que es pura y se testea sin servidor).
+ *
+ * `--alias=<ruta>` lee un JSON `{"alias": {"<ruta de archivo>": {"endpoint","slug"}}}`
+ * con los emparejamientos que ningún nombre permite deducir — hoy, las 36 tapas de
+ * bitácora, que traen el slug recortado. Ver el bloque ALIAS de
+ * ./lib/media-manifest.mjs: sin ese archivo, esas tapas quedan en `pendientes`.
  *
  * Idempotencia REAL y declarada: por NOMBRE. Se indexa la media library y un
  * nombre que ya existe no se vuelve a subir; enlazar vuelve a asignar el mismo
@@ -24,22 +34,31 @@
  * tests/media-manifest.test.mjs); aquí solo hay E/S.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ENDPOINTS_CON_MEDIO, RAIZ, directoriosDeInventario, manifesto } from './lib/media-manifest.mjs';
+import { parsearFlags } from './lib/media-flags.mjs';
 
 /** El repo se resuelve desde este archivo, no desde el cwd: el script corre desde cualquier carpeta. */
 const RAIZ_REPO = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const CARPETA_IMAGENES = join(RAIZ_REPO, RAIZ);
 
-const APLICAR = process.argv.includes('--apply');
-const DESCONOCIDAS = process.argv.slice(2).filter((a) => a !== '--apply' && a !== '--dry-run');
-if (DESCONOCIDAS.length) {
+const OPCIONES = parsearFlags(process.argv.slice(2));
+if (OPCIONES.modo === 'invalido') {
   // Se imprime solo el nombre del flag, cortado antes del `=`: si alguien intentó
   // pasar un secreto por argumento, echopear el argumento entero lo filtraría.
-  console.error(`Flag no reconocida: ${DESCONOCIDAS.map((a) => a.split('=')[0]).join(', ')}. Uso: --dry-run (por defecto) | --apply`);
+  console.error(`Flag no reconocida: ${OPCIONES.desconocidas.map((a) => a.split('=')[0]).join(', ')}. Uso: --dry-run (por defecto) | --apply | --alias=<ruta>`);
   process.exit(2);
 }
+if (OPCIONES.modo === 'conflicto') {
+  // `--dry-run` y `--apply` no se resuelven eligiendo una: se aborta. Pasar los dos era, hasta
+  // acá, escribir PUT/POST sin imprimir la línea `dry-run:`. Se sale antes de leer
+  // el entorno y antes de la primera petición, así que no hay nada tocado.
+  console.error('Flags contradictorias: --dry-run y --apply a la vez. No escribo y no decido por uno: elija una. Aborto sin leer el entorno ni tocar nada.');
+  process.exit(2);
+}
+/** El único modo que escribe. `conflicto` e `invalido` ya salieron del proceso. */
+const ESCRIBIR = OPCIONES.modo === 'aplicar';
 
 const FALTAN = ['STRAPI_URL', 'STRAPI_TOKEN'].filter((n) => !process.env[n]);
 if (FALTAN.length) {
@@ -94,8 +113,35 @@ function valorDeEnlace(file, cfg) {
   }
 }
 
+/**
+ * Archivo de alias declarados (`--alias=<ruta>`): `{"aviso": "…", "alias": {"<ruta>": {"endpoint","slug"}}}`.
+ * `aviso` y cualquier otra clave de arriba se ignoran: lo único que se lee es
+ * `alias`, que tiene que ser un objeto. La forma la valida el módulo puro, que
+ * reporta la fila que no puede firmar en vez de reventar la corrida.
+ *
+ * Ni este mensaje ni ninguno echoea el valor de `--alias`: la política del script
+ * es no reimprimir argumentos (un secreto podría viajar ahí), y el que pasó la
+ * ruta ya sabe cuál era. Una ruta relativa se resuelve contra el repo, como el
+ * inventario de imágenes: el script corre desde cualquier carpeta.
+ */
+function leerAlias(ruta) {
+  const abs = isAbsolute(ruta) ? ruta : join(RAIZ_REPO, ruta);
+  if (!existsSync(abs)) throw new Error('el archivo de --alias no existe');
+  let crudo;
+  try {
+    crudo = JSON.parse(readFileSync(abs, 'utf8'));
+  } catch {
+    throw new Error('el archivo de --alias no es JSON válido');
+  }
+  const mapa = crudo?.alias;
+  if (!mapa || typeof mapa !== 'object' || Array.isArray(mapa)) {
+    throw new Error('el archivo de --alias no trae un objeto en la clave "alias"');
+  }
+  return mapa;
+}
+
 /** Lee el disco y Strapi (solo GET) y arma el manifiesto. */
-async function construir() {
+async function construir(alias) {
   const declarados = directoriosDeInventario();
   const archivos = [];
   for (const dir of declarados) {
@@ -138,22 +184,36 @@ async function construir() {
     }
   }
 
-  return { manifiesto: manifesto({ archivos, registros }), porNombre, leidos, registros };
+  return {
+    manifiesto: manifesto({ archivos, registros, alias }),
+    porNombre,
+    leidos,
+    registros,
+    archivos,
+    filasAlias: Object.keys(alias).length,
+  };
 }
 
-function imprimir({ manifiesto: m, porNombre, leidos, registros }) {
-  console.log(`lectura: ${leidos.join(' ')} · ${registros.length} registros · ${m.enlazar.length + m.pendientes.length} archivos`);
-  console.log(`${m.enlazar.length} enlaces · ${m.pendientes.length} pendientes · ${m.ambiguos.length} ambigüedades`);
+function imprimir({ manifiesto: m, porNombre, leidos, registros, archivos, filasAlias }) {
+  console.log(`lectura: ${leidos.join(' ')} · ${registros.length} registros · ${archivos.length} archivos · ${filasAlias} filas de alias`);
+  console.log(`${m.enlazar.length} enlaces · ${m.revisar.length} en revisar (NO se escriben) · ${m.pendientes.length} pendientes · ${m.ambiguos.length} ambigüedades`);
   for (const e of m.enlazar) {
     const estado = porNombre.has(nombreDe(e.archivo)) ? 'el nombre ya está en la librería' : 'nombre nuevo: hay que subirlo';
-    console.log(`  enlace: ${e.archivo} → ${e.endpoint}/${e.documentId}.${e.campo} (${estado})`);
+    console.log(`  enlace${e.origen === 'alias' ? ' (alias)' : ''}: ${e.archivo} → ${e.endpoint}/${e.documentId}.${e.campo} (${estado})`);
   }
+  // Un `revisar` es una propuesta con nombre y apellido: se imprime para el humano,
+  // y la única forma de volverla escribible es declararla en el archivo de alias.
+  for (const r of m.revisar) console.log(`  revisar: ${r.archivo} · ${r.motivo}`);
   for (const p of m.pendientes) console.log('  pendiente:', p);
   for (const a of m.ambiguos) console.log('  ambiguo:', a.slug, '·', a.motivo);
 }
 
-/** Sube lo que falte y enlaza. Solo se llega aquí con --apply. */
+/** Sube lo que falte y enlaza. Solo se llega aquí con --apply y con modo `aplicar`. */
 async function aplicar({ manifiesto: m, porNombre }) {
+  // El balde `revisar` no se escribe ni con --apply: son coincidencias solo por
+  // sufijo y filas de alias que ningún registro pudo firmar. Se nombran y se
+  // dejan; promoverlas es decisión de un humano, con una fila de alias.
+  if (m.revisar.length) console.warn(`  ${m.revisar.length} emparejamiento(s) en revisar: se omite(n), no se escribe(n).`);
   let errores = 0;
   for (const { endpoint, documentId, campo, archivo } of m.enlazar) {
     const nombre = nombreDe(archivo);
@@ -193,9 +253,11 @@ async function aplicar({ manifiesto: m, porNombre }) {
 }
 
 try {
-  const inventario = await construir();
+  // El alias se lee antes que nada: si está mal, se aborta sin haber tocado la red.
+  const alias = OPCIONES.alias ? leerAlias(OPCIONES.alias) : {};
+  const inventario = await construir(alias);
   imprimir(inventario);
-  if (!APLICAR) {
+  if (!ESCRIBIR) {
     console.log('\ndry-run: no subí nada ni toqué registros. Repetir con --apply.');
     process.exit(0);
   }
