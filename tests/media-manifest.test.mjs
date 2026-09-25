@@ -1075,7 +1075,7 @@ test('I4 identidadNombre solo donde hay arte producido: el conjunto es {galeria}
 const BITACORA_LA_CAJA = 'public/images/bitacora/bitacora-la-caja-de-angelita.webp';
 
 test('I6/M5 los tokens de parada se botan de la identidad: `producto-de-angelita` es Angelita', () => {
-  // Mutante: `media-manifest.mjs:320` — fuera `&& !STOP_TOKENS.has(t)` del último
+  // Mutante: `media-manifest.mjs:325` — fuera `&& !STOP_TOKENS.has(t)` del último
   // `.filter` de `normalizar`. Sin ese filtro la raíz aporta `de` al residuo, y
   // `de` no está en ningún nombre: el nivel `NOMBRE` deja de emparejar y la tapa
   // cae a `pendientes` en silencio. Es el filtro que hace que `de`, `la`, `y` no
@@ -1096,7 +1096,7 @@ test('I6/M5 los tokens de parada se botan de la identidad: `producto-de-angelita
 });
 
 test('I6/M6 las iniciales sueltas se botan: `proyecto-i-ambala` es el meliponario I.E. Ambalá', () => {
-  // Mutante: `media-manifest.mjs:320` — fuera `!RE_INICIAL_SUELTA.test(t) &&`.
+  // Mutante: `media-manifest.mjs:325` — fuera `!RE_INICIAL_SUELTA.test(t) &&`.
   // El fixture está medido para que SOLO muera ese filtro: la inicial suelta la
   // aporta el NOMBRE DEL ARCHIVO (`proyecto-i-ambala`), y `i` no está en
   // STOP_TOKENS, así que el otro filtro no la cubre. En el nombre de la BD la
@@ -1117,7 +1117,7 @@ test('I6/M6 las iniciales sueltas se botan: `proyecto-i-ambala` es el meliponari
 });
 
 test('I6/M13 dos filas de alias sobre la misma tapa, en el orden de claves que sean, dan la MISMA salida', () => {
-  // Mutante: `media-manifest.mjs:520` — fuera el `.sort()` de
+  // Mutante: `media-manifest.mjs:525` — fuera el `.sort()` de
   // `Object.keys(alias).sort()`. El comentario de la llave dice "orden de clave,
   // no de autoría"; sin el sort, quién gana depende del orden en que alguien
   // escribió el JSON de alias, y el manifiesto deja de ser función del insumo.
@@ -1148,8 +1148,45 @@ test('I6/M13 dos filas de alias sobre la misma tapa, en el orden de claves que s
   }]);
 });
 
+test('I6/M17 una serie con un solo miembro en disputa no se escribe a medias: arrastra al otro', () => {
+  // Mutante: `media-manifest.mjs:756` — fuera el filtro del lazo de arrastre
+  // (`for (const u of [])`). MEDIDO con `m17-minimo.mjs`: la rama es alcanzable, pero
+  // NO con dos slugs distintos — los miembros de una serie comparten la raíz, así que o
+  // se disputan todos o ninguno. Hace falta una fila de alias por ruta que salve a UN
+  // solo miembro (`-1`) y deje a `-2` en disputa. Sin el arrastre, `-1` se enlaza solo
+  // (`proyecto-valle-1.webp -> A.imagen`) y la galería queda de un elemento: exactamente
+  // el defecto que esta ronda vino a cerrar.
+  const uno = 'public/images/galeria/proyecto-valle-1.webp';
+  const dos = 'public/images/galeria/proyecto-valle-2.webp';
+  const m = manifesto({
+    archivos: [uno, dos],
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'A', slug: 'valle', nombre: 'Valle Norte' },
+      { endpoint: 'proyecto-meliponarios', documentId: 'B', slug: 'valle', nombre: 'Valle Norte' },
+    ],
+    alias: { [uno]: { endpoint: 'proyecto-meliponarios', slug: 'valle' } },
+  });
+  assert.deepEqual(m.enlazar, [], 'ninguna mitad de la serie se escribe');
+  assert.deepEqual(m.revisar, [
+    {
+      archivo: uno,
+      endpoint: 'proyecto-meliponarios',
+      documentId: 'A',
+      campo: 'galeria',
+      motivo: `serie bloqueada por un archivo en disputa: ${dos}`,
+    },
+    {
+      archivo: dos,
+      endpoint: 'proyecto-meliponarios',
+      campo: 'galeria',
+      motivo: 'varios registros reclaman el mismo archivo sin que la identidad lo desempate: proyecto-meliponarios/A, proyecto-meliponarios/B',
+    },
+  ], 'el miembro NO disputado va a `revisar` con el nombre del disputado');
+  assert.deepEqual(m.pendientes, [], 'y no cae a `pendientes`, que `aplicar()` sí escribe');
+});
+
 test('I6/M19 una fila de alias con un campo que la tabla no conoce no firma nada', () => {
-  // Mutante: `media-manifest.mjs:561` — fuera `|| !campos.includes(campo)`. Sin
+  // Mutante: `media-manifest.mjs:566` — fuera `|| !campos.includes(campo)`. Sin
   // esa guarda la fila se firma con `campo: 'portada'`, sale en `enlazar`, y
   // `formaDeCampo()` responde `null`: en seco se imprime como enlace prometido y
   // en `--apply` se salta o rebota. El registro no trae `slug`, así que la tapa
@@ -1170,13 +1207,13 @@ test('I6/M19 una fila de alias con un campo que la tabla no conoce no firma nada
 });
 
 test('I6/M20 un archivo declarado en dos filas de alias no se reparte entre los dos registros', () => {
-  // Mutante: `media-manifest.mjs:582` — fuera el `aliasPorArchivo.has(a)` del lazo
-  // de validación. MEDIDO: con solo esa línea fuera el comportamiento NO cambia,
-  // porque la guarda de `:613` (`duplicada`) cubre el caso ordinario con el mismo
-  // texto; ver el reporte de la ronda. Lo que este fixture fija es el resultado
-  // observable — gana la clave menor y la otra fila se reporta con la ruta del
-  // archivo en el motivo — y por eso sí mata a quien borre las dos guardas (un
-  // refactor "limpia la duplicación" y el archivo se sube dos veces).
+  // Mutante: `media-manifest.mjs:621` — fuera el control `duplicada`. El control estaba
+  // escrito DOS veces: acá y dentro del lazo de `fila.archivos` (era `:587`). MEDIDO con
+  // `m20-guards.mjs` sobre seis combinaciones: quitar la copia del lazo no cambiaba NADA
+  // (0/6), porque al quitarla se va también su `break` y la lista llega igual a `:621`;
+  // quitar `:621` sí cambiaba el resultado (2/6). Se borró la copia redundante y quedó un
+  // solo control, puesto después de la bifurcación porque es el único que ve la vía por
+  // RUTA — esa forma arma `rutas = [clave]` y nunca pasa por el lazo de validación.
   const m = manifesto({
     archivos: [BITACORA_LA_CAJA],
     registros: [
@@ -1200,4 +1237,26 @@ test('I6/M20 un archivo declarado en dos filas de alias no se reparte entre los 
     motivo: `${BITACORA_LA_CAJA} ya está declarado en otra fila de alias`,
   }]);
   assert.deepEqual(m.pendientes, []);
+
+  // La forma que el control borrado no podía ver: una fila por ruta y otra por
+  // `documentId` sobre la misma tapa. Sin el control, el archivo se reclama DOS VECES
+  // desde el mismo registro y la disputa se nombra a sí misma (`A, A`).
+  const tapa = 'public/images/galeria/proyecto-valle-1.webp';
+  const mixto = manifesto({
+    archivos: [tapa, 'public/images/galeria/proyecto-valle-2.webp'],
+    registros: [{ endpoint: 'proyecto-meliponarios', documentId: 'A', slug: 'valle', nombre: 'Valle' }],
+    alias: {
+      A: { endpoint: 'proyecto-meliponarios', campo: 'galeria', archivos: [tapa] },
+      [tapa]: { endpoint: 'proyecto-meliponarios', slug: 'valle' },
+    },
+  });
+  assert.deepEqual(mixto.motivosAlias, [{
+    archivo: tapa,
+    motivo: `${tapa} ya está declarado en otra fila de alias`,
+  }], 'la vía por ruta también pasa por el único control que existe');
+  assert.deepEqual(mixto.enlazar, [{
+    endpoint: 'proyecto-meliponarios', documentId: 'A', campo: 'galeria', archivo: tapa, origen: 'alias',
+  }]);
+  assert.equal(mixto.revisar.find((r) => /sin que la identidad lo desempate/.test(r.motivo)), undefined,
+    'un documento no puede disputarse contra sí mismo');
 });

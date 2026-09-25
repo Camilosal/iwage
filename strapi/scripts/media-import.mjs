@@ -215,7 +215,11 @@ async function construir(alias) {
   const leidos = [];
   for (const [endpoint, cfg] of Object.entries(ENDPOINTS_CON_MEDIO)) {
     // `nombre` solo donde el content-type lo tiene y la tabla lo declara identidad:
-    // pedir un field que no existe es un 400 garantizado.
+    // pedir un field que no existe es un 400 garantizado. Y al revés también manda:
+    // `proveedor` e `item-menu`, que sí están en la tabla, tienen `nombre` en el esquema
+    // y no declaran identidad por nombre, así que prenderles `identidadNombre` obliga a
+    // tocar esta línea. El criterio está escrito una sola vez, en `ENDPOINTS_CON_MEDIO`
+    // (lib/media-manifest.mjs).
     const campos = ['slug', ...(cfg.tieneMarca ? ['marca'] : []), ...(cfg.identidadNombre ? ['nombre'] : [])];
     const qs = new URLSearchParams({ 'pagination[pageSize]': '200', 'pagination[page]': '1', sort: 'slug:asc' });
     campos.forEach((c, i) => qs.set(`fields[${i}]`, c));

@@ -116,11 +116,16 @@
  * sí en 29 de 36 casos y los 29 son los que el dueño marcó como
  * `PROPUESTA … requiere revision humana` (`.superpowers/…/alias-bitacoras-
  * propuesta.json`). Adivinar sobre un título no es una regla, es una decisión
- * de redacción: ahí solo habla una fila de alias. Por eso `identidadNombre` lo
- * declaran únicamente los content-type que TIENEN un atributo `nombre`
- * (proyecto-meliponario, producto); `bitacora` tiene `titulo`, no `nombre`, y
- * por lo tanto **cero de sus 36 tapas son enlazables por regla** — estructura,
- * no esperanza.
+ * de redacción: ahí solo habla una fila de alias. Y ojo con el criterio: NO es
+ * «tener el atributo». Medido en los 22 `schema.json`, `nombre` lo declaran NUEVE
+ * content-types y cuatro de los seis endpoints de la tabla (`proveedor`,
+ * `item-menu`, `cultivo-polinizacion` también lo tienen); `identidadNombre` lo
+ * prenden solo `proyecto-meliponario` y `producto`, que son los dos cuyo `dir` es
+ * `galeria`: donde hay arte PRODUCIDO en ese directorio, la identidad por nombre
+ * no puede inventar un archivo que no existe. Fuera de ahí, enlazar por nombre
+ * sería adivinar sobre un directorio con 19 piezas de menú. `bitacora` tiene
+ * `titulo`, no `nombre`, y por lo tanto **cero de sus 36 tapas son enlazables por
+ * regla** — estructura, no esperanza.
  *
  * ---------------------------------------------------------------------------
  * COLISIONES — ninguna se resuelve adivinando.
@@ -579,7 +584,6 @@ export function manifesto({ archivos, registros, alias = {} }) {
         const info = porRuta.get(a);
         if (!info) { roto = `el alias declara un archivo que no está en el inventario: ${a}`; break; }
         if (info.dir !== cfg.dir) { roto = `el alias saca ${a} del directorio de ${fila.endpoint} (${cfg.dir})`; break; }
-        if (aliasPorArchivo.has(a)) { roto = `${a} ya está declarado en otra fila de alias`; break; }
         rutas.push(a);
       }
       if (roto) { motivosAlias.push({ archivo: clave, motivo: roto }); continue; }
@@ -610,6 +614,10 @@ export function manifesto({ archivos, registros, alias = {} }) {
       });
       continue;
     }
+    // Después de la bifurcación, no dentro del bucle: es el único control de archivo
+    // repetido que ve las DOS formas de fila, porque la vía por ruta arma `rutas` con la
+    // clave y nunca pasa por ese bucle. Sin esta línea, dos alias sobre el mismo archivo
+    // producen dos unidades ALIAS del mismo registro y la disputa se nombra a sí misma.
     const duplicada = rutas.find((a) => aliasPorArchivo.has(a));
     if (duplicada) { motivosAlias.push({ archivo: clave, motivo: `${duplicada} ya está declarado en otra fila de alias` }); continue; }
     for (const a of rutas) aliasPorArchivo.add(a);
@@ -759,8 +767,8 @@ export function manifesto({ archivos, registros, alias = {} }) {
       const libres = firmes.filter((u) => u.archivos.every((a) => !ocupado(a)));
       if (!libres.length) {
         const perdido = firmes[0].archivos.find((a) => ocupado(a));
-        const dueno = duenio.get(perdido);
-        notas.push(`la tapa ya está asignada a ${dueno ? etiqueta(dueno) : `un archivo pasado a revisar (${perdido})`}`);
+        const previo = duenio.get(perdido);
+        notas.push(`la tapa ya está asignada a ${previo ? etiqueta(previo) : `un archivo pasado a revisar (${perdido})`}`);
         continue;
       }
       const nivel = libres[0].nivel;
