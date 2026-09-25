@@ -1880,15 +1880,37 @@ git commit -m "docs(media): censo post-consolidación"
 
 ## Registro de cambios de infraestructura
 
-No versionados en el repo (viven en `/home/ubuntu/negocio/docker-compose.yml`):
+Todo lo de esta sección vive fuera del repo: los dos primeros cambios en `/home/ubuntu/negocio/docker-compose.yml`, y los respaldos bajo `/home/ubuntu/backup/`.
 
 | Fecha | Cambio | Reversible con |
 |---|---|---|
-| _completar en Task 1_ | `iwage_strapi` gana `iwage_strapi_uploads:/app/public/uploads` | `docker compose down iwage_strapi` + quitar el bloque `volumes:` |
-| _completar en Task 1_ | Respaldo `docker run ... tar czf /home/ubuntu/backup/iwage-uploads-*.tar.gz` añadido a la rutina | n/a |
-| _completar en Task 11_ | Respaldo previo `iwage-pre-f2-*.sql` | restaurar el dump |
-| _completar en Task 11_ | Reconstrucción del contenedor con los esquemas nuevos | checkout de `strapi/src/api` + rebuild |
-| _completar en Task 14_ | 19 png movidos a `/home/ubuntu/backup/png-cafe-menu-*` | moverlos de vuelta |
+| _pendiente de 'sí' del dueño_ | `iwage_strapi` gana `iwage_strapi_uploads:/app/public/uploads` | `docker compose down iwage_strapi` + quitar el bloque `volumes:` |
+| _pendiente de 'sí' del dueño_ | Respaldo `docker run ... tar czf /home/ubuntu/backup/iwage-uploads-*.tar.gz` añadido a la rutina | n/a |
+| 2026-09-25 | Dump previo `iwage-pre-f2-2026-09-25.sql` | restaurar el dump |
+| _pendiente de 'sí' del dueño_ | Reconstrucción del contenedor con los esquemas nuevos (`fa240b2`) | checkout de `strapi/src/api` + rebuild |
+| 2026-09-25 | 19 png movidos a `/home/ubuntu/backup/png-cafe-menu-2026-09-25` | moverlos de vuelta |
+
+### Task 1 — evidencia leída y parche preparado (no aplicado)
+
+Step 1, todo por lectura, el 2026-09-25:
+
+- `docker inspect iwage_strapi --format '{{json .Mounts}}'` → `[]`. El contenedor no tiene ningún volumen.
+- `docker exec iwage_strapi ls -la /app/public/uploads` → un solo archivo, `.gitkeep` de 0 bytes, fechado el 25-jul. **No hay material que rescatar**: el `docker cp` de salvamento del paso 1 no procede, y concuerda con `files = 0` en la BD.
+- La causa está en `strapi/Dockerfile:7` (`RUN mkdir -p public/uploads`): el directorio se crea en la capa escribible de la imagen, así que cada rebuild se va con él lo que Strapi hubiera subido.
+- `docker volume ls` / `docker volume inspect iwage_strapi_uploads` → no existe. El plan anterior no dejó un volumen huérfano del que recuperar algo.
+
+El parche, aplicado sobre una copia en memoria y validado con `yaml.safe_load` sobre el archivo real (41 servicios siguen parseando, y el mount queda exclusivamente en `iwage_strapi`):
+
+```yaml
+# docker-compose.yml, dentro de iwage_strapi:, entre ports: (línea 1111) y environment:
+    volumes:
+      - iwage_strapi_uploads:/app/public/uploads
+
+# docker-compose.yml, bloque top-level volumes: (línea 1437)
+  iwage_strapi_uploads:
+```
+
+Step 2 en adelante **no se ejecutaron**: editar ese compose y recrear el servicio reinicia el CMS que comparten ~30 servicios. Queda a la espera del 'sí' del dueño.
 
 ## Self-review de este plan
 
