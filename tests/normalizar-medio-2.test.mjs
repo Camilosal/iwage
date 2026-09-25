@@ -273,8 +273,50 @@ const MODULOS_CAPA = ['src/lib/tienda.ts', 'src/lib/proyectos.ts', 'src/lib/poli
  * `= { x.imagen }`: un `MediaItem` entrando crudo a un atributo de imagen. El nombre del
  * atributo importa —`imagen={hero.imagen}` es la config del héroe (un string de `/images/`
  * que sale de `src/lib/heroes.ts`, no media de contenido) y por eso NO entra en el barrido.
+ *
+ * El cierre `}` ya NO se exige: estaba en la versión anterior, así que
+ * `src={prop.imagen ?? x}` (mismo defecto, misma `[object Object]`) escapaba del barrido
+ * por llevar algo después del campo.
+ *
+ * Dos cosas que este ensanche midió y que hay que saber para no volver a romperla:
+ *  · `\bimagen\b` NUNCA cachaba `imagen_principal`: `_` es carácter de palabra, así que no hay
+ *    frontier entre `n` y `_`. El campo real de `Propiedad` —el que más se pinta— le era invisible
+ *    a la aguja. Por eso la alternación nombra los campos, de largo a corto: con `imagen` primero,
+ *    el regex se queda en `imagen` y el lookahead deja pasar `imagen_principal.url` por accidente.
+ *  · La exclusión es `\.url` y `\?\.url`: medidas 20 de las 20 banderas del primer ensanche, 9 eran
+ *    `image={p.imagen?.url}` — resueltas y bien. Sin el `?` opcional el gate ruge sobre código sano.
  */
-const INTERPOLACION_CRUDA = /\b(?:src|image|ogImage|twitterImage|url)\s*=\s*\{\s*[A-Za-z_$][\w$]*(?:\.[\w$]+)*\.imagen\s*\}/;
+const INTERPOLACION_CRUDA = /\b((?:src|image|ogImage|twitterImage|url)\s*=\s*\{\s*[A-Za-z_$][\w$]*(?:\.[\w$]+)*\.(?:imagen_principal|imagen_hero|foto_perfil|foto_territorio|thumbnail|foto|imagen)\b(?!\s*\??\.url))/;
+
+/**
+ * Textos que SÍ entregan el `MediaItem` entero porque el resolve corre del otro lado.
+ * No es una excepción de conveniencia: `BitacoraCard.astro:12` declara `image?: MediaItem | null`
+ * y lo reduce con `mediaSrc()` en `:22`. `image` es el único nombre ambiguo del barrido —en
+ * ProductCard/ProjectCard espera un string (`image={p.imagen?.url}`) y en BitacoraCard espera el
+ * objeto—, así que la excepción va ligada al texto exacto y no al nombre del atributo.
+ */
+const PROP_MEDIAITEM = new Set(['image={post.imagen']);
+
+test('la aguja tiene dientes: se traga el MediaItem crudo y deja pasar lo resuelto', () => {
+  for (const defecto of [
+    '<img src={prop.imagen_principal}',
+    'src={prop.imagen ?? x}',
+    '<img src={p.foto}',
+    'ogImage={exp.imagen_hero}',
+  ]) {
+    assert.match(defecto, INTERPOLACION_CRUDA, `la aguja dejó pasar un medio crudo: ${defecto}`);
+  }
+  for (const sano of [
+    'image={p.imagen?.url}',
+    'ogImage={exp.imagen?.url ?? undefined}',
+    'ogImage={exp.imagen_principal.url}',
+    'image={p.imagen?.url ?? p.galeria?.[0]?.url}',
+    'imagen={hero.imagen}',
+    'src={`/uploads/a.jpg`}',
+  ]) {
+    assert.doesNotMatch(sano, INTERPOLACION_CRUDA, `la aguja traga código sano: ${sano}`);
+  }
+});
 
 test('barrido: ninguna plantilla de la capa interpola la portada cruda', () => {
   const culpables = [];
@@ -283,7 +325,10 @@ test('barrido: ninguna plantilla de la capa interpola la portada cruda', () => {
     assert.ok(existsSync(absoluto), `${ruta}: desapareció, actualiza la lista del barrido`);
     const fuente = readFileSync(absoluto, 'utf8');
     for (const [i, linea] of fuente.split('\n').entries()) {
-      if (INTERPOLACION_CRUDA.test(linea)) culpables.push(`${ruta}:${i + 1}`);
+      const casa = linea.match(INTERPOLACION_CRUDA);
+      if (!casa) continue;
+      if (PROP_MEDIAITEM.has(casa[1])) continue;
+      culpables.push(`${ruta}:${i + 1}: ${casa[1]}`);
     }
   }
   assert.deepEqual(culpables, [], `portada cruda interpolada (pintaría [object Object]): ${culpables.join(', ')}`);

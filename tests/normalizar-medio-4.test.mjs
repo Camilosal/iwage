@@ -249,6 +249,28 @@ function nombresMedio(src) {
   return nombres;
 }
 
+/**
+ * Campos que en este árbol ya SON un `MediaItem` (F2). El taint por constante del frontmatter no
+ * los alcanza: dentro de un `.map((prop) => …)` el receptor es un PARÁMETRO, así que
+ * `<img src={prop.imagen_principal}>` —que pinta `[object Object]`— pasaba verde. Medido el
+ * 2026-09-25: control 20/0 y mutante idéntico 20/0. Nombrar los campos cierra ese ángulo; la
+ * lista es de este archivo porque es el barrido de `Propiedad`, que es donde se midió.
+ */
+const CAMPO_MEDIO = /\.(imagen_principal|imagen_hero|imagen|imagenes|foto|foto_perfil|foto_territorio|galeria|thumbnail)\b/;
+
+/**
+ * Expresiones con nombre de medio que en este árbol NO son `MediaItem`, medidas una por una:
+ *  · `perfil.ext.imagen` — `src/pages/tierras/perfiles/index.astro:32` lo declara
+ *    `imagen: string | null` en un `Record<...>` LOCAL de la página, y las cinco filas valen `null`
+ *    (lo fija más abajo el teste de la fila 9 del censo). Es una ruta de `public/`, no media de
+ *    Strapi: `src={perfil.ext.imagen}` pinta una ruta o no emite `<img>`.
+ *
+ * Se exceptúa LA EXPRESIÓN y no se borra `imagen` de `CAMPO_MEDIO`: la alternativa sigue armando
+ * el gate contra `src={articulo.imagen}`, que sí es `MediaItem` (`bitacora.ts:30`) y pintado tal
+ * cual sale `[object Object]`.
+ */
+const NO_ES_MEDIO = /\bperfil\.ext\.imagen\b/;
+
 function violacionesDeMedios(rel) {
   const src = codigo(rel);
   const cuerpo = src.slice(0, src.indexOf('---', 3) > 0 ? src.indexOf('---', 3) + 3 : 0);
@@ -256,7 +278,9 @@ function violacionesDeMedios(rel) {
   const culpables = [];
   for (const m of src.matchAll(/<img\b[^>]*?\bsrc=\{([\s\S]*?)\}/g)) {
     const expr = m[1].trim();
-    const menciona = RESOLVER.test(expr) || [...nombres].some((n) => new RegExp(`\\b${n}\\b`).test(expr));
+    if (NO_ES_MEDIO.test(expr)) continue;
+    const menciona =
+      RESOLVER.test(expr) || CAMPO_MEDIO.test(expr) || [...nombres].some((n) => new RegExp(`\\b${n}\\b`).test(expr));
     if (!menciona) continue;
     if (RESUELTO.test(expr)) continue;
     culpables.push(`    ${rel}:${src.slice(0, m.index).split('\n').length}: src={${expr}}  ← un MediaItem pintado tal cual sale "[object Object]" en el navegador`);
@@ -361,7 +385,7 @@ test('ningún archivo de /tierras referencia /images/perfiles (las 5 rutas que d
 });
 
 test('los cinco perfiles declaran `imagen: null` y la tarjeta cae al mosaico Icon', () => {
-  const src = fuente('src/pages/tierras/perfiles/index.astro');
+  const src = codigo('src/pages/tierras/perfiles/index.astro');
   assert.equal((src.match(/imagen:\s*null/g) || []).length, 5, 'un perfil de `perfiles/index.astro` volvió a pedir una foto que no existe');
   assert.match(src, /SIN_IMAGEN_TILE/, 'desapareció el mosaico Icon de respaldo');
   // El slot del <img> sigue condicionado a que haya foto: sin foto no se emite <img>.

@@ -178,10 +178,10 @@ test('la galería es una sola: ProductGallery no resucita ni se referencia', () 
 test('los campos de galería de los modelos declaran MediaItem[] | null', () => {
   const culpables = [];
   for (const ruta of ['lib/tienda.ts', 'lib/proyectos.ts', 'lib/polinizacion.ts']) {
-    const fuente = readFileSync(join(SRC, ruta), 'utf8');
+    const fuente = sinComentarios(readFileSync(join(SRC, ruta), 'utf8'));
     if (!/galeria:\s*MediaItem\[\]\s*\|\s*null/.test(fuente)) culpables.push(`${ruta}: galeria no declara MediaItem[] | null`);
   }
-  const naturaleza = readFileSync(join(SRC, 'lib/naturaleza.ts'), 'utf8');
+  const naturaleza = sinComentarios(readFileSync(join(SRC, 'lib/naturaleza.ts'), 'utf8'));
   if (!/function experienciaGaleria\([^)]*\)\s*:\s*MediaItem\[\]/.test(naturaleza)) {
     culpables.push('lib/naturaleza.ts: experienciaGaleria() no devuelve MediaItem[]');
   }
