@@ -2,11 +2,11 @@
  * Unified bitácora entry fetching from Strapi `bitacoras` collection.
  * Each brand filters by `marca` field.
  */
-import { strapiFetch, CACHE_TTL } from './strapi';
+import { strapiFetch, CACHE_TTL } from './strapi.ts';
 import { filasAResumen, filasParaPlantilla, type FilaCrudaDeBitacora, type ResumenBitacora } from './bitacora-resumen.ts';
 import type { MediaItem } from './media.ts';
 
-export { conteoDe, type ResumenBitacora } from './bitacora-resumen';
+export { conteoDe, type ResumenBitacora } from './bitacora-resumen.ts';
 
 export interface EntradaBitacora {
   id: number;
@@ -18,11 +18,14 @@ export interface EntradaBitacora {
   categoria: string | null;
   tiempo_lectura: number | null;
   /**
-   * La portada, ya como contrato (`normalizar-medio.ts`). No es un string: en el admin
-   * de Strapi `bitacora.imagen` todavía es `type: 'string'` (Task 11 no ha corrido), así
-   * que la fila cruda llega como ruta, como objeto media o como `MediaItem`, y las tres
-   * formas convergen acá. La plantilla pinta `imagen.url` e `imagen.alt`; una ruta propia
-   * sale relativa de sitio porque `mediaSrc()` le quitó el host interno de Docker.
+   * La portada, ya como contrato (`normalizar-medio.ts`). No es un string: en el esquema
+   * del repo `bitacora.imagen` es `type: 'media'` desde `fa240b2` —aunque el `dist/` del
+   * contenedor en vuelo todavía sirve el string viejo—, así que la fila cruda puede llegar
+   * como ruta, como objeto media o como `MediaItem`, y las tres formas convergen acá.
+   * Que sea una relación significa dos cosas para quien llame a esta API: hay que pedir
+   * `populate: ['imagen']` (si no, Strapi responde sin el campo y esto da `null` con build
+   * verde — el C1), y la plantilla pinta `imagen.url` e `imagen.alt`. Una ruta propia sale
+   * relativa de sitio porque `mediaSrc()` le quitó el host interno de Docker.
    */
   imagen: MediaItem | null;
   fecha: string | null;
@@ -44,10 +47,19 @@ export type Marca = 'tierras' | 'naturaleza' | 'meliponas' | 'cafe' | 'gestion' 
 /**
  * Listado de una marca. Las filas que salen de aquí ya son de plantilla
  * (`imagen: MediaItem | null`), y son COPIAS: la normalización se hace DESPUÉS de que
- * `strapiFetch` devuelva la estructura del cache, nunca sobre ella. La clave de cache
- * (`strapi:bitacoras:<queryString>`) no cambia una coma — el genérico `FilaCrudaDeBitacora`
- * se borra en el build y la consulta enviada es idéntica —, así que en Redis siguen
- * viviendo filas crudas y ninguna de las 7 superficies se re-cachea por esto.
+ * `strapiFetch` devuelva la estructura del cache, nunca sobre ella.
+ *
+ * `populate: ['imagen']` NO es opcional: desde `fa240b2` el atributo `imagen` de
+ * `bitacora` es `type: 'media'`, y la REST API de Strapi v5 «by default does not populate
+ * any relations, media fields, components, or dynamic zones» (docs de Population & Field
+ * Selection). Sin esa clave Strapi responde `200` sin el campo → `normalizarParaPlantilla`
+ * ve `undefined` → `imagen: null` en las 112 filas → cero tapas, con build y testes verdes.
+ * El precedente del repo es `cafe.ts:154` y `:203`.
+ *
+ * OJO con la clave de cache (`strapi:bitacoras:<queryString>`): `populate[]` SÍ entra en la
+ * queryString (`strapi.ts:95-101`), así que este fix estrena clave → un cold miss de TTL
+ * `CACHE_TTL.list` por superficie al desplegar. Conviene barrer `strapi:bitacoras:*` en
+ * Redis en el deploy para no servir dos filas vivas.
  */
 export async function getBitacoraByMarca(
   marca: Marca,
@@ -56,6 +68,7 @@ export async function getBitacoraByMarca(
   try {
     const res = await strapiFetch<FilaCrudaDeBitacora>('bitacoras', {
       ttl: CACHE_TTL.list,
+      populate: ['imagen'],
       filters: { marca: { $eq: marca }, publicado: { $eq: true } },
       sort: ['fecha:desc', 'publishedAt:desc'],
       pagination: { page: opts.page || 1, pageSize: opts.pageSize || 20 },
@@ -74,7 +87,13 @@ export async function getBitacoraByMarca(
   }
 }
 
-/** Campos que necesitan las tiras de resumen; `contenido` queda fuera a propósito. */
+/**
+ * Campos escalares que necesitan las tiras de resumen; `contenido` queda fuera a propósito.
+ * `imagen` sigue listado porque EN EL CONTAINER EN VUELO todavía es un atributo `string`
+ * (Task 11 no ha corrido) y `fields[]` es la única forma de pedir un escalar. En cuanto el
+ * esquema de `fa240b2` se despliegue, `imagen` pase a ser relación y `fields[]` deja de
+ * aplicársele — por eso hace falta además el `populate` de abajo, no en vez de él.
+ */
 const CAMPOS_RESUMEN = [
   'titulo', 'slug', 'marca', 'fecha', 'extracto', 'imagen', 'categoria', 'tiempo_lectura',
 ];
@@ -86,6 +105,12 @@ const CAMPOS_RESUMEN = [
  * de Redis con TTL `CACHE_TTL.list`.
  * Si Strapi falla, devuelve el resumen vacío: el bloque se degrada a nada, nunca
  * a un 500 en la portada.
+ *
+ * `fields` y `populate` son dos cosas distintas en Strapi v5 y no se sustituyen: la
+ * selección de campos «does not work on relational, media, component, or dynamic zone
+ * fields» (Population & Field Selection). Dejar `imagen` en `CAMPOS_RESUMEN` sin
+ * `populate` es justo el C1: el hub y las 5 landings se quedan sin tapa en silencio.
+ * Este fix también estrena clave de cache (`populate[]` entra en la queryString).
  */
 export async function getResumenBitacora(
   opts: { porMarca?: number; recientes?: number } = {}
@@ -93,6 +118,7 @@ export async function getResumenBitacora(
   try {
     const res = await strapiFetch<FilaCrudaDeBitacora>('bitacoras', {
       ttl: CACHE_TTL.list,
+      populate: ['imagen'],
       filters: { publicado: { $eq: true } },
       sort: ['fecha:desc', 'publishedAt:desc'],
       pagination: { page: 1, pageSize: 100 },
@@ -114,11 +140,14 @@ export async function getResumenBitacora(
 /**
  * Una ficha. Sale con `imagen: MediaItem | null` por el mismo camino que el listado;
  * `null` solo cuando Strapi falló o no hay artículo, igual que antes.
+ * Acá es donde más se veía el C1: sin `populate` la ficha pierde el `<figure>`, el
+ * `Article.image` del JSON-LD y el `og:image` propio, y cae al hero de la marca.
  */
 export async function getBitacoraBySlug(slug: string): Promise<EntradaBitacora | null> {
   try {
     const res = await strapiFetch<FilaCrudaDeBitacora>('bitacoras', {
       ttl: CACHE_TTL.single,
+      populate: ['imagen'],
       filters: { slug: { $eq: slug }, publicado: { $eq: true } },
       pagination: { pageSize: 1 },
     });
@@ -129,7 +158,15 @@ export async function getBitacoraBySlug(slug: string): Promise<EntradaBitacora |
   }
 }
 
-/** Get all slugs for static generation (optional, for getStaticPaths) */
+/**
+ * Get all slugs for static generation (optional, for getStaticPaths)
+ *
+ * SIN `populate` a propósito, y es la única lectura de bitácora que se lo permite: no
+ * construye `EntradaBitacora` ni pasa por `filasParaPlantilla`, mapea solo `slug` y
+ * `marca` (dos escalares). Pedir `imagen` acá no lo lee nadie y además estrenaría una
+ * clave de cache más para el mismo listado. El gate lo verifica en los dos sentidos:
+ * poblar donde hace falta y NO poblar donde no hace falta.
+ */
 export async function getAllBitacoraSlugs(): Promise<{ slug: string; marca: string }[]> {
   try {
     const res = await strapiFetch<FilaCrudaDeBitacora>('bitacoras', {

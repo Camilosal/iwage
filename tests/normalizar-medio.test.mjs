@@ -389,12 +389,151 @@ test('una portada absoluta de Strapi no llega con el host interno al <img> de la
 });
 
 test('la bitácora expone MediaItem y sus tres funciones entregan filas normalizadas', () => {
-  const fuente = readFileSync(join(RAIZ, 'src/lib/bitacora.ts'), 'utf8');
+  const fuente = readFileSync(join(RAIZ, 'src/lib/bitacora.ts'), 'utf-8');
   assert.match(fuente, /imagen:\s*MediaItem\s*\|\s*null/, 'EntradaBitacora.imagen no es MediaItem | null');
   for (const fn of ['getBitacoraByMarca', 'getBitacoraBySlug', 'getResumenBitacora']) {
     const cuerpo = new RegExp(`export async function ${fn}[\\s\\S]*?\\n\\}`);
     const sin = sinComentarios(fuente).match(cuerpo);
     assert.ok(sin, `no se encontró ${fn}`);
     assert.match(sin[0], /filasParaPlantilla/, `${fn} entrega filas crudas a la plantilla`);
+  }
+});
+
+/**
+ * C1 — el contrato de fuente del `populate`.
+ *
+ * Desde `fa240b2`, `bitacora.imagen` es `type: 'media'` y la REST API de Strapi v5 no
+ * devuelve relaciones ni media salvo que se pidan: sin `populate: ['imagen']` la respuesta
+ * trae `200` sin el campo, `normalizarParaPlantilla` ve `undefined`, `imagen` sale `null`
+ * en las 112 filas y no hay ni una tapa en el sitio — con `astro build` y `npm test`
+ * verdes, porque ningún teste de normalización puede ver un campo que nunca llegó.
+ *
+ * El único guard posible sin compilador de tipos ni red es este: una función cuyo
+ * resultado alimenta `imagen` (`filasParaPlantilla` en su cuerpo) TIENE que poblar la
+ * relación. Se lee sobre el código sin comentarios para que la prosa no lo satisfaga —
+ * la clase exacta de hueco que dejó el mutante MT4 (I1).
+ */
+function opcionesDeStrapiFetch(cuerpo) {
+  const m = cuerpo.match(/strapiFetch\s*(?:<[^>]*>)?\s*\(\s*['"]bitacoras['"]\s*,\s*\{([\s\S]*?)\n\s*\}\s*\)/);
+  return m ? m[1] : null;
+}
+
+test('cada lectura de bitácora que construye filas de plantilla puebla `imagen` (C1)', () => {
+  const fuente = sinComentarios(readFileSync(join(RAIZ, 'src/lib/bitacora.ts'), 'utf8'));
+  const funciones = [...fuente.matchAll(/export async function (\w+)[\s\S]*?\n\}/g)].map((m) => m[1]);
+  assert.ok(funciones.length >= 4, `no se encontraron las funciones de lectura: ${funciones.join(', ')}`);
+
+  const conFilas = [];
+  for (const fn of funciones) {
+    const cuerpo = fuente.match(new RegExp(`export async function ${fn}[\\s\\S]*?\\n\\}`))?.[0];
+    assert.ok(cuerpo, `no se encontró el cuerpo de ${fn}`);
+    const opciones = opcionesDeStrapiFetch(cuerpo);
+    assert.ok(opciones !== null, `${fn} no llama a strapiFetch('bitacoras', { … }): la busqué mal`);
+    if (!/filasParaPlantilla/.test(cuerpo)) continue;
+    conFilas.push(fn);
+    // (1) las filas llegan normalizadas a la plantilla (mata MT5/MT6/MT7 del review);
+    assert.match(cuerpo, /filasParaPlantilla/, `${fn} entrega filas crudas a la plantilla`);
+    // (2) y la relación que alimenta `imagen` está pedida (mata el C1).
+    assert.match(
+      opciones,
+      /\bpopulate\s*:\s*\[[^\]]*['"]imagen['"][^\]]*\]/,
+      `${fn} entrega filas a la plantilla SIN poblar "imagen": Strapi responde sin el campo, imagen sale null y la tapa desaparece con build verde (C1)`,
+    );
+  }
+  assert.deepEqual(
+    conFilas.sort(),
+    ['getBitacoraByMarca', 'getBitacoraBySlug', 'getResumenBitacora'],
+    'el conjunto de lecturas que pueblan la portada cambió: hay que revisar este gate',
+  );
+
+  // Y la excepción contraria, también anclada: `getAllBitacoraSlugs` mapea solo
+  // `slug`/`marca`, no construye `EntradaBitacora`, así que poblar ahí sería pagar una
+  // clave de cache nueva por un campo que nadie lee.
+  const cuerpoSlugs = fuente.match(/export async function getAllBitacoraSlugs[\s\S]*?\n\}/)?.[0];
+  assert.ok(cuerpoSlugs, 'no se encontró getAllBitacoraSlugs');
+  assert.doesNotMatch(
+    opcionesDeStrapiFetch(cuerpoSlugs) ?? '',
+    /\bpopulate\b/,
+    'getAllBitacoraSlugs pide populate: no lee `imagen`, solo estrena clave de cache',
+  );
+});
+
+/**
+ * C1, segunda red: la QUERY real que sale del proceso. El teste de contrato de fuente de
+ * arriba es el que da rojo cuando se borra el `populate`; este además prueba que la cadena
+ * completa llega a un `MediaItem` utilizable. Sale "cara" pero vale: para cargar
+ * `bitacora.ts` bajo `node --test` hizo falta escribir `./strapi.ts` y
+ * `./bitacora-resumen.ts` con extensión (el Minor M3 del review, que bloqueaba este teste).
+ *
+ * Cómo se domó, sin tocar un archivo de producción:
+ *  · `globalThis.fetch` se reemplaza y se restaura: no se llama a la red ni al contenedor.
+ *  · `REDIS_URL` se pone en `'redis://localhost:['`: con ese valor el CONSTRUCTOR de ioredis
+ *    lanza `Invalid URL` dentro del mismo `try` de `src/lib/redis.ts` (`getClient`), el
+ *    breaker queda abierto y `cacheGet`/`cacheSet` son no-op. Medido antes de escribirlo:
+ *    con una URL válida pero inalcanzable (`iwage-test://invalid:0`) ioredis reconnecta en
+ *    bucle y suelta `[ioredis] Unhandled error event` para siempre —el proceso no muere—;
+ *    con esta el fallo es síncrono y limpio. Sin este detalle el teste leería y ESCRIBIRÍA
+ *    claves en el Redis real y su resultado dependería de lo que haya en el cache.
+ *  · Por eso el `import()` es dinámico y va DESPUÉS de tocar el ambiente: `redis.ts` y
+ *    `strapi.ts` leen `process.env` al cargarse.
+ */
+test('la URL que sale hacia Strapi pide la relación (populate[]=imagen) y la fila vuelve con MediaItem', async () => {
+  const urls = [];
+  const fetchOriginal = globalThis.fetch;
+  const redisOriginal = process.env.REDIS_URL;
+  const appOriginal = process.env.APP_URL;
+  process.env.REDIS_URL = 'redis://localhost:['; // ⇒ `new Redis()` throws, breaker abierto, sin Redis real
+  process.env.APP_URL = 'https://iwage.co';
+  globalThis.fetch = async (url) => {
+    urls.push(String(url));
+    return new Response(
+      JSON.stringify({
+        data: [
+          {
+            id: 1,
+            documentId: 'abc',
+            titulo: 'La caja',
+            slug: 'la-caja',
+            marca: 'meliponas',
+            fecha: '2026-09-01',
+            publicado: true,
+            // La forma que devuelve Strapi v5 cuando la relación SÍ fue poblada.
+            imagen: { id: 7, url: 'http://iwage_strapi:1337/uploads/bitacora/la-caja.webp', mime: 'image/webp', alternativeText: 'Caja de Angelita' },
+          },
+        ],
+        meta: { pagination: { total: 1, page: 1, pageSize: 20 } },
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    );
+  };
+  try {
+    const bitacora = await import(`file://${join(RAIZ, 'src/lib/bitacora.ts')}`);
+    await bitacora.getBitacoraByMarca('meliponas');
+    await bitacora.getResumenBitacora();
+    await bitacora.getBitacoraBySlug('la-caja');
+    await bitacora.getAllBitacoraSlugs();
+
+    assert.equal(urls.length, 4, `se esperaban 4 consultas y salieron ${urls.length}: ${urls.join(' | ')}`);
+    const [listado, resumen, ficha, slugs] = urls;
+    for (const [nombre, url] of [['getBitacoraByMarca', listado], ['getResumenBitacora', resumen], ['getBitacoraBySlug', ficha]]) {
+      const params = new URL(url).searchParams;
+      assert.ok(
+        [...params.getAll('populate[]'), ...params.getAll('populate')].includes('imagen'),
+        `${nombre} no envía populate[]=imagen a Strapi: ${url}`,
+      );
+    }
+    // La lectura de slugs no paga populate: no construye filas de plantilla.
+    assert.equal(new URL(slugs).searchParams.getAll('populate[]').length, 0, `getAllBitacoraSlugs sí envía populate: ${slugs}`);
+
+    // Y el viaje completo: relación poblada → adaptador → MediaItem con ruta de sitio y alt.
+    const { data } = await bitacora.getBitacoraByMarca('meliponas');
+    assert.equal(data[0].imagen.url, '/uploads/bitacora/la-caja.webp');
+    assert.equal(data[0].imagen.alt, 'Caja de Angelita');
+  } finally {
+    globalThis.fetch = fetchOriginal;
+    if (redisOriginal === undefined) delete process.env.REDIS_URL;
+    else process.env.REDIS_URL = redisOriginal;
+    if (appOriginal === undefined) delete process.env.APP_URL;
+    else process.env.APP_URL = appOriginal;
   }
 });
