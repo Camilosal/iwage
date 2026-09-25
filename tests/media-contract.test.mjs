@@ -276,17 +276,20 @@ const AGUJAS_SEMILLA = [
   { motivo: 'seed que se hace pasar por filas de Strapi', re: new RegExp(aguja('SEED', '_CULTIVOS')) },
 ];
 
-// Excepciones DECLARADAS y ya falladas por el controller — no se "arreglan", se nombran:
-//  · `FALLBACK_HISTORIAS_HOME` (pages/cafe/index.astro:54): 4 registros cuyas imágenes son
-//    archivos producidos y versionados (`/images/cafe-menu/visitante-*.webp`), no stock ajeno ni
-//    rutas 404. Lo retira la **Tarea 12/13** cuando `historia-visitante` esté poblado en Strapi.
-//  · `INICIATIVAS_FALLBACK` (pages/naturaleza/impacto.astro:54): son métricas inventadas
-//    («1.200 plántulas», «12 becados»), no medios; el caso se escaló al dueño y no lo decide
-//    esta gate. Se declara igualmente: la aguja ruling es `FALLBACK_` (prefijo) y hoy ni siquiera
-//    lo alcanza, así que esta entrada deja escrita la excepción por si la aguja se aprieta.
+// Excepciones DECLARADAS y ya falladas por el controller — no se "arreglan", se nombran (se citan
+// por símbolo, no por línea: las líneas se mueren, los símbolos no):
+//  · `FALLBACK_HISTORIAS_HOME` (pages/cafe/index.astro): 4 registros cuyas imágenes son archivos
+//    producidos y versionados (`/images/cafe-menu/visitante-*.webp`), no stock ajeno ni rutas 404.
+//    Lo retira la **Tarea 12/13** cuando `historia-visitante` esté poblado en Strapi.
+//  · `FALLBACK_INICIATIVAS` (pages/naturaleza/impacto.astro): métricas sin verificar («1.200
+//    plántulas», «12 becados», «60% avance»), no medios. Medido el 2026-09-25, la tabla
+//    `iniciativas` tiene 0 filas, así que no es el camino raro: es lo que se sirve en cada visita.
+//    Lo jubila el dueño sembrando la tabla —decisión de contenido, no de este plan—, no esta gate.
+//    El 2026-09-25 se renombró desde la forma sufijo a la forma prefijo, que es la que matcha la
+//    aguja: escrito al revés quedaba fuera del patrón y esta entrada era decoración.
 const EXCEPCIONES_SEMILLA = {
   'pages/cafe/index.astro': new Set([aguja('FALLBACK', '_HISTORIAS_HOME')]),
-  'pages/naturaleza/impacto.astro': new Set([aguja('INICIATIVAS', '_FALLBACK')]),
+  'pages/naturaleza/impacto.astro': new Set([aguja('FALLBACK', '_INICIATIVAS')]),
 };
 
 test('ningún seed vuelve a suplantar a Strapi en src/: ni stock de tercero, ni dominio muerto, ni FALLBACK_, ni SEED_CULTIVOS', () => {

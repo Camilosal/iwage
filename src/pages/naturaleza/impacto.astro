@@ -49,9 +49,15 @@ const METRICS = [
   { icon: 'search', value: '100%', label: 'Transparencia' },
 ];
 
-// Iniciativas de temporada: gestionables desde el CMS (Strapi → Iniciativas de Impacto).
-// Si el CMS no devuelve datos (ej. sin sembrar), se muestran unas por defecto para que la sección nunca quede vacía.
-const INICIATIVAS_FALLBACK = [
+// Iniciativas de temporada: el dueño es Strapi (`iniciativas`, editable en el admin). Medido el
+// 2026-09-25 — `select count(*) from iniciativas` devolvió 0 —, así que este arreglo no es el
+// camino excepcional: es lo que se sirve en cada visita, con cifras («1.200 plántulas», «12
+// becados», «60% avance») que no están verificadas en ninguna parte. Se escribe `FALLBACK_` al
+// principio para que la aguja de seeds de `tests/media-contract.test.mjs` lo alcance y obligue a
+// declararlo como excepción; hasta ahora escapaba por puro orden de palabras. Se jubila sembrando
+// la tabla —decisión de contenido del dueño, no de este plan— y borrando este arreglo, para que la
+// sección diga «sin datos» como las demás superficies vacías.
+const FALLBACK_INICIATIVAS = [
   { icono: 'sprout', titulo: 'Fondo de Semillas Nativas', descripcion: 'Recolección y propagación de especies clave para restaurar el Corredor del Combeima.', estado: 'En curso', metrica: '1.200 plántulas', progreso: 75 },
   { icono: 'users', titulo: 'Escuela de Guías Locales', descripcion: 'Programa de capacitación en bilingüismo y primeros auxilios para jóvenes rurales.', estado: 'Activo', metrica: '12 becados', progreso: 60 },
   { icono: 'trees', titulo: 'Vivero de Alta Montaña', descripcion: 'Infraestructura para la producción masiva de frailejones en el Páramo de Anaime.', estado: 'Construcción', metrica: '60% avance', progreso: 60 },
@@ -60,7 +66,7 @@ const INICIATIVAS_FALLBACK = [
 const iniciativasCMS = await getIniciativas();
 const iniciativas = iniciativasCMS.length > 0
   ? iniciativasCMS.map((i) => ({ icono: i.icono || 'sprout', titulo: i.titulo, descripcion: i.descripcion || '', estado: i.estado || 'En curso', metrica: i.metrica || '', progreso: i.progreso ?? 0 }))
-  : INICIATIVAS_FALLBACK;
+  : FALLBACK_INICIATIVAS;
 
 const hero = await getHeroBySlug('/naturaleza/impacto');
 ---

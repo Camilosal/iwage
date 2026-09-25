@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { ogImageDe } from '../src/lib/og-image.ts';
+import { sinComentarios } from './helpers/sin-comentarios.mjs';
 
 // El helper hereda de `media.ts` dos dependencias de entorno: `APP_URL` es el origen
 // con el que `absUrl()` absolutea, y `STRAPI_URL` define qué host es "este sitio".
@@ -142,10 +143,18 @@ test('invariante: nunca sale una ruta pelada ni un host interno', () => {
 });
 
 // ── El layout no es importable: se le lee el texto, y solo lo que fija el contrato ──
+//
+// Se lee SIN comentarios, con el mismo stripper de los otros contratos: una prosa que cite
+// `ogImageDe(` o `absUrl(mediaSrc(...))` no puede satisfacer estas aserciones, y anotar en un
+// comentario por qué el hero vive en `og-image.ts` tampoco puede romper la negativa. Medido el
+// 2026-09-25 sobre BrandLayout.astro: las siete aserciones dan igual crudas que peladas, así que
+// quitar los comentarios es ganancia sin cambio de comportamiento.
 
-const LAYOUT = readFileSync(
-  fileURLToPath(new URL('../src/layouts/BrandLayout.astro', import.meta.url)),
-  'utf8'
+const LAYOUT = sinComentarios(
+  readFileSync(
+    fileURLToPath(new URL('../src/layouts/BrandLayout.astro', import.meta.url)),
+    'utf8'
+  )
 );
 
 test('BrandLayout absolutiza el og:image en el borde, no en cada página', () => {
