@@ -101,7 +101,11 @@ curl -s 'http://127.0.0.1:1338/api/cultivo-polinizacions' -o /dev/null -w '%{htt
 ## G3 · Importar y enlazar las 47 piezas huérfanas (`--apply`)
 
 **Desbloquea:** la fila 3 del censo (hoy **0 de 180** registros publicados con un medio enlazado) y
-la meta de la fila 1 (≤ 85). Son 36 tapas de bitácora + 11 imágenes de galería; las 19 de
+la meta de la fila 1 (≤ 85). Son 36 tapas de bitácora + 11 de `galeria`; en disco hay **48**
+archivos entre los dos directorios, y la diferencia es `proyecto-ambala-1.webp`. El censo lo cuenta
+como «referenciado» por el grep de `src/`, pero la única coincidencia (`meliponas/index.astro:160`)
+está dentro de un bloque comentado `{/* … */}`: no pinta, así que el archivo está huérfano de hecho.
+El bloque es materia del Task 15 (¿hay material grabado, o se borra?), no de esta puerta. Las 19 de
 `cafe-menu` no cuentan: hoy las pinta una regla por nombre, y eso es G6.
 
 **Primero en seco** (sin flags el script solo hace GET; es el guard de esta herramienta):
@@ -127,6 +131,10 @@ transcrito, y `tests/media-alias-propuesto.test.mjs` le verifica rutas existente
 campos de la tabla, ningún destino repetido, ningún archivo declarado dos veces, y que
 `manifesto()` firma las 33 sin mandar una a `motivosAlias` — con el inventario tomado **del disco**
 (48 archivos), no de la propia lista de la propuesta.
+
+> Para versionar la propuesta una vez decidida: `strapi/scripts/` está ignorado por `.gitignore:36`,
+> así que hace falta `git add -f strapi/scripts/media-alias-propuesto.json`. Sin el `-f`, `git add`
+> rechaza el lote completo y el commit no corre.
 
 **Lo que sigue siendo decisión del dueño** — las 9 tapas que la propuesta no toca:
 
