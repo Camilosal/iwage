@@ -187,6 +187,12 @@ async function construir(alias) {
       if (e.isFile() && /\.(webp|png|jpe?g)$/i.test(e.name)) archivos.push(`${RAIZ}/${dir}/${e.name}`);
     }
   }
+  // `readdirSync` devuelve lo que dice el directorio, no un orden. El manifiesto
+  // ya no depende del orden de entrada (ver C1 en ./lib/media-manifest.mjs), pero
+  // el INVENTARIO sí se imprime: ordenarlo acá hace que dos corridas sobre el
+  // mismo disco den un diff vacío, y le quita al llamador la obligación de saber
+  // que la clave de agrupamiento tiene que ser estable.
+  archivos.sort();
   // Nada se cae en silencio por el otro lado tampoco: un directorio con arte que
   // ninguna unidad de negocio reclame es un hallazgo del inventario, no un detalle.
   const enDisco = readdirSync(CARPETA_IMAGENES, { withFileTypes: true })
@@ -323,17 +329,20 @@ try {
   const inventario = await construir(alias);
   imprimir(inventario);
   if (!ESCRIBIR) {
+    // `process.exitCode`, no `process.exit`: `console.log` sobre una cañería es
+    // asíncrono en Node y salir de golpe puede recortar la salida. Acá eso es un
+    // teste intermitente (`tests/media-flags.test.mjs` aserta sobre `stdout` del
+    // hijo) y un inventario truncado en un terminal. El módulo termina solo.
     console.log('\ndry-run: no subí nada ni toqué registros. Repetir con --apply.');
-    process.exit(0);
+    process.exitCode = 0;
+  } else {
+    const errores = await aplicar(inventario);
+    if (errores) console.error(`\n--apply terminó con ${errores} enlace(s) sin completar.`);
+    else console.log('\napply terminado.');
+    process.exitCode = errores ? 1 : 0;
   }
-  const errores = await aplicar(inventario);
-  if (errores) {
-    console.error(`\n--apply terminó con ${errores} enlace(s) sin completar.`);
-    process.exit(1);
-  }
-  console.log('\napply terminado.');
 } catch (e) {
   // Solo el mensaje propio: ni la cabecera de autorización ni el host aparecen aquí.
   console.error(`Aborto: ${e.message}`);
-  process.exit(1);
+  process.exitCode = 1;
 }

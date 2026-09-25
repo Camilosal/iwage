@@ -633,12 +633,22 @@ test('F2-a frontera letra/dígito: `modulo1` ≡ `modulo-1` y `120ml` ≡ `120 m
 });
 
 test('F2-a la salida no depende del orden de entrada: mismos baldes con el inventario barajado', () => {
+  // I1: hasta acá este fixture no dejaba NINGÚN archivo en `pendientes`, que es
+  // justo el único balde que se devolvía en el orden del llamador. O sea: la
+  // prueba se llamaba como la propiedad y no la tocaba — el mutante «quitar el
+  // `.sort()` de `pendientes`» sobrevivía verde. Ahora hay huérfanos en los tres
+  // baldes que recorren el inventario, y dos filas de alias con claves que no
+  // ordenan igual, para que el `assert.equal` pueda morir por los dos lados.
   const archivos = [
     ...GALERIA_AMBALA,
     'public/images/bitacora/bitacora-la-miel.webp',
     'public/images/bitacora/bitacora-caso-don-manuel.webp',
     'public/images/cafe-menu/proveedor-meliponario.webp',
     'public/images/galeria/proyecto-poblado-1.webp',
+    // huérfano de verdad: ningún registro lo reclama por ninguna regla → `pendientes`
+    'public/images/bitacora/bitacora-nadie-me-pide.webp',
+    // y otro, en el directorio de las series, para que el balde no dependa de un solo caso
+    'public/images/galeria/proyecto-orfan-9.webp',
   ];
   const registros = [
     { endpoint: 'bitacoras', documentId: 'd1', slug: 'la-miel' },
@@ -649,14 +659,50 @@ test('F2-a la salida no depende del orden de entrada: mismos baldes con el inven
   ];
   const alias = {
     'public/images/bitacora/bitacora-caso-don-manuel.webp': { endpoint: 'bitacoras', slug: 'caso-la-finca-de-don-manuel' },
+    // segunda fila, otra clave, y NO firmable (el archivo no está en el inventario):
+    // obliga a `motivosAlias` a salir ordenado por clave y no por autoría.
+    'public/images/bitacora/bitacora-fantasma.webp': { endpoint: 'bitacoras', slug: 'la-miel' },
+  };
+  const vueltaAlias = {
+    'public/images/bitacora/bitacora-fantasma.webp': alias['public/images/bitacora/bitacora-fantasma.webp'],
+    'public/images/bitacora/bitacora-caso-don-manuel.webp': alias['public/images/bitacora/bitacora-caso-don-manuel.webp'],
   };
   const ida = JSON.stringify(manifesto({ archivos, registros, alias }));
   const vuelta = JSON.stringify(manifesto({
     archivos: archivos.slice().reverse(),
     registros,
-    alias: { ...alias }, // misma fila, insertada en otro orden de clave
+    alias: vueltaAlias, // mismas dos filas, insertadas al revés
   }));
   assert.equal(vuelta, ida, 'barajar el inventario no puede cambiar ningún balde');
+  // Y para que el `equal` de arriba no sea vacío por omisión: los tres baldes con
+  // orden propio están llenos en este fixture.
+  const m = manifesto({ archivos, registros, alias });
+  assert.ok(m.pendientes.length >= 2, 'el fixture tiene que dejar archivos en pendientes');
+  assert.ok(m.revisar.length >= 1, 'y en revisar');
+  assert.deepEqual(
+    m.pendientes,
+    ['public/images/bitacora/bitacora-nadie-me-pide.webp', 'public/images/galeria/proyecto-orfan-9.webp'],
+    '`pendientes` sale ordenado por ruta, no en el orden del llamador',
+  );
+});
+
+test('F2-a `pendientes` se devuelve ordenado: el orden del llamador no sobrevive a la función', () => {
+  // Mi1: el header promete que «todo lo que se recorre para producir salida se
+  // ordena antes», y `pendientes` era el balde que la incumplía: el CLI lo imprime
+  // una línea por archivo, así que dos corridas sobre el mismo disco daban dos
+  // inventarios no diff-eables.
+  const entrada = [
+    'public/images/bitacora/zzz-huerfana.webp',
+    'public/images/bitacora/aaa-huerfana.webp',
+    'public/images/bitacora/mmm-huerfana.webp',
+  ];
+  const esperado = entrada.slice().sort();
+  assert.deepEqual(manifesto({ archivos: entrada, registros: [] }).pendientes, esperado);
+  assert.deepEqual(
+    manifesto({ archivos: entrada.slice().reverse(), registros: [] }).pendientes,
+    esperado,
+    'la misma lista al revés da el mismo balde',
+  );
 });
 
 test('F2-a abreviatura con puntos: `E.F.M.` se pliega en UN token de la identidad', () => {
@@ -712,4 +758,123 @@ test('F2-a acentos fuera, `ñ` incluida: `Caja INPA Pequeña` ≡ `producto-inpa
   assert.deepEqual(m.pendientes, []);
   assert.deepEqual(m.revisar, []);
   assert.deepEqual(m.ambiguos, []);
+});
+
+// ===========================================================================
+// Ronda de arreglo (ola F2-a) — C1, I3, I2: el agrupamiento de series tiene
+// que ser inyectable y tiene que respetar `DIRS_CON_SERIE`.
+//
+// Por qué estos testes y no un comentario: la clave de agrupamiento era
+// `normalizar(raiz).join(' ')`, y `normalizar` no es inyectable (se bota `el`,
+// `de`, iniciales). Dos raíces distintas chocaban en la misma clave, y de ahí
+// salían dos daños medidos con el módulo real antes de arreglar:
+//   • mismo índice → mismo slot, y con igual extensión ganaba el primero que
+//     llegó: `orden A enlaza proyecto-el-poblado-1`, `orden B enlaza
+//     proyecto-poblado-1`. O sea: qué archivo sube y enlaza `--apply` dependía de
+//     `readdirSync`, y el perdedor caía a `pendientes` — el balde que Tarea 14 usa
+//     para borrar duplicados.
+//   • índices distintos → ni siquiera había slot que las separara: las dos piezas
+//     se escribían como UNA galería de dos en un registro.
+// El arreglo es agrupar por raíz LITERAL. Estos testes fijan la conducta nueva.
+// ===========================================================================
+
+/** Las dos raíces que colisionan al normalizarse: tokens `proyecto poblado` en las dos. */
+const COLISION_A = 'public/images/galeria/proyecto-el-poblado-1.webp';
+const COLISION_B = 'public/images/galeria/proyecto-poblado-1.webp';
+const REG_POBLADO = [{ endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Jardín Residencial El Poblado' }];
+
+test('C1 dos raíces que colisionan al normalizarse: ninguna gana, las dos van a `revisar`', () => {  // Antes del arreglo: con el inventario en un orden se enlazaba `proyecto-el-poblado-1`
+  // y en el otro, `proyecto-poblado-1`; el perdedor caía a `pendientes`. Hoy las dos
+  // raíces son dos unidades del mismo nivel sobre el mismo registro y campo, que es
+  // la definición de «varias producciones»: se REPORTA y no se escribe.
+  const m = manifesto({ archivos: [COLISION_A, COLISION_B], registros: REG_POBLADO });
+  assert.deepEqual(m.enlazar, [], 'no puede salir NINGÚN enlace: elegir uno sería elegir el orden del disco');
+  assert.deepEqual(m.pendientes, [], 'y ninguna de las dos desaparece: están nombradas en `revisar`');
+  assert.deepEqual(m.revisar.map((r) => r.archivo), [COLISION_A, COLISION_B]);
+  assert.match(m.revisar[0].motivo, /^varias producciones reclaman .* en galeria: proyecto-el-poblado, proyecto-poblado$/);
+  // El balde escribible no cambia con el orden de lectura: ese es el punto del arreglo.
+  const vuelta = manifesto({ archivos: [COLISION_B, COLISION_A], registros: REG_POBLADO });
+  assert.deepEqual(JSON.stringify(vuelta), JSON.stringify(m), 'barajar las dos raíces no puede mover un archivo de balde');
+});
+
+test('C1 desempate de slot: `-01` y `-1` caen en la MISMA posición, y gana la ruta menor', () => {
+  // La raíz literal cerró la colisión entre raíces distintas, pero queda un empate
+  // real dentro de UN grupo: `proyecto-ambala-01` y `proyecto-ambala-1` comparten
+  // raíz literal y `Number('01') === Number('1')`, o sea el mismo slot, y los dos
+  // son .webp → `RANGO_EXT` empata. Sin el desempate por ruta gana el que llegó
+  // primero, medido: `orden A → …-01`, `orden B → …-1`. Mismo mecanismo del C1,
+  // otra puerta.
+  const ceroUno = 'public/images/galeria/proyecto-ambala-01.webp';
+  const uno = 'public/images/galeria/proyecto-ambala-1.webp';
+  const registros = [{ endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Meliponario I.E. Ambalá' }];
+  const ida = manifesto({ archivos: [ceroUno, uno], registros });
+  const vuelta = manifesto({ archivos: [uno, ceroUno], registros });
+  assert.deepEqual(archivosDelEnlace(ida.enlazar[0]), [ceroUno], 'gana la ruta menor, no la primera');
+  assert.deepEqual(JSON.stringify(vuelta), JSON.stringify(ida), 'y dar la vuelta al inventario no mueve el ganador');
+  assert.deepEqual(vuelta.pendientes, ida.pendientes);
+  // El perdedor no se pierde: sigue en el inventario, que es lo que Tarea 14 necesita.
+  assert.deepEqual(ida.pendientes, [uno]);
+});
+
+test('C1/I3 con índices distintos: dos raíces no se funden en una galería de dos', () => {
+  // La variante silenciosa: acá no empataba un slot, simplemente no había slot que
+  // las separara, así que el resultado era DETERMINISTA pero FALSO — una galería de
+  // dos archivos de dos temas distintos, escrita con convicción.
+  const a = 'public/images/galeria/proyecto-el-poblado-1.webp';
+  const b = 'public/images/galeria/proyecto-poblado-2.webp';
+  const m = manifesto({ archivos: [a, b], registros: REG_POBLADO });
+  assert.deepEqual(m.enlazar, [], 'dos raíces distintas no son la misma unidad');
+  assert.deepEqual(m.revisar.map((r) => r.archivo), [a, b]);
+  assert.match(m.revisar[0].motivo, /varias producciones/);
+  // Y cada una por separado SÍ es una galería de uno, con su propia clave: el
+  // agrupamiento no rompió la serie, solo le quitó la llave no-inyectable.
+  for (const [archivo, raiz] of [[a, 'proyecto-el-poblado'], [b, 'proyecto-poblado']]) {
+    const sola = manifesto({ archivos: [archivo], registros: REG_POBLADO });
+    assert.deepEqual(sola.enlazar, [{
+      endpoint: 'proyecto-meliponarios', documentId: 'p1', campo: 'galeria', archivo, origen: 'nombre',
+    }], `sola, ${raiz} reclama y enlaza`);
+    assert.deepEqual(sola.revisar, []);
+  }
+});
+
+test('I2 `DIRS_CON_SERIE` es la regla: un `-N` fuera de `galeria` no desaparece, reclama su portada', () => {
+  // CONTRATO 2 promete que fuera de los directorios con campo repetible `cafeterias-1`
+  // y `cafeterias-2` son DOS identidades distintas. Medido antes del arreglo, la
+  // promesa era falsa y el código se caía a `pendientes` en silencio: cero líneas en
+  // `revisar`, cero `motivosAlias`. La sonda que la distingue es un archivo numerado
+  // cuyo nombre base completo ES la identidad de un registro.
+  const portada = 'public/images/cafe-menu/visitante-tour-familiar-1.webp';
+  const m = manifesto({
+    archivos: [portada],
+    registros: [{ endpoint: 'historia-visitantes', documentId: 'v1', slug: 'tour-familiar-1' }],
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'historia-visitantes', documentId: 'v1', campo: 'imagen', archivo: portada,
+  }], 'el `-1` es parte del nombre, no un índice de serie: hay destino de una sola pieza y se enlaza');
+  assert.deepEqual(m.pendientes, []);
+
+  // Dos numerados del mismo tema, en un directorio sin campo repetible: dos unidades
+  // de un archivo, cada una con su registro. No una serie fantasma que nadie lee.
+  const dos = manifesto({
+    archivos: ['public/images/cafe-menu/cafeterias-1.webp', 'public/images/cafe-menu/cafeterias-2.webp'],
+    registros: [
+      { endpoint: 'item-menus', documentId: 'i1', slug: 'cafeterias-1' },
+      { endpoint: 'item-menus', documentId: 'i2', slug: 'cafeterias-2' },
+    ],
+  });
+  assert.deepEqual(
+    dos.enlazar.map((e) => `${e.documentId}:${e.archivo}`),
+    ['i1:public/images/cafe-menu/cafeterias-1.webp', 'i2:public/images/cafe-menu/cafeterias-2.webp'],
+  );
+  assert.deepEqual(dos.pendientes, []);
+  assert.equal(dos.enlazar.every((e) => !('archivos' in e)), true, 'ninguna de las dos es una serie');
+
+  // Y el destino de la variante que NINGÚN registro pide: `pendientes`, pero con la
+  // puerta abierta — el archivo sí fue candidato, simplemente no casó.
+  const huerfano = manifesto({
+    archivos: ['public/images/cafe-menu/cafeterias-1.webp'],
+    registros: [{ endpoint: 'item-menus', documentId: 'i1', slug: 'cafeterias' }],
+  });
+  assert.deepEqual(huerfano.enlazar, []);
+  assert.deepEqual(huerfano.pendientes, ['public/images/cafe-menu/cafeterias-1.webp']);
 });

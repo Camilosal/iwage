@@ -31,15 +31,22 @@
  *    registro reclama de una vez: un archivo suelto, o una **serie**. El número
  *    final del nombre es un ÍNDICE de posición, no parte de la identidad:
  *    `galeria/proyecto-ambala-1.webp` y `galeria/proyecto-ambala-2.webp` son la
- *    misma unidad en dos posiciones, agrupadas por la raíz normalizada. La raíz
- *    sin índice (`galeria/proyecto-ambala.webp`) abre la serie en la posición 0.
- *    El agrupamiento está condicionado al DIRECTORIO del `campoMultiple`, que es
- *    el único destino donde tiene sentido escribir varios archivos en orden. En
+ *    misma unidad en dos posiciones, agrupadas por la raíz **literal** del nombre
+ *    (`proyecto-ambala`). La raíz sin índice (`galeria/proyecto-ambala.webp`)
+ *    abre la serie en la posición 0. La clave del grupo NO es la raíz
+ *    normalizada: `normalizar` se bota tokens de parada e iniciales, no es
+ *    inyectable, y dos raíces distintas (`proyecto-el-poblado`,
+ *    `proyecto-poblado`) compartirían grupo. La normalización sigue siendo la
+ *    identidad con la que el grupo le pertenece a un registro.
+ *    El agrupamiento está condicionado al DIRECTORIO del `campoMultiple` —lo
+ *    cumple `DIRS_CON_SERIE`, que es la lista de esos directorios—, que es el
+ *    único destino donde tiene sentido escribir varios archivos en orden. En
  *    un endpoint sin campo repetible (`bitacoras`, `proveedors`, directorio
  *    `cafe-menu`) no hay serie posible ni serie que secuestre la portada:
  *    `cafeterias-1` y `cafeterias-2` son dos identidades distintas, cada una con
- *    su unidad de un archivo, y dos de ellas para el mismo registro y campo son
- *    la colisión «varias producciones», que se reporta y no se escribe.
+ *    su unidad de un archivo — y por eso un `-N` de `cafe-menu` sí puede
+ *    reclamar por `imagen`/`foto`—; dos de ellas para el mismo registro y campo
+ *    son la colisión «varias producciones», que se reporta y no se escribe.
  *    Si la unidad tiene un archivo, la entrada trae `archivo`; si tiene más de
  *    uno, trae `archivos` en el ORDEN en que hay que escribirlos (por índice
  *    numérico: `-2` antes que `-10`). Para leer los archivos de un enlace sin
@@ -357,11 +364,15 @@ function nivelDe(identidad, reg, cfg) {
 /**
  * Series del inventario, por directorio. Un grupo es una serie cuando al menos un
  * miembro trae el índice `-N` y el directorio está en `DIRS_CON_SERIE`; la clave
- * del grupo es la raíz del nombre, sin el índice (`cafeterias-1` y `cafeterias-2`
- * son la misma unidad; `cafeterias.webp` es la posición 0). Por posición gana la
- * extensión preferida, y el gemelo descartado no es candidato de nadie: queda en
- * `pendientes`. La identidad que se compara es la raíz normalizada, nunca el
- * índice: `1` no puede ser el `slug` de un registro.
+ * del grupo es la raíz LITERAL del nombre, sin el índice, y la identidad que se
+ * compara contra el registro es su forma normalizada (`cafeterias-1` y
+ * `cafeterias-2` son la misma unidad; `cafeterias.webp` es la posición 0). La
+ * clave no puede ser la raíz normalizada: `normalizar` no es inyectable, así que
+ * dos raíces distintas compartirían grupo y, con el mismo índice, slot — qué
+ * archivo se enlazaba quedaría en manos del orden del directorio. Por posición
+ * gana la extensión preferida, y el gemelo descartado no es candidato de nadie:
+ * queda en `pendientes`. El índice nunca es identidad: `1` no puede ser el `slug`
+ * de un registro.
  *
  * Devuelve `{ series, miembros }`: `series` son las unidades ordenadas por
  * directorio y `miembros` el conjunto de TODOS los archivos que entraron en un
@@ -374,29 +385,48 @@ function agruparSeries(infos) {
     const conIndice = RE_SERIE.exec(i.base);
     const raiz = conIndice ? conIndice[1] : i.base;
     const indice = conIndice ? Number(conIndice[2]) : null;
-    const clave = normalizar(raiz).join(' ');
-    if (!clave) continue;
+    // Clave = la RAÍZ LITERAL, nunca la normalizada (C1/I3): `normalizar` se bota
+    // tokens de parada e iniciales, así que NO es inyectable y `proyecto-el-poblado`
+    // y `proyecto-poblado` compartirían slot — qué archivo se enlazaba quedaba en
+    // manos del orden de `readdirSync`, y con índices distintos se fundían en una
+    // sola galería. La raíz normalizada sigue siendo la IDENTIDAD que se compara
+    // contra el registro (`tokens`); solo deja de ser la llave del grupo.
+    const tokens = normalizar(raiz);
+    if (!tokens.length) continue;
     let porClave = porDir.get(i.dir);
     if (!porClave) {
       porClave = new Map();
       porDir.set(i.dir, porClave);
     }
-    let grupo = porClave.get(clave);
+    let grupo = porClave.get(raiz);
     if (!grupo) {
-      grupo = { crudos: new Set(), slots: new Map(), todos: [], indiceVisto: false };
-      porClave.set(clave, grupo);
+      grupo = { crudos: new Set([raiz]), slots: new Map(), todos: [], indiceVisto: false, tokens };
+      porClave.set(raiz, grupo);
     }
     grupo.crudos.add(raiz);
     grupo.todos.push(i);
     if (indice !== null) grupo.indiceVisto = true;
     const slot = indice ?? -1; // la raíz pelada abre la serie; los demás, por índice
     const actual = grupo.slots.get(slot);
-    if (!actual || RANGO_EXT[i.ext] < RANGO_EXT[actual.ext]) grupo.slots.set(slot, i);
+    // Con la clave literal, dos archivos DISTINTOS ya no pueden pelearse un slot
+    // (haría falta el mismo `dir` + raíz + índice + extensión, o sea la misma
+    // ruta), pero el desempate por ruta se queda: `archivos` lo pone el llamador y
+    // una ruta repetida dos veces no tiene por qué ganarse por orden de llegada.
+    if (!actual || RANGO_EXT[i.ext] < RANGO_EXT[actual.ext]
+      || (RANGO_EXT[i.ext] === RANGO_EXT[actual.ext] && i.archivo < actual.archivo)) {
+      grupo.slots.set(slot, i);
+    }
   }
   const series = new Map();
   /** todos los archivos de un grupo que SÍ es serie, incluidos los gemelos perdedores */
   const miembros = new Set();
   for (const [dir, porClave] of [...porDir].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    // CONTRATO 2, y ahora de verdad: fuera de los directorios con campo repetible
+    // no hay serie (I2). `cafeterias-1` y `cafeterias-2` siguen siendo dos
+    // identidades distintas de un archivo cada una, y los dos se quedan en
+    // `soltadas`, donde sí pueden reclamar por `imagen`/`foto` o reportarse como
+    // colisión — en vez de desaparecer del inventario en silencio.
+    if (!DIRS_CON_SERIE.has(dir)) continue;
     const salidas = [];
     for (const [clave, g] of [...porClave].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
       if (!g.indiceVisto) continue; // no es una serie: son archivos sueltos
@@ -404,7 +434,7 @@ function agruparSeries(infos) {
         .sort((a, b) => a[0] - b[0] || RANGO_EXT[a[1].ext] - RANGO_EXT[b[1].ext] || (a[1].archivo < b[1].archivo ? -1 : 1))
         .map(([, i]) => i.archivo);
       for (const i of g.todos) miembros.add(i.archivo);
-      salidas.push({ dir, clave, crudos: [...g.crudos], tokens: clave.split(' '), archivos });
+      salidas.push({ dir, clave, crudos: [...g.crudos], tokens: g.tokens, archivos });
     }
     if (salidas.length) series.set(dir, salidas);
   }
@@ -750,7 +780,9 @@ export function manifesto({ archivos, registros, alias = {} }) {
     ...enlazar.flatMap(archivosDelEnlace),
     ...revisar.map((r) => r.archivo),
   ]);
-  const pendientes = archivos.filter((a) => !conBalde.has(a) && !/\.gitkeep$/.test(a));
+  const pendientes = archivos
+    .filter((a) => !conBalde.has(a) && !/\.gitkeep$/.test(a))
+    .sort(); // Mi1: el último balde que quedaba en el orden del llamador
   return { enlazar, pendientes, ambiguos, revisar, motivosAlias };
 }
 
