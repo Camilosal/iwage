@@ -1562,6 +1562,13 @@ git commit -m "refactor(media): fichas y listados consumen MediaItem normalizado
 
 ### Task 13: Café sin reglas por nombre
 
+**Sigue gate, y ahora por medida (2026-09-25, sobre `72f421e`).** El paso 1 pide confirmar «0 items
+sin imagen», y la base local contesta `files = 0` con **17** filas en `item_menus` y 4 en
+`proveedors`: no hay un solo asset en el CMS (17, no «las 19 preparaciones» que dice el paso 4: la
+tabla tiene 17 filas). Borrar `LOCAL_IMAGES` hoy dejaría el menú sin fotos, así que aplica la
+propia condición de este task — «si el admin no tiene las imágenes, no se borra la regla» — y se
+destraba con el `--apply` del Task 10, cuyo pre-requisito es el volumen de F0.
+
 **Files:**
 - Modify: `src/lib/cafe.ts` (`LOCAL_IMAGES` ~232-243, `itemImage` ~245-268, `proveedorFoto` ~273-275, `proveedorIcono` ~281-291)
 - Modify: `src/pages/cafe/menu.astro`, `src/pages/cafe/visitantes.astro`, `src/pages/cafe/nosotros.astro` y quien consuma esas dos funciones
@@ -1821,6 +1828,11 @@ no la miraba nadie; ahora la mira `tests/bitacora-query.test.mjs`.
 
 **Queda del dueño:** desplegar el esquema (`fa240b2`) y correr `--apply`; sin eso, las filas 1,
 2 y 3 no tienen un «después» que medir, y este plan no debe darse por cerrado.
+
+**Tercera pasada, el 2026-09-25 sobre `b3b3d2c`** (tras la ronda de fixes de una revisión en fresco
+del rango `851ff10..HEAD`): se volvió a construir y crawlear aparte, las nueve filas están en la
+sección «Tercera re-medición» del informe. Ocho no se mueven; la fila 1 sube de 134 a 136 y la
+diferencia está atribuida a dos fichas de anfitrión concretas, no heredada ni supuesta.
 
 **Files:**
 - Create: `docs/superpowers/metrics/2026-09-XX-inventario-medios-post.md` (fecha del día de ejecución)
