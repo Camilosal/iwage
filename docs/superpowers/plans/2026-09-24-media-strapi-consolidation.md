@@ -1458,7 +1458,7 @@ git commit -m "refactor(strapi): un campo media por portada, galerías media mul
 
 ### Task 12: Las plantillas de ficha leen media, no string
 
-> **Ejecución en 3 rebanadas revisadas por separado** — 12a bitácora (`bitacora.ts` + sus fichas y tiras), 12b tienda + proyectos + polinización, 12c gestión + tierras + naturaleza + café. Motivo medido: en este repo **no hay compilador de TypeScript** (`node_modules/typescript` no existe; `astro build` solo borra tipos), así que un `imagen: MediaItem` migrado a medias compila verde y pinta `[object Object]` o degrada en silencio. Cada rebanada debe aterrizar con **todos sus consumidores** del dominio, y con el barrido de texto que lo demuestra. La biblioteca afecta a ~66 archivos: un solo diff de ese tamaño no es revisable.
+> **Ejecución en 4 rebanadas revisadas por separado** — 12a bitácora (`bitacora.ts` + sus fichas y tiras), 12b tienda + proyectos + polinización + experimentos de granja, 12c naturaleza + gestión, 12d tierras. Café **no** va aquí: sus reglas por nombre (`LOCAL_IMAGES`, `itemImage`) son el cable que sostiene los 19 `.webp` de `cafe-menu` y las retira el Task 13, que es el task cuyo contrato es ese. Motivo medido: en este repo **no hay compilador de TypeScript** (`node_modules/typescript` no existe; `astro build` solo borra tipos), así que un `imagen: MediaItem` migrado a medias compila verde y pinta `[object Object]` o degrada en silencio. Cada rebanada debe aterrizar con **todos sus consumidores** del dominio, y con el barrido de texto que lo demuestra. La biblioteca afecta a ~66 archivos: un solo diff de ese tamaño no es revisable.
 
 **Files:**
 - Modify: `src/lib/bitacora.ts`, `src/pages/meliponas/bitacora/[slug].astro`, `src/pages/granja/bitacora/[slug].astro` y el resto de bitácoras de marca
@@ -1469,6 +1469,23 @@ git commit -m "refactor(strapi): un campo media por portada, galerías media mul
 **Interfaces:**
 - Consumes: `toMediaList`, `mediaSrc` (Task 2); los campos ya `media` (Task 11).
 - Produces: en las interfaces de dominio, `imagen: MediaItem | null` y `galeria: MediaItem[]`. Las plantillas pintan `item.url` y `item.alt`.
+
+- [ ] **Step 0: `populate` en cada lector de un campo convertido (obligatorio, y con teste)**
+
+Medido el 2026-09-25 al revisar 12a: `strapiFetch` **no tiene `populate` por default** — solo lo agrega
+si el caller lo pasa (`src/lib/strapi.ts:95-100`) —, así que un campo convertido a `media` por el Task 11
+deja de viajar en la respuesta si el lector no lo pide. `src/lib/bitacora.ts` no pasaba `populate` en
+ninguna de sus cuatro llamadas (`grep -c populate` = 0) y el resultado con schema `media` es `imagen`
+vacío en las 112 filas: **cero tapas, build verde, testes verdes**. El precedente de la casa es
+`src/lib/cafe.ts:154` y `:203` (`populate: ['imagen']`).
+
+Regla para las cuatro rebanadas: todo `strapiFetch` cuyas filas alimenten un campo de portada o galería
+lleva `populate: ['<campo>']` (y `fields: [...]` no sustituye al populate: `fields` filtra escalares,
+la relación es otro parámetro). Y cada rebanada deja un **teste de contrato de fuente** que se pone
+rojo si el `populate` desaparece, porque sin ese teste el defecto se vuelve a colar exactamente como
+se coló ahora. Verificado con `--dry-run` sobre el sitio real no hace falta: la prueba dura es que una
+ficha pintada con datos de Strapi tenga `<img>`; si no la hay, el `populate` no está llegando.
+
 
 - [ ] **Step 1: Teste de normalización que falla**
 
@@ -1581,6 +1598,16 @@ git commit -m "refactor(cafe): el menú y sus proveedores salen de Strapi, no de
 ```
 
 **Gate F2 → F3.** Los 41 campos son dos tipos. `36/56` bitácoras con tapa. `0` items de menú sin imagen. La métrica del censo ya debería moverse: se toma una pasada intermedia (Task 15) para no llegar a F3 con la sorpresa de que nada cambió.
+
+**Advertencia medida el 2026-09-25, antes de tocar el esquema en F3: el rebuild de Strapi es destructivo.** Strapi 5.55.0 **borra la columna** de todo atributo que ya no está en el esquema, y lo hace en cada arranque: `node_modules/@strapi/database/dist/schema/builder.mjs:277-279` recorre `table.columns.removed` y llama `dropColumn`, que solo es no-op con `forceMigration` en falso — y el default es `true` (`@strapi/database/dist/index.js:143`) mientras `strapi/config/database.ts` no fija `settings`. Lo que hoy protege los datos es que el `dist/` del contenedor sigue viejo, no el diseño.
+
+Orden obligatorio, entonces: **dump → `--apply` del importador (que lea los `*_url` y el json como fuente) → y recién después el commit que saca campos del esquema**. Nunca al revés, y nunca "el valor queda huérfano e intacto", que es lo que este plan decía antes de medirlo.
+
+Inventario de lo que está en juego, medido con `SELECT` sobre la BD en vivo:
+- **Grupo A+B (ya commiteado en `fa240b2`)**: de las 10 columnas que toca (`bitacoras.imagen`, `productos.imagen/galeria`, `proyecto_meliponarios.imagen/galeria`, `cultivo_polinizacions.imagen/galeria`, `lote_miels.imagen/galeria`, `experimentos.imagen`) hay **0 valores no nulos**; la única con datos es el rename `anfitriones.galeria_fotos` → `galeria`: **2 filas publicadas, 3 hotlinks de Unsplash**, que la decisión F1 mandaba quitar igual. O sea: reconstruir hoy no borra más que eso.
+- **Grupo C (aún no commiteado)**: **49 valores vivos** se irían abajo si los campos salen del esquema antes de la migración — `hero_configuracions.imagen` **39** (el Paso H), `anfitriones.foto_perfil_url` **2**, `experiencias.imagen_hero_url` **2** (los twins son contenido, no basura), `experiencias.galeria_urls` **2**, `anfitriones.foto_territorio` **2**, `anfitriones.video_thumbnail` **1**, `experiencias.mapa_imagen_url` **1**; `complementos.imagen_url` **0**.
+
+Consecuencia para el dueño, en una línea: autorizar el rebuild con los esquemas de `fa240b2` es hoy de riesgo casi nulo y es **lo único que vuelve visible el F2 en producción**; autorizarlo con los del Grupo C sin haber corrido el `--apply` sí borra 49 valores.
 
 ---
 

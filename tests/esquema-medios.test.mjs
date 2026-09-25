@@ -124,7 +124,12 @@ test('anfitrion: la galería se llama `galeria` y `galeria_fotos` ya no está', 
     Object.prototype.hasOwnProperty.call(attrs, 'galeria_fotos'),
     false,
     'anfitrion.galeria_fotos sigue declarado: quedarían dos galerías editables en la misma ficha. ' +
-      'La columna vieja `galeria_fotos` queda huérfana en la BD a propósito (sus 2 valores son hotlinks de Unsplash, decisión F1); no se borra y Strapi ya no la lee.',
+      'Ojo con lo que implica quitarlo: Strapi 5.55.0 BORRA la columna al arrancar ' +
+      '(node_modules/@strapi/database/dist/schema/builder.mjs:277-279, y dropColumn solo es no-op ' +
+      'con forceMigration falso; el default es true en @strapi/database/dist/index.js:143 y ' +
+      'strapi/config/database.ts no fija settings). La única copia de esos 2 valores es el dump ' +
+      'iwage-pre-f2-2026-09-25.sql. Son hotlinks de Unsplash que la decisión F1 mandaba quitar, ' +
+      'pero el retiro se hace con el dump en la mano, no después.',
   );
 });
 

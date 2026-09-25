@@ -98,6 +98,8 @@ Los 41 campos de hoy, y en qué se convierten:
 
 Nomenclatura: retrato = `imagen_principal` / `foto` donde ya existe y está poblado; no se impone un nombre universal en esta fase porque el costo (renombrar 10 campos poblados + sus `fields[]` y `populate[]`) no compra nada que el contrato no compre ya. Lo que **sí** se unifica de verdad es el tipo de campo y la forma en que el código lo lee.
 
+> Corrección medida (2026-09-25): las **diez** columnas que toca el Grupo A+B de la Tarea 11 (`bitacoras.imagen`, `productos.imagen/galeria`, `proyecto_meliponarios.imagen/galeria`, `cultivo_polinizacions.imagen/galeria`, `lote_miels.imagen/galeria`, `experimentos.imagen`) están **vacías** en la BD en vivo (`count` con el filtro válido para `jsonb`: 0 no nulas y 0 publicadas). Aparte está el rename `anfitriones.galeria_fotos` → `galeria`, que sí tenía **2 filas publicadas con 3 hotlinks de Unsplash**. El argumento del "costo de renombrar" era más chico de lo que decía esta línea; la decisión se mantiene por la razón verdadera: renombrar un campo en Strapi **le borra la columna al arrancar** (ver el gate F2→F3 del plan), así que un rename es una migración de datos, no una cosmética.
+
 ## Caída de fallbacks
 
 Se eliminan, no se ajustan (decisión: **Strapi único dueño, sin fallbacks de imagen**):
