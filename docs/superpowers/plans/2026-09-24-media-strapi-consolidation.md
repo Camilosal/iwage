@@ -1700,15 +1700,28 @@ Expected: ~185 (puede haber crecido; anotar el número exacto, porque los porcen
 
 - [ ] **Step 2: Llenar la tabla comparativa**
 
-| | antes | después |
+La tabla es la de `docs/superpowers/metrics/2026-09-24-antes.md`, que ya tiene el comando y el valor medido de cada fila; el informe "después" se llena corriendo **esos mismos comandos**, no unos nuevos. Antes de comparar, verificar que el crawl mide el mismo sitio de siempre:
+
+```bash
+cd /home/ubuntu/backup/iwaudit-antes-2026-09-24
+sha256sum -c /home/ubuntu/negocio/data/app_iwage/docs/superpowers/metrics/censo/inputs-antes/html.sha256 \
+  | grep -c ': OK'          # esperado 185; si es menor, alguna página ya no es la que se midió
+```
+
+| | antes (medido) | después |
 |---|---|---|
-| Páginas sin ningún `<img>` en `<main>` | 141 | |
-| Páginas con ≥1 imagen propia | 4 | |
-| Registros publicados con imagen propia | 1 / 103 | |
-| Activos en la media library | 0 | |
+| Páginas sin ningún `<img>` en `<main>` | 141 de 185 | |
+| Páginas con ≥1 imagen propia exclusiva | 4 | |
+| Registros publicados con un medio enlazado en Strapi | 0 de 180 | |
+| Campos de medio / representaciones en el esquema | 41 / 5 | |
+| Archivos en `public/images` (versionados + solo servidor) | 99 (80 + 19) | |
+| Piezas producidas y nunca enlazadas | 47 (36 tapas + 11 galería) | |
+| Activos en la media library de Strapi | 0 | |
+| Ocurrencias de `strapiImage` en `src/` | 57 | |
+| URLs de terceros en `src/` | 20 | |
 | 404 de producción por imagen | 5 | |
-| Representaciones de "imagen" en el esquema | 5 | |
-| URLs de terceros en `src/lib` | 21 | |
+
+Dos filas que la tabla original de la spec no tenía y que el después sí tiene que reportar, porque el plan las mueve: los **8 valores de Unsplash que quedaron en columnas de la BD** (F1 limpió `src/` pero no la base de datos) y los **2 embeds placeholder** (un rickroll y un tour demo del proveedor). "0 URLs de terceros" en el código sin decir nada de la BD es un verde que engaña.
 
 - [ ] **Step 3: Escribir el informe con las diferencias no explicadas**
 

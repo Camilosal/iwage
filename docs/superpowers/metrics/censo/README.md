@@ -51,10 +51,15 @@ que la hace verificable sin volver a gatear el sitio:
 
 - `inputs-antes/crawl.log` — los 185 `indice|código|url` (con esto se puede re-crawlear la misma lista).
 - `inputs-antes/assets.json`, `inputs-antes/coverage.json` — las dos salidas intermedias.
-- `inputs-antes/html.sha256` — 185 hashes, uno por página. Con `sha256sum -c` se
-  prueba que un `html/` es byte a byte el mismo que se midió; si no lo es, el
-  número que se reporte es de otro sitio y hay que decirlo.
+- `inputs-antes/html.sha256` — 185 hashes, uno por página. Verificado, reproduce 185 `OK` y 0 fallos:
 
+```bash
+cd /home/ubuntu/backup/iwaudit-antes-2026-09-24
+sha256sum -c /home/ubuntu/negocio/data/app_iwage/docs/superpowers/metrics/censo/inputs-antes/html.sha256 \
+  | grep -c ': OK'          # esperado 185; si es menor, alguna página ya no es la que se midió
+```
+
+Si ese contejo no da 185, el `html/` que se está midiendo no es el que se midió y el número que se reporte es de otro sitio: hay que decirlo.
 `main-imgs.mjs` y `pages.py` piden `html/`, así que corren contra esa copia del
 backup, no contra `inputs-antes/`.
 
