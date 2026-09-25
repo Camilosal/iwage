@@ -1617,11 +1617,22 @@ Consecuencia para el dueño, en una línea: autorizar el rebuild con los esquema
 | `productos` | `imagen`,`galeria` | 200 | **400 Invalid key galeria** |
 | `proyecto-meliponarios` | `imagen`,`galeria` | 200 | **400 Invalid key galeria** |
 | `cultivo-polinizaciones` | `imagen`,`galeria` | 200 | **400 Invalid key galeria** |
+| `anfitriones` | `foto_perfil`,`galeria`(`,experiencias`) | 200 | **400 Invalid key galeria** (Task 12c) |
 | `experiencias` | `imagen_hero` | 200 | 200 |
+| `experiencias` | los 7 de `POPULATE_EXP` | 200 | 200 |
+| `propiedades-gestion` | los 8 de `POPULATE_FIELDS` | 200 | 200 |
+| `paquetes` | `imagen_hero`,`imagenes` | 200 | 200 |
 | `item-menus` / `proveedors` | `imagen` / `foto,…` | 200 | 200 (el populate funciona: ya son media en el runtime) |
 | `experimentos` / `historia-visitantes` | `imagen,…` | 403 | 403 (sin permiso `find`, no medible desde aquí) |
 
-Traducción operativa: desplegar la rama **antes** del rebuild deja vacías la bitácora (las 7 superficies, con su `noindex` encendido por `fallo: true`), la tienda, los proyectos meliponarios y la polinización. `imagen` en `bitacoras` falla por ser todavía `string`; `galeria` en las otras tres falla porque la columna **no existe** en el runtime. El `--apply` del importador no es lo que desbloquea esto: lo desbloquea reconstruir con los esquemas ya commiteados.
+Nota sobre la medición, porque el hueco era de la herramienta: `populate-sweep.mjs`
+reconocía solo literales `populate: [...]`, así que las cinco filas declaradas como
+constante (`POPULATE_HOST`, `POPULATE_FIELDS`, `POPULATE_EXP`, `POPULATE_PKG`) no
+pasaban por la sonda — y justo una de ellas, la de `anfitriones`, es la que trajo la
+12c. Las tres de arriba (`experiencias` completo, `propiedades-gestion`, `paquetes`)
+se midieron a mano contra la API viva y sí dan 200.
+
+Traducción operativa: desplegar la rama **antes** del rebuild deja vacías la bitácora (las 7 superficies, con su `noindex` encendido por `fallo: true`), la tienda, los proyectos meliponarios, la polinización y las **fichas de anfitriones** (listado y detalle, por `POPULATE_HOST`/`POPULATE_HOST_DETAIL`). `imagen` en `bitacoras` falla por ser todavía `string`; `galeria` en las otras cuatro falla porque la columna **no existe** en el runtime. El `--apply` del importador no es lo que desbloquea esto: lo desbloquea reconstruir con los esquemas ya commiteados.
 
 ---
 
@@ -1633,6 +1644,7 @@ Traducción operativa: desplegar la rama **antes** del rebuild deja vacías la b
 - Delete (solo en el servidor): los 19 `public/images/cafe-menu/*.png` con gemelo `.webp`
 - Delete: `strapi/scripts/populate-galerias.sql`, `populate-galerias-productos.sql`, `populate-polinizacion.sql`. **La premisa del plan original ("escriben en la tabla legacy `proyecto_meliponarios` de Flask, no en Strapi") es FALSA, medida el 2026-09-25:** los tres apuntan a tablas vivas de Strapi v5 (`UPDATE proyecto_meliponarios` 6, `UPDATE productos` 11, `UPDATE cultivo_polinizacions` 6, y las tres existen en la BD con `published_at`). Se retiran por otra razón, que es la buena: escriben JSON crudo en la columna `galeria` por `id` de fila sin API ni publish, que es exactamente el mecanismo de dispersión que este plan elimina.
 - Modify: `src/pages/tierras/propiedades/[slug].astro` (el slot `fotos_evidencia` que nunca renderiza, ancla `VAPEvidenceGallery`)
+- **Null (en la BD, con dump previo): los 12 hotlinks de `images.unsplash.com`** medidos el 2026-09-25 en el censo de hosts de `4b1b63e`, repartidos en 7 columnas: `anfitriones.foto_perfil_url`, `anfitriones.foto_territorio`, `anfitriones.video_thumbnail`, `anfitriones.galeria_fotos`, `experiencias.imagen_hero_url`, `experiencias.galeria_urls`, `experiencias.mapa_imagen_url`. `esPintable()` ya no los pinta, pero el valor sigue ahí y el admin los muestra como si fueran contenido. Dos de ellos son el **retrato de stock de dos anfitriones con nombre y apellido reales** (`don-hernando-caficultor`, `luz-elenia-herbalista`) presentado como su cara: hay que decidir con el dueño si se retira y se deja la ficha sin foto (el mosaico Icon ya está diseñado para eso) o si se reemplaza por foto propia.
 
 - [ ] **Step 1: Verificar cero referencias antes de borrar, otra vez, ahora**
 
