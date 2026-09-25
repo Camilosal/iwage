@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toMediaItem, toMediaList, mediaSrc, absUrl, embedSrc, isEmbed } from '../src/lib/media.ts';
+import { toMediaItem, toMediaList, mediaSrc, absUrl, embedSrc, isEmbed, esPintable } from '../src/lib/media.ts';
 
 test('mediaSrc: ruta interna de Strapi queda relativa de sitio', () => {
   assert.equal(mediaSrc('/uploads/2026/05/miel.webp'), '/uploads/2026/05/miel.webp');
@@ -103,6 +103,50 @@ test('toMediaItem: entiende la forma vieja { url, tipo, titulo }', () => {
   assert.equal(toMediaItem({ url: '/uploads/x.webp', tipo: 'imagen' }).kind, 'imagen');
   // Un `tipo` que no está en la tabla no inventa nada: manda classify().
   assert.equal(toMediaItem({ url: '/uploads/x.webp', tipo: 'whatever' }).kind, 'imagen');
+});
+
+/**
+ * Dientes medidos el 2026-09-25 ejecutando el módulo: `toMediaItem({ url:'/uploads/pano.webp',
+ * tipo:'360' })` devolvía `{ kind:'tour360', provider:'strapi' }`, `isEmbed()` daba `true` y
+ * `MediaGallery.astro` elegía `render:'iframe'` → `<iframe src="/uploads/pano.webp">`: un
+ * `<img>` vestido de tercero, pidiendo al navegador un reproductor donde hay un códec.
+ * La regla la escribió el comentario de `classify()` («tour360 solo si el HOST es proveedor de
+ * recorridos») pero la rompía la línea de abajo, la del `TIPO_VIEJO`. Acá queda fijada.
+ */
+test('toMediaItem: lo embebible lo decide la URL, nunca el campo heredado', () => {
+  const pano = toMediaItem({ url: '/uploads/pano.webp', tipo: '360' });
+  assert.equal(pano.kind, 'imagen');
+  assert.equal(isEmbed(pano), false);
+
+  const videoMentiroso = toMediaItem({ url: '/uploads/recorrido.mp4', kind: 'tour360' });
+  assert.equal(videoMentiroso.kind, 'video'); // la extensión manda: `<video>`, no `<iframe>`
+  assert.equal(isEmbed(videoMentiroso), false);
+
+  // Y al revés tampoco: un tercero es tour por host, y `tipo:'imagen'` no lo convierte en
+  // `<img>` (sería un `<img>` apuntando a la página HTML de matterport).
+  const tour = toMediaItem({ url: 'https://my.matterport.com/show/?m=XXXX', tipo: 'imagen' });
+  assert.equal(tour.kind, 'tour360');
+  assert.equal(isEmbed(tour), true);
+});
+
+/**
+ * `esPintable` razonaba «si no es http(s), es nuestra». Un tercero SIN PROTOCOLO pasa por ahí:
+ * medido en el módulo, `mediaSrc('//cdn.tercero.com/a.jpg')` devolvía la cadena intacta y
+ * `absUrl()` la convertía en `https://cdn.tercero.com/a.jpg` — la forma exacta en que un
+ * hotlink ajeno llega a `og:image` (`BrandLayout.astro` y `og-image.ts` absolutean lo que
+ * sale de `mediaSrc`). La decisión aprobada fue «sin hotlinks de imagen»; esta es la puerta.
+ */
+test('esPintable: relativa de sitio es UN solo "/" inicial; lo demás no se pinta', () => {
+  assert.equal(esPintable('/uploads/a.webp'), true);
+  assert.equal(esPintable('/images/a.webp'), true);
+  assert.equal(mediaSrc('//cdn.tercero.com/a.jpg'), null);
+  assert.equal(absUrl(mediaSrc('//cdn.tercero.com/a.jpg')), null); // og: imagen de tercero: no
+  assert.equal(toMediaItem({ url: '//cdn.tercero.com/a.jpg' }), null);
+  assert.equal(esPintable('//localhost/uploads/a.webp'), false);
+  assert.equal(esPintable('javascript:alert(1)'), false);
+  assert.equal(esPintable('data:text/html,<b>h</b>'), false);
+  // Sin `/` inicial no es ruta de sitio: el navegador la resuelve contra la página y da 404.
+  assert.equal(esPintable('uploads/a.webp'), false);
 });
 
 test('toMediaItem: el mime de Strapi sube a video y alternativeText es el alt', () => {

@@ -50,6 +50,13 @@ function safeUrl(raw: string): URL | null {
   try { return new URL(raw); } catch { return null; }
 }
 
+/**
+ * Relativa de sitio: un solo `/` inicial. `//cdn.tercero.com/a.jpg` NO es relativa — es un
+ * tercero al que se le quitó el protocolo, y `absUrl` lo devuelve tal cual (`https://cdn…`).
+ * Por eso el test es de forma y no "si no es absoluta, es nuestra".
+ */
+const RELATIVA_DE_SITIO = /^\/(?!\/)/;
+
 /** Nombres con los que existe este mismo equipo. Un loopback nunca es un tercero. */
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]', '::1']);
 
@@ -116,7 +123,7 @@ export function esPintable(input: unknown): boolean {
   const raw = rawOf(input);
   if (!raw) return false;
   const u = safeUrl(raw);
-  if (!u) return true; // relativa de sitio: `/uploads/...` o `/images/...`
+  if (!u) return RELATIVA_DE_SITIO.test(raw); // relativa de sitio; `//host/x` no lo es
   return isSelfHost(u.hostname) || HOST_EMBED.test(u.hostname);
 }
 
@@ -133,6 +140,12 @@ export function absUrl(src: string | null | undefined): string | null {
   if (!src) return null;
   if (/^https?:\/\//i.test(src)) return src;
   try { return new URL(src, SITE_URL()).toString(); } catch { return null; }
+}
+
+/** Material de este sitio: relativa de sitio, o absoluta que apunta a este mismo equipo. */
+function esPropia(url: string): boolean {
+  const u = safeUrl(url);
+  return !u || isSelfHost(u.hostname);
 }
 
 export function toMediaItem(input: unknown): MediaItem | null {
@@ -152,8 +165,12 @@ export function toMediaItem(input: unknown): MediaItem | null {
   if (input && typeof input === 'object') {
     const o = input as StrapiMedia & LegacyItem;
     if (o.mime && /^video\//.test(o.mime)) kind = 'video';
-    if (o.tipo) kind = TIPO_VIEJO[o.tipo] ?? kind;
-    if (o.kind && TIPO_VIEJO[o.kind]) kind = TIPO_VIEJO[o.kind];
+    // Lo heredado (`tipo`/`kind` de las formas históricas, `kind` con prioridad) solo
+    // re-etiqueta material PROPIO y solo entre imagen y video. `tour360` y lo de tercero
+    // los decide el host en `classify()`: con `provider:'strapi'` y `kind:'tour360'`,
+    // `isEmbed()` mentía y MediaGallery emitía `<iframe src="/uploads/pano.webp">`.
+    const heredado = TIPO_VIEJO[o.kind] ?? TIPO_VIEJO[o.tipo];
+    if (heredado && esPropia(url) && heredado !== 'tour360') kind = heredado;
     alt = o.alternativeText ?? o.alt ?? undefined;
     caption = o.caption ?? o.titulo ?? undefined;
   }
