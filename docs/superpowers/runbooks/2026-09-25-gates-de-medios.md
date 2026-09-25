@@ -253,12 +253,36 @@ basura), `experiencias.galeria_urls` 2, `anfitriones.foto_territorio` 2, `anfitr
 Orden: G3 → reescribir los lectores en `src/` a `MediaItem` (lo hacen ya los 26 campos convertidos;
 el cambio de cada uno es mecánico y tiene guard) → dump → commit del esquema → rebuild.
 
-## G6 · Café: borrar la regla por nombre (Task 13)
+## G6 · Café: borrar la regla por nombre y los seeds literales (Task 13)
 
 **Condición medida el 2026-09-25, y hoy no se cumple:** el paso 1 del task pide «0 items sin
 imagen», y la base tiene `files = 0` con **17** filas en `item_menus` y 4 en `proveedors`. Mientras
-no haya assets, `LOCAL_IMAGES` es lo único que pinta el menú: se borra después de G3, cuando el
-paso 1 dé 0. (Precisión del plan: son 17 filas, no «las 19 preparaciones».)
+no haya assets, las reglas por nombre son lo único que pinta el menú: se borran después de G3,
+cuando el paso 1 dé 0. (Precisión del plan: son 17 filas, no «las 19 preparaciones».)
+
+**Y no es una sola regla — medido, hay cuatro puntos de verdad para las mismas 19 piezas:**
+
+| dónde | qué | imágenes de `public/images/cafe-menu/` |
+|---|---|---|
+| `src/lib/cafe.ts:233-269` | `LOCAL_IMAGES`, la regla por nombre | 10 entradas |
+| `src/pages/cafe/menu.astro:70` | `fallbackItems` — 17 filas literales, espejo de `item_menus` | 9 |
+| `src/pages/cafe/index.astro:46` | `fallbackProveedores` (4 filas) | 4 `proveedor-*.webp` |
+| `src/pages/cafe/index.astro:57` | `FALLBACK_HISTORIAS_HOME` (4 visitantes) | 4 `visitante-*.webp` |
+| `src/pages/cafe/menu.astro` (plantilla) | dos promos escritas a mano | `promo-duos-perfectos`, `promo-reutilizable` |
+
+Medido contra el crawl de 185 URLs (`analyze.py`, sección «BIBLIOTECA EN DISCO vs RENDERIZADA»):
+**14 de las 19 se sirven y 5 no** — `pan-yuca-miel` y los cuatro `proveedor-*`. Los cuatro
+proveedores no se sirven porque en producción `proveedors` trae datos y el fallback no corre; o sea,
+son seeds muertos que hoy existen solo para el caso «Strapi vacío».
+
+**Orden de la puerta, y qué no hacer:** (1) G3 sube y enlaza las piezas que corresponden a
+`productos` / `proveedors` / `historia-visitantes`; (2) se verifican con el paso 1 del task; (3) se
+borran `LOCAL_IMAGES` y los **campos de imagen** de los cuatro arreglos — no las filas: quitar
+`fallbackItems` entero es una decisión de contenido (la página quedaría sin menú si la base falla),
+mientras que quitarle las imágenes es exactamente lo que ya se aprobó: «Strapi único dueño, sin
+fallbacks de imagen; con Strapi caído las tarjetas muestran el Icon tile y la página sobrevive».
+(4) Las 19 piezas entran al inventario del importador, así que la fila 6 las cuenta: hoy da
+`cafe-menu piezas=19 huerfanas=0`, y después de este borrado dará 19 hasta que se cableen.
 
 ## G7 · Permisos de lectura pública
 

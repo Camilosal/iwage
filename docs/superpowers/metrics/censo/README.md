@@ -22,6 +22,7 @@ ningún lado. Sin procedimiento versionado, el "después" no es comparable con e
 | `analyze.py` | cobertura por página: imagen propia vs stock vs rota, con el conteo por sección | `assets.json` + `html/` → `coverage.json` |
 | `pages.py` | filas 2 y 9: páginas con imagen **exclusiva** y páginas con referencias rotas | `coverage.json` |
 | `main-imgs.mjs` | fila 1: páginas cuyo `<main>` no renderiza ningún `<img>` | `crawl.log` + `html/` |
+| `huerfanas.mjs` | fila 6: piezas de `public/images/**` que ningún código puede emitir — quita los bloques `{/* … */}` de Astro antes de buscar, porque una cita dentro de un comentario no se pinta | `public/images/` + `src/` |
 | `campos-strapi.mjs` | fila 4: campos de medio de los esquemas y sus representaciones | `strapi/src/api/**/schema.json` |
 | `censo.sh` | **las nueve filas de una vez**, con estos mismos scripts y en este orden | un directorio de crawl; `--con-bd` agrega la fila 3 (`SELECT` por `docker exec`) y la fila 9 sale contra `CRAWL_BASE` |
 
@@ -40,8 +41,9 @@ node parse.mjs                # lee crawl.log + html/, escribe assets.json
 python3 analyze.py            # imprime la cobertura por sección
 python3 pages.py              # páginas exclusivas y rotas
 
-# 3. Fila 4 (esquemas de Strapi; el resto de las filas 3/5/6/7/8 van con SQL y grep)
+# 3. Filas 4 y 6 (van con el repo; la fila 6 ya no es un grep suelto)
 cd <repo> && node docs/superpowers/metrics/censo/campos-strapi.mjs
+cd <repo> && node docs/superpowers/metrics/censo/huerfanas.mjs   # fila 6, comentario-consciente
 ```
 
 ## La carpeta del crawl
@@ -71,6 +73,14 @@ advertencia que le corresponde: **`../2026-09-24-antes.md`**.
 
 ## Advertencias que ya costaron un error
 
+- **Un `grep` contra `src/` no prueba que un archivo se pinte.** La fila 6 histórica era
+  `grep -rqn "$base" src/`, y eso cuenta cualquier coincidencia — incluida la que vive dentro de un
+  bloque comentado `{/* … */}` de Astro. Medido en los dos crawls (185 URLs cada uno):
+  `proyecto-ambala-1.webp` aparece una sola vez en `src/`, dentro de un comentario, y en **0** de los
+  185 HTML. Ahora mide la fila `huerfanas.mjs`, que quita los bloques comentados antes de buscar:
+  lee **48** (36 + 12 + 0) donde el comando histórico leía 47. El `47` queda en las tablas del
+  «antes» y del «después» como lo que la herramienta midió entonces; `tests/censo-huerfanas.test.mjs`
+  fija el criterio nuevo, incluido el caso real de `meliponas/index.astro:160`.
 - **`analyze.py` no es estable en el tiempo.** Su mitad "disco" cruza los nombres
   de `public/images/` contra `src/`; como el F1 se llevó los seeds de `src/lib`, la
   fila 6 baja sola sin que cambie nada en el CMS. Para el "después" hay que medir

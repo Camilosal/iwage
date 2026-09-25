@@ -68,17 +68,8 @@ printf '   versionados (git ls-files)  : %s\n' "$( cd "$REPO" && git ls-files pu
 printf '   png solo en servidor        : %s\n' "$( ls "$REPO"/public/images/cafe-menu/*.png 2>/dev/null | wc -l )"
 du -sh "$REPO"/public/images/bitacora "$REPO"/public/images/galeria "$REPO"/public/images/cafe-menu 2>/dev/null
 
-linea "fila 6 - piezas producidas y nunca enlazadas (por nombre de archivo, no por linea de grep)"
-for dir in bitacora galeria cafe-menu; do
-  total=0; huesrf=0
-  for ruta in "$REPO"/public/images/"$dir"/*.webp; do
-    [ -e "$ruta" ] || continue
-    total=$((total + 1))
-    base="$(basename "$ruta")"
-    if ! grep -rqn -- "$base" "$REPO/src/" 2>/dev/null; then huesrf=$((huesrf + 1)); fi
-  done
-  printf '   %-10s webp=%-3s huerfanas=%s\n' "$dir" "$total" "$huesrf"
-done
+linea "fila 6 - piezas producidas y nunca enlazadas (fuera de bloques comentados; ver huerfanas.mjs)"
+node "$CENSO/huerfanas.mjs"
 
 linea "fila 7 - referencias a strapiImage en src/"
 ( cd "$REPO" && grep -rn "strapiImage" src/ | wc -l )
