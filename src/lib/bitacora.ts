@@ -88,14 +88,24 @@ export async function getBitacoraByMarca(
 }
 
 /**
- * Campos escalares que necesitan las tiras de resumen; `contenido` queda fuera a propósito.
- * `imagen` sigue listado porque EN EL CONTAINER EN VUELO todavía es un atributo `string`
- * (Task 11 no ha corrido) y `fields[]` es la única forma de pedir un escalar. En cuanto el
- * esquema de `fa240b2` se despliegue, `imagen` pase a ser relación y `fields[]` deja de
- * aplicársele — por eso hace falta además el `populate` de abajo, no en vez de él.
+ * Campos ESCALARES que necesitan las tiras de resumen; `contenido` queda fuera a propósito.
+ *
+ * `imagen` NO va acá, y la razón está medida (2026-09-25) y no deducida: sobre
+ * `experiencias.imagen_hero` —un atributo que en el contenedor en vuelo SÍ es relación
+ * media—, pedir `fields[]=imagen_hero` devuelve `400 ValidationError: Invalid key
+ * imagen_hero` con `details.param: "fields"`. La selección de campos de Strapi v5 «does not
+ * work on relational, media, component, or dynamic zone fields».
+ *
+ * Listar el media en los dos parámetros no cubre los dos esquemas: garantiza un 400 en cada
+ * uno. Con el esquema del repo (`fa240b2`, `imagen` = media) revienta `fields[]`; con el del
+ * contenedor en vuelo (`imagen` = string) revienta `populate[]` —medido el mismo día, 208
+ * peticiones de este query, las 208 en 400—. Y como `strapiFetch` lanza en cualquier no-ok,
+ * el costo no es «una foto menos»: es las 7 superficies de bitácora degradadas a nada. La
+ * portada se pide únicamente por `populate`, y el desajuste de esquemas se resuelve
+ * desplegando, no con una consulta que sea válida en dos mundos a la vez.
  */
 const CAMPOS_RESUMEN = [
-  'titulo', 'slug', 'marca', 'fecha', 'extracto', 'imagen', 'categoria', 'tiempo_lectura',
+  'titulo', 'slug', 'marca', 'fecha', 'extracto', 'categoria', 'tiempo_lectura',
 ];
 
 /**
@@ -106,10 +116,12 @@ const CAMPOS_RESUMEN = [
  * Si Strapi falla, devuelve el resumen vacío: el bloque se degrada a nada, nunca
  * a un 500 en la portada.
  *
- * `fields` y `populate` son dos cosas distintas en Strapi v5 y no se sustituyen: la
- * selección de campos «does not work on relational, media, component, or dynamic zone
- * fields» (Population & Field Selection). Dejar `imagen` en `CAMPOS_RESUMEN` sin
- * `populate` es justo el C1: el hub y las 5 landings se quedan sin tapa en silencio.
+ * `fields` y `populate` son dos cosas distintas en Strapi v5: no se sustituyen, pero tampoco
+ * se suman sobre la misma clave. La selección de campos «does not work on relational, media,
+ * component, or dynamic zone fields» (Population & Field Selection), así que un media se pide
+ * POR `populate` y no aparece en `fields`. Omitir el `populate` es el C1 (el hub y las 5
+ * landings sin tapa en silencio, `imagen: undefined` → `null`); listar el media en
+ * `CAMPOS_RESUMEN` además de poblarlo es el C2, que es peor: 400 y las 7 superficies vacías.
  * Este fix también estrena clave de cache (`populate[]` entra en la queryString).
  */
 export async function getResumenBitacora(
