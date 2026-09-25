@@ -1640,6 +1640,22 @@ Traducción operativa: desplegar la rama **antes** del rebuild deja vacías la b
 
 ### Task 14: Borrado de duplicados y slots muertos
 
+**EJECUTADO el 2026-09-25 (pasos 1-4) en `b83051f`.** Hecho: los 19 `.png` movidos a
+`/home/ubuntu/backup/png-cafe-menu-2026-09-25/` con `MANIFEST-md5.txt` y `RESTORE.txt`
+(verificados 19/19 por hash; son git-ignored, por eso no se borraron); los tres
+`populate-*.sql` fuera con su contenido extraído a
+`.superpowers/sdd/2026-09-24-media-strapi-consolidation/retirados-populate-sql.md`; el
+slot `fotos_evidencia` y `VAPEvidenceGallery.astro` fuera, reemplazados por un gate con
+dientes medidos (revivir el archivo o volver a mencionar el campo rompe
+`tests/normalizar-medio-4.test.mjs`). Premisa reforzada por medición: los scripts **nunca
+corrieron** — no solo `count(galeria)=0` en las tres tablas, sino `slug=''` en las 12 de
+`proyecto_meliponarios` aunque el script también escribe slugs.
+**Queda pendiente y es del dueño, no mío:** poner a `null` las 12 filas de Unsplash y las
+2 de placeholder (UPDATE sobre datos + decisión de contenido, ver Task 15), y la jubilación
+del Grupo C en el esquema. No se hizo `npm run build` como pedía el paso 2: `dist/` está
+compartida con otros agentes y 0 referencias a `*.png` en `src/`, `strapi/`, `public/` y
+`tests/` es la evidencia de que mover no puede romper render (Astro copia `public/` tal cual).
+
 **Files:**
 - Delete (solo en el servidor): los 19 `public/images/cafe-menu/*.png` con gemelo `.webp`
 - Delete: `strapi/scripts/populate-galerias.sql`, `populate-galerias-productos.sql`, `populate-polinizacion.sql`. **La premisa del plan original ("escriben en la tabla legacy `proyecto_meliponarios` de Flask, no en Strapi") es FALSA, medida el 2026-09-25:** los tres apuntan a tablas vivas de Strapi v5 (`UPDATE proyecto_meliponarios` 6, `UPDATE productos` 11, `UPDATE cultivo_polinizacions` 6, y las tres existen en la BD con `published_at`). Se retiran por otra razón, que es la buena: escriben JSON crudo en la columna `galeria` por `id` de fila sin API ni publish, que es exactamente el mecanismo de dispersión que este plan elimina.
@@ -1690,9 +1706,14 @@ Si `VAPEvidenceGallery.astro` queda sin consumidores, se borra el componente tam
 - [ ] **Step 5: Commit**
 
 ```bash
-git add -A strapi/scripts src/pages/tierras src/components
-git status --short
-git commit -m "chore(media): fuera duplicados png, seeds legacy de Flask y slots inalcanzables"
+# Contradecía la restricción global del plan (línea 15: nunca `git add -A`). Así se hizo:
+git commit -q -F - -- 'src/pages/tierras/propiedades/[slug].astro' \
+  tests/normalizar-medio-4.test.mjs \
+  src/components/tierras/VAPEvidenceGallery.astro \
+  strapi/scripts/populate-galerias.sql \
+  strapi/scripts/populate-galerias-productos.sql \
+  strapi/scripts/populate-polinizacion.sql
+git status --short   # confirma que no se llevó WIP ajeno
 ```
 
 ### Task 15: Audiovisual, con los pies en la tierra
@@ -1716,14 +1737,42 @@ grep -n "sonido" src/pages/meliponas/index.astro
 
 - [ ] **Step 3: Revisar los enlaces a material ajeno**
 
+Medido el 2026-09-25, solo `SELECT`, con la única forma permitida de tocar la BD (nunca
+cadenas de conexión ni `"$PGUSER"`; la tabla es `propiedades`, no `propiedads`):
+
 ```bash
-docker exec sostenibilidad_db psql -U "$PGUSER" -d iwage -At -F'|' -c \
-  "select 'anfitriones', slug, video_url from anfitrions where video_url is not null and video_url<>''
-   union all select 'experiencias', slug, video_url from experiencias where video_url is not null and video_url<>''
-   union all select 'propiedades', slug, video_url from propiedads where video_url is not null and video_url<>''"
+docker exec -i sostenibilidad_db psql -U admin -d iwage -At -F'|' -c "
+select 'anfitriones', slug, video_url from anfitriones where video_url is not null and video_url<>''
+union all select 'experiencias', slug, video_url from experiencias where video_url is not null and video_url<>''
+union all select 'propiedades', slug, video_url from propiedades where video_url is not null and video_url<>''"
 ```
-(Adaptar nombres de tabla/columna al estado real posterior al Task 11: `select table_name from information_schema.tables where table_schema='public' and table_name ilike '%anfitr%'`.)
-Por cada fila: es material propio → se sube y se pasa a `galeria`; es de terceros y legitimo → va a `embed_video`; es un video ajeno sin relación con Iwagé → se pone a `null`. Reportar la lista en el commit.
+
+Resultado íntegro: **2 filas, y las dos son el mismo video.**
+
+| tabla | slug | video_url |
+|---|---|---|
+| `anfitriones` | `don-hernando-caficultor` | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
+| `experiencias` | `amanecer-en-el-bosque-de-niebla` | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
+
+`dQw4w9WgXcQ` es el rickroll. Hay una tercera aparición en el mismo registro, dentro de
+`experiencias.galeria_urls` de `amanecer-en-el-bosque-de-niebla`, con título
+«Recorrido completo», acompañada de `https://momento360.com/e/u/demo` («Mirador 360°»,
+tour de demostración de la plataforma). Las otras cuatro entradas de esa galería eran
+Unsplash y el contrato de Task 12b ya no las pinta: **los dos únicos elementos de video
+y 360 que hoy se pintarían en el sitio son placeholders.** Lo mismo en la otra
+experiencia: `galeria_urls` de `jardin-medicinal-y-saberes-de-montana` son 3 Unsplash,
+o sea galería vacía.
+
+Consecuencia para este task: la pregunta al dueño deja de ser «¿aceptamos video
+externo?» y pasa a ser «¿hay material grabado propio, o retiramos los tres
+placeholders?». El único video real documentado en todo el proyecto no está en la BD:
+es `youtube/watch?v=Vv1b4Vvq0fM` («Meliponas nativas de Colombia»), en
+`populate-galerias.sql:7`, que el Task 14 retira con `git rm` — recuperable con
+`git show <commit>^:strapi/scripts/populate-galerias.sql`.
+
+Por cada fila: es material propio → se sube y se pasa a `galeria`; es de terceros y
+legítimo → va a `embed_video`; es un video ajeno sin relación con Iwagé → se pone a
+`null`. Reportar la lista en el commit.
 
 - [ ] **Step 4: Verificar**
 
