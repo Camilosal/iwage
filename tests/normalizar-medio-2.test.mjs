@@ -304,3 +304,58 @@ test('barrido: los cuatro módulos declaran MediaItem, no string', () => {
     assert.match(fuente, /from '\.\/normalizar-medio\.ts'/, `${ruta}: no usa el adaptador de 12a`);
   }
 });
+
+// ── 6. Dos cosas que el brief pidió medir y no solo asumir ────────────────────
+
+test('el dedupe de galería es por host+ruta y NO distingue mayúsculas: Foto.jpg y foto.jpg se funden', () => {
+  // Es comportamiento heredado de `canonicalKey()` en `media.ts:127-134`, no de esta capa.
+  // Se fija acá porque es la única forma de que el cambio de comportamiento se vea.
+  const p = normalizeProducto({
+    ...PRODUCTO_BASE,
+    galeria: [{ url: '/uploads/Foto.jpg', alternativeText: 'Arriba' }, { url: '/uploads/foto.jpg', alternativeText: 'Abajo' }],
+  });
+  assert.equal(p.galeria.length, 1, 'se esperaban 1 item (la clave baja el case): salió ' + p.galeria.length);
+  assert.equal(p.galeria[0].alt, 'Arriba', 'el dedupe conserva la primera (la más rica)');
+
+  // Y la ruta con el host propio escrito de dos formas sigue siendo UNA sola pieza.
+  const mixtas = normalizeProducto({
+    ...PRODUCTO_BASE,
+    galeria: [
+      { url: 'http://iwage_strapi:1337/uploads/g.jpg' },
+      '/uploads/g.jpg',
+      { url: 'https://www.iwage.co/uploads/g.jpg' },
+    ],
+  });
+  assert.equal(mixtas.galeria.length, 1, 'las tres formas de la misma pieza no convergen');
+
+  // Dos activos de dos hosts distintos SÍ son dos piezas (no se funden por ruta).
+  const externos = normalizeProducto({
+    ...PRODUCTO_BASE,
+    galeria: [{ url: 'https://cdn-a.com/i.jpg' }, { url: 'https://cdn-b.com/i.jpg' }],
+  });
+  assert.equal(externos.galeria.length, 2, 'dos externos distintos fundidos en uno');
+});
+
+test('las 18 plantillas de la capa compilan con el compiler de Astro', async () => {
+  // El `astro build` completo NO se corre acá: `dist/` es compartida y hay otros agentes
+  // en el árbol (lo corrige el controlador al final). Lo que sí se puede medir sin tocar
+  // el disco es que el componente parsee y transforme: un `<img src={x.imagen}` roto al
+  // migrar sería un error de sintaxis de plantilla, y esto lo nombra con su archivo.
+  const { parse, transform } = await import('@astrojs/compiler-rs');
+  const culpables = [];
+  for (const ruta of ARCHIVOS_CAPA.filter((f) => f.endsWith('.astro'))) {
+    const fuente = readFileSync(join(RAIZ, ruta), 'utf8');
+    try {
+      const p = parse(fuente, { position: false });
+      const dp = (p.diagnostics ?? []).filter((d) => (d.severity ?? 1) === 1);
+      if (dp.length) culpables.push(`${ruta}: parse — ${dp[0].text}`);
+      const t = await transform(fuente, { filename: ruta, normalizeEncoding: 'utf-8' });
+      const dt = (t.diagnostics ?? []).filter((d) => (d.severity ?? 1) === 1);
+      if (dt.length) culpables.push(`${ruta}: transform — ${dt[0].text}`);
+    } catch (e) {
+      culpables.push(`${ruta}: ${String(e && e.message).slice(0, 120)}`);
+    }
+  }
+  assert.ok(ARCHIVOS_CAPA.filter((f) => f.endsWith('.astro')).length >= 17, 'la lista del barrido se quedó corta');
+  assert.deepEqual(culpables, [], 'plantillas de la capa que no compilan');
+});
