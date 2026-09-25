@@ -155,60 +155,6 @@ export interface GestionFilters {
   slugs?: string[];
 }
 
-// ── Fallback data (Strapi unavailable) ─────────────────
-
-const FALLBACK_COMPLEMENTOS: Complemento[] = [
-  { id: 1, documentId: 'fb-c1', slug: 'cena-campesina-tolimense', nombre: 'Cena campesina tolimense', descripcion: 'Cena tradicional preparada con ingredientes de la finca: arepa de choclo, tamal tolimense, chocolate de mesa y postre de brevas.', categoria: 'comida', precio: 45000, moneda: 'COP', precio_por: 'persona', icono: 'utensils', imagen_url: null },
-  { id: 2, documentId: 'fb-c2', slug: 'almuerzo-tipico-tolima', nombre: 'Almuerzo típico del Tolima', descripcion: 'Lechona tolimense con papa criolla, ají de maní y jugo natural de frutas de la región.', categoria: 'comida', precio: 35000, moneda: 'COP', precio_por: 'persona', icono: 'soup', imagen_url: null },
-  { id: 3, documentId: 'fb-c3', slug: 'fogata-con-cuenteria', nombre: 'Fogata con cuentería', descripcion: 'Noche de fogata con historias del territorio, mitos y leyendas del Tolima. Incluye chocolate caliente y masato.', categoria: 'espectaculo', precio: 60000, moneda: 'COP', precio_por: 'grupo', icono: 'flame', imagen_url: null },
-  { id: 4, documentId: 'fb-c4', slug: 'show-musica-andina', nombre: 'Show de música andina', descripcion: 'Presentación en vivo de trío andino con tiple, bandola y guitarra. Bambucos y sanjuaneros del Tolima.', categoria: 'espectaculo', precio: 80000, moneda: 'COP', precio_por: 'grupo', icono: 'music', imagen_url: null },
-  { id: 5, documentId: 'fb-c5', slug: 'cafe-origen-llevar', nombre: 'Café de origen para llevar', descripcion: 'Bolsa de 250g de café de origen Ambalá, tostado medio. Molido o en grano.', categoria: 'compra_local', precio: 30000, moneda: 'COP', precio_por: 'unidad', icono: 'coffee', imagen_url: null },
-  { id: 6, documentId: 'fb-c6', slug: 'transporte-desde-ibague', nombre: 'Transporte desde Ibagué', descripcion: 'Recogida en Ibagué centro y traslado ida y vuelta al alojamiento en camioneta 4x4.', categoria: 'transporte', precio: 120000, moneda: 'COP', precio_por: 'grupo', icono: 'car', imagen_url: null },
-  { id: 7, documentId: 'fb-c7', slug: 'cabalgata-al-rio', nombre: 'Cabalgata al río', descripcion: 'Cabalgata guiada de 2 horas por senderos de montaña hasta el río Coello. Incluye caballos mansos y guía.', categoria: 'actividad', precio: 70000, moneda: 'COP', precio_por: 'persona', icono: 'mountain', imagen_url: null },
-  { id: 8, documentId: 'fb-c8', slug: 'senderismo-guiado', nombre: 'Senderismo guiado', descripcion: 'Caminata interpretativa de 3 horas por bosque andino con guía naturalista. Avistamiento de aves.', categoria: 'actividad', precio: 50000, moneda: 'COP', precio_por: 'persona', icono: 'footprints', imagen_url: null },
-];
-
-const FALLBACK_PRODUCTOS_REC: ProductoRecomendado[] = [
-  { id: 1, documentId: 'fb-pr1', slug: 'miel-angelita-250ml', nombre: 'Miel Angelita 250ml', descripcion_corta: 'Miel de abejas sin aguijón con trazabilidad por lote.', precio: 45000, presentacion: '250 ml', categoria: 'miel', imagen: null, destacado: true, stock_disponible: true },
-  { id: 2, documentId: 'fb-pr2', slug: 'miel-con-propoleo-250ml', nombre: 'Miel con propóleo 250ml', descripcion_corta: 'Mezcla de miel angelita con extracto de propóleo.', precio: 55000, presentacion: '250 ml', categoria: 'propoleo', imagen: null, destacado: false, stock_disponible: true },
-  { id: 3, documentId: 'fb-pr3', slug: 'kit-observacion', nombre: 'Kit Observación', descripcion_corta: 'Caja de observación con tapa transparente para conocer las meliponas.', precio: 190000, presentacion: 'Tapa transparente · Seguro', categoria: 'kit', imagen: null, destacado: false, stock_disponible: true },
-];
-
-const FALLBACK_PROPIEDADES: PropiedadGestion[] = [
-  {
-    id: 1, documentId: 'fb-p1', titulo: 'Finca El Paraíso', slug: 'finca-el-paraiso',
-    descripcion: '<p>Hermosa finca cafetera a 20 minutos de Ibagué, rodeada de montañas y cafetales. Ideal para familias y grupos que buscan desconexión total.</p>',
-    tipo_gestion: 'renta_corta', modelo_alianza: 'gestion_pura', estado: 'activa',
-    tipo_alojamiento: 'finca',
-    es_destacado: true, publicado: true, precio_noche: 350000, precio_mensual: null, moneda: 'COP',
-    ubicacion_municipio: 'Ibagué', ubicacion_latitud: 4.4389, ubicacion_longitud: -75.2322,
-    area_hectareas: 3.5, numero_habitaciones: 4, numero_banos: 3, capacidad_huespedes: 10,
-    amenidades: ['Piscina', 'Zona BBQ', 'WiFi', 'Parqueadero', 'Cocina equipada', 'Hamacas'],
-    highlights: ['Vista panorámica al valle', 'Cafetal propio con catación incluida', 'A 20 min de Ibagué', 'Río a 500m'],
-    imagen_principal: null, galeria: null,
-    propiedad_tierras: null, experiencias: null, anfitriones: null, proveedores: null,
-    complementos: FALLBACK_COMPLEMENTOS,
-    productos: FALLBACK_PRODUCTOS_REC,
-    seo_titulo: null, seo_descripcion: null,
-  },
-  {
-    id: 2, documentId: 'fb-p2', titulo: 'Glamping Bosque de Niebla', slug: 'glamping-bosque-de-niebla',
-    descripcion: '<p>Domos geodésicos inmersos en un bosque de niebla a 2,200 m.s.n.m. Experiencia de desconexión premium con todas las comodidades.</p>',
-    tipo_gestion: 'operacion_turistica', modelo_alianza: 'co_inversion', estado: 'activa',
-    tipo_alojamiento: 'domo',
-    es_destacado: true, publicado: true, precio_noche: 280000, precio_mensual: null, moneda: 'COP',
-    ubicacion_municipio: 'Cajamarca', ubicacion_latitud: 4.4847, ubicacion_longitud: -75.4275,
-    area_hectareas: 1.2, numero_habitaciones: 2, numero_banos: 2, capacidad_huespedes: 4,
-    amenidades: ['Jacuzzi al aire libre', 'Chimenea', 'Desayuno incluido', 'Senderos privados'],
-    highlights: ['Bosque de niebla nativo', 'Avistamiento de aves', 'Cielo estrellado sin contaminación lumínica'],
-    imagen_principal: null, galeria: null,
-    propiedad_tierras: null, experiencias: null, anfitriones: null, proveedores: null,
-    complementos: FALLBACK_COMPLEMENTOS.slice(0, 5),
-    productos: FALLBACK_PRODUCTOS_REC,
-    seo_titulo: null, seo_descripcion: null,
-  },
-];
-
 // ── Data Fetchers ──────────────────────────────────────
 
 const POPULATE_FIELDS = ['imagen_principal', 'galeria', 'propiedad_tierras', 'experiencias', 'anfitriones', 'proveedores', 'complementos', 'productos'];
@@ -254,7 +200,10 @@ export async function getPropiedadesGestion(filters: GestionFilters = {}): Promi
       pageSize: res.meta?.pagination?.pageSize || 12,
     };
   } catch {
-    return { data: FALLBACK_PROPIEDADES, total: FALLBACK_PROPIEDADES.length, page: 1, pageSize: 12 };
+    // Con Strapi caído el listado va vacío y la card pinta el mosaico Icon: las dos
+    // «propiedades» del seed (Finca El Paraíso, Glamping Bosque de Niebla) se hacían
+    // pasar por alojamientos reales, con teléfono y precio incluidos.
+    return { data: [], total: 0, page: filters.page || 1, pageSize: filters.pageSize || 12 };
   }
 }
 
@@ -274,9 +223,7 @@ export async function getPropiedadGestionBySlug(slug: string): Promise<Propiedad
     if (!res.data || res.data.length === 0) return null;
     return normalizePropiedadGestion(res.data[0]);
   } catch {
-    // Fallback: return matching property from local data
-    const fb = FALLBACK_PROPIEDADES.find((p) => p.slug === slug);
-    return fb || null;
+    return null;
   }
 }
 
@@ -464,12 +411,6 @@ export async function getAlojamientosDisponibles(filters: GestionFilters = {}): 
   });
 }
 
-/** Fallback de experiencias si Strapi no responde */
-const FALLBACK_EXPERIENCIAS_GESTION: ExperienciaGestion[] = [
-  { id: 1, documentId: 'fb-e1', slug: 'la-ruta-de-la-niebla', titulo: 'La Ruta de la Niebla y el Café', resumen: 'Caminata entre cafetales y bosque de niebla con catación de café de origen.', categoria: 'Naturaleza', ubicacion: 'Vereda Ambalá, Ibagué', duracion: '4 - 5 Horas', cupo_maximo_desc: '6 a 8 personas', nivel_dificultad: 3, precio_desde: 85000, imagen: null, es_destacado: true },
-  { id: 2, documentId: 'fb-e2', slug: 'la-senda-del-cacao', titulo: 'La Senda del Cacao Amazónico', resumen: 'Recorrido sensorial por el cultivo del cacao con degustación en finca.', categoria: 'Naturaleza', ubicacion: 'Vereda San Nicolás, Ibagué', duracion: '3 - 4 Horas', cupo_maximo_desc: '4 a 6 personas', nivel_dificultad: 1, precio_desde: 110000, imagen: null, es_destacado: false },
-];
-
 /**
  * Experiencias publicadas para el listado de Gestión (cross-sell de alojamientos),
  * con datos clave para tarjetas y filtro opcional por categoría.
@@ -504,8 +445,6 @@ export async function getExperienciasGestion(categoria?: string): Promise<Experi
       es_destacado: e.es_destacado || false,
     }));
   } catch {
-    return categoria
-      ? FALLBACK_EXPERIENCIAS_GESTION.filter((e) => e.categoria === categoria)
-      : FALLBACK_EXPERIENCIAS_GESTION;
+    return [];
   }
 }

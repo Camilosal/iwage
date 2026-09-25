@@ -230,8 +230,8 @@ test('la galería lee kind/caption/alt también en el script del navegador', () 
   //     de una vez todas las líneas vivas — contra el árbol histórico `a0552b5` este mismo
   //     código casaba 18 lecturas en MediaGallery (y 16 en la ya borrada ProductGallery) —,
   //     no solo las de la primera que cae.
-  const legadas = GALERIAS.flatMap((ruta) => lecturasLegadas(ruta)).join('\\n');
-  assert.equal(legadas, '', 'las galerías siguen leyendo campos de la forma histórica sobre un item');
+  const legadas = GALERIAS.flatMap((ruta) => lecturasLegadas(ruta)).join('\n');
+  assert.equal(legadas, '', 'las galerías siguen leyendo campos de la forma histórica sobre un item (una por línea):\n' + legadas);
 
   for (const ruta of GALERIAS) {
     // Todo lo que casa este test es código: los comentarios ya no son materia prima.

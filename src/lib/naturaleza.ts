@@ -337,49 +337,6 @@ export async function getExperiencias(filters: ExperienciaFilters = {}): Promise
   }
 }
 
-// ── Fallback data (Strapi unavailable) ─────────────────
-
-const FALLBACK_COMPLEMENTOS_EXP: Complemento[] = [
-  { id: 1, documentId: 'fb-c1', slug: 'cena-campesina-tolimense', nombre: 'Cena campesina tolimense', descripcion: 'Cena tradicional con ingredientes de la finca: tamal tolimense, chocolate de mesa y postre de brevas.', categoria: 'comida', precio: 45000, moneda: 'COP', precio_por: 'persona', icono: 'utensils-crossed', imagen_url: null },
-  { id: 2, documentId: 'fb-c2', slug: 'almuerzo-tipico-tolima', nombre: 'Almuerzo típico del Tolima', descripcion: 'Lechona tolimense con papa criolla, ají de maní y jugo natural.', categoria: 'comida', precio: 35000, moneda: 'COP', precio_por: 'persona', icono: 'cooking-pot', imagen_url: null },
-  { id: 3, documentId: 'fb-c3', slug: 'fogata-con-cuenteria', nombre: 'Fogata con cuentería', descripcion: 'Noche de fogata con historias del territorio y mitos del Tolima. Incluye chocolate caliente.', categoria: 'espectaculo', precio: 60000, moneda: 'COP', precio_por: 'grupo', icono: 'flame', imagen_url: null },
-  { id: 4, documentId: 'fb-c5', slug: 'cafe-origen-llevar', nombre: 'Café de origen para llevar', descripcion: 'Bolsa de 250g de café Ambalá, tostado medio.', categoria: 'compra_local', precio: 30000, moneda: 'COP', precio_por: 'unidad', icono: 'coffee', imagen_url: null },
-  { id: 5, documentId: 'fb-c6', slug: 'transporte-desde-ibague', nombre: 'Transporte desde Ibagué', descripcion: 'Recogida y traslado ida y vuelta en camioneta 4x4.', categoria: 'transporte', precio: 120000, moneda: 'COP', precio_por: 'grupo', icono: 'car', imagen_url: null },
-  { id: 6, documentId: 'fb-c8', slug: 'senderismo-guiado', nombre: 'Senderismo guiado extra', descripcion: 'Caminata adicional de 2 horas por sendero de cascadas ocultas.', categoria: 'actividad', precio: 40000, moneda: 'COP', precio_por: 'persona', icono: 'footprints', imagen_url: null },
-];
-
-const FALLBACK_EXPERIENCIAS: Experiencia[] = [
-  {
-    id: 1, documentId: 'fb-e1', slug: 'ruta-del-cafe-ambala', titulo: 'Ruta del Café Ambalá',
-    resumen: 'Recorrido sensorial por el cafetal de la familia Cardona: siembra, recolección, beneficio y catación de café de origen a 1,400 m.s.n.m.',
-    categoria: 'Gastronomia', ubicacion: 'Ambalá, Ibagué', ubicacion_latitud: 4.45, ubicacion_longitud: -75.25,
-    ciudad_referencia: 'Ibagué Centro', distancia_km: '18', tiempo_desde_ciudad: '35 min',
-    estado_via: 'pavimentada', ofrece_transporte: false, duracion: '4 - 5 Horas',
-    nivel_dificultad: 2, tipo_propiedad: 'local-partner', precio_desde: 85000,
-    cupo_maximo_desc: '8 personas', porcentaje_fondo_impacto: 2, descripcion_fondo_impacto: null,
-    es_destacado: true, publicado: true,
-    imagen_hero: null, imagen_hero_url: null, galeria: null, galeria_urls: null,
-    video_url: null, tour_360_url: null, link_drone: null, mapa_imagen_url: null,
-    highlights: ['Catación de café de especialidad', 'Recorrido por cafetal en producción', 'Almuerzo campesino incluido', 'Vista al valle del Magdalena'],
-    requirements: ['Ropa cómoda', 'Botas o tenis con agarre', 'Sombrero o gorra', 'Protector solar'],
-    includes: ['Guía local certificado', 'Almuerzo campesino', 'Catación de 3 cafés', 'Seguro de asistencia'],
-    excludes: ['Transporte desde Ibagué', 'Gastos personales'],
-    optional_addons: [{ nombre: 'Transporte desde Ibagué', precio: 120000 }],
-    complementos: FALLBACK_COMPLEMENTOS_EXP,
-    faqs: [{ pregunta: '¿Necesito experiencia previa?', respuesta: 'No, la ruta es apta para todos los niveles.' }],
-    safety_content: null, etiquetas_personalizadas: null,
-    itinerario_sensorial: [
-      { time: '8:00 AM', title: 'Bienvenida con café', sense: 'Gusto', desc: 'Taza de bienvenida en la casa de la familia Cardona.' },
-      { time: '9:00 AM', title: 'Recorrido por el cafetal', sense: 'Tacto', desc: 'Recolección manual de granos maduros.' },
-      { time: '11:00 AM', title: 'Beneficio y secado', sense: 'Olfato', desc: 'Proceso de fermentación y secado al sol.' },
-      { time: '12:30 PM', title: 'Catación y almuerzo', sense: 'Gusto', desc: 'Cata de 3 perfiles y almuerzo campesino.' },
-    ],
-    anfitriones_data: null, iniciativas_impacto: null, paquetes_upsell: null,
-    anfitriones: null, proveedores: null, propiedades: null, propiedades_gestion: null,
-    seo_titulo: null, seo_descripcion: null,
-  },
-];
-
 export async function getExperienciaBySlug(slug: string): Promise<Experiencia | null> {
   try {
     const res = await strapiFetch<Experiencia>('experiencias', {
@@ -391,8 +348,7 @@ export async function getExperienciaBySlug(slug: string): Promise<Experiencia | 
     });
     return res.data?.[0] || null;
   } catch {
-    // Fallback: return matching experience from local data
-    return FALLBACK_EXPERIENCIAS.find((e) => e.slug === slug) || null;
+    return null;
   }
 }
 
@@ -496,15 +452,16 @@ export async function getIniciativas(): Promise<Iniciativa[]> {
 
 // ── Helpers ────────────────────────────────────────────
 
-export function experienciaImagen(exp: Experiencia): string {
-  // Priority: imagen_hero_url (direct URL from sync) > imagen_hero (Strapi media) > galeria_urls > galeria > fallback
+/** `null` = la experiencia no tiene imagen propia. Quien la pinta debe caer al mosaico Icon. */
+export function experienciaImagen(exp: Experiencia): string | null {
+  // Priority: imagen_hero_url (direct URL from sync) > imagen_hero (Strapi media) > galeria_urls > galeria
   // mediaSrc resuelve las dos formas: la ruta cruda que dejó la sincronización y el objeto media de Strapi.
   return (
     mediaSrc(exp.imagen_hero_url)
     ?? mediaSrc(exp.imagen_hero)
     ?? mediaSrc(exp.galeria_urls?.[0])
     ?? mediaSrc(exp.galeria?.[0])
-    ?? 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=70'
+    ?? null
   );
 }
 
@@ -518,12 +475,9 @@ export function experienciaGaleria(exp: Experiencia): MediaItem[] {
   return toMediaList(crudo);
 }
 
-export function anfitrionFoto(host: Anfitrion): string {
-  return (
-    mediaSrc(host.foto_perfil_url)
-    ?? mediaSrc(host.foto_perfil)
-    ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=70'
-  );
+/** `null` = el anfitrión no tiene foto propia; la tarjeta cae al mosaico Icon. Sin stock de Unsplash. */
+export function anfitrionFoto(host: Anfitrion): string | null {
+  return mediaSrc(host.foto_perfil_url) ?? mediaSrc(host.foto_perfil) ?? null;
 }
 
 export function formatPrecioCOP(value: number | null | undefined): string {

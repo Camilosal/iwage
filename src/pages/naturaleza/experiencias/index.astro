@@ -123,10 +123,17 @@ function buildUrl(overrides: Record<string, string>) {
         <div id="exp-grid-view"><div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {experiencias.map((exp) => {
             const diff = dificultadInfo(exp.nivel_dificultad);
+            const foto = experienciaImagen(exp);
             return (
               <a href={`/naturaleza/experiencias/${exp.slug}`} class="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300">
                 <div class="relative h-48 overflow-hidden">
-                  <img src={experienciaImagen(exp)} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  {foto ? (
+                    <img src={foto} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  ) : (
+                    <div class="w-full h-full flex items-center justify-center bg-[#4a7c23]/10" role="img" aria-label={`Sin foto de ${exp.titulo}`}>
+                      <Icon name="leaf" class="w-12 h-12 text-[#4a7c23]/40" />
+                    </div>
+                  )}
                   <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#2d5016]/90 text-white text-[10px] font-bold uppercase tracking-wider">
                     {exp.categoria}
                   </div>

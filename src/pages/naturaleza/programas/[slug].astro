@@ -14,7 +14,8 @@ export async function getStaticPaths() {
 const { pkg } = Astro.props;
 if (!pkg) return Astro.redirect('/naturaleza/programas', 302);
 
-const heroUrl = pkg.imagen_hero?.url ? mediaSrc(pkg.imagen_hero.url) : 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&q=70';
+// null = el paquete no tiene imagen en Strapi; quien la pinta cae al mosaico Icon.
+const heroUrl = mediaSrc(pkg.imagen_hero?.url ?? null);
 const dificultad = pkg.dificultad ? DIFICULTAD_LABELS[pkg.dificultad] : null;
 const galleryUrls = (pkg.imagenes || []).map((img) => mediaSrc(img.url)).filter(Boolean);
 const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
@@ -24,7 +25,13 @@ const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 
   <!-- Hero -->
   <section class="relative min-h-[60vh] flex items-end overflow-hidden bg-[#0e1a08]">
-    <img src={heroUrl} alt={pkg.titulo} class="absolute inset-0 w-full h-full object-cover" />
+    {heroUrl ? (
+      <img src={heroUrl} alt={pkg.titulo} class="absolute inset-0 w-full h-full object-cover" />
+    ) : (
+      <div class="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+        <Icon name="compass" class="w-72 h-72 text-white/10" />
+      </div>
+    )}
     <div class="absolute inset-0 bg-gradient-to-t from-[#0e1a08] via-[#0e1a08]/40 to-transparent"></div>
     <div class="relative z-10 w-full max-w-6xl mx-auto px-6 pb-16 pt-32">
       <a href="/naturaleza/programas" class="text-white/60 hover:text-white text-sm mb-4 inline-block">← Todos los programas</a>

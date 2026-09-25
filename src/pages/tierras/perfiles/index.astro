@@ -15,17 +15,26 @@ function lucideSvg(name: string, className: string): string {
   const inner = node.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}" aria-hidden="true">${inner}</svg>`;
 }
-// SVG de respaldo para imagenes que no cargan (inyectado en onerror)
-const FALLBACK_IMG_SVG = lucideSvg('mountain', 'w-8 h-8 mb-2');
+// Mosaico Icon para los perfiles SIN foto propia. Un solo tile compartido por dos
+// caminos: el render de servidor cuando `imagen` viene vacía y el `onerror` del <img>
+// cuando una foto real deja de servir. Las cinco rutas que había aquí no existen en
+// public/ (404 en producción) y se tapaban con una etiqueta de «imagen de referencia»:
+// un roto no se vuelve honesto por etiquetado.
+const SIN_IMAGEN_TILE = (
+  '<div class="w-full h-full flex flex-col items-center justify-center'
+  + ' bg-gradient-to-br from-[#1B4332] to-[#52B788]">'
+  + lucideSvg('mountain', 'w-8 h-8')
+  + '</div>'
+);
 
 // Extended profile data with detailed descriptions and image references
 const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
-  const extended: Record<string, { descripcion: string; idealPara: string; incluye: string[]; imagen: string; imagenAlt: string; color: string }> = {
+  const extended: Record<string, { descripcion: string; idealPara: string; incluye: string[]; imagen: string | null; imagenAlt: string; color: string }> = {
     productivo: {
       descripcion: 'Fincas con vocación agropecuaria verificada por el PBOT municipal. Cada predio incluye análisis de suelos, concesión de agua vigente ante Cortolima, y acceso vial confirmado para maquinaria agrícola. Sabrás exactamente qué puedes producir, cuánta agua tienes disponible y cómo sacar tu cosecha al mercado.',
       idealPara: 'Agricultores, ganaderos, inversionistas agropecuarios y familias que quieren producir su propio alimento en tierra fértil del Tolima.',
       incluye: ['Análisis de vocación productiva del suelo', 'Concesión de agua con caudal verificado (L/s)', 'Topografía certificada con % de terreno plano', 'Registro fotográfico aéreo con drone', 'Historial productivo del predio (últimos 5 años)', 'Acceso vial confirmado para camiones'],
-      imagen: '/images/perfiles/productivo.jpg',
+      imagen: null, // sin foto: la tarjeta cae al mosaico Icon
       imagenAlt: 'Finca productiva con cultivos y sistema de riego en el Tolima',
       color: '#2D6A4F',
     },
@@ -33,7 +42,7 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
       descripcion: 'Casas y lotes en condominios campestres o parcelaciones con vigilancia, vías pavimentadas y todos los servicios. A máximo 30 minutos de Ibagué, con la tranquilidad del campo y la conectividad de la ciudad. Cada propiedad incluye distancia real medida en minutos, no estimaciones optimistas.',
       idealPara: 'Familias que buscan calidad de vida, retirados activos, profesionales que trabajan híbrido y cualquiera que quiera despertar con montañas en la ventana.',
       incluye: ['Distancia real en minutos desde Ibagué (GPS)', 'Verificación de servicios: acueducto, energía, gas', 'Estado del condominio: vigilancia, zonas comunes', 'Fotografía aérea con drone incluida', 'Entorno y vecindario documentado', 'Potencial de ampliación o remodelación'],
-      imagen: '/images/perfiles/campestre.jpg',
+      imagen: null, // sin foto: la tarjeta cae al mosaico Icon
       imagenAlt: 'Casa campestre moderna con vista a montañas del Tolima',
       color: '#40916C',
     },
@@ -41,7 +50,7 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
       descripcion: 'Propiedades con internet real verificado en sitio. No promesas de cobertura: medimos la velocidad en el predio y solo listamos las que superan 200 Mbps. Espacios adaptables para home office, cielo despejado confirmado para antenas satelitales, y gestión 100% remota con recorridos virtuales 360°.',
       idealPara: 'Nómadas digitales, freelancers internacionales, creadores de contenido y emprendedores remotos que ganan en USD y quieren vivir en el campo colombiano.',
       incluye: ['Sello Internet Verificado (medición en sitio)', 'Velocidad mínima garantizada: 200 Mbps', 'Cielo despejado confirmado para Starlink/antenas', 'Espacios home office identificados en plano', 'Recorrido virtual 360° disponible', 'Documentos digitales para cierre remoto'],
-      imagen: '/images/perfiles/nomada.jpg',
+      imagen: null, // sin foto: la tarjeta cae al mosaico Icon
       imagenAlt: 'Espacio de trabajo con laptop y vista al campo verde',
       color: '#52B788',
     },
@@ -49,7 +58,7 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
       descripcion: 'Lotes y fincas con pre-viabilidad turística analizada: miradores naturales, fuentes hídricas, vocación de suelo compatible y acceso para visitantes. Incluimos estimación de ROI basada en proyectos comparables de glamping y ecoturismo en la región. Si compras, te administramos el proyecto.',
       idealPara: 'Inversionistas de hospitality, operadores de glamping, emprendedores de ecoturismo y familias que quieren un negocio de experiencias en su tierra.',
       incluye: ['Pre-viabilidad turística del predio', 'Análisis de atractivos: miradores, ríos, cascadas', 'Estimación de ROI anual (18–35% típico)', 'Internet verificado (indispensable para huéspedes)', 'Normativa de uso turístico confirmada', 'Opción de Property Management Iwagé'],
-      imagen: '/images/perfiles/turistico.jpg',
+      imagen: null, // sin foto: la tarjeta cae al mosaico Icon
       imagenAlt: 'Glamping con domo geodésico y vista panorámica al valle',
       color: '#74C69D',
     },
@@ -57,7 +66,7 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
       descripcion: 'Tierra rural como vehículo de inversión y protección patrimonial. Estudio de títulos completo con cadena de tradición, avalúo certificado por profesionales RNA, y análisis de valorización por corredor geográfico. La tierra del Tolima ha valorizado +12% anual sostenido. Sin volatilidad de bolsa, sin riesgo de hackeo.',
       idealPara: 'Inversionistas conservadores, familias que construyen patrimonio generacional, empresarios que diversifican fuera del sistema financiero tradicional.',
       incluye: ['Estudio de títulos con cadena de tradición', 'Avalúo certificado por profesional RNA', 'Análisis de valorización por corredor (5 años)', 'Calculadora de gastos notariales y registro', 'Sello VAP Oro o Plata (máxima seguridad jurídica)', 'Acompañamiento legal hasta escrituración'],
-      imagen: '/images/perfiles/patrimonial.jpg',
+      imagen: null, // sin foto: la tarjeta cae al mosaico Icon
       imagenAlt: 'Vista aérea de terreno rural con linderos definidos y escritura',
       color: '#1B4332',
     },
@@ -142,16 +151,19 @@ const PERFILES_EXTENDED = PERFILES_COMPRADOR.map((p) => {
 
               <!-- Right: Image + checks + CTA -->
               <div class="space-y-5">
-                <!-- Reference image -->
-                <div class="rounded-xl overflow-hidden border border-gray-100 h-48 lg:h-56 relative">
-                  <img
-                    src={perfil.ext.imagen}
-                    alt={perfil.ext.imagenAlt}
-                    class="w-full h-full object-cover"
-                    loading="lazy"
-                    onerror={`this.parentElement.innerHTML='<div class=\'w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#1B4332] to-[#52B788]\'>${FALLBACK_IMG_SVG}<span class=\'text-white/60 text-xs\'>Imagen de referencia</span></div>'`}
-                  />
-                  <div class="absolute bottom-2 right-2 bg-black/50 text-white/80 text-[9px] px-2 py-1 rounded-full">Imagen de referencia</div>
+                <!-- Foto del perfil, o el mosaico Icon cuando el perfil no tiene foto -->
+                <div class="rounded-xl overflow-hidden border border-gray-100 h-48 lg:h-56">
+                  {perfil.ext.imagen ? (
+                    <img
+                      src={perfil.ext.imagen}
+                      alt={perfil.ext.imagenAlt}
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                      onerror={`this.parentElement.innerHTML='${SIN_IMAGEN_TILE}'`}
+                    />
+                  ) : (
+                    <div class="w-full h-full" set:html={SIN_IMAGEN_TILE} />
+                  )}
                 </div>
 
                 <!-- Verification checks -->

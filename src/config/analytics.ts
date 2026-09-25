@@ -1,7 +1,7 @@
 /**
  * Analytics & Verification Configuration
  * ─────────────────────────────────────────────────────────────────────
- * Migrado desde WordPress (tienda.iwage.co) — Jul 2026
+ * Migrado desde el WordPress de la tienda anterior — Jul 2026
  * Fuente: plugins Google Site Kit, Google Listings & Ads,
  *         Facebook for WooCommerce, Rank Math SEO
  * ─────────────────────────────────────────────────────────────────────
