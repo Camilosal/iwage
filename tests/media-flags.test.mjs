@@ -394,3 +394,80 @@ test('un enlace de varios archivos se escribe COMPLETO, en orden y en un solo PU
     await new Promise((resolve) => servidor.close(() => resolve()));
   }
 });
+
+// --- el envase del alias, del lado del CLI ------------------------------------
+//
+// `strapi/scripts/lib/media-manifest.mjs` valida FILAS; el ENVASE lo valida el
+// script, en `leerAlias()`. La distinción dejó de ser teórica el 2026-09-25: el
+// artefacto de alias propuesto (`media-alias-propuesto.json`) se escribió como un
+// mapa directo ruta→{endpoint, slug} y las 27 filas pasaban `manifesto()` verdes —
+// el CLI las habría rechazado antes de leer la primera. Un teste sobre la forma
+// interna no puede ver eso; este, sí.
+
+const RAIZ_REPO = dirname(dirname(dirname(SCRIPT)));
+const RECHAZO_ENVASE = /no trae un objeto en la clave "alias"/;
+
+test('el CLI rechaza un envase de alias mal formado antes de hablar con la red, y acepta el de la propuesta', async (t) => {
+  const peticiones = [];
+  const servidor = createServer((req, res) => {
+    peticiones.push(`${req.method} ${req.url}`);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    // Las siete lecturas del importador, resueltas y vacías: ninguna fila de alias
+    // puede firmar acá, pero eso es el paso siguiente al que se mira en este teste.
+    res.end(req.url.startsWith('/api/upload/files') ? '[]' : '{"data":[]}');
+  });
+  const escuchando = await new Promise((resolve) => {
+    const fallo = (e) => resolve({ ok: false, codigo: e.code ?? e.message });
+    servidor.once('error', fallo);
+    servidor.listen(0, '127.0.0.1', () => {
+      servidor.removeListener('error', fallo);
+      resolve({ ok: true });
+    });
+  });
+  if (!escuchando.ok) {
+    t.skip(`no se pudo abrir un socket propio en 127.0.0.1 (${escuchando.codigo})`);
+    return;
+  }
+  const env = {
+    ...process.env,
+    STRAPI_URL: `http://127.0.0.1:${servidor.address().port}`,
+    STRAPI_TOKEN: 'falso-para-stub-127',
+  };
+  const raiz = arbolDePrueba();
+  const cli = join(raiz, 'strapi', 'scripts', 'media-import.mjs');
+  try {
+    // 1) El mapa pelado — la forma que TENÍA la propuesta — no pasa.
+    writeFileSync(join(raiz, 'pelado.json'), JSON.stringify({
+      'public/images/bitacora/bitacora-la-miel.webp': { endpoint: 'bitacoras', slug: 'la-miel' },
+    }));
+    peticiones.length = 0;
+    const pelado = await correr(cli, ['--alias=pelado.json'], env);
+    assert.equal(pelado.status, 1, 'un envase mal formado no puede terminar en corrida');
+    assert.match(pelado.stderr, RECHAZO_ENVASE);
+    assert.deepEqual(peticiones, [], 'y se aborta antes de la primera petición: no gasta credencial ni red');
+
+    // 2) Las otras dos formas de "no es el envase": ruta que no existe y JSON roto.
+    peticiones.length = 0;
+    const ausente = await correr(cli, ['--alias=no-existe.json'], env);
+    assert.match(ausente.stderr, /el archivo de --alias no existe/);
+    writeFileSync(join(raiz, 'roto.json'), '{ alias: ');
+    const roto = await correr(cli, ['--alias=roto.json'], env);
+    assert.match(roto.stderr, /no es JSON válido/);
+    assert.deepEqual(peticiones, [], 'ninguna de las dos llegó a pedir nada');
+
+    // 3) El artefacto real pasa el mismo lector: se llega a la red y no hay rechazo
+    //    de envase. (Que las 27 filas FIRMAN se prueba en isolation en
+    //    tests/media-alias-propuesto.test.mjs, sin servidor en el medio.)
+    copyFileSync(join(RAIZ_REPO, 'strapi', 'scripts', 'media-alias-propuesto.json'), join(raiz, 'propuesta.json'));
+    peticiones.length = 0;
+    const buena = await correr(cli, ['--alias=propuesta.json'], env);
+    assert.doesNotMatch(buena.stderr + buena.stdout, RECHAZO_ENVASE, 'la propuesta quedó en una forma que el CLI no lee');
+    assert.equal(buena.status, 0, buena.stderr);
+    assert.ok(peticiones.some((p) => p.startsWith('GET ')), 'y sí pasó del envase a la lectura');
+    assert.deepEqual(peticiones.filter((p) => !p.startsWith('GET ')), [], 'con --alias en seco: ni un POST, ni un PUT');
+  } finally {
+    rmSync(raiz, { recursive: true, force: true });
+    servidor.closeAllConnections?.();
+    await new Promise((resolve) => servidor.close(() => resolve()));
+  }
+});

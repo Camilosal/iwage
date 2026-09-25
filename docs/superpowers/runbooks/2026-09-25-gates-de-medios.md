@@ -115,13 +115,29 @@ Qué mirar en el reporte: los baldes `alias` / `slug exacto` / `nombre normaliza
 que el último **no se enlaza ni con `--apply`**. Los conteos de referencia están en
 `docs/superpowers/metrics/2026-09-24-antes.md` (fila 6).
 
-**Decisión pendiente dentro de esta puerta:** `strapi/scripts/media-alias.json` está **vacío (0
-filas)**. La evidencia real es `alias-firmes.json` (directorio SDD): 27 pares sin conflicto, 1
-conflicto —`bitacora-miel-chef.webp` vs `bitacora-miel-cocina.webp`, dos tapas para la misma
-bitácora— y 7 tapas sin par. El alias es una decisión de nombre, no un paso mecánico: sin ese
-archivo, esas tapas quedan en `pendientes`.
+**La parte mecánica ya está hecha, y en el envase correcto.** `strapi/scripts/media-alias-propuesto.json`
+trae **27 pares** archivo→bitácora dentro de `{"aviso": …, "alias": {…}}` — la forma que exige
+`leerAlias()`; un mapa directo sin la clave `alias` se aborta antes de la primera petición. Está
+generado por script desde `alias-firmes.json` (directorio SDD), no transcrito, y
+`tests/media-alias-propuesto.test.mjs` le verifica que las 27 rutas existen, que ningún slug se
+repite y que `manifesto()` las firma a todas sin mandar una a `motivosAlias`.
+
+**Lo que sigue siendo decisión del dueño** — las 9 tapas que la propuesta no toca:
+
+- `bitacora-miel-chef.webp` y `bitacora-miel-cocina.webp` se disputan la misma publicación: hay que
+  decidir cuál (o escribirlas a registros distintos).
+- 7 sin par: `calendario-manejo`, `conservacion-cosecha`, `cosecha-miel`, `modulo6-division`,
+  `modulo9-cosecha`, `red-meliponicultores`, `territorio-pijao`.
+
+Sin fila de alias, esas 9 quedan en `pendientes` y no se escriben. Por eso hace falta el alias a
+pesar de las reglas: medido en disco, **0 de 36** tapas enlazan por nombre (el archivo trae el slug
+recortado y la publicación uno más largo).
 
 ```bash
+# 1) en seco con la propuesta: hay que leer el reporte antes de escribir
+STRAPI_URL=http://127.0.0.1:1338 STRAPI_TOKEN=<token> \
+  node strapi/scripts/media-import.mjs --dry-run --alias=strapi/scripts/media-alias-propuesto.json
+# 2) solo después de la revisión: copiar las filas aceptadas a media-alias.json (hoy vacío) y aplicar
 STRAPI_URL=http://127.0.0.1:1338 STRAPI_TOKEN=<token> \
   node strapi/scripts/media-import.mjs --apply --alias=strapi/scripts/media-alias.json
 ```
