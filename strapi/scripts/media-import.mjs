@@ -119,16 +119,20 @@ const extensionDe = (archivo) => nombreDe(archivo).split('.').pop().toLowerCase(
 /**
  * Valor que se le manda al campo. La forma la pregunta `formaDeCampo(endpoint,
  * campo)` —portada y galería pueden ser de tipo distinto en el mismo
- * content-type— y los tres casos existen hoy (medido en los schema.json y
- * repetido en ENDPOINTS_CON_MEDIO):
- *   · `string`  → ruta relativa de sitio. Nunca el host interno de Strapi:
- *                 ese fue justo el bug que cerró F0 con `mediaSrc`.
- *   · `json`    → el tipo ACTUAL de la galería repetible: una lista de esas
- *                 mismas rutas relativas, así que cada elemento se arma igual.
- *   · `media`   → id numérico del archivo. `connect` NO está soportado para
- *                 atributos media según la doc de REST de Strapi, y el doc de
- *                 la brief lo dejaba como variante a comprobar: hay que
- *                 validar el formato con UN registro antes de lanzar el lote.
+ * content-type— y la tabla está candada contra el esquema por
+ * `tests/media-manifest.test.mjs`, así que acá no se decide nada: se obedece.
+ *   · `media`   → id numérico del archivo. Es la forma de los seis endpoints de
+ *                 la tabla HOY: desde `fa240b2` portada y galería son `media` en
+ *                 el esquema (`galería`, `media` multiple), así que este es el
+ *                 caso que corre en producción. `connect` NO está soportado para
+ *                 atributos media según la doc de REST de Strapi, y el doc de la
+ *                 brief lo dejaba como variante a comprobar: hay que validar el
+ *                 formato con UN registro antes de lanzar el lote.
+ *   · `string`  → ruta relativa de sitio. Nunca el host interno de Strapi: ese
+ *                 fue justo el bug que cerró F0 con `mediaSrc`. Queda para un
+ *                 campo que el esquema todavía no convirtió.
+ *   · `json`    → lista de esas mismas rutas relativas; cada elemento se arma
+ *                 igual que en `string`. Idem: ninguna fila de la tabla lo usa ya.
  * `null` = no hay forma utilizable, y el enlace no se escribe.
  */
 function valorDeEnlace(file, forma) {

@@ -31,7 +31,16 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { manifesto, archivosDelEnlace, esCampoMultiple, formaDeCampo } from '../strapi/scripts/lib/media-manifest.mjs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  ENDPOINTS_CON_MEDIO,
+  archivosDelEnlace,
+  esCampoMultiple,
+  formaDeCampo,
+  manifesto,
+} from '../strapi/scripts/lib/media-manifest.mjs';
 
 const tapas = [
   'public/images/bitacora/meliponas-la-caja-de-angelita.webp',
@@ -78,7 +87,7 @@ test('dos registros que reclaman la misma tapa: gana el slug más largo y el otr
 
 // --- resolución 1: de dónde sale `campo` -----------------------------------
 
-test('campo: lo deriva la tabla por endpoint si el registro no lo trae; uno explícito manda', () => {
+test('campo: lo deriva la tabla por endpoint si el registro no lo trae; uno explícito VÁLIDO manda', () => {
   const m = manifesto({
     archivos: [
       'public/images/cafe-menu/proveedor-cacao-espinal.webp',
@@ -86,13 +95,80 @@ test('campo: lo deriva la tabla por endpoint si el registro no lo trae; uno expl
     ],
     registros: [
       { endpoint: 'proveedors', documentId: 'p1', slug: 'cacao-espinal' },
-      { endpoint: 'bitacoras', documentId: 'd1', slug: 'la-caja-de-angelita', campo: 'portada' },
+      { endpoint: 'bitacoras', documentId: 'd1', slug: 'la-caja-de-angelita', campo: 'imagen' },
     ],
   });
   // 'foto' es el campo real de proveedor (strapi/src/api/proveedor/.../schema.json),
-  // y el orden de salida es el de los registros de entrada, no el de reclamo.
-  assert.deepEqual(m.enlazar.map((e) => `${e.documentId}:${e.campo}`), ['p1:foto', 'd1:portada']);
+  // y el orden de salida es el de los registros de entrada, no el de reclamo. El
+  // override de bitácoras manda a `imagen`, que es lo que el content-type declara
+  // (antes este teste asertaba `'d1:portada'` — y `portada` NO existe en
+  // strapi/src/api/bitacora/content-types/bitacora/schema.json: el teste fijaba el
+  // bug, no la resolución).
+  assert.deepEqual(m.enlazar.map((e) => `${e.documentId}:${e.campo}`), ['p1:foto', 'd1:imagen']);
   assert.deepEqual(m.ambiguos, []);
+  // Y un override explícito a otro campo de medio de la MISMA tabla también manda,
+  // que es el caso para el que el contrato existe.
+  const aLaGaleria = manifesto({
+    archivos: ['public/images/galeria/producto-miel-angelita.webp'],
+    registros: [{ endpoint: 'productos', documentId: 'prd1', slug: 'miel-angelita', campo: 'galeria' }],
+  });
+  assert.deepEqual(aLaGaleria.enlazar, [{
+    endpoint: 'productos', documentId: 'prd1', campo: 'galeria',
+    archivo: 'public/images/galeria/producto-miel-angelita.webp',
+  }]);
+  assert.equal(formaDeCampo('productos', aLaGaleria.enlazar[0].campo) === null, false, 'todo lo que sale en `enlazar` tiene forma en la tabla');
+});
+
+test('I5 un `campo` que la tabla no conoce no produce enlace: se reporta y no se escribe', () => {
+  // El contrato 1 dice que un override del llamador manda. Sin validación, un
+  // `portada` inventado salía en `enlazar` igual: en `--dry-run` se imprimía como
+  // enlace prometido y solo en `--apply` reventaba por enlace (exit 1), con el
+  // manifiesto — que las Tareas 11 y 14 leen como inventario — mintiendo.
+  const archivo = 'public/images/bitacora/bitacora-la-caja-de-angelita.webp';
+  const m = manifesto({
+    archivos: [archivo],
+    registros: [{ endpoint: 'bitacoras', documentId: 'd1', slug: 'la-caja-de-angelita', campo: 'portada' }],
+  });
+  assert.deepEqual(m.enlazar, [], 'nada se enlaza a un campo que el content-type no declara');
+  assert.deepEqual(m.ambiguos, [{
+    slug: 'la-caja-de-angelita',
+    documentId: 'd1',
+    motivo: 'el registro trae un campo que la tabla no conoce para bitacoras: portada',
+  }]);
+  // El archivo no desaparece: `ambiguos` es una lista de razones, el balde es
+  // `pendientes`, así que la PARTICIÓN sigue cerrando.
+  assert.deepEqual(m.pendientes, [archivo]);
+  assert.deepEqual(m.revisar, []);
+
+  // Sobre un endpoint con campo repetible: `galeria` sí es válido y `cover` no.
+  // El `slug` es la RAÍZ de la serie (`ambala`), no `ambala-1`: contrato 3, el
+  // índice nunca es identidad.
+  const si = manifesto({
+    archivos: ['public/images/galeria/proyecto-ambala-1.webp'],
+    registros: [{ endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: 'ambala', campo: 'galeria' }],
+  });
+  assert.equal(si.enlazar.length, 1, 'el campo multiple de la tabla es un destino legítimo');
+  const no = manifesto({
+    archivos: ['public/images/galeria/proyecto-ambala-1.webp'],
+    registros: [{ endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: 'ambala', campo: 'cover' }],
+  });
+  assert.deepEqual(no.enlazar, []);
+  assert.equal(no.ambiguos.length, 1);
+  assert.match(no.ambiguos[0].motivo, /la tabla no conoce para proyecto-meliponarios: cover$/);
+
+  // Y por la vía del alias por ruta la respuesta es el otro balde de razones:
+  // `motivosAlias`, no `ambiguos`, porque lo que no se pudo firmar es la fila.
+  const porAlias = manifesto({
+    archivos: [archivo],
+    registros: [{ endpoint: 'bitacoras', documentId: 'd1', slug: 'la-caja-de-angelita', campo: 'portada' }],
+    alias: { [archivo]: { endpoint: 'bitacoras', slug: 'la-caja-de-angelita' } },
+  });
+  assert.deepEqual(porAlias.enlazar, []);
+  assert.deepEqual(porAlias.motivosAlias, [{
+    archivo,
+    motivo: 'el registro trae un campo que la tabla no conoce para bitacoras: portada',
+  }]);
+  assert.equal(formaDeCampo('bitacoras', 'portada'), null, 'la tabla no conoce `portada`: es exactamente lo que había que rechazar');
 });
 
 // --- resolución 2: emparejar y reclamar son pasos separados -----------------
@@ -626,10 +702,11 @@ test('F2-a frontera letra/dígito: `modulo1` ≡ `modulo-1` y `120ml` ≡ `120 m
     assert.deepEqual(m.revisar, [], etiqueta);
   }
   // Y la tabla es la que dice qué campo es repetible y de qué forma es cada valor.
+  // `media` en las dos columnas desde `fa240b2`: el esquema ya no guarda rutas.
   assert.equal(esCampoMultiple('productos', 'galeria'), true);
   assert.equal(esCampoMultiple('productos', 'imagen'), false);
-  assert.equal(formaDeCampo('productos', 'galeria'), 'json');
-  assert.equal(formaDeCampo('productos', 'imagen'), 'string');
+  assert.equal(formaDeCampo('productos', 'galeria'), 'media');
+  assert.equal(formaDeCampo('productos', 'imagen'), 'media');
 });
 
 test('F2-a la salida no depende del orden de entrada: mismos baldes con el inventario barajado', () => {
@@ -877,4 +954,250 @@ test('I2 `DIRS_CON_SERIE` es la regla: un `-N` fuera de `galeria` no desaparece,
   });
   assert.deepEqual(huerfano.enlazar, []);
   assert.deepEqual(huerfano.pendientes, ['public/images/cafe-menu/cafeterias-1.webp']);
+});
+
+// ===========================================================================
+// I4 — `ENDPOINTS_CON_MEDIO` contra el ESQUEMA REAL.
+//
+// Por qué un teste y no una revisión: en este repo no hay `tsc` ni `astro check`
+// (`astro build` solo borra tipos), así que un `'string'` que debía ser `'media'`
+// en esas columnas no rompe nada en el build. Rompe en producción, en el primer
+// `--apply`: `valorDeEnlace()` manda una ruta relativa a un campo que pide `id`, o
+// un escalar donde va lista. La tabla se desincronizó exactamente así entre
+// `643996d` y `fa240b2` (ese commit convirtió portadas y galerías a `media` y la
+// tabla no se enteró). Este teste es el candado: cruzar la tabla con los
+// `schema.json` es lo único que convierte esa deriva en un `npm test` rojo.
+//
+// Lee los 22 `strapi/src/api/<ct>/content-types/<ct>/schema.json` desde disco. No
+// escribe ni un esquema: el dueño de esa fuente de verdad es el tren de Task 11.
+// ===========================================================================
+
+/** Todos los content-types de `src/api`, indexados por su `info.pluralName`. */
+function esquemasLeidos() {
+  const api = join(dirname(fileURLToPath(import.meta.url)), '..', 'strapi', 'src', 'api');
+  const porPlural = new Map();
+  const hojas = [];
+  for (const modulo of readdirSync(api, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name)) {
+    const hoja = join(api, modulo, 'content-types', modulo, 'schema.json');
+    if (!existsSync(hoja)) continue;
+    const esquema = JSON.parse(readFileSync(hoja, 'utf8'));
+    const plural = esquema?.info?.pluralName;
+    hojas.push(`${modulo}/${plural ?? '(sin pluralName)'}`);
+    if (!plural) continue;
+    assert.equal(
+      porPlural.has(plural),
+      false,
+      `dos content-types comparten info.pluralName "${plural}": la tabla nombra endpoints por ese valor y ya no sería unívoco`,
+    );
+    porPlural.set(plural, { modulo, attrs: esquema.attributes || {} });
+  }
+  return { porPlural, hojas };
+}
+
+const ESQUEMAS = esquemasLeidos();
+
+test('I4 el barrido del esquema no está vacío ni apunta al lado equivocado', () => {
+  // Sin esta, un `join` roto daría un barrido de cero archivos y los testes de
+  // abajo pasarían por vacíos: el candado se quedaría mirando a otro lado.
+  assert.ok(ESQUEMAS.hojas.length >= 20, `se esperaban los 22 content-types de src/api y el barrido trajo ${ESQUEMAS.hojas.length}`);
+  assert.equal(ESQUEMAS.hojas.length, 22, 'medido sobre `26393d2`: 22 esquemas en strapi/src/api');
+  const faltantes = Object.keys(ENDPOINTS_CON_MEDIO).filter((e) => !ESQUEMAS.porPlural.has(e));
+  assert.deepEqual(faltantes, [], `endpoints de la tabla que ningún content-type declara como pluralName: ${faltantes.join(', ')}`);
+});
+
+test('I4 ENDPOINTS_CON_MEDIO coincide con el esquema, campo por campo y forma por forma', () => {
+  for (const [endpoint, cfg] of Object.entries(ENDPOINTS_CON_MEDIO)) {
+    const { modulo, attrs } = ESQUEMAS.porPlural.get(endpoint);
+    const donde = `${endpoint} (${modulo}/content-types/${modulo}/schema.json)`;
+
+    // portada: tiene que existir, ser del tipo que la tabla declara, y NO repetible
+    const portada = attrs[cfg.campo];
+    assert.ok(portada, `${donde}: el atributo ${cfg.campo} desapareció del esquema`);
+    assert.equal(portada.type, cfg.campoForma, `${donde}: ${cfg.campo} es "${portada.type}" en el esquema y la tabla dice "${cfg.campoForma}"`);
+    assert.equal(!!portada.multiple, false, `${donde}: ${cfg.campo} es multiple en el esquema; la tabla lo usa como portada de una pieza`);
+
+    // campo repetible: existe, es del tipo declarado y SÍ es multiple
+    if (cfg.campoMultiple) {
+      const rep = attrs[cfg.campoMultiple];
+      assert.ok(rep, `${donde}: el atributo ${cfg.campoMultiple} desapareció del esquema`);
+      assert.equal(rep.type, cfg.multipleForma, `${donde}: ${cfg.campoMultiple} es "${rep.type}" en el esquema y la tabla dice "${cfg.multipleForma}"`);
+      assert.equal(!!rep.multiple, true, `${donde}: ${cfg.campoMultiple} NO es multiple; la tabla escribe listas ahí`);
+    } else {
+      assert.equal(formaDeCampo(endpoint, cfg.campo), cfg.campoForma, `${donde}: formaDeCampo no responde por la portada`);
+    }
+
+    // las dos banderas de lectura tienen que estar respaldadas por un atributo real
+    if (cfg.identidadNombre) {
+      assert.equal(attrs.nombre?.type, 'string', `${donde}: identidadNombre:true pero no hay atributo \`nombre\` de texto`);
+    }
+    assert.equal(!!cfg.tieneMarca, !!attrs.marca, `${donde}: tieneMarca="${cfg.tieneMarca}" pero \`marca\` en el esquema es "${attrs.marca ? attrs.marca.type : 'no existe'}"`);
+
+    // al revés: la tabla no puede dejar un campo de medio sin nombrar
+    const huespedes = Object.entries(attrs).filter(([, v]) => v?.type === 'media')
+      .filter(([k]) => k !== cfg.campo && k !== cfg.campoMultiple)
+      .map(([k, v]) => `${k}${v.multiple ? '[]' : ''}`);
+    assert.deepEqual(huespedes, [], `${donde}: el esquema declara campos media que la tabla no nombra (${huespedes.join(', ')}); formaDeCampo diría null y el enlace se descarta en silencio`);
+  }
+});
+
+test('I4 identidadNombre solo donde hay arte producido: el conjunto es {galeria}', () => {
+  // Mi2: la justificación vieja ("lo declaran únicamente los content-type que
+  // TIENEN un atributo \`nombre\`") era falsa de punto en blanco — medido en los
+  // 22 esquemas, \`nombre\` lo tienen además proveedor, item-menu, complemento,
+  // anfitrion, cultivo-polinizacion, configuracion-sitio y testimonio: 4 de los 6
+  // endpoints de la tabla tienen \`nombre\` y solo 2 lo declaran identidad. El
+  // criterio real es el DIRECTORIO con arte producido, y se fija acá.
+  const conNombre = [...ESQUEMAS.porPlural.entries()]
+    .filter(([, { attrs }]) => attrs.nombre?.type === 'string')
+    .map(([plural]) => plural);
+  assert.ok(conNombre.length > 4, `la premisa del teste se cayó: ${conNombre.length} endpoints con \`nombre\` (se esperaban más de 4)`);
+  assert.deepEqual(
+    Object.entries(ENDPOINTS_CON_MEDIO).filter(([, c]) => c.identidadNombre).map(([e, c]) => `${e}:${c.dir}`).sort(),
+    ['productos:galeria', 'proyecto-meliponarios:galeria'],
+    '`identidadNombre` prende solo en los directorios con arte producido',
+  );
+  assert.deepEqual(
+    [...new Set(Object.values(ENDPOINTS_CON_MEDIO).filter((c) => c.campoMultiple).map((c) => c.dir))].sort(),
+    ['galeria'],
+    'DIRS_CON_SERIE (la derivación de la tabla) es exactamente {galeria}',
+  );
+});
+
+// ===========================================================================
+// I6 — los mutantes que sobrevivieron a la ronda de revisión.
+//
+// El reporte (`review-1eed876-643996d-report.md:94-103`) corrió veinte mutantes y
+// ocho vivieron al 26/26. Cinco de ellos no necesitan infraestructura nueva: son
+// una línea de `normalizar` y tres guardas del bloque de alias. Se fixturean acá,
+// uno por mutante, con la línea que hay que romper escrita arriba de cada teste.
+// ===========================================================================
+
+const BITACORA_LA_CAJA = 'public/images/bitacora/bitacora-la-caja-de-angelita.webp';
+
+test('I6/M5 los tokens de parada se botan de la identidad: `producto-de-angelita` es Angelita', () => {
+  // Mutante: `media-manifest.mjs:320` — fuera `&& !STOP_TOKENS.has(t)` del último
+  // `.filter` de `normalizar`. Sin ese filtro la raíz aporta `de` al residuo, y
+  // `de` no está en ningún nombre: el nivel `NOMBRE` deja de emparejar y la tapa
+  // cae a `pendientes` en silencio. Es el filtro que hace que `de`, `la`, `y` no
+  // pesen en una identidad, y hasta ahora ningún fixture lo tocaba.
+  const m = manifesto({
+    archivos: ['public/images/galeria/producto-de-angelita.webp'],
+    registros: [{ endpoint: 'productos', documentId: 'prd5', slug: null, nombre: 'Miel Angelita 120ml' }],
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'productos',
+    documentId: 'prd5',
+    campo: 'imagen',
+    archivo: 'public/images/galeria/producto-de-angelita.webp',
+    origen: 'nombre',
+  }]);
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.revisar, []);
+});
+
+test('I6/M6 las iniciales sueltas se botan: `proyecto-i-ambala` es el meliponario I.E. Ambalá', () => {
+  // Mutante: `media-manifest.mjs:320` — fuera `!RE_INICIAL_SUELTA.test(t) &&`.
+  // El fixture está medido para que SOLO muera ese filtro: la inicial suelta la
+  // aporta el NOMBRE DEL ARCHIVO (`proyecto-i-ambala`), y `i` no está en
+  // STOP_TOKENS, así que el otro filtro no la cubre. En el nombre de la BD la
+  // abreviatura sí llega plegada (`I.E.` → `ie`, testeado arriba) y `ie` es token
+  // de parada, o sea `i` no tiene manera de aparecer en el conjunto de identidad.
+  const m = manifesto({
+    archivos: ['public/images/galeria/proyecto-i-ambala-1.webp'],
+    registros: [{ endpoint: 'proyecto-meliponarios', documentId: 'p6', slug: null, nombre: 'Meliponario I.E. Ambalá' }],
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'proyecto-meliponarios',
+    documentId: 'p6',
+    campo: 'galeria',
+    archivo: 'public/images/galeria/proyecto-i-ambala-1.webp',
+    origen: 'nombre',
+  }]);
+  assert.deepEqual(m.pendientes, []);
+});
+
+test('I6/M13 dos filas de alias sobre la misma tapa, en el orden de claves que sean, dan la MISMA salida', () => {
+  // Mutante: `media-manifest.mjs:520` — fuera el `.sort()` de
+  // `Object.keys(alias).sort()`. El comentario de la llave dice "orden de clave,
+  // no de autoría"; sin el sort, quién gana depende del orden en que alguien
+  // escribió el JSON de alias, y el manifiesto deja de ser función del insumo.
+  // Las dos filas apuntan al MISMO registro (`d2`) y al MISMO campo, así que una
+  // tiene que perder, y se nota cuál: gana la clave menor (`d2` < `public/…`).
+  const porRutaPrimero = {
+    [BITACORA_LA_CAJA]: { endpoint: 'bitacoras', slug: 'la-caja-de-angelita' },
+    d2: { endpoint: 'bitacoras', campo: 'imagen', archivos: [BITACORA_LA_CAJA] },
+  };
+  const porIdPrimero = {
+    d2: { endpoint: 'bitacoras', campo: 'imagen', archivos: [BITACORA_LA_CAJA] },
+    [BITACORA_LA_CAJA]: { endpoint: 'bitacoras', slug: 'la-caja-de-angelita' },
+  };
+  const registros = [{ endpoint: 'bitacoras', documentId: 'd2', slug: 'la-caja-de-angelita' }];
+  const a = manifesto({ archivos: [BITACORA_LA_CAJA], registros, alias: porRutaPrimero });
+  const b = manifesto({ archivos: [BITACORA_LA_CAJA], registros, alias: porIdPrimero });
+  assert.deepEqual(a, b, 'el manifiesto no puede depender del orden de escritura del alias');
+  assert.deepEqual(a.enlazar, [{
+    endpoint: 'bitacoras',
+    documentId: 'd2',
+    campo: 'imagen',
+    archivo: BITACORA_LA_CAJA,
+    origen: 'alias',
+  }], 'la salida fija: gana la clave `d2`, o sea el sort NO es un no-op decorativo');
+  assert.deepEqual(a.motivosAlias, [{
+    archivo: BITACORA_LA_CAJA,
+    motivo: 'el registro ya tiene otra fila de alias para imagen: d2:imagen',
+  }]);
+});
+
+test('I6/M19 una fila de alias con un campo que la tabla no conoce no firma nada', () => {
+  // Mutante: `media-manifest.mjs:561` — fuera `|| !campos.includes(campo)`. Sin
+  // esa guarda la fila se firma con `campo: 'portada'`, sale en `enlazar`, y
+  // `formaDeCampo()` responde `null`: en seco se imprime como enlace prometido y
+  // en `--apply` se salta o rebota. El registro no trae `slug`, así que la tapa
+  // NO puede enlazarse por regla: lo único que puede producir un enlace acá es la
+  // fila de alias, y si la fila es inválida el balde queda vacío.
+  const m = manifesto({
+    archivos: [BITACORA_LA_CAJA],
+    registros: [{ endpoint: 'bitacoras', documentId: 'd2', slug: null, nombre: 'La caja de Angelita' }],
+    alias: { d2: { endpoint: 'bitacoras', campo: 'portada', archivos: [BITACORA_LA_CAJA] } },
+  });
+  assert.deepEqual(m.enlazar, []);
+  assert.deepEqual(m.motivosAlias, [{
+    archivo: 'd2',
+    motivo: 'la fila de d2 declara un campo que la tabla no conoce: portada',
+  }]);
+  assert.deepEqual(m.pendientes, [BITACORA_LA_CAJA], 'la tapa no se pierde: se reporta la razón y el archivo queda pendiente');
+  assert.equal(formaDeCampo('bitacoras', 'portada'), null);
+});
+
+test('I6/M20 un archivo declarado en dos filas de alias no se reparte entre los dos registros', () => {
+  // Mutante: `media-manifest.mjs:582` — fuera el `aliasPorArchivo.has(a)` del lazo
+  // de validación. MEDIDO: con solo esa línea fuera el comportamiento NO cambia,
+  // porque la guarda de `:613` (`duplicada`) cubre el caso ordinario con el mismo
+  // texto; ver el reporte de la ronda. Lo que este fixture fija es el resultado
+  // observable — gana la clave menor y la otra fila se reporta con la ruta del
+  // archivo en el motivo — y por eso sí mata a quien borre las dos guardas (un
+  // refactor "limpia la duplicación" y el archivo se sube dos veces).
+  const m = manifesto({
+    archivos: [BITACORA_LA_CAJA],
+    registros: [
+      { endpoint: 'bitacoras', documentId: 'd2', slug: null, nombre: 'La caja de Angelita' },
+      { endpoint: 'bitacoras', documentId: 'd9', slug: null, nombre: 'Otra caja' },
+    ],
+    alias: {
+      d2: { endpoint: 'bitacoras', campo: 'imagen', archivos: [BITACORA_LA_CAJA] },
+      d9: { endpoint: 'bitacoras', campo: 'imagen', archivos: [BITACORA_LA_CAJA] },
+    },
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'bitacoras',
+    documentId: 'd2',
+    campo: 'imagen',
+    archivo: BITACORA_LA_CAJA,
+    origen: 'alias',
+  }]);
+  assert.deepEqual(m.motivosAlias, [{
+    archivo: 'd9',
+    motivo: `${BITACORA_LA_CAJA} ya está declarado en otra fila de alias`,
+  }]);
+  assert.deepEqual(m.pendientes, []);
 });

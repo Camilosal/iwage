@@ -297,6 +297,10 @@ test('un enlace de varios archivos se escribe COMPLETO, en orden y en un solo PU
   const peticiones = [];
   const put = [];
   let nombreQueNoSube = null;
+  // El stub reparte ids DISTINTOS y crecientes. Si los dos uploads devolvieran el
+  // mismo id, `[900, 900]` diría poco: el orden del enlace se prueba porque el id
+  // del archivo 1 es menor que el del archivo 2 y aparecen en ese orden.
+  let proximoId = 900;
   const servidor = createServer((req, res) => {
     const ruta = (req.url ?? '').split('?')[0];
     const trozos = [];
@@ -312,7 +316,7 @@ test('un enlace de varios archivos se escribe COMPLETO, en orden y en un solo PU
       if (req.method === 'POST' && ruta === '/api/upload') {
         const nombre = /filename="([^"]+)"/.exec(cuerpo)?.[1] ?? '';
         if (nombre === nombreQueNoSube) return json([]); // el upload no devuelve archivo
-        return json([{ id: 900, name: nombre, url: `/uploads/900/${nombre}` }]);
+        return json([{ id: proximoId++, name: nombre, url: `/uploads/900/${nombre}` }]);
       }
       if (req.method === 'PUT' && ruta.startsWith('/api/')) {
         put.push({ ruta, cuerpo: JSON.parse(cuerpo) });
@@ -358,6 +362,7 @@ test('un enlace de varios archivos se escribe COMPLETO, en orden y en un solo PU
     // 2) `--apply`: dos subidas y UN solo PUT con la lista completa en orden.
     peticiones.length = 0;
     put.length = 0;
+    proximoId = 900;
     const apply = await correr(cli, ['--apply'], env);
     assert.equal(apply.status, 0, apply.stderr);
     assert.deepEqual(
@@ -365,14 +370,18 @@ test('un enlace de varios archivos se escribe COMPLETO, en orden y en un solo PU
       ['POST /api/upload', 'POST /api/upload', 'PUT /api/proyecto-meliponarios/p1'],
       'se suben los dos archivos y se enlaza una sola vez',
     );
+    // Desde `fa240b2` el esquema dice `media` multiple, así que el valor es la
+    // lista de IDS del archivo, no la de rutas relativas (`multipleForma` estaba
+    // desincronizada: ver I4 en tests/media-manifest.test.mjs).
     assert.deepEqual(put, [{
       ruta: '/api/proyecto-meliponarios/p1',
-      cuerpo: { data: { galeria: ['/uploads/900/proyecto-ambala-1.webp', '/uploads/900/proyecto-ambala-2.webp'] } },
+      cuerpo: { data: { galeria: [900, 901] } },
     }], 'el PUT lleva la galería completa y en orden (aridad de la tabla, no del conteo)');
 
     // 3) all-or-nothing: si el segundo archivo no sube, ese enlace no escribe nada.
     peticiones.length = 0;
     put.length = 0;
+    proximoId = 900;
     nombreQueNoSube = 'proyecto-ambala-2.webp';
     const roto = await correr(cli, ['--apply'], env);
     nombreQueNoSube = null;

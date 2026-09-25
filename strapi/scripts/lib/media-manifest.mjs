@@ -24,8 +24,12 @@
  * 1. `campo` es propiedad del content-type, no del registro. La fuente de verdad
  *    es `ENDPOINTS_CON_MEDIO[endpoint].campo` (portada) y
  *    `ENDPOINTS_CON_MEDIO[endpoint].campoMultiple` (campo repetible). Si el
- *    llamador trae `campo` en el registro, ese manda. `enlazar[].campo` nunca
- *    sale `undefined`.
+ *    llamador trae `campo` en el registro, ese manda — pero solo entre los dos de
+ *    la tabla: un campo que el content-type no declara NO produce enlace, y su
+ *    razón sale en `ambiguos` (o en `motivosAlias` si venía por una fila de alias
+ *    por ruta). `enlazar[].campo` nunca sale `undefined` y nunca sale con un nombre
+ *    que `formaDeCampo()` no conozca: si lo hiciera, el `--apply` reventaría por
+ *    enlace en vez de reventar acá.
  *
  * 2. **Un enlace puede llevar varios archivos.** Una *unidad* es lo que un
  *    registro reclama de una vez: un archivo suelto, o una **serie**. El número
@@ -223,30 +227,40 @@ const RE_SERIE = /^(.*)-(\d+)$/;
  *     así que solo ahí se pide en `fields`.
  *   · campoForma / multipleForma = tipo ACTUAL del atributo en el esquema:
  *     `string` o `json` → ruta relativa de sitio; `media` → id de archivo.
- *     Define la forma del cuerpo del PUT. La Tarea 11 convierte los `string` y
- *     los `json` de portada/galería a `media`: cuando lo haga, estas columnas
- *     cambian con ellos.
+ *     Define la forma del cuerpo del PUT. La Tarea 11 los convirtió (commit
+ *     `fa240b2`): medido sobre los 22 `schema.json`, hoy los seis endpoints de
+ *     esta tabla tienen portada y galería como `media`, así que las dos columnas
+ *     valen `media` en todas las filas y lo que se manda es el `id` del archivo.
+ *     No es una transcripción al día por buena voluntad: `tests/
+ *     media-manifest.test.mjs` lee los 22 `schema.json` y revienta si una columna
+ *     y el esquema difieren, así que mover el esquema sin mover la tabla se ve en
+ *     `npm test` y no en el primer `--apply` contra producción.
  *   · identidadNombre = el content-type tiene un atributo `nombre` que funciona
- *     como identidad (medido: `proyecto-meliponario` y `producto` lo tienen;
- *     `bitacora` tiene `titulo`, y un título no es una identidad emparejable).
+ *     como identidad. La restringimos a donde hay arte PRODUCIDO en su directorio
+ *     (medido: `galeria/`), no a donde el atributo existe: `nombre` lo declaran
+ *     también proveedor, item-menu, complemento, anfitrion, cultivo-polinizacion,
+ *     configuracion-sitio y testimonio, y en esos endpoints no hay archivo que
+ *     emparejar — prenderla ahí sería ampliar la superficie de falsos positivos
+ *     sin nada que ganar. `bitacora` ni siquiera tiene `nombre`: tiene `titulo`,
+ *     y un título no es una identidad emparejable.
  *   · campoMultiple = el atributo repetible donde van las SERIES de arte
- *     (schema actual: `json`; F2 lo convierte a `media` multiple).
+ *     (esquema actual: `media` multiple, con `allowedTypes` imágenes y videos).
  *     `cultivo-polinizaciones` también tiene `nombre` + `galeria`, pero en el
  *     inventario medido NO hay ningún archivo `cultivo-*`: declararlo sería
  *     configuración muerta, así que no está en la tabla hasta que haya arte.
  */
 export const ENDPOINTS_CON_MEDIO = {
-  bitacoras: { dir: 'bitacora', campo: 'imagen', campoForma: 'string', prefijos: ['bitacora'], tieneMarca: true },
+  bitacoras: { dir: 'bitacora', campo: 'imagen', campoForma: 'media', prefijos: ['bitacora'], tieneMarca: true },
   'historia-visitantes': { dir: 'cafe-menu', campo: 'imagen', campoForma: 'media', prefijos: ['visitante'], tieneMarca: false },
   proveedors: { dir: 'cafe-menu', campo: 'foto', campoForma: 'media', prefijos: ['proveedor'], tieneMarca: false },
   'item-menus': { dir: 'cafe-menu', campo: 'imagen', campoForma: 'media', prefijos: [], tieneMarca: false },
   'proyecto-meliponarios': {
-    dir: 'galeria', campo: 'imagen', campoForma: 'string', prefijos: ['proyecto'], tieneMarca: false,
-    identidadNombre: true, campoMultiple: 'galeria', multipleForma: 'json',
+    dir: 'galeria', campo: 'imagen', campoForma: 'media', prefijos: ['proyecto'], tieneMarca: false,
+    identidadNombre: true, campoMultiple: 'galeria', multipleForma: 'media',
   },
   productos: {
-    dir: 'galeria', campo: 'imagen', campoForma: 'string', prefijos: ['producto'], tieneMarca: true,
-    identidadNombre: true, campoMultiple: 'galeria', multipleForma: 'json',
+    dir: 'galeria', campo: 'imagen', campoForma: 'media', prefijos: ['producto'], tieneMarca: true,
+    identidadNombre: true, campoMultiple: 'galeria', multipleForma: 'media',
   },
 };
 
@@ -320,6 +334,16 @@ function archivoInfo(archivo) {
 /** Etiqueta legible de un registro para los motivos: `slug`, si no `nombre`, si no el id. */
 function etiqueta(reg) {
   return reg.slug ?? reg.nombre ?? reg.documentId;
+}
+
+/**
+ * Campos de medio que la tabla declara para un endpoint. Única fuente para
+ * validar un `campo` venga por la vía que venga (contrato 1): la fila de alias ya
+ * lo consultaba, la vía de regla no, y un override del llamador con un campo que
+ * el content-type no tiene no es un enlace, es un 400 en el primer `--apply`.
+ */
+function camposDeTabla(cfg) {
+  return [cfg.campo, cfg.campoMultiple].filter(Boolean);
 }
 
 /** Identidad de un archivo o de una serie: los crudos comparables y sus tokens. */
@@ -510,7 +534,7 @@ export function manifesto({ archivos, registros, alias = {} }) {
       motivosAlias.push({ archivo: clave, motivo: `el alias apunta a un endpoint fuera de la tabla: ${fila.endpoint}` });
       continue;
     }
-    const campos = [cfg.campo, cfg.campoMultiple].filter(Boolean);
+    const campos = camposDeTabla(cfg);
     let rutas;
     let i;
     if (porRutaKey) {
@@ -571,6 +595,13 @@ export function manifesto({ archivos, registros, alias = {} }) {
       continue;
     }
     const campo = porRutaKey ? registros[i].campo ?? cfg.campo : fila.campo;
+    if (porRutaKey && registros[i].campo !== undefined && !campos.includes(campo)) {
+      motivosAlias.push({
+        archivo: clave,
+        motivo: `el registro trae un campo que la tabla no conoce para ${fila.endpoint}: ${String(campo)}`,
+      });
+      continue;
+    }
     const repetida = filaRepitida(i, campo);
     if (repetida) {
       motivosAlias.push({
@@ -593,9 +624,20 @@ export function manifesto({ archivos, registros, alias = {} }) {
   }
 
   // --- 2. Unidades deducibles por nombre (REGLA / NOMBRE / SUFIJO).
+  /** registro → motivo de un `campo` que la tabla no declara (contrato 1, I5) */
+  const rechazosPorRegistro = new Map();
   registros.forEach((reg, i) => {
     const cfg = ENDPOINTS_CON_MEDIO[reg.endpoint];
     if (!cfg) return;
+    // Contrato 1: "`campo` es propiedad del content-type". Si el llamador trae el
+    // suyo, manda — pero solo entre los campos de medio que la tabla declara para
+    // ese endpoint. Uno inventado no es un enlace: es un 400 en el primer `--apply`
+    // (y en `--dry-run`, un manifiesto que miente). La vía del alias ya lo validaba;
+    // esta es la misma pregunta, al revés.
+    if (reg.campo !== undefined && !camposDeTabla(cfg).includes(reg.campo)) {
+      rechazosPorRegistro.set(i, `el registro trae un campo que la tabla no conoce para ${reg.endpoint}: ${String(reg.campo)}`);
+      return;
+    }
     const salida = [];
     if (cfg.campoMultiple) {
       for (const g of series.get(cfg.dir) ?? []) {
@@ -766,6 +808,11 @@ export function manifesto({ archivos, registros, alias = {} }) {
   const ambiguos = [];
   registros.forEach((reg, i) => {
     for (const e of enlacesPorRegistro.get(i) ?? []) enlazar.push(e);
+    // Un `campo` rechazado (I5) se nombra acá: `ambiguos` es lista de RAZONES, no de
+    // archivos, así que los archivos del registro siguen cayendo a su balde normal
+    // (`pendientes`) y la PARTICIÓN no se entera.
+    const rechazo = rechazosPorRegistro.get(i);
+    if (rechazo) ambiguos.push({ slug: reg.slug, documentId: reg.documentId, motivo: rechazo });
     for (const motivo of notasPorRegistro.get(i) ?? []) {
       ambiguos.push({ slug: reg.slug, documentId: reg.documentId, motivo });
     }
