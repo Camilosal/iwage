@@ -7,6 +7,7 @@ import { tipoAlojamientoInfo } from '@/lib/gestion';
 import { getBrand } from '@/config/brands';
 import BookingWidget from '@/components/reservas/BookingWidget';
 import ComplementosSection from '@/components/shared/ComplementosSection.astro';
+import MediaGallery from '@/components/shared/MediaGallery.astro';
 
 const { slug } = Astro.params;
 const exp = await getExperienciaBySlug(slug!);
@@ -254,31 +255,10 @@ const jsonLd = {
         </section>
       )}
 
-      <!-- Gallery -->
+      <!-- Gallery: la única galería del sitio, con el mismo lightbox que las demás fichas -->
       {galeriaItems.length > 0 && (
         <section>
-          <h2 class="text-2xl font-light text-[#1a3009] mb-6">Galería</h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {galeriaItems.map((item, i) => (
-              item.kind === 'video' ? (
-                <a href={item.url} target="_blank" rel="noopener" class="relative block w-full h-40 rounded-xl overflow-hidden group">
-                  <div class="w-full h-full bg-[#0e1a08] flex items-center justify-center">
-                    <span class="text-3xl group-hover:scale-110 transition-transform"><Icon name="play-circle" class="w-8 h-8 text-white" /></span>
-                  </div>
-                  <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.caption || item.alt || 'Video'}</span>
-                </a>
-              ) : item.kind === 'tour360' ? (
-                <a href={item.url} target="_blank" rel="noopener" class="relative block w-full h-40 rounded-xl overflow-hidden group">
-                  <div class="w-full h-full bg-[#1a3009] flex items-center justify-center">
-                    <span class="text-3xl group-hover:scale-110 transition-transform"><Icon name="refresh-ccw" class="w-8 h-8 text-white" /></span>
-                  </div>
-                  <span class="absolute bottom-2 left-2 text-[9px] font-bold text-white bg-black/50 px-2 py-0.5 rounded">{item.caption || item.alt || 'Tour 360°'}</span>
-                </a>
-              ) : (
-                <img src={item.url} alt={item.alt || item.caption || `${exp.titulo} - foto ${i + 1}`} class="w-full h-40 object-cover rounded-xl" loading="lazy" />
-              )
-            ))}
-          </div>
+          <MediaGallery items={galeriaItems} title="Galería" columns={3} />
         </section>
       )}
 

@@ -175,6 +175,48 @@ test('la galería es una sola: ProductGallery no resucita ni se referencia', () 
   assert.equal(culpables, '', `referencias a ProductGallery en src/: ${culpables}`);
 });
 
+/**
+ * La otra mitad de «una sola galería», que el gate de arriba no podía ver: forbidir el NOMBRE
+ * de un componente borrado no impide re-implementar la cuadrícula en el fuente de una página.
+ * `naturaleza/experiencias/[slug].astro` lo tenía hecho —`kind === 'video' ? <a target=_blank>`
+ * en vez de lightbox, y cuatro hexadecimales de marca (`#1a3009`, `#0e1a08`) donde el componente
+ * hereda los tokens del tema—, así que la MISMA pieza de Strapi se comportaba distinto según la
+ * ficha. Esa es la dispersión que la F1 vino a cerrar.
+ *
+ * La aguja es la decisión de elemento por `kind`. Se queda barriendo TODO `src/` en vez de
+ * reducirse a `pages/` (lo cual la dejaría verde y muda): lo que distingue a una galería
+ * re-implementada de un consumidor legítimo del contrato no es el directorio sino si pinta
+ * UNA pieza o una LISTA, y eso se fija nombrando las dos excepciones con su razón.
+ */
+const FUERA_DE_LA_REGLA = {
+  // `isEmbed()` ES la definición de qué es embebible: decide `kind`, no pinta una cuadrícula.
+  'lib/media.ts': 'define el contrato de kind',
+  // El héroe pinta UN medio y elige `<video>` o `<iframe>` con `isEmbed()`/`kind`. No hay
+  // thumbnail ni visor que puedan divergir, que es el daño que esta regla previene.
+  'components/Hero.astro': 'un solo medio, no una lista',
+};
+
+test('ninguna página reimplementa la cuadrícula de medios: la decisión de elemento es del componente', () => {
+  const culpables = [];
+  for (const archivo of archivosEn(SRC)) {
+    const ruta = enSrc(archivo);
+    if (ruta === 'components/shared/MediaGallery.astro' || FUERA_DE_LA_REGLA[ruta]) continue;
+    if (!/\.(astro|tsx?)$/.test(archivo)) continue;
+    sinComentarios(readFileSync(archivo, 'utf8'))
+      .split('\n')
+      .forEach((linea, i) => {
+        if (/kind\s*===\s*['"](video|tour360)['"]/.test(linea)) {
+          culpables.push(`    ${ruta}:${i + 1}: ${linea.trim().slice(0, 120)}`);
+        }
+      });
+  }
+  assert.equal(
+    culpables.join('\n'),
+    '',
+    `una página vuelve a decidir qué elemento pintar según kind (F1: la única galería es MediaGallery):\n${culpables.join('\n')}`,
+  );
+});
+
 test('los campos de galería de los modelos declaran MediaItem[] | null', () => {
   const culpables = [];
   for (const ruta of ['lib/tienda.ts', 'lib/proyectos.ts', 'lib/polinizacion.ts']) {
