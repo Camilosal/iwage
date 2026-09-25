@@ -1698,9 +1698,22 @@ wc -l /tmp/post-urls.txt
 ```
 Expected: ~185 (puede haber crecido; anotar el número exacto, porque los porcentajes se recalculan con él).
 
+```bash
+mkdir -p /home/ubuntu/backup/iwaudit-despues-<fecha> && cd /home/ubuntu/backup/iwaudit-despues-<fecha>
+C=/home/ubuntu/negocio/data/app_iwage/docs/superpowers/metrics/censo
+cp "$C"/{crawl.sh,parse.mjs,analyze.py,pages.py} .
+cp /tmp/post-urls.txt urls.txt
+i=0; while read -r u; do i=$((i+1)); bash crawl.sh "$u" "$i" >> crawl.log; done < urls.txt
+bash "$C/censo.sh" . --con-bd
+```
+
+`censo.sh` corre las nueve filas con los mismos comandos de la línea base, cada uno bajo su etiqueta, y existe justamente para que este paso no vuelva a armar un one-liner distinto. Verificado sobre la copia del "antes": reproduce los 185 hashes, 141 de 185, las 4 páginas exclusivas, `0|0` en la base, 41 campos en 4 representaciones y las 47 huérfanas (36 + 11 + 0).
+
+Qué es comparable con qué, porque si no se dice, el informe miente: **las filas 3 a 8 miden el repo y la base de datos**, y esas se mueven con este plan aunque nadie despliegue. **Las filas 1, 2 y 9 miden el HTML servido**, o sea el sitio desplegado: con el gate de despliegue cerrado salen idénticas al "antes" y hay que reportarlas como "no medible todavía", no como "no mejoró". La alternativa honesta es correrlas contra un preview local de este commit en otro directorio de crawl y decir cuál de los dos se reportó.
+
 - [ ] **Step 2: Llenar la tabla comparativa**
 
-La tabla es la de `docs/superpowers/metrics/2026-09-24-antes.md`, que ya tiene el comando y el valor medido de cada fila; el informe "después" se llena corriendo **esos mismos comandos**, no unos nuevos. Antes de comparar, verificar que el crawl mide el mismo sitio de siempre:
+La tabla es la de `docs/superpowers/metrics/2026-09-24-antes.md`, que ya tiene el comando y el valor medido de cada fila; el informe "después" se llena con la salida de `censo.sh` del Step 1, que son **esos mismos comandos**, no unos nuevos. Antes de comparar, verificar que el crawl mide el mismo sitio de siempre:
 
 ```bash
 cd /home/ubuntu/backup/iwaudit-antes-2026-09-24

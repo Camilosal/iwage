@@ -23,6 +23,7 @@ ningún lado. Sin procedimiento versionado, el "después" no es comparable con e
 | `pages.py` | filas 2 y 9: páginas con imagen **exclusiva** y páginas con referencias rotas | `coverage.json` |
 | `main-imgs.mjs` | fila 1: páginas cuyo `<main>` no renderiza ningún `<img>` | `crawl.log` + `html/` |
 | `campos-strapi.mjs` | fila 4: campos de medio de los esquemas y sus representaciones | `strapi/src/api/**/schema.json` |
+| `censo.sh` | **las nueve filas de una vez**, con estos mismos scripts y en este orden | un directorio de crawl; `--con-bd` agrega la fila 3 (`SELECT` por `docker exec`) y la fila 9 sale contra `CRAWL_BASE` |
 
 ## Cómo se corre el censo completo
 
