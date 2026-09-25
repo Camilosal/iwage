@@ -1787,6 +1787,35 @@ git commit -m "fix(meliponas): la banda audiovisual o existe o no se promete"
 
 ### Task 16: Medir, que es como se sabe si funcionó
 
+**EJECUTADO el 2026-09-25 en `886ca4b`** (informe: `docs/superpowers/metrics/2026-09-25-despues.md`,
+nombre pareado con `2026-09-24-antes.md` en vez del `-inventario-medios-post` que proponía
+este plan). Como `dist/` está compartido y su build es anterior a F1-F3, las filas de HTML se
+midieron con la alternativa honesta que el propio Step 1 prevé: copia del árbol en `/tmp`,
+build y preview en puerto propio, crawl de las mismas 185 URLs en otro directorio. **Filas 1,
+2 y 9 contra un preview local, no contra el sitio desplegado**, y así está dicho en el informe
+junto con el «no medible todavía» del después real.
+
+Resultado: fila 7 en **0** y fila 8 en **0** en código y además **0 en las 185 páginas
+servidas** (antes había stock en 12 páginas y 5 referencias rotas); fila 5 en **80** archivos
+(los 19 PNG ya no están en el servidor); fila 4 con **11 campos convertidos a `media`**
+(`ya media` de 15 a 26) y 8 restantes detrás del rebuild; filas 3 y 6 sin moverse, por razones
+distintas y cada una explicada en el informe.
+
+**Dos premisas de este plan corrigió la medición.** La fila extra de embeds placeholder no
+eran 2 valores sino **4** (el `anfitriones.video_url` también es un rickroll), y el
+`video_thumbnail` con Unsplash es columna de `anfitriones`, no de `experiencias` (igual que
+`galeria_fotos`, que nunca estuvo en `bitacoras`). Total de Unsplash: 8, confirmado.
+
+**El censo destapó un bug que el build y los 269 testes no podían ver:** `bitacora.ts` mandaba
+`imagen` en `fields[]` y en `populate[]` a la vez, con un comentario que afirmaba que así se
+cubrían los dos esquemas. Medido: Strapi rechaza un media en `fields[]` con 400 (`param:
+fields`), así que la mezcla degradaba las 7 superficies de bitácora **en los dos esquemas**.
+Fix y guard nuevo en `886ca4b`. Lección para el plan: la queryString saliente de `strapiFetch`
+no la miraba nadie; ahora la mira `tests/bitacora-query.test.mjs`.
+
+**Queda del dueño:** desplegar el esquema (`fa240b2`) y correr `--apply`; sin eso, las filas 1,
+2 y 3 no tienen un «después» que medir, y este plan no debe darse por cerrado.
+
 **Files:**
 - Create: `docs/superpowers/metrics/2026-09-XX-inventario-medios-post.md` (fecha del día de ejecución)
 
