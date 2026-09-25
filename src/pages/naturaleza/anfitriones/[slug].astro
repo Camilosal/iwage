@@ -249,7 +249,7 @@ const jsonLd = {
           <h2 class="text-2xl font-light text-[#1a3009]">En su territorio</h2>
         </div>
         <MediaGallery
-          images={host.galeria_fotos.map((g: any) => mediaSrc(g.url)).filter(Boolean) as string[]}
+          items={host.galeria_fotos.map((g: any) => mediaSrc(g.url)).filter(Boolean) as string[]}
           title={host.nombre}
           columns={3}
         />

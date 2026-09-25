@@ -146,7 +146,7 @@ const placeJsonLd = (prop.ubicacion_latitud && prop.ubicacion_longitud) ? {
   <section class="bg-[#0F120E] py-6">
     <div class="max-w-7xl mx-auto px-6">
       {images.length > 0 ? (
-        <MediaGallery images={images} title={prop.titulo} columns={4} />
+        <MediaGallery items={images} title={prop.titulo} columns={4} />
       ) : (
         <div class="h-64 md:h-96 rounded-2xl bg-[#1B4332]/20 flex items-center justify-center">
           <Icon name="mountain" class="w-12 h-12 text-[#1B4332]/40" />

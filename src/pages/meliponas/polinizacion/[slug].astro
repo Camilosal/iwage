@@ -68,7 +68,7 @@ const diasTotales = (cultivo.dias_alistamiento ?? 0) + (cultivo.dias_en_campo ??
     <!-- Galería -->
     {cultivo.galeria && cultivo.galeria.length > 0 && (
       <div class="mb-8">
-        <MediaGallery images={cultivo.galeria} title={`Galería · ${cultivo.nombre}`} columns={4} />
+        <MediaGallery items={cultivo.galeria} title={`Galería · ${cultivo.nombre}`} columns={4} />
       </div>
     )}
 

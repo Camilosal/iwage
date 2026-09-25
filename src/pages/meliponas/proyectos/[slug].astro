@@ -85,7 +85,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
     <!-- Galería Audiovisual -->
     {proyecto.galeria && proyecto.galeria.length > 0 && (
       <div class="mt-12 mb-10">
-        <MediaGallery images={proyecto.galeria} title={`Galería · ${proyecto.nombre}`} columns={4} />
+        <MediaGallery items={proyecto.galeria} title={`Galería · ${proyecto.nombre}`} columns={4} />
       </div>
     )}
 

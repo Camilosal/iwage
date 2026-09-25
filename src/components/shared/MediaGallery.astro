@@ -1,41 +1,72 @@
 ---
+import { createHash } from 'node:crypto';
 import Icon from '@/components/shared/Icon.astro';
-import { toMediaList, type MediaItem } from '@/lib/media';
+import { toMediaList, isEmbed, embedSrc, type MediaItem } from '@/lib/media';
 
 /**
- * MediaGallery — Galería audiovisual reutilizable con lightbox.
- * Acepta URLs sueltas o items de galería en cualquier forma (canónica o histórica):
- * la única normalización es `toMediaList()`, que entrega `MediaItem`
- * ({ url, kind: 'imagen'|'video'|'tour360', alt?, caption?, provider? }).
+ * MediaGallery — ÚNICA galería audiovisual del sitio con lightbox (Task 8).
+ * Sirve igual a las fichas de producto que a las de experiencia, cultivo,
+ * proyecto o propiedad.
+ *
+ * Acepta URLs sueltas o items de galería en cualquier forma (canónica o
+ * histórica): la única normalización es `toMediaList()`, que entrega
+ * `MediaItem` ({ url, kind: 'imagen'|'video'|'tour360', alt?, caption?, provider? }).
  * Funciona con cualquier marca (colores heredados del tema).
  *
- * Task 8 reescribe este componente: debe conservar el import de `@/lib/media`,
- * la normalización en el borde y el escenario sin `src` vacío.
+ * Dos invariantes que este archivo mantiene a propósito:
+ *  · El escenario del lightbox NUNCA emite un <img> con `src` vacío: el servidor
+ *    pinta el <img> real o un div placeholder, y el cliente crea elementos por
+ *    propiedad (`el.src = ...`), nunca con innerHTML interpolado.
+ *  · La conversión URL de tercero → URL de embed corre UNA sola vez y en el
+ *    servidor (`embedSrc`); al navegador solo le llega el resultado (`embed`)
+ *    y la decisión de elemento nativo (`render`): iframe ≠ video propio ≠ img.
  */
 interface Props {
   /** URLs sueltas o items de galería; se normalizan con toMediaList(). */
-  images?: unknown[];
+  items?: (MediaItem | string | unknown)[] | null;
   title?: string;
   columns?: 4 | 3 | 2;
 }
 
-const { images: rawImages, title = 'Galería', columns = 4 } = Astro.props;
+const { items: rawItems, title = 'Galería', columns = 4 } = Astro.props;
 
-// Normalize items — un solo punto de entrada para las formas que llegan.
-const items: MediaItem[] = toMediaList(rawImages);
+// Entrada = MediaItem + lo que el navegador debe dibujar con él:
+//  · render 'img'    → <img> (imagen propia; embed === url)
+//  · render 'video'  → <video controls> para archivo propio (.mp4/.webm/...),
+//                     jamás un <iframe>
+//  · render 'iframe' → embebido de tercero (YouTube/Vimeo/Drive/tour 360) cuya
+//                     src ES `embed` = embedSrc(url) resuelto aquí, en el servidor.
+interface Entry extends MediaItem {
+  render: 'img' | 'video' | 'iframe';
+  embed: string;
+}
+
+// Normaliza en el borde: cualquier forma (string[], la histórica, MediaItem[]) entra.
+const items: Entry[] = toMediaList(rawItems).map((item) => {
+  const embebible = isEmbed(item);
+  return {
+    ...item,
+    render: embebible ? 'iframe' : item.kind === 'video' ? 'video' : 'img',
+    embed: embebible ? embedSrc(item.url) : item.url,
+  };
+});
 
 if (items.length === 0) return;
 
-// Unique id to support multiple galleries per page
-const gid = `gal-${Math.random().toString(36).slice(2, 8)}`;
+// Id determinista (pathname + URLs del contenido): servidor y JSON serializado
+// siempre coinciden, y ningún rebuild reordena los hooks. El brief pedía
+// base64(pathname:urls).slice(0,10); medido sobre el HTML servido, esa ventana
+// solo alcanzaba al prefijo del pathname — `/meliponas/tienda/...` y
+// `/meliponas/proyectos/...` producían el MISMO gid (`gal-L21lbGlwb2`), o sea
+// colisión entre galerías de una misma página, que es justo lo que el gid evita.
+// El digest sha256 sobre la misma entrada conserva la propiedad exigida
+// (determinista, derivada de contenido + pathname) y sí discrimina el contenido.
+// Único choque posible: dos galerías con el MISMO contenido en la MISMA página.
+const gid = `gal-${createHash('sha256').update(`${Astro.url.pathname}:${items.map((i) => i.url).join('')}`).digest('hex').slice(0, 10)}`;
 
-function isYouTube(url: string) {
-  return /youtube\.com|youtu\.be/.test(url);
-}
-function ytEmbed(url: string) {
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
-  return m ? `https://www.youtube.com/embed/${m[1]}` : url;
-}
+// \u003c en vez de `<` dentro del JSON: un `</script>` en un alt/caption no puede
+// escapar del bloque de datos.
+const itemsJson = JSON.stringify(items).replace(/</g, '\\u003c');
 ---
 
 <div class="rounded-2xl border border-border bg-surface-raised overflow-hidden" data-gallery-wrapper={gid}>
@@ -58,12 +89,14 @@ function ytEmbed(url: string) {
         data-gal-open={String(i)}
         aria-label={item.alt || item.caption || `${title} ${i + 1}`}
       >
-        {item.kind === 'video' ? (
-          <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
-            <span class="w-10 h-10 rounded-full bg-brand/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Icon name="play" class="w-5 h-5 text-white ml-0.5" />
-            </span>
-          </div>
+        {item.render === 'img' ? (
+          <img
+            src={item.url}
+            alt={item.alt || item.caption || `${title} ${i + 1}`}
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+            data-gal-main-img={i === 0 ? 'true' : undefined}
+          />
         ) : item.kind === 'tour360' ? (
           <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
             <span class="w-10 h-10 rounded-full bg-accent/90 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -71,15 +104,22 @@ function ytEmbed(url: string) {
             </span>
           </div>
         ) : (
-          <img src={item.url} alt={item.alt || item.caption || `${title} ${i + 1}`} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+          <div class="w-full h-full bg-surface-sunken flex items-center justify-center">
+            <span class="w-10 h-10 rounded-full bg-brand/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Icon name="play" class="w-5 h-5 text-white ml-0.5" />
+            </span>
+          </div>
         )}
         <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
         {(item.caption || item.alt) && (
           <span class="absolute bottom-2 left-2 right-2 text-[10px] font-medium text-white bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md truncate text-left">{item.caption || item.alt}</span>
         )}
-        {item.kind === 'video' && <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">Video</span>}
-        {item.kind === 'tour360' && <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">360°</span>}
-        {i === 0 && item.kind === 'imagen' && <span class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-full uppercase">Principal</span>}
+        {item.render !== 'img' && (
+          <span class="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">
+            {item.kind === 'tour360' ? '360°' : item.kind === 'video' ? 'Video' : 'Drive'}
+          </span>
+        )}
+        {i === 0 && item.render === 'img' && <span class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-full uppercase">Principal</span>}
       </button>
     ))}
   </div>
@@ -99,10 +139,10 @@ function ytEmbed(url: string) {
     <span data-gal-counter>1 / {items.length}</span>
   </div>
 
-  <!-- Main content -->
+  <!-- Main content: solo <img> cuando items[0] es img; si no, placeholder (nunca src vacío) -->
   <div class="absolute inset-0 flex items-center justify-center p-16" data-gal-stage>
-    {items[0].kind === 'imagen' ? (
-      <img data-gal-img src={items[0].url} alt="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+    {items[0].render === 'img' ? (
+      <img data-gal-img src={items[0].url} alt={items[0].alt || items[0].caption || ''} class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
     ) : (
       <div data-gal-img-placeholder class="w-full max-w-4xl aspect-video rounded-lg bg-surface-sunken"></div>
     )}
@@ -123,17 +163,17 @@ function ytEmbed(url: string) {
   <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2 max-w-[80vw] overflow-x-auto px-4 py-2 rounded-full bg-black/50">
     {items.map((item, i) => (
       <button class="w-12 h-9 rounded-md overflow-hidden shrink-0 opacity-50 hover:opacity-100 transition-opacity border-2 border-transparent data-[active=true]:border-white data-[active=true]:opacity-100" data-gal-strip={String(i)} data-active={i === 0 ? 'true' : 'false'}>
-        {item.kind === 'imagen' ? (
+        {item.render === 'img' ? (
           <img src={item.url} alt="" class="w-full h-full object-cover" loading="lazy" />
         ) : (
-          <span class="w-full h-full flex items-center justify-center bg-white/10 text-white text-[10px]">{item.kind === 'video' ? '▶' : '360'}</span>
+          <span class="w-full h-full flex items-center justify-center bg-white/10 text-white text-[10px]">{item.kind === 'tour360' ? '360' : '▶'}</span>
         )}
       </button>
     ))}
   </div>
 </div>
 
-<script data-gal-items={gid} type="application/json" set:html={JSON.stringify(items)} />
+<script data-gal-items={gid} type="application/json" set:html={itemsJson} />
 <script define:vars={{ gid }}>
   (() => {
     const wrapper = document.querySelector(`[data-gallery-wrapper="${gid}"]`);
@@ -141,6 +181,9 @@ function ytEmbed(url: string) {
     const scriptTag = document.querySelector(`[data-gal-items="${gid}"]`);
     if (!wrapper || !lightbox || !scriptTag) return;
 
+    // Cada item llega ya resuelto del servidor: { url, kind, ..., render, embed }.
+    // Aquí no se reconstruye ninguna URL de terceros: `embed` es la salida única
+    // de embedSrc() y `render` dice qué elemento nativo corresponde.
     const items = JSON.parse(scriptTag.textContent || '[]');
     const stage = lightbox.querySelector('[data-gal-stage]');
     const img = lightbox.querySelector('[data-gal-img]');
@@ -149,12 +192,10 @@ function ytEmbed(url: string) {
     const strips = lightbox.querySelectorAll('[data-gal-strip]');
     let current = 0;
 
-    function isYouTube(url) {
-      return /youtube\.com|youtu\.be/.test(url);
-    }
-    function ytEmbed(url) {
-      const m = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
-      return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+    // Detiene la reproducción antes de cambiar o cerrar el visor.
+    function stopMedia() {
+      stage.querySelectorAll('video').forEach((v) => v.pause());
+      stage.querySelectorAll('iframe').forEach((f) => { f.src = 'about:blank'; });
     }
 
     function show(idx) {
@@ -172,26 +213,37 @@ function ytEmbed(url: string) {
         titleEl.classList.add('hidden');
       }
 
-      // Render media
-      if (item.kind === 'video') {
-        const embedUrl = isYouTube(item.url) ? ytEmbed(item.url) : item.url;
-        stage.innerHTML = `<iframe src="${embedUrl}" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
-      } else if (item.kind === 'tour360') {
-        stage.innerHTML = `<iframe src="${item.url}" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl" frameborder="0" allowfullscreen></iframe>`;
+      // Render media — todo creado por propiedad (el.src = ...), nunca con
+      // innerHTML interpolado. Video propio es <video>, no <iframe>.
+      stopMedia();
+      stage.innerHTML = '';
+      if (item.render === 'iframe') {
+        const frame = document.createElement('iframe');
+        frame.src = item.embed;
+        frame.title = item.alt || item.caption || 'Medio embebido';
+        frame.className = 'w-full max-w-4xl aspect-video rounded-lg shadow-2xl';
+        frame.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+        frame.setAttribute('allowfullscreen', '');
+        stage.appendChild(frame);
+      } else if (item.render === 'video') {
+        const video = document.createElement('video');
+        video.src = item.embed;
+        video.className = 'max-w-full max-h-full rounded-lg shadow-2xl';
+        video.controls = true;
+        video.preload = 'metadata';
+        video.setAttribute('playsinline', '');
+        stage.appendChild(video);
+      } else if (img) {
+        img.src = item.url;
+        img.alt = item.alt || item.caption || '';
+        img.style.display = '';
+        stage.appendChild(img);
       } else {
-        stage.innerHTML = '';
-        if (img) {
-          img.src = item.url;
-          img.alt = item.alt || item.caption || '';
-          img.style.display = '';
-          stage.appendChild(img);
-        } else {
-          const el = document.createElement('img');
-          el.src = item.url;
-          el.alt = item.alt || item.caption || '';
-          el.className = 'max-w-full max-h-full object-contain rounded-lg shadow-2xl';
-          stage.appendChild(el);
-        }
+        const el = document.createElement('img');
+        el.src = item.url;
+        el.alt = item.alt || item.caption || '';
+        el.className = 'max-w-full max-h-full object-contain rounded-lg shadow-2xl';
+        stage.appendChild(el);
       }
     }
 
@@ -204,9 +256,7 @@ function ytEmbed(url: string) {
     function close() {
       lightbox.classList.add('hidden');
       document.body.style.overflow = '';
-      // Stop any playing video
-      const iframe = stage.querySelector('iframe');
-      if (iframe) iframe.src = '';
+      stopMedia();
     }
 
     wrapper.querySelectorAll('[data-gal-open]').forEach((btn) => {

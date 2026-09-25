@@ -14,7 +14,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -105,12 +105,13 @@ test('ninguna URL de Strapi construida a mano puede llegar al HTML: ni host inte
 });
 
 // ── Task 7: un solo tipo de galería, y un solo juego de campos ──────────────
+// ── Task 8: además, una sola GALERÍA física (MediaGallery); ProductGallery se borró ──
 //
 // El grep que pidió el plan (`GaleriaItem|GalleryItem`) borra los duplicados pero no ve la
 // mitad que sí rompe el sitio en el navegador: `MediaItem` renombra `tipo`→`kind` y
 // `titulo`→`caption`, y `astro build` SOLO borra tipos, no los verifica. Una lectura
 // `item.tipo` que sobreviva da build verde, página 200 y galería pintando vacío. Es
-// especialmente fácil de dejar viva porque las dos galerías serializan sus `items` a un
+// especialmente fácil de dejar viva porque la galería serializa sus `items` a un
 // `<script type="application/json">` y VUELVEN a leerlos en el cliente: server y navegador
 // tienen que nombrar los mismos campos, y ningún compilador lo comprueba aquí.
 //
@@ -120,10 +121,18 @@ test('ninguna URL de Strapi construida a mano puede llegar al HTML: ni host inte
 //       que nombre `GalleryItem` es documentación, no el bug que este gate corta;
 //   (b) las lecturas históricas se anclan a la forma que está en juego: un `prop.titulo` o un
 //       `cultivo.tipo` legítimos dentro de un componente de galería no son un `MediaItem`.
-// Los dientes no se perdieron: contra `git show a0552b5:src/components/shared/*.astro` (el
-// árbol ANTES del rename) el mismo código sigue casando 18 lecturas en MediaGallery y 16 en
-// ProductGallery, y el gate de `GalleryItem` sigue cayendo sobre ese árbol.
-const GALERIAS = ['components/shared/MediaGallery.astro', 'components/shared/ProductGallery.astro'];
+// Los dientes no se perdieron: contra `git show a0552b5:src/components/shared/MediaGallery.astro`
+// (el árbol ANTES del rename) el mismo código sigue casando 18 lecturas, y el gate de
+// `GalleryItem` sigue cayendo sobre ese árbol.
+//
+// Task 8 borra `ProductGallery.astro`. El barrido no puede quedarse mirando un archivo que
+// ya no está (readFileSync daría ENOENT) ni reducirse a la nada: `GALERIAS` pasa a listar la
+// galería única y un gate nuevo —`ProductGallery.astro` fuera del árbol y sin referencias
+// vivas en `src/`— es lo que impide que el componente borrado resucite y vuelva a dividir
+// el contrato en dos. La medición histórica (18 lecturas en MediaGallery + 16 en
+// ProductGallery contra `a0552b5`) queda como referencia de que el barrido sigue siendo el
+// mismo código sobre una ruta menos.
+const GALERIAS = ['components/shared/MediaGallery.astro'];
 
 /** Convierte un bloque de comentario en espacios: se va el texto, se queda la línea. */
 function enBlanco(bloque) {
@@ -135,14 +144,14 @@ function enBlanco(bloque) {
  * que salen en los mensajes sigan apuntando a la línea real del archivo.
  *
  * No es un lexer, son tres reglas y su coste está declarado:
- *  · `//` abre comentario solo si NO va pegado a `:` o `/` → las URLs `https://www.youtube...`
- *    que las dos galerías arman en el `ytEmbed`/`embedUrl` (server y cliente) sobreviven.
+ *  · `//` abre comentario solo si NO va pegado a `:` o `/` → las URLs `https://...` que la
+ *    galería y `src/lib/media.ts` arman en los embed (YouTube/Vimeo/Drive) sobreviven.
  *  · `/* … *\/` (JSDoc y los `{/* … *\/}` de la plantilla Astro) y `<!-- … -->` de HTML se
  *    cierran por su propio delimitador, sin anidar.
- *  · Un `//` dentro de un string de código se perdería con su resto de línea. Medido sobre las
- *    dos galerías: ningún read de un item cae después de una URL en la misma línea. Y el coste
- *    de equivocarse es un gate más flojo en ESA línea, nunca un falso positivo, que es lo que
- *    hay que evitar aquí.
+ *  · Un `//` dentro de un string de código se perdería con su resto de línea. Medido sobre la
+ *    galería única (y sobre las dos históricas contra `a0552b5`): ningún read de un item cae
+ *    después de una URL en la misma línea. Y el coste de equivocarse es un gate más flojo en
+ *    ESA línea, nunca un falso positivo, que es lo que hay que evitar aquí.
  */
 function sinComentarios(fuente) {
   return fuente
@@ -152,13 +161,15 @@ function sinComentarios(fuente) {
 }
 
 /**
- * Receptores que en ESTAS dos galerías son un `MediaItem`, medidos en los cuatro fuentes
- * (HEAD y `git show a0552b5:` de los dos componentes): `items` es el array normalizado,
- * `item`/`it` son sus elementos en los `map` y en el `<script>` del navegador, `first` es
- * `items[0]` en ProductGallery y `*Item` cubre cualquier variable declarada como un item.
- * El filtro de coherencia del test (punto 4) comprueba que ningún receptor que lee
- * `kind`/`caption` se quede fuera de esta lista, así que renombrar la variable del `map`
- * (Task 8) rompe el test con un mensaje explícito en vez de dejar el gate silencioso.
+ * Receptores que en ESTAS galerías son un `MediaItem`, medidos en los cuatro
+ * árboles (HEAD de la galería única y `git show a0552b5:` de las dos componentes
+ * históricas): `items` es el array normalizado, `item`/`it` son sus elementos en los
+ * `map` y en el `<script>` del navegador, `first` era el `items[0]` de la galería de
+ * producto (se queda: es también un nombre natural en cualquier variante futura) y
+ * `*Item` cubre cualquier variable declarada como un item. El filtro de coherencia
+ * del test (punto 4) comprueba que ningún receptor que lee `kind`/`caption` se quede
+ * fuera de esta lista, así que renombrar la variable del `map` (`entry.kind`) rompe
+ * el test con un mensaje explícito en vez de dejar el gate silencioso.
  */
 const ITEM_RECEPTOR = String.raw`\b(?:items\s*\[[^\]]*\]|[A-Za-z_$][A-Za-z0-9_$]*[Ii]tem|item|it|first)`;
 const LECTURA_LEGADA_DE_ITEM = new RegExp(`${ITEM_RECEPTOR}\\s*\\.\\s*(?:tipo|titulo)\\b`);
@@ -169,6 +180,24 @@ test('el tipo de galería es uno solo: no vuelve GaleriaItem ni GalleryItem', ()
     .map((f) => enSrc(f))
     .join(', ');
   assert.equal(culpables, '', `duplicados del tipo de galería todavía presentes: ${culpables}`);
+});
+
+// Task 8: la consolidación física. `ProductGallery.astro` se borró con `git rm` y las dos
+// fichas de producto migraron a MediaGallery; este gate es lo que mantiene vivo el barrido
+// de GALERIAS (una sola ruta) sin dejarlo decorativo: si el componente vuelve al árbol o
+// algún `import` vivo lo referencia otra vez, la suite se pone roja nombrando el culpable.
+// Se barren también los comentarios — tras el borrado no debe quedar NI la mención.
+test('la galería es una sola: ProductGallery no resucita ni se referencia', () => {
+  assert.equal(
+    existsSync(join(SRC, 'components/shared/ProductGallery.astro')),
+    false,
+    'components/shared/ProductGallery.astro volvió al árbol: MediaGallery es la única galería (Task 8)',
+  );
+  const culpables = archivosEn(SRC)
+    .filter((f) => /ProductGallery/.test(readFileSync(f, 'utf8')))
+    .map((f) => enSrc(f))
+    .join(', ');
+  assert.equal(culpables, '', `referencias a ProductGallery en src/: ${culpables}`);
 });
 
 test('los campos de galería de los modelos declaran MediaItem[] | null', () => {
@@ -193,14 +222,15 @@ function lecturasLegadas(ruta) {
     .map(([n, linea]) => `    ${ruta}:${n}: ${linea.trim().slice(0, 140)}`);
 }
 
-test('las galerías leen kind/caption/alt también en el script del navegador', () => {
+test('la galería lee kind/caption/alt también en el script del navegador', () => {
   // (1) Ninguna lectura `.tipo`/`.titulo` SOBRE UN ITEM: en un MediaItem son `undefined` y el
   //     visor se queda en blanco sin que el build se entere. Anclado al receptor, un
   //     `prop.titulo` o un `cultivo.tipo` de este componente son otra cosa y no casan.
-  //     Se barren las DOS galerías antes deassertir: el rojo tiene que nombrar de una vez
-  //     todas las líneas vivas (18 en MediaGallery y 16 en ProductGallery contra el árbol
-  //     histórico `a0552b5`), no solo las de la primera que cae.
-  const legadas = GALERIAS.flatMap((ruta) => lecturasLegadas(ruta)).join('\n');
+  //     Se barren TODAS las rutas de GALERIAS antes de assertir: el rojo tiene que nombrar
+  //     de una vez todas las líneas vivas — contra el árbol histórico `a0552b5` este mismo
+  //     código casaba 18 lecturas en MediaGallery (y 16 en la ya borrada ProductGallery) —,
+  //     no solo las de la primera que cae.
+  const legadas = GALERIAS.flatMap((ruta) => lecturasLegadas(ruta)).join('\\n');
   assert.equal(legadas, '', 'las galerías siguen leyendo campos de la forma histórica sobre un item');
 
   for (const ruta of GALERIAS) {
