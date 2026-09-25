@@ -28,21 +28,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sinComentarios } from './helpers/sin-comentarios.mjs';
 
-const RAIZ = fileURLToPath(new URL('..', import.meta.url)).replace(/\/+$/, '');
+// `IWAGE_SRC` apunta el candado a una COPIA del árbol: es la única forma de medir sus dientes
+// sin tocar el tree compartido (misma puerta que en `normalizar-medio*.test.mjs`).
+const RAIZ = (process.env.IWAGE_SRC
+  ? resolve(process.env.IWAGE_SRC)
+  : fileURLToPath(new URL('..', import.meta.url))
+).replace(/\/+$/, '');
 const API = join(RAIZ, 'strapi/src/api');
-
-const enBlanco = () => ' ';
-
-/** Quita comentarios sin tocar literales: la guarda no puede satisfacerse con prosa. */
-function sinComentarios(fuente) {
-  return fuente
-    .replace(/\/\*[\s\S]*?\*\//g, enBlanco)
-    .replace(/<!--[\s\S]*?-->/g, enBlanco)
-    .replace(/(?<![:/])\/\/[^\n]*/g, '');
-}
 
 // ── Verdad del esquema, leída de disco ───────────────────────────────────────
 

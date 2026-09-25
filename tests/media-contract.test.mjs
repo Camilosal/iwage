@@ -17,6 +17,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sinComentarios } from './helpers/sin-comentarios.mjs';
 
 const SRC = fileURLToPath(new URL('../src', import.meta.url));
 
@@ -133,32 +134,6 @@ test('ninguna URL de Strapi construida a mano puede llegar al HTML: ni host inte
 // ProductGallery contra `a0552b5`) queda como referencia de que el barrido sigue siendo el
 // mismo código sobre una ruta menos.
 const GALERIAS = ['components/shared/MediaGallery.astro'];
-
-/** Convierte un bloque de comentario en espacios: se va el texto, se queda la línea. */
-function enBlanco(bloque) {
-  return bloque.replace(/[^\n]/g, ' ');
-}
-
-/**
- * Quita el contenido de los comentarios dejando las líneas en su sitio, para que los números
- * que salen en los mensajes sigan apuntando a la línea real del archivo.
- *
- * No es un lexer, son tres reglas y su coste está declarado:
- *  · `//` abre comentario solo si NO va pegado a `:` o `/` → las URLs `https://...` que la
- *    galería y `src/lib/media.ts` arman en los embed (YouTube/Vimeo/Drive) sobreviven.
- *  · `/* … *\/` (JSDoc y los `{/* … *\/}` de la plantilla Astro) y `<!-- … -->` de HTML se
- *    cierran por su propio delimitador, sin anidar.
- *  · Un `//` dentro de un string de código se perdería con su resto de línea. Medido sobre la
- *    galería única (y sobre las dos históricas contra `a0552b5`): ningún read de un item cae
- *    después de una URL en la misma línea. Y el coste de equivocarse es un gate más flojo en
- *    ESA línea, nunca un falso positivo, que es lo que hay que evitar aquí.
- */
-function sinComentarios(fuente) {
-  return fuente
-    .replace(/\/\*[\s\S]*?\*\//g, enBlanco)
-    .replace(/<!--[\s\S]*?-->/g, enBlanco)
-    .replace(/(?<![:/])\/\/[^\n]*/g, '');
-}
 
 /**
  * Receptores que en ESTAS galerías son un `MediaItem`, medidos en los cuatro

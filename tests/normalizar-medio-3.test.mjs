@@ -34,6 +34,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sinComentarios } from './helpers/sin-comentarios.mjs';
 
 // El mismo `IWAGE_SRC` del barrido de 12a: apunta el gate de plantillas a una COPIA del
 // árbol, única forma de MEDIR los dientes del candado (revertir un call site en /tmp y
@@ -426,18 +427,6 @@ function archivosDeLaRebanada() {
   return [...new Set(lista)].sort();
 }
 
-/** Convierte el bloque de comentario en espacios: se va el texto, se queda la línea. */
-function enBlanco(bloque) {
-  return bloque.replace(/[^\n]/g, ' ');
-}
-
-/** Quita comentarios dejando las líneas en su sitio (los números del rojo siguen sirviendo). */
-function sinComentarios(fuente_) {
-  return fuente_
-    .replace(/\/\*[\s\S]*?\*\//g, enBlanco)
-    .replace(/<!--[\s\S]*?-->/g, enBlanco)
-    .replace(/(?<![:/])\/\/[^\n]*/g, '');
-}
 
 /** Nombres que en una plantilla de esta rebanada SON un medio, no un string cualquiera. */
 const ID_MEDIO = /\b(imagen|imagen_principal|imagen_hero|imagenes|image|foto|foto_perfil|foto_territorio|fotoHost|fotoPanel|portadaRel|heroImg|portada|galeria|galeriaImgs|heroUrl|poster)\b/;

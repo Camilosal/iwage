@@ -41,6 +41,7 @@ import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mediaSrc } from '../src/lib/media.ts';
 import { normalizePropiedad, propiedadImagen, propiedadGaleria } from '../src/lib/tierras.ts';
+import { sinComentarios } from './helpers/sin-comentarios.mjs';
 
 const RAIZ = process.env.IWAGE_SRC
   ? resolve(process.env.IWAGE_SRC)
@@ -49,21 +50,10 @@ const RAIZ = process.env.IWAGE_SRC
 const fuente = (rel) => readFileSync(join(RAIZ, rel), 'utf8');
 
 /**
- * Código sin prosa, conservando los números de línea. Las reglas de contrato de fuente miran
- * esto y no el archivo crudo: los comentarios de `tierras.ts` y de la ficha explican el defecto
- * que ya no está (dicen `mediaSrc()`, `alternativeText`, `.map((img: any) =>`), y una regla que
- * se activa por un comentario no cacha nada — solo miente.
- * (Versión local: `sinComentarios` en `tests/normalizar-medio.test.mjs` está bajo revisión de
- * la 12c y no se importa de ahí.)
+ * Fuente de un archivo, sin comentarios. Las reglas de contrato de fuente miran esto y no
+ * el archivo crudo: los comentarios de `tierras.ts` y de la ficha explican el defecto que ya
+ * no está, y una regla que se activa por un comentario no cacha nada — solo miente.
  */
-const enBlanco = (m) => m.replace(/[^\n]/g, ' ');
-function sinComentarios(src) {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, enBlanco)
-    .replace(/<!--[\s\S]*?-->/g, enBlanco)
-    .replace(/(?<![:/])\/\/[^\n]*/g, enBlanco);
-}
-/** Fuente de un archivo, sin comentarios. */
 const codigo = (rel) => sinComentarios(fuente(rel));
 
 /**

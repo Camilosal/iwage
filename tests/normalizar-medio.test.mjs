@@ -28,6 +28,7 @@ import { mediaSrc } from '../src/lib/media.ts';
 import { normalizarParaPlantilla } from '../src/lib/normalizar-medio.ts';
 import { ogImageDe } from '../src/lib/og-image.ts';
 import { filasParaPlantilla, filasAResumen } from '../src/lib/bitacora-resumen.ts';
+import { sinComentarios } from './helpers/sin-comentarios.mjs';
 
 // Raíz barrable. `IWAGE_SRC` apunta el barrido de plantillas a una COPIA del árbol, que
 // es la única forma de MEDIR los dientes del gate (se demuestra en el informe de la
@@ -271,18 +272,6 @@ function archivosDeBitacora() {
   return [...new Set([...paginas, ...componentes, ...importadores])].sort();
 }
 
-/** Convierte el bloque de comentario en espacios: se va el texto, se queda la línea. */
-function enBlanco(bloque) {
-  return bloque.replace(/[^\n]/g, ' ');
-}
-
-/** Quita comentarios dejando las líneas en su sitio (los números del rojo siguen sirviendo). */
-function sinComentarios(fuente) {
-  return fuente
-    .replace(/\/\*[\s\S]*?\*\//g, enBlanco)
-    .replace(/<!--[\s\S]*?-->/g, enBlanco)
-    .replace(/(?<![:/])\/\/[^\n]*/g, '');
-}
 
 /** Nombres que en una plantilla SON un medio (portada, galería, foto), no un string cualquiera. */
 const ID_MEDIO = /\b(imagen|imagen_principal|imagen_hero|image|foto|foto_territorio|foto_perfil|portada|galeria|poster|hero)\b/;
