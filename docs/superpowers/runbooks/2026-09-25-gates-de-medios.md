@@ -123,11 +123,24 @@ URL pasó a **404**, y el volumen quedó solo con `.gitkeep` (4.0K). Nada de pru
 (`/experiencias` y `/bitacora` dan 404 **porque no existen como rutas**: van bajo `/naturaleza/…`; no
 son regresión de esta puerta.)
 
-**Para G2, dato útil:** el disco raíz está en **97% (7.1 G libres)** y `docker compose build` de
-Strapi cuesta unos 400 MB por capa. Los 48 archivos que sube G3 son **7.3 MB** en total
-(`bitacora` 5.2 M + `galeria` 2.2 M), así que G3 cabe holgado; G2 merece un `df -h /` antes de
-arrancar y, si hace falta, limpieza de imágenes colgantes **decidida por el dueño**, que es quien
-sabe qué otros proyectos las usan.
+**Para G2, dato útil (medido, no supuesto):** el disco raíz va al **97% con 6,9 G libres** y el
+`build` de Strapi cuesta unos 400 MB. **G2 no necesita limpieza previa: hay 17 veces el espacio que
+consume.** Los 48 archivos de G3 son 7,3 MB en total (`bitacora` 5,2 M + `galeria` 2,2 M).
+
+Y la frase que estaba escrita aquí («limpieza de imágenes colgantes si hace falta») era **falsa por
+inútil y peligrosa a la vez**, medida el 2026-09-25 poco después de G1:
+
+```
+docker images -f dangling=true -q | wc -l     → 0     (no hay una sola colgante)
+docker system df  → Images 44,7 GB, RECLAIMABLE 87,52 kB (0%)
+                → Build Cache 17,83 GB, RECLAIMABLE 2,5 GB
+```
+
+La única imagen sin contenedor era `alpine:3` (13,6 MB), la que trajo G1 para leer el volumen. Es
+decir: podar colgantes habría liberado **14 MB** y **habría borrado la reversión de G2 en cuanto
+existe**. Regla, entonces: podar cache sí (`docker builder prune`, 2,5 GB, no rompe nada: solo
+ensombrece la siguiente compilación de alguien); podar imágenes **no**, o gran parte de lo que hoy es
+recuperable se va con ellas.
 
 **Rollback:** quitar el bloque `volumes:` (o restaurar el `.bak-g1-2026-09-25-1630`) y
 `docker compose up -d iwage_strapi`. El volumen queda inofensivo;
@@ -171,8 +184,10 @@ commit va **después** de G3.
   (`latest` es pre-consolidación; HEAD trae `fa240b2`), así que el `pg_dump` de arriba no es
   ceremonia — es la única reversión del `dropColumn` que Strapi hace al arrancar.
 - Disco: 97% usado, **7.1 G libres**, y el build cuesta unos 400 MB dejando `f43819fd` colgante. Medir
-  `df -h /` antes de arrancar; la limpieza de imágenes colgantes la decide el dueño (otros proyectos
-  del mismo store pueden necesitarlas).
+  `df -h /` antes de arrancar (hoy: 6,9 G libres, 17 veces lo que gasta un build de Strapi). **No
+  podar imágenes después de este build**: ver G1, «Para G2, dato útil». Si hace falta espacio, podar
+  cache de compilación (`docker builder prune`, 2,5 GB recuperables), que no deja ningún código
+  irrecuperable.
 
 ```bash
 cd /home/ubuntu/negocio
