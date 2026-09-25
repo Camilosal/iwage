@@ -151,9 +151,10 @@ test('el host interno de Docker sale relativo de sitio en portada Y en galería'
   assert.deepEqual(p.imagenes.map((i) => i.url), [
     '/uploads/propiedad/patio.jpg',
     '/uploads/propiedad/drone.jpg',
-    'https://cdn.tercero.com/embebe.jpg',
   ]);
-  // Un externo verdadero NO se reduce: no es nuestro, no lo sirve nginx.
+  // El externo ajeno NO se reduce: se descarta. `esPintable` en `media.ts` —decisión
+  // «Strapi único dueño, sin hotlinks de imagen»—, y no solo en esta capa.
+  assert.ok(!p.imagenes.some((i) => /cdn\.tercero\.com/.test(i.url)), 'el hotlink llegó a la ficha');
 });
 
 test('la galería de la ficha no repite la portada y el mismo archivo escrito de dos formas sale una vez', () => {

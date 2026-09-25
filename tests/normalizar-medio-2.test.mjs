@@ -328,12 +328,18 @@ test('el dedupe de galería es por host+ruta y NO distingue mayúsculas: Foto.jp
   });
   assert.equal(mixtas.galeria.length, 1, 'las tres formas de la misma pieza no convergen');
 
-  // Dos activos de dos hosts distintos SÍ son dos piezas (no se funden por ruta).
-  const externos = normalizeProducto({
+  // Y una galería MIXTA no se contamina: la pieza propia sobrevive y el hotlink de
+  // stock se descarta en el camino (`esPintable`, `media.ts`). Antes este bloque fijaba
+  // lo contrario —dos externos, dos piezas— y por eso se reemplaza, no se borra: lo que
+  // se prueba ahora es la política aprobada, no un detalle del dedupe.
+  const mixta = normalizeProducto({
     ...PRODUCTO_BASE,
-    galeria: [{ url: 'https://cdn-a.com/i.jpg' }, { url: 'https://cdn-b.com/i.jpg' }],
+    galeria: [
+      { url: 'https://images.unsplash.com/photo-1470071459604?w=800' },
+      '/uploads/producto/real.jpg',
+    ],
   });
-  assert.equal(externos.galeria.length, 2, 'dos externos distintos fundidos en uno');
+  assert.deepEqual(mixta.galeria.map((g) => g.url), ['/uploads/producto/real.jpg']);
 });
 
 test('las 18 plantillas de la capa compilan con el compiler de Astro', async () => {

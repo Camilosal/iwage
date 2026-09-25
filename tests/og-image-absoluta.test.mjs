@@ -58,10 +58,18 @@ test('una imagen que llega con el host interno de Docker nunca sale al metadato'
   );
 });
 
-test('un externo ajeno se respeta tal cual', () => {
+test('un externo ajeno no se anuncia como og:image del sitio', () => {
+  // `esPintable` (media.ts) descarta la imagen de un tercero; acá eso se ve como la
+  // degradación diseñada: el hero de la marca, que es un activo versionado en public/ y
+  // siempre existe. Anunciar el hotlink de otro como la imagen de nuestra página era el
+  // camino por el que Unsplash llegaba a Facebook.
   assert.equal(
     ogImageDe({ brand: 'tierras', imagen: 'https://cdn.tercero.com/a.jpg' }),
-    'https://cdn.tercero.com/a.jpg'
+    'https://iwage.co/images/hero-tierras.webp'
+  );
+  assert.equal(
+    ogImageDe({ brand: 'naturaleza', imagen: { url: 'https://images.unsplash.com/photo-1470071459604?w=800' } }),
+    'https://iwage.co/images/hero-naturaleza.webp'
   );
 });
 

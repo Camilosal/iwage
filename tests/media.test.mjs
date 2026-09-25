@@ -14,11 +14,23 @@ test('mediaSrc: el host del sitio también se reduce a ruta relativa', () => {
   assert.equal(mediaSrc('https://iwage.co/uploads/x.webp'), '/uploads/x.webp');
 });
 
-test('mediaSrc: un externo real se queda intacto', () => {
+/**
+ * Política del contrato, cambiada acá y fijada por este teste: la imagen de un tercero
+ * NO se pinta. Medido en la BD de Strapi: 12 filas con `images.unsplash.com` repartidas
+ * en 7 columnas, dos de ellas como retrato de un anfitrión real con nombre y apellido.
+ * Decisión aprobada: «Strapi único dueño, sin hotlinks de imagen».
+ *
+ * Dientes: el mismo teste exige que lo externo que SÍ es contenido legítimo (el video de
+ * YouTube del censo y un recorrido 360) pase intacto. No se pasan suprimiendo todo lo absoluto.
+ */
+test('mediaSrc: el hotlink de stock no se pinta; el embed conocido sí', () => {
+  assert.equal(mediaSrc('https://images.unsplash.com/photo-1470071459604?w=800'), null);
+  assert.equal(mediaSrc({ url: 'https://images.unsplash.com/photo-1506794778202?w=300' }), null);
   assert.equal(
-    mediaSrc('https://images.unsplash.com/photo-1470071459604?w=800'),
-    'https://images.unsplash.com/photo-1470071459604?w=800'
+    mediaSrc('https://www.youtube.com/watch?v=Vv1b4Vvq0fM'),
+    'https://www.youtube.com/watch?v=Vv1b4Vvq0fM',
   );
+  assert.equal(mediaSrc('https://momento360.com/e/u/abc123'), 'https://momento360.com/e/u/abc123');
 });
 
 test('mediaSrc: acepta objeto media de Strapi y cadena vacía', () => {
@@ -33,9 +45,14 @@ test('mediaSrc: el host de STRAPI_URL también es este sitio', () => {
   process.env.STRAPI_URL = 'http://127.0.0.1:1337';
   try {
     assert.equal(mediaSrc('http://127.0.0.1:1337/uploads/x.webp'), '/uploads/x.webp');
-    // La comparación es por hostname: otro host del mismo puerto sigue siendo externo.
-    assert.equal(mediaSrc('http://localhost:1337/uploads/x.webp'), 'http://localhost:1337/uploads/x.webp');
-    assert.equal(mediaSrc('https://cdn-a.com/i.jpg'), 'https://cdn-a.com/i.jpg');
+    // El mismo equipo dicho de otra manera. Desde `esPintable` esto dejó de ser cosmético:
+    // no reconocer `localhost` cuando el `.env` dice `127.0.0.1` borra TODAS las imágenes
+    // del entorno local.
+    assert.equal(mediaSrc('http://localhost:1337/uploads/x.webp'), '/uploads/x.webp');
+    // La comparación sigue siendo por hostname, no por puerto: otro host en el mismo
+    // puerto no es este equipo, y además ya no se pinta.
+    assert.equal(mediaSrc('http://host.docker.internal:1337/uploads/x.webp'), null);
+    assert.equal(mediaSrc('https://cdn-a.com/i.jpg'), null);
   } finally {
     if (antes === undefined) delete process.env.STRAPI_URL;
     else process.env.STRAPI_URL = antes;
@@ -122,12 +139,15 @@ test('toMediaList: la clave de dedupe no distingue mayúsculas', () => {
   assert.equal(list[0].url, '/uploads/X.webp');
 });
 
-test('toMediaList: dos externos que comparten ruta son piezas distintas', () => {
-  const list = toMediaList(['https://cdn-a.com/i.jpg', 'https://cdn-b.com/i.jpg']);
+test('toMediaList: la clave es host + ruta, no solo ruta', () => {
+  // Dos piezas distintas que casualmente comparten ruta NO son un duplicado. Escrito con
+  // proveedores de recorrido (pintables): con hotlinks de imagen este teste sería vacío,
+  // porque `esPintable` los tira antes de llegar al dedupe.
+  const list = toMediaList(['https://momento360.com/tour', 'https://matterport.com/tour']);
   assert.equal(list.length, 2);
-  assert.deepEqual(list.map((m) => m.url), ['https://cdn-a.com/i.jpg', 'https://cdn-b.com/i.jpg']);
-  // La misma URL externa escrita dos veces sí deduplica.
-  assert.equal(toMediaList(['https://cdn-a.com/i.jpg', 'https://cdn-a.com/i.jpg?utm=1']).length, 1);
+  assert.deepEqual(list.map((m) => m.url), ['https://momento360.com/tour', 'https://matterport.com/tour']);
+  // La misma pieza escrita con query distinto sí deduplica: la clave ignora la consulta.
+  assert.equal(toMediaList(['https://momento360.com/tour', 'https://momento360.com/tour?utm=1']).length, 1);
 });
 
 test('toMediaList: conserva la metadata más rica del duplicado', () => {

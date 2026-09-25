@@ -50,9 +50,15 @@ function safeUrl(raw: string): URL | null {
   try { return new URL(raw); } catch { return null; }
 }
 
+/** Nombres con los que existe este mismo equipo. Un loopback nunca es un tercero. */
+const LOOPBACK = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]', '::1']);
+
 /** Hosts que en realidad son este mismo sitio dicho de otra manera. */
 function isSelfHost(host: string): boolean {
   if (host === 'iwage.co' || host === 'www.iwage.co' || host === 'iwage_strapi' || host === 'strapi_backend') return true;
+  // Importa por `esPintable`: si STRAPI_URL dice `127.0.0.1` y los uploads dicen `localhost`
+  // —pase en cualquier dev— no reconocerlo borra TODAS las imágenes locales.
+  if (LOOPBACK.has(host)) return true;
   const strapi = safeUrl(process.env.STRAPI_URL || '');
   return !!strapi && strapi.hostname === host;
 }
@@ -86,9 +92,38 @@ const TIPO_VIEJO: Record<string, MediaKind> = {
   imagen: 'imagen', image: 'imagen', video: 'video', '360': 'tour360', tour360: 'tour360', tour: 'tour360',
 };
 
+/** Hosts de terceros que SÍ son contenido legítimo del sitio (video y recorridos). */
+const HOST_EMBED = /(youtu\.?be|vimeo|drive\.google|matterport|kuula|360|pano|tourmkr)/i;
+
+/**
+ * ¿Esta URL se puede pintar? Se puede cuando es nuestra (relativa o alguna de las
+ * maneras de decir este sitio) o cuando es un proveedor de video/recorrido conocido.
+ *
+ * Lo que NO pasa: el hotlink de imagen de un tercero. Medido en la BD de Strapi hay
+ * **12 filas con `images.unsplash.com`** repartidas en 7 columnas
+ * (`anfitriones.foto_perfil_url|foto_territorio|video_thumbnail|galeria_fotos`,
+ * `experiencias.imagen_hero_url|galeria_urls|mapa_imagen_url`); dos de ellas son el
+ * retrato de stock de un anfitrión con nombre y apellido reales, presentado como su
+ * cara. Y no solo mienten: el archivo está fuera del control del dueño del contenido,
+ * así que un día deja de servir. La decisión aprobada fue «Strapi único dueño, sin
+ * hotlinks de imagen», y el retiro de esas 12 filas es el Task 14 (`--apply`).
+ *
+ * El filtro va en el reductor y no solo en `toMediaItem` porque hay superficies que
+ * llaman a `mediaSrc()` directamente (`naturaleza` con `foto_territorio`, `cafe.ts`,
+ * `heroes.ts`): puesta la regla aquí, no existe forma de pintarlas por descuido.
+ */
+export function esPintable(input: unknown): boolean {
+  const raw = rawOf(input);
+  if (!raw) return false;
+  const u = safeUrl(raw);
+  if (!u) return true; // relativa de sitio: `/uploads/...` o `/images/...`
+  return isSelfHost(u.hostname) || HOST_EMBED.test(u.hostname);
+}
+
 export function mediaSrc(input: unknown): string | null {
   const raw = rawOf(input);
   if (!raw) return null;
+  if (!esPintable(raw)) return null;
   const u = safeUrl(raw);
   if (u && isSelfHost(u.hostname)) return u.pathname;
   return raw;
@@ -103,7 +138,10 @@ export function absUrl(src: string | null | undefined): string | null {
 export function toMediaItem(input: unknown): MediaItem | null {
   const raw = rawOf(input);
   if (!raw) return null;
-  const url = mediaSrc(raw)!;
+  const url = mediaSrc(raw);
+  // Sin `!`: `mediaSrc` ya devolvió null para lo que no es pintable (ver `esPintable`), y
+  // este es el camino por el que un hotlink de stock deja de ser un `MediaItem`.
+  if (!url) return null;
   const clas = classify(url);
 
   let kind = clas.kind;

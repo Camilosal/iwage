@@ -8,11 +8,12 @@ type Marca = (typeof MARCAS)[number];
  * El chrome de marca (hero-*.webp) es un activo de diseño versionado en public/,
  * no un contenido de Strapi: cambian con el CSS y despliegan con él.
  *
- * `imagen` es lo que la página recibió de Strapi, en cualquiera de sus tres formas
- * históricas (ruta relativa, absoluta propia, o con el host interno de Docker), más
- * los externos reales. `mediaSrc()` reduce lo propio a ruta de sitio y deja intacto
- * lo ajeno; `absUrl()` le pone el origen. Ninguna de las dos deja salir un host
- * interno, y ninguna ruta pelada sobrevive el par.
+ * `imagen` es lo que la página recibió de Strapi, en cualquiera de sus formas históricas
+ * (ruta relativa, absoluta propia, o con el host interno de Docker). `mediaSrc()` reduce
+ * lo propio a ruta de sitio y DESCARTA lo que no es nuestro ni proveedor de video/360
+ * conocido (`esPintable`): un hotlink de stock no puede anunciarse como la imagen de
+ * nuestra página en Facebook. `absUrl()` le pone el origen al resto. Ninguna de las dos
+ * deja salir un host interno, y ninguna ruta pelada sobrevive el par.
  *
  * El parámetro es `unknown`, no `string | null`, por una razón medida: desde la Task 12
  * `EntradaBitacora.imagen` es un `MediaItem`, y esta es la única frontera donde ese

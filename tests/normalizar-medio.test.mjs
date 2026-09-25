@@ -419,10 +419,14 @@ test('una portada absoluta de Strapi no llega con el host interno al <img> de la
   assert.equal(imagen.url, '/uploads/bitacora/la-caja.webp');
   // Idempotencia: resolver un MediaItem que ya viene reducido no lo rompe ni lo absolutea.
   assert.equal(mediaSrc(imagen), '/uploads/bitacora/la-caja.webp');
-  // Y un externo verdadero se queda intacto (no es nuestro, no lo sirve nginx).
+  // Y un externo ajeno NO se pinta: `esPintable` lo descarta (imagen de un tercero fuera
+  // del control del dueño del contenido). Un video o recorrido de un proveedor conocido
+  // sí sigue saliendo intacto — sin este par, el teste se pasaría suprimiendo todo lo
+  // absoluto y nadie se enteraría.
+  assert.equal(mediaSrc({ url: 'https://cdn.tercero.com/a.jpg', kind: 'imagen', provider: 'otro' }), null);
   assert.equal(
-    mediaSrc({ url: 'https://cdn.tercero.com/a.jpg', kind: 'imagen', provider: 'otro' }),
-    'https://cdn.tercero.com/a.jpg',
+    mediaSrc('https://www.youtube.com/watch?v=Vv1b4Vvq0fM'),
+    'https://www.youtube.com/watch?v=Vv1b4Vvq0fM',
   );
   const fuente = readFileSync(join(RAIZ, 'src/components/BitacoraCard.astro'), 'utf8');
   assert.match(
