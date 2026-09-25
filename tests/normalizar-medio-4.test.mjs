@@ -372,3 +372,64 @@ test('los cinco perfiles declaran `imagen: null` y la tarjeta cae al mosaico Ico
   // El slot del <img> sigue condicionado a que haya foto: sin foto no se emite <img>.
   assert.match(src, /perfil\.ext\.imagen\s*\?/, 'el <img> del perfil se emite sin foto (404 garantizado)');
 });
+
+// ── 5. El JSX reestructurado compila, sin correr `astro build` (la dist/ es compartida) ─
+
+/**
+ * Las tres tarjetas pasaron de `map((prop) => (<…>))` a `map((prop) => { const img = …; return (<…>); })`
+ * para resolver la portada UNA vez por tarjeta. Un `);` olvidado es un error de sintaxis que
+ * `astro build` cacharía — y el build no se puede correr en el árbol compartido. Este teste es
+ * el reemplazo: el MISMO compilador de plantillas (`@astrojs/compiler-rs`, dependencia de Astro)
+ * + el parser de `esbuild` (dependencia de Vite), en memoria, sin escribir `dist/`.
+ */
+test('las plantillas de tierras que toqué transforman a JS y ese JS parsea (astro transform + esbuild)', async (t) => {
+  const { createRequire } = await import('node:module');
+  const require = createRequire(join(RAIZ, 'noop.cjs'));
+  let transform;
+  let esbuild;
+  try {
+    ({ transform } = require('@astrojs/compiler-rs'));
+    esbuild = require('esbuild');
+  } catch {
+    t.skip('sin @astrojs/compiler-rs o esbuild en node_modules (el gate necesita el compilador)');
+    return;
+  }
+
+  const casos = [
+    ['src/pages/tierras/index.astro', ['propiedadImagen(prop)', 'img.alt || prop.titulo', 'img.url']],
+    ['src/pages/tierras/perfiles/[perfil].astro', ['propiedadImagen(prop)', 'img.alt || prop.titulo']],
+    ['src/pages/tierras/propiedades/[slug].astro', ['propiedadGaleria(prop)']],
+    ['src/components/tierras/PropertyCard.astro', ['propiedadImagen(prop)', 'img.alt || prop.titulo']],
+    ['src/components/tierras/VAPEvidenceGallery.astro', ['toMediaItem(']],
+  ];
+
+  const transformar = async (rel, src) => {
+    const r = await transform(src, { filename: rel });
+    const code = r?.code ?? '';
+    assert.ok(code.length > 0, `${rel}: el transform de Astro no devolvió código (template mal balanceado)`);
+    assert.doesNotThrow(
+      () => esbuild.transformSync(code, { loader: 'js' }),
+      `${rel}: el JS generado por Astro no parsea — el template quedó roto`,
+    );
+    return code;
+  };
+
+  for (const [rel, esperadas] of casos) {
+    const code = await transformar(rel, fuente(rel));
+    for (const expr of esperadas) {
+      assert.ok(code.includes(expr), `${rel}: la expresión \`${expr}\` no llegó al código generado`);
+    }
+  }
+
+  // Dientes del gate: el mismo `index.astro` con el `);` que cierra el `return (` del map borrado
+  // tiene que morir acá (ese es exactamente el error que el restructure podía dejar).
+  const crudo = fuente('src/pages/tierras/index.astro');
+  const mutado = crudo.replace(/\n\s*\);\n\s*\}\)\}/, '\n        })}');
+  assert.notEqual(mutado, crudo, 'el control de dientes no encontró el patrón: este gate no está midiendo nada');
+  await assert.rejects(
+    (async () => {
+      await transformar('src/pages/tierras/index.astro (mutado)', mutado);
+    })(),
+    'el gate no cachó un `return (` sin cerrar',
+  );
+});
