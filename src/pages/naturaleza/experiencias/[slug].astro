@@ -8,6 +8,7 @@ import { getBrand } from '@/config/brands';
 import BookingWidget from '@/components/reservas/BookingWidget';
 import ComplementosSection from '@/components/shared/ComplementosSection.astro';
 import MediaGallery from '@/components/shared/MediaGallery.astro';
+import { proveedorSlug } from '@/lib/cafe';
 
 const { slug } = Astro.params;
 const exp = await getExperienciaBySlug(slug!);
@@ -665,7 +666,7 @@ const jsonLd = {
               ))}
               {/* Café suppliers */}
               {exp.proveedores?.map((prov) => (
-                <a href={`/cafe/proveedores#${prov.slug}`} class="eco-card block p-4 rounded-xl bg-white border border-gray-100 hover:border-[#6F4E37]/30 hover:shadow-md transition-all">
+                <a href={`/cafe/proveedores#${proveedorSlug(prov)}`} class="eco-card block p-4 rounded-xl bg-white border border-gray-100 hover:border-[#6F4E37]/30 hover:shadow-md transition-all">
                   <div class="flex items-center gap-2 mb-2">
                     <span class="text-lg"><Icon name="coffee" class="w-5 h-5 text-[#6F4E37]" /></span>
                     <span class="text-[9px] font-bold uppercase tracking-wider text-[#6F4E37] bg-[#6F4E37]/5 px-2 py-0.5 rounded-full">Proveedor · Café</span>

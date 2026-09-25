@@ -4,7 +4,7 @@ import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getHistoriasVisitantes, historiaImagen, type HistoriaVisitante } from '@/lib/cafe';
+import { getHistoriasVisitantes, historiaImagen, historiaSlug, type HistoriaVisitante } from '@/lib/cafe';
 import Hero from '@/components/Hero.astro';
 import { getHeroBySlug } from '@/lib/heroes';
 
@@ -91,13 +91,14 @@ const FALLBACK: Record<string, { titulo: string; icono: string; texto_corto: str
 function getHistorias(categoria: 'fauna' | 'flora' | 'personas') {
   const cms = historias.filter(h => h.categoria === categoria);
   if (cms.length > 0) return cms.map(h => ({
+    slug: h.slug,
     titulo: h.titulo,
     icono: h.icono || defaultIcon(categoria),
     texto_corto: h.texto_corto,
     texto_largo: h.texto_largo,
     imagen: historiaImagen(h),
   }));
-  return FALLBACK[categoria];
+  return FALLBACK[categoria].map((f) => ({ ...f, slug: null }));
 }
 
 function defaultIcon(cat: string): string {
@@ -147,7 +148,7 @@ const personasHistorias = getHistorias('personas');
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
       {faunaHistorias.map((h, i) => (
         <ScrollReveal delay={i * 100}>
-          <article class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all h-full flex flex-col">
+          <article id={historiaSlug(h)} class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all scroll-mt-24 h-full flex flex-col">
             {h.imagen ? (
               <img src={h.imagen} alt={h.titulo} class="w-full h-44 object-cover" loading="lazy" />
             ) : (
@@ -183,7 +184,7 @@ const personasHistorias = getHistorias('personas');
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
       {floraHistorias.map((h, i) => (
         <ScrollReveal delay={i * 100}>
-          <article class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all h-full flex flex-col">
+          <article id={historiaSlug(h)} class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all scroll-mt-24 h-full flex flex-col">
             {h.imagen ? (
               <img src={h.imagen} alt={h.titulo} class="w-full h-44 object-cover" loading="lazy" />
             ) : (
@@ -219,7 +220,7 @@ const personasHistorias = getHistorias('personas');
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
       {personasHistorias.map((h, i) => (
         <ScrollReveal delay={i * 100}>
-          <article class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all h-full flex flex-col">
+          <article id={historiaSlug(h)} class="bg-surface-raised rounded-2xl border border-border overflow-hidden hover:border-brand/30 transition-all scroll-mt-24 h-full flex flex-col">
             {h.imagen ? (
               <img src={h.imagen} alt={h.titulo} class="w-full h-44 object-cover" loading="lazy" />
             ) : (

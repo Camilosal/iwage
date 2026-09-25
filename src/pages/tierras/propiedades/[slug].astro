@@ -11,6 +11,7 @@ import MediaGallery from '@/components/shared/MediaGallery.astro';
 import AgendarVisita from '@/components/tierras/AgendarVisita.astro';
 import { getPropiedadBySlug, getAllPropiedadSlugs, formatPrecio, formatArea, propiedadGaleria, SELLOS_VAP } from '@/lib/tierras';
 import { getBrand } from '@/config/brands';
+import { proveedorSlug } from '@/lib/cafe';
 
 const { slug } = Astro.params;
 const prop = await getPropiedadBySlug(slug!);
@@ -239,7 +240,7 @@ const placeJsonLd = (prop.ubicacion_latitud && prop.ubicacion_longitud) ? {
                   <h3 class="text-xs font-bold uppercase text-gray-400 mb-3"><Icon name="coffee" class="w-3.5 h-3.5 inline" /> Proveedor{prop.proveedores.length > 1 ? 'es' : ''} de Café</h3>
                   <div class="grid sm:grid-cols-2 gap-3">
                     {prop.proveedores.map((prov) => (
-                      <a href={`/cafe/proveedores#${prov.slug}`} class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#6D4C41]/30 hover:shadow-md transition-all">
+                      <a href={`/cafe/proveedores#${proveedorSlug(prov)}`} class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#6D4C41]/30 hover:shadow-md transition-all">
                         <div class="w-10 h-10 rounded-lg bg-[#6D4C41]/10 flex items-center justify-center shrink-0"><Icon name="coffee" class="w-5 h-5 text-[#6D4C41]" /></div>
                         <div class="flex-1 min-w-0">
                           <h4 class="text-sm font-bold text-[#6D4C41] group-hover:text-[#52B788] transition-colors truncate">{prov.nombre}</h4>

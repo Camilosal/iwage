@@ -13,6 +13,7 @@ import {
 } from '@/lib/gestion';
 import { absUrl } from '@/lib/media';
 import { getBrand } from '@/config/brands';
+import { proveedorSlug } from '@/lib/cafe';
 
 export const prerender = false;
 
@@ -373,7 +374,7 @@ const lodgingJsonLd = {
                   <h3 class="text-xs font-bold uppercase text-gray-400 mb-3 inline-flex items-center gap-1"><Icon name="coffee" class="w-3.5 h-3.5" /> Proveedor{prop.proveedores.length > 1 ? 'es' : ''} de Café</h3>
                   <div class="grid sm:grid-cols-2 gap-3">
                     {prop.proveedores.map((prov) => (
-                      <a href={`/cafe/proveedores#${prov.slug}`} class="group flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-[#6D4C41]/30 hover:shadow-lg transition-all">
+                      <a href={`/cafe/proveedores#${proveedorSlug(prov)}`} class="group flex items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-[#6D4C41]/30 hover:shadow-lg transition-all">
                         <Icon name="coffee" class="w-5 h-5 shrink-0 text-[#6D4C41]" />
                         <div class="flex-1 min-w-0">
                           <h4 class="text-sm font-bold text-[#6D4C41] group-hover:text-[#52B788] transition-colors truncate">{prov.nombre}</h4>

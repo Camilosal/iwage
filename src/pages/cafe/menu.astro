@@ -3,7 +3,7 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getMenuItems, getCafeConfig, CATEGORIAS_MENU, itemImage } from '@/lib/cafe';
+import { getMenuItems, getCafeConfig, CATEGORIAS_MENU, itemImage, slugify } from '@/lib/cafe';
 import type { ItemMenu } from '@/lib/cafe';
 import { icons } from 'lucide';
 import Hero from '@/components/Hero.astro';
@@ -24,7 +24,6 @@ const whatsapp = (cafeConfig?.whatsapp ?? '573026693366').replace(/\+/g, '');
 const whatsappMsg = encodeURIComponent('¡Hola Iwagé! Quiero hacer un pedido en el café.');
 
 // ── Helpers de variaciones ──
-const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const parsePrecio = (p: string | null) => parseInt(String(p || '0').replace(/[^0-9]/g, ''), 10) || 0;
 const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
 

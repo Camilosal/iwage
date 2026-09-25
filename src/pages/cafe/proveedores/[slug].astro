@@ -3,18 +3,13 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Section from '@/components/Section.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getProveedores, proveedorFoto, proveedorIcono } from '@/lib/cafe';
+import { getProveedores, proveedorFoto, proveedorIcono, proveedorSlug } from '@/lib/cafe';
 
 const proveedores = await getProveedores();
 
-
 // Resolve slug from URL
 const { slug } = Astro.params;
-const proveedor = proveedores.find(p => (p.slug || slugify(p.nombre)) === slug);
-
-function slugify(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
+const proveedor = proveedores.find((p) => proveedorSlug(p) === slug);
 
 if (!proveedor) {
   return Astro.redirect('/cafe/proveedores');
@@ -337,7 +332,7 @@ const gestionLabel: Record<string, string> = {
           {otrosProveedores.map(op => {
             const opFoto = proveedorFoto(op);
             const opIcono = proveedorIcono(op);
-            const opSlug = op.slug || slugify(op.nombre);
+            const opSlug = proveedorSlug(op);
             return (
               <a href={`/cafe/proveedores/${opSlug}`} class="group bg-surface-raised rounded-xl border border-border p-4 text-center hover:border-brand/40 hover:shadow-md transition-all">
                 {opFoto ? (

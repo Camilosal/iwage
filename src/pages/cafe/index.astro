@@ -5,7 +5,7 @@ import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getCafeConfig, getProveedores, CATEGORIAS_MENU, getMenuItems, proveedorFoto, proveedorIcono, getHistoriasVisitantes, historiaImagen, type HistoriaVisitante } from '@/lib/cafe';
+import { getCafeConfig, getProveedores, CATEGORIAS_MENU, getMenuItems, proveedorFoto, proveedorIcono, proveedorSlug, getHistoriasVisitantes, historiaImagen, historiaSlug, type HistoriaVisitante } from '@/lib/cafe';
 import { getHeroBySlug } from '@/lib/heroes';
 import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
 
@@ -46,16 +46,15 @@ const fallbackProveedores = proveedores.length > 0 ? proveedores.slice(0, 4) : [
   { nombre: 'Cacao El Espinal', slug: 'cacao-el-espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, historia: 'La excepción a nuestra regla de 4 km. Cacao fino de aroma del valle del Magdalena, fermentado 5 días.', foto: { url: '/images/cafe-menu/proveedor-cacao-espinal.webp' } },
 ];
 
-function slugify(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-
 // Historias para la sección del home: mostramos 4 destacadas, con link "Ver todas" si hay más.
+// `slug: null` a propósito: con `slug` vacío en las 9 filas de la BD, la ancla se deriva del
+// título, y la página de destino deriva del mismo título. Un slug inventado aquí produciría una
+// ancla que nadie emite y el deep link moriría sin error.
 const FALLBACK_HISTORIAS_HOME: HistoriaVisitante[] = [
-  { id: 1, documentId: 'fb-h1', titulo: 'El colibrí de garganta azul', slug: 'colibri-garganta-azul', categoria: 'fauna', texto_corto: 'Aparece cada mañana a las 6:40. Primero al limoncillo de la entrada, luego al guamo del costado.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-colibri.webp' }, icono: 'bird', orden: 1, destacado: true },
-  { id: 2, documentId: 'fb-h2', titulo: 'Las angelitas del techo', slug: 'angelitas-techo', categoria: 'fauna', texto_corto: 'Una colonia de Tetragonisca angustula se instaló en el alero del café hace dos años. Producen la miel del signature.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-angelitas.webp' }, icono: 'bug', orden: 2, destacado: true },
-  { id: 3, documentId: 'fb-h3', titulo: 'El guamo centinela', slug: 'guamo-centinela', categoria: 'flora', texto_corto: 'Tiene más de 40 años. Da sombra a la mitad del jardín y flores dulces de diciembre a marzo.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-guamo.webp' }, icono: 'tree-pine', orden: 3, destacado: true },
-  { id: 4, documentId: 'fb-h4', titulo: 'Doña Nelly y la receta del pandebono', slug: 'dona-nelly', categoria: 'personas', texto_corto: 'Llegó un martes de mercado. Probó el pan de yuca y dijo: "así no se hace, pero está rico".', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-dona-nelly.webp' }, icono: 'heart-handshake', orden: 4, destacado: true },
+  { id: 1, documentId: 'fb-h1', titulo: 'El colibrí de garganta azul', slug: null, categoria: 'fauna', texto_corto: 'Aparece cada mañana a las 6:40. Primero al limoncillo de la entrada, luego al guamo del costado.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-colibri.webp' }, icono: 'bird', orden: 1, destacado: true },
+  { id: 2, documentId: 'fb-h2', titulo: 'Las angelitas del techo', slug: null, categoria: 'fauna', texto_corto: 'Una colonia de Tetragonisca angustula se instaló en el alero del café hace dos años. Producen la miel del signature.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-angelitas.webp' }, icono: 'bug', orden: 2, destacado: true },
+  { id: 3, documentId: 'fb-h3', titulo: 'El guamo centinela', slug: null, categoria: 'flora', texto_corto: 'Tiene más de 40 años. Da sombra a la mitad del jardín y flores dulces de diciembre a marzo.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-guamo.webp' }, icono: 'tree-pine', orden: 3, destacado: true },
+  { id: 4, documentId: 'fb-h4', titulo: 'Doña Nelly y la receta del pandebono', slug: null, categoria: 'personas', texto_corto: 'Llegó un martes de mercado. Probó el pan de yuca y dijo: "así no se hace, pero está rico".', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-dona-nelly.webp' }, icono: 'heart-handshake', orden: 4, destacado: true },
 ];
 
 const historiasPool = historias.length > 0 ? historias : FALLBACK_HISTORIAS_HOME;
@@ -205,7 +204,7 @@ const whatsapp = config?.whatsapp ?? '573026693366';
       {fallbackProveedores.map((p, i) => {
         const foto = proveedorFoto(p as any);
         const icono = proveedorIcono(p);
-        const provSlug = (p as any).slug || slugify(p.nombre);
+        const provSlug = proveedorSlug(p);
         return (
           <ScrollReveal delay={i * 80}>
             <a
@@ -267,7 +266,7 @@ const whatsapp = config?.whatsapp ?? '573026693366';
         return (
           <ScrollReveal delay={i * 80}>
             <a
-              href={`/cafe/visitantes#${h.slug || h.documentId}`}
+              href={`/cafe/visitantes#${historiaSlug(h)}`}
               class="group block bg-surface-raised rounded-2xl border border-border overflow-hidden h-full flex flex-col transition-all hover:border-brand/40 hover:shadow-md"
             >
               {img ? (

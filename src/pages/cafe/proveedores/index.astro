@@ -4,16 +4,11 @@ import Section from '@/components/Section.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getProveedores, proveedorFoto, proveedorIcono } from '@/lib/cafe';
+import { getProveedores, proveedorFoto, proveedorIcono, proveedorSlug } from '@/lib/cafe';
 import Hero from '@/components/Hero.astro';
 import { getHeroBySlug } from '@/lib/heroes';
 
 const proveedores = await getProveedores();
-
-
-function slugify(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
 
 const hero = await getHeroBySlug('/cafe/proveedores');
 ---
@@ -56,7 +51,7 @@ const hero = await getHeroBySlug('/cafe/proveedores');
       {proveedores.map((p, i) => {
         const foto = proveedorFoto(p);
         const icono = proveedorIcono(p);
-        const provSlug = p.slug || slugify(p.nombre);
+        const provSlug = proveedorSlug(p);
         const anfitriones = p.anfitriones ?? [];
         const experiencias = p.experiencias ?? [];
         const esAnfitrion = p.es_anfitrion || anfitriones.length > 0;
@@ -65,7 +60,8 @@ const hero = await getHeroBySlug('/cafe/proveedores');
           <ScrollReveal delay={i * 80}>
             <a
               href={`/cafe/proveedores/${provSlug}`}
-              class="group block bg-surface-raised rounded-2xl border border-border overflow-hidden h-full flex flex-col transition-all hover:border-brand/40 hover:shadow-md"
+              id={provSlug}
+              class="group block bg-surface-raised rounded-2xl border border-border overflow-hidden h-full flex flex-col transition-all scroll-mt-24 hover:border-brand/40 hover:shadow-md"
             >
               {/* Imagen header */}
               <div class="relative w-full h-40 overflow-hidden">

@@ -290,3 +290,30 @@ export function proveedorIcono(p: { producto?: string | null; nombre?: string })
   if (txt.includes('hierba') || txt.includes('planta') || txt.includes('infus')) return 'leaf';
   return 'sprout';
 }
+
+/**
+ * Identidad de URL. Estaba copiada en cuatro páginas (`cafe/index`, `cafe/menu`,
+ * `cafe/proveedores/index`, `cafe/proveedores/[slug]`) y la de `menu.astro` no plegaba
+ * acentos: `Café Doble` habría dado `caf-doble` donde las demás dan `cafe-doble`. No se
+ * notaba porque los 17 `item_menus` traen `slug` lleno, pero la rama de reserva existía.
+ * Un solo cuerpo cierra el asunto: anclas y rutas `[slug]` tienen que producir la MISMA
+ * cadena en las dos puntas del enlace.
+ */
+export function slugify(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+/** `slug` es nullable en Strapi y está vacío en 0 de 4 proveedores: el nombre es la identidad. */
+export function proveedorSlug(p: { slug?: string | null; nombre?: string | null }): string {
+  return p.slug || slugify(p.nombre ?? '');
+}
+
+/** Igual con las historias: 0 de 9 documentos tienen `slug`, y los 9 títulos son distintos. */
+export function historiaSlug(h: { slug?: string | null; titulo?: string | null }): string {
+  return h.slug || slugify(h.titulo ?? '');
+}
