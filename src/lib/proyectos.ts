@@ -4,8 +4,9 @@
  * Strapi es el único dueño de los proyectos: si no responde o no tiene filas,
  * las consultas devuelven [] y la tarjeta pinta el mosaico Icon. Nunca un seed.
  */
-import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc, toMediaList, type MediaItem } from './media.ts';
+import { strapiFetch, CACHE_TTL } from './strapi.ts';
+import { type MediaItem } from './media.ts';
+import { normalizarParaPlantilla } from './normalizar-medio.ts';
 
 // ── Types ──────────────────────────────────────────────
 export type TipoProyecto = 'finca' | 'empresa' | 'club' | 'cultivo' | 'turismo' | 'residencial' | 'institucional';
@@ -27,7 +28,7 @@ export interface ProyectoMeliponario {
   slug: string;
   descripcion: string | null;
   descripcion_corta: string | null;
-  imagen: string | null;
+  imagen: MediaItem | null;
   galeria: MediaItem[] | null;
 
   // Clasificación
@@ -127,8 +128,11 @@ export const SALUD_LABELS: Record<SaludColonias, { label: string; color: string 
 };
 
 // ── Normalizer ─────────────────────────────────────────
-function normalizeProyecto(raw: any): ProyectoMeliponario {
-  const galeria = Array.isArray(raw.galeria) ? toMediaList(raw.galeria) : null;
+export function normalizeProyecto(raw: any): ProyectoMeliponario {
+  // El adaptador de 12a es el único punto donde una portada cruda (string de la BD vieja,
+  // objeto media de Strapi o MediaItem ya normalizado) converge. Sin fallback a la galería:
+  // `imagen` es la portada que eligió el editor, y nada más.
+  const { imagen, galeria } = normalizarParaPlantilla(raw);
 
   return {
     id: raw.id,
@@ -137,7 +141,7 @@ function normalizeProyecto(raw: any): ProyectoMeliponario {
     slug: raw.slug,
     descripcion: raw.descripcion ?? null,
     descripcion_corta: raw.descripcion_corta ?? null,
-    imagen: raw.imagen ? mediaSrc(raw.imagen) : (galeria?.[0]?.url ?? null),
+    imagen,
     galeria,
     tipo: raw.tipo,
     estado: raw.estado ?? 'en-proceso',
@@ -201,6 +205,7 @@ export async function getProyectos(opts?: {
       ttl: CACHE_TTL.list,
       filters: Object.keys(filters).length > 0 ? filters : undefined,
       sort: ['orden:asc', 'nombre:asc'],
+      populate: ['imagen', 'galeria'],
       pagination: { pageSize: 100 },
     });
 
@@ -219,6 +224,7 @@ export async function getProyectoBySlug(slug: string): Promise<ProyectoMeliponar
       ttl: CACHE_TTL.single,
       filters: { slug: { $eq: slug } },
       pagination: { pageSize: 1 },
+      populate: ['imagen', 'galeria'],
     });
 
     const first = res.data?.[0];

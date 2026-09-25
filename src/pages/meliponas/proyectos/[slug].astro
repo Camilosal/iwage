@@ -35,7 +35,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
   <!-- Hero Banner -->
   <div class="relative h-[50vh] min-h-[380px] max-h-[520px] overflow-hidden">
     {proyecto.imagen ? (
-      <img src={proyecto.imagen} alt={proyecto.nombre} class="absolute inset-0 w-full h-full object-cover" />
+      <img src={proyecto.imagen.url} alt={proyecto.imagen.alt || proyecto.nombre} class="absolute inset-0 w-full h-full object-cover" />
     ) : (
       <div class="absolute inset-0 bg-gradient-to-br from-brand/20 to-surface-sunken" />
     )}

@@ -9,11 +9,13 @@ interface Props {
   description: string;
   colmenas?: number;
   image?: string;
+  /** `alternativeText` del admin; si falta, la card cae en el título del proyecto. */
+  imageAlt?: string;
   slug?: string;
   iot?: boolean;
   trazabilidad?: boolean;
 }
-const { title, location, type, status, description, colmenas, image, slug, iot = false, trazabilidad = false } = Astro.props;
+const { title, location, type, status, description, colmenas, image, imageAlt, slug, iot = false, trazabilidad = false } = Astro.props;
 
 const statusConfig: Record<string, { label: string; class: string }> = {
   activo: { label: 'Activo', class: 'bg-brand-muted text-brand' },
@@ -32,7 +34,7 @@ const st = statusConfig[status] ?? statusConfig['en-proceso'];
     <div class="aspect-[16/10] overflow-hidden bg-surface-sunken">
       <img
         src={image}
-        alt={title}
+        alt={imageAlt || title}
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         loading="lazy"
         decoding="async"

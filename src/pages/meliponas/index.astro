@@ -173,8 +173,8 @@ const meliponarioLocation = {
             >
               {p.imagen ? (
                 <img
-                  src={p.imagen}
-                  alt={p.nombre}
+                  src={p.imagen.url}
+                  alt={p.imagen.alt || p.nombre}
                   class="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"
@@ -232,7 +232,8 @@ const meliponarioLocation = {
             status={p.estado}
             description={p.descripcion_corta ?? p.descripcion ?? ''}
             colmenas={p.colmenas ?? undefined}
-            image={p.galeria?.[0]?.url ?? p.imagen}
+            image={p.imagen?.url ?? p.galeria?.[0]?.url}
+            imageAlt={p.imagen?.alt ?? p.galeria?.[0]?.alt}
             slug={p.slug}
             iot={p.iot_activo}
             trazabilidad={p.trazabilidad_qr}

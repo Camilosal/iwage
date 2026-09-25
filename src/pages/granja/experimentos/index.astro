@@ -3,7 +3,6 @@ import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getExperimentos, SUBSISTEMA_META, ESTADO_EXPERIMENTO, formatFecha } from '@/lib/granja-experimentos';
 import type { Experimento } from '@/lib/granja-experimentos';
-import { mediaSrc } from '@/lib/media';
 
 const BRAND = 'granja';
 const BRAND_TITLE = 'Experimentos · Laboratorio Vivo · Iwagé Granja';
@@ -126,7 +125,7 @@ function normalizeSearch(e: Experimento): string {
             {experimentos.map((exp: Experimento) => {
               const subMeta = exp.subsistema ? SUBSISTEMA_META[exp.subsistema] : null;
               const estadoMeta = exp.estado_experimento ? ESTADO_EXPERIMENTO[exp.estado_experimento] : null;
-              const img = exp.imagen ? mediaSrc(exp.imagen) : null;
+              const img = exp.imagen?.url ?? null;
               return (
                 <article
                   class="group relative"
@@ -138,7 +137,7 @@ function normalizeSearch(e: Experimento): string {
                     {/* Image */}
                     {img ? (
                       <div class="h-40 overflow-hidden">
-                        <img src={img} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                        <img src={img} alt={exp.imagen?.alt || exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                       </div>
                     ) : (
                       <div class="h-32 bg-gradient-to-br from-brand-muted via-brand/10 to-transparent flex items-center justify-center">

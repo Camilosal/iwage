@@ -147,3 +147,160 @@ test('polinización: la forma vieja string y el host interno', () => {
   const c = normalizeCultivo({ ...CULTIVO_BASE, imagen: 'http://iwage_strapi:1337/uploads/cultivos/cafe.webp' });
   assert.equal(c.imagen.url, '/uploads/cultivos/cafe.webp');
 });
+
+// ── 3. proyectos.ts — `normalizeProyecto` ─────────────────────────────────────
+// `proyectos.ts:140` es `raw.imagen ? mediaSrc(raw.imagen) : (galeria?.[0]?.url ?? null)`:
+// cuando no hay portada, la portada es la primera foto de la galería dicha como string, y
+// `:30` declara `string | null`. En `[slug].astro:38` se pinta `src={proyecto.imagen}` y en
+// `meliponas/index.astro:235` se mezcla `p.galeria?.[0]?.url ?? p.imagen`: dos formas de la
+// misma pieza viajando por el mismo campo.
+
+import { normalizeProyecto } from '../src/lib/proyectos.ts';
+
+const PROYECTO_BASE = { id: 1, documentId: 'pr1', nombre: 'Finca Angelita', slug: 'finca-angelita', tipo: 'finca' };
+
+test('proyectos: portada media de Strapi → MediaItem con alt', () => {
+  const p = normalizeProyecto({ ...PROYECTO_BASE, imagen: { ...PORTADA, url: '/uploads/proyectos/finca.webp', alternativeText: 'Casetas de meliponas en la finca' } });
+  assert.equal(p.imagen.url, '/uploads/proyectos/finca.webp');
+  assert.equal(p.imagen.alt, 'Casetas de meliponas en la finca');
+});
+
+test('proyectos: sin portada no hay portada, aunque la galería esté llena', () => {
+  const p = normalizeProyecto({
+    ...PROYECTO_BASE,
+    imagen: null,
+    galeria: [{ url: '/uploads/proyectos/g1.webp', alternativeText: 'Primera de la galería' }],
+  });
+  assert.equal(p.imagen, null, 'la galería se está usando de portada: dos campos diciendo lo mismo');
+  assert.equal(p.galeria[0].alt, 'Primera de la galería', 'y arriba se pierde el alt que sí tenía');
+});
+
+test('proyectos: la forma vieja string y el host interno', () => {
+  const p = normalizeProyecto({ ...PROYECTO_BASE, imagen: 'http://strapi_backend:1337/uploads/proyectos/finca.webp' });
+  assert.equal(p.imagen.url, '/uploads/proyectos/finca.webp');
+});
+
+test('proyectos: imagen basura → null y jamás el crudo', () => {
+  for (const [motivo, imagen] of [...BASURA, ['string de galería', '/uploads/g1.webp']]) {
+    const p = normalizeProyecto({ ...PROYECTO_BASE, imagen, galeria: [{ url: '/uploads/g1.webp' }] });
+    assert.equal(typeof p.imagen === 'string', false, `${motivo}: sigue saliendo un string pelado`);
+    assertSinObjetoCrudo(p.imagen, `proyectos/${motivo}`);
+    if (imagen !== '/uploads/g1.webp') assert.equal(p.imagen, null, `${motivo}: salió ${JSON.stringify(p.imagen)}`);
+  }
+});
+
+// ── 4. granja-experimentos.ts — el módulo que no normalizaba nada ─────────────
+// `Experimento.imagen` (`:31`) declara `string | null` y el módulo NO importa `media.ts`:
+// `getExperimentos`, `getExperimentoBySlug` y `getExperimentosBySubsistema` devuelven
+// `res.data` crudo. Dos de sus consumidores (`granja/experimentos/[slug].astro:28,129` y
+// `granja/index.astro:193`) lo salvan llamando `mediaSrc()` en el render; `ExperimentFicha`
+// no pinta imagen en absoluto (medido con grep). O sea: el tipo miente y el arreglo está
+// repartido en tres plantillas. Se normaliza UNA vez, en el módulo.
+
+import { normalizeExperimento } from '../src/lib/granja-experimentos.ts';
+
+const EXPERIMENTO_BASE = { id: 1, documentId: 'e1', titulo: 'Composta en tambo', slug: 'composta-tambo' };
+
+test('experimentos: portada media de Strapi → MediaItem con alt', () => {
+  const e = normalizeExperimento({ ...EXPERIMENTO_BASE, imagen: { ...PORTADA, url: '/uploads/experimentos/composta.webp', alternativeText: 'Tambo de compostaje abierto' } });
+  assert.equal(e.imagen.url, '/uploads/experimentos/composta.webp');
+  assert.equal(e.imagen.alt, 'Tambo de compostaje abierto');
+  assert.equal(e.titulo, 'Composta en tambo', 'el mapper perdió el resto de la ficha');
+});
+
+test('experimentos: la forma vieja string sigue funcionando y el host interno se reduce', () => {
+  const a = normalizeExperimento({ ...EXPERIMENTO_BASE, imagen: '/uploads/experimentos/x.webp' });
+  assert.equal(a.imagen.url, '/uploads/experimentos/x.webp');
+  const b = normalizeExperimento({ ...EXPERIMENTO_BASE, imagen: 'http://iwage_strapi:1337/uploads/experimentos/x.webp' });
+  assert.equal(b.imagen.url, '/uploads/experimentos/x.webp');
+});
+
+test('experimentos: imagen basura → null, y jamás el valor crudo de Strapi', () => {
+  for (const [motivo, imagen] of [...BASURA, [ 'el objeto media sin poblar', { id: 9, documentId: 'm9', mime: 'image/webp' }]]) {
+    const e = normalizeExperimento({ ...EXPERIMENTO_BASE, imagen });
+    assert.equal(e.imagen, null, `${motivo}: salió ${JSON.stringify(e.imagen)}`);
+    assertSinObjetoCrudo(e.imagen, `experimentos/${motivo}`);
+  }
+});
+
+test('experimentos: las tres lecturas mapean; ninguna devuelve res.data crudo', () => {
+  // Sin el mapper en las tres funciones, el `[object Object]` depende de qué página se
+  // acuerde de llamar `mediaSrc()`. Este barrido es el que no deja volver a ese estado.
+  const fuente = readFileSync(join(RAIZ, 'src/lib/granja-experimentos.ts'), 'utf8');
+  const funciones = fuente.split(/\n(?=export async function )/).filter((b) => /res\.data/.test(b));
+  assert.ok(funciones.length >= 3, `se esperaban al menos 3 lecturas, hay ${funciones.length}`);
+  for (const bloque of funciones) {
+    const nombre = (bloque.match(/export async function (\w+)/) ?? [])[1] ?? '?';
+    assert.match(bloque, /normalizeExperimento/, `${nombre}: devuelve la fila cruda de Strapi`);
+  }
+  assert.doesNotMatch(fuente, /imagen:\s*string\s*\|\s*null/, 'el tipo sigue declarando string');
+});
+
+// ── 5. El barrido: sin compilador de tipos, el guard es este teste ────────────
+// `astro build` borra los tipos, no los verifica. Un `src={x.imagen}` que se quedó
+// atrás al migrar el módulo pinta `[object Object]` con la suite entera en verde, así
+// que lo que se comprueba acá es la TEXTURA del árbol: en los archivos de esta capa ya
+// no puede quedar una interpolación que meta un `imagen` pelado en un atributo, ni un
+// `mediaSrc()` resolviendo en el render (eso es exactamente lo que se estaba arreglando:
+// la normalización vive en `src/lib`, una sola vez).
+
+const ARCHIVOS_CAPA = [
+  'src/pages/meliponas/tienda/[slug].astro',
+  'src/pages/granja/tienda/[slug].astro',
+  'src/pages/meliponas/tienda/index.astro',
+  'src/pages/granja/tienda/index.astro',
+  'src/pages/meliponas/polinizacion/[slug].astro',
+  'src/pages/meliponas/polinizacion/index.astro',
+  'src/pages/meliponas/proyectos/[slug].astro',
+  'src/pages/meliponas/proyectos/index.astro',
+  'src/pages/meliponas/proyectos/lineas/fincas-productivas.astro',
+  'src/pages/meliponas/proyectos/lineas/paisajismo-residencial.astro',
+  'src/pages/meliponas/proyectos/lineas/prae-educativo.astro',
+  'src/pages/meliponas/proyectos/lineas/turismo-naturaleza.astro',
+  'src/pages/meliponas/index.astro',
+  'src/pages/granja/index.astro',
+  'src/pages/granja/experimentos/[slug].astro',
+  'src/pages/granja/experimentos/index.astro',
+  'src/pages/feed/google-merchant.xml.ts',
+  'src/components/ProductCard.astro',
+  'src/components/ProjectCard.astro',
+  'src/components/granja/ExperimentFicha.astro',
+];
+
+const MODULOS_CAPA = ['src/lib/tienda.ts', 'src/lib/proyectos.ts', 'src/lib/polinizacion.ts', 'src/lib/granja-experimentos.ts'];
+
+/**
+ * `= { x.imagen }`: un `MediaItem` entrando crudo a un atributo de imagen. El nombre del
+ * atributo importa —`imagen={hero.imagen}` es la config del héroe (un string de `/images/`
+ * que sale de `src/lib/heroes.ts`, no media de contenido) y por eso NO entra en el barrido.
+ */
+const INTERPOLACION_CRUDA = /\b(?:src|image|ogImage|twitterImage|url)\s*=\s*\{\s*[A-Za-z_$][\w$]*(?:\.[\w$]+)*\.imagen\s*\}/;
+
+test('barrido: ninguna plantilla de la capa interpola la portada cruda', () => {
+  const culpables = [];
+  for (const ruta of ARCHIVOS_CAPA) {
+    const absoluto = join(RAIZ, ruta);
+    assert.ok(existsSync(absoluto), `${ruta}: desapareció, actualiza la lista del barrido`);
+    const fuente = readFileSync(absoluto, 'utf8');
+    for (const [i, linea] of fuente.split('\n').entries()) {
+      if (INTERPOLACION_CRUDA.test(linea)) culpables.push(`${ruta}:${i + 1}`);
+    }
+  }
+  assert.deepEqual(culpables, [], `portada cruda interpolada (pintaría [object Object]): ${culpables.join(', ')}`);
+});
+
+test('barrido: la capa ya no resuelve media en el render', () => {
+  const culpables = ARCHIVOS_CAPA.filter((ruta) => /mediaSrc\s*\(/.test(readFileSync(join(RAIZ, ruta), 'utf8')));
+  assert.deepEqual(culpables, [], `mediaSrc() en plantilla: normalizar dos veces / tipo mentiroso: ${culpables.join(', ')}`);
+});
+
+test('barrido: los cuatro módulos declaran MediaItem, no string', () => {
+  for (const ruta of MODULOS_CAPA) {
+    const fuente = readFileSync(join(RAIZ, ruta), 'utf8');
+    assert.match(fuente, /imagen:\s*MediaItem\s*\|\s*null/, `${ruta}: ` + `imagen` + ` sigue declarado como string`);
+    assert.doesNotMatch(fuente, /imagen:\s*string\s*\|\s*null/, `${ruta}: quedó un string | null`);
+    // Y el import runtime del adaptador lleva extensión: sin ella `node --test` no carga
+    // el módulo y los cinco testes de arriba ni siquiera correrían.
+    assert.match(fuente, /from '\.\/normalizar-medio\.ts'/, `${ruta}: no usa el adaptador de 12a`);
+  }
+});

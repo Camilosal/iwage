@@ -4,7 +4,10 @@
  * for the Laboratorio Vivo methodology (structured 6-section fichas).
  * Each experiment links to supporting bitácora articles as documentation.
  */
-import { strapiFetch, CACHE_TTL } from './strapi';
+import { strapiFetch, CACHE_TTL } from './strapi.ts';
+import { type MediaItem } from './media.ts';
+import { normalizarParaPlantilla } from './normalizar-medio.ts';
+import { filasParaPlantilla } from './bitacora-resumen.ts';
 import type { EntradaBitacora } from './bitacora';
 
 export interface ExperimentoMedia {
@@ -28,7 +31,7 @@ export interface Experimento {
   subsistema: string | null;
   estado_experimento: string | null;
   fecha: string | null;
-  imagen: string | null;
+  imagen: MediaItem | null;
   origen: string | null;
   hipotesis: string | null;
   proceso: string | null;
@@ -100,10 +103,10 @@ export async function getExperimentos(
       sort: ['fecha:desc', 'publishedAt:desc'],
       pagination: { page: opts.page || 1, pageSize: opts.pageSize || 20 },
       publicationState: 'live',
-      populate: ['bitacoras', 'documentos'],
+      populate: ['imagen', 'bitacoras', 'documentos'],
     });
     return {
-      data: res.data || [],
+      data: (res.data ?? []).map(normalizeExperimento),
       total: res.meta?.pagination?.total || 0,
     };
   } catch {
@@ -119,9 +122,10 @@ export async function getExperimentoBySlug(slug: string): Promise<Experimento | 
       filters: { slug: { $eq: slug } },
       pagination: { pageSize: 1 },
       publicationState: 'live',
-      populate: ['bitacoras', 'documentos'],
+      populate: ['imagen', 'bitacoras', 'documentos'],
     });
-    return res.data?.[0] || null;
+    const [fila] = (res.data ?? []).map(normalizeExperimento);
+    return fila ?? null;
   } catch {
     return null;
   }
@@ -139,8 +143,9 @@ export async function getExperimentosBySubsistema(
       sort: ['fecha:desc'],
       pagination: { pageSize: opts.pageSize || 20 },
       publicationState: 'live',
+      populate: ['imagen'],
     });
-    return res.data || [];
+    return (res.data ?? []).map(normalizeExperimento);
   } catch {
     return [];
   }
@@ -166,4 +171,22 @@ export function formatFecha(fecha: string | null): string {
   if (!fecha) return '';
   const d = new Date(fecha + 'T00:00:00');
   return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/**
+ * Una ficha de experimento cruda → la estructura que pintan las tres plantillas.
+ *
+ * Hasta 12b este módulo NO normalizaba nada: `getExperimentos`, `getExperimentoBySlug` y
+ * `getExperimentosBySubsistema` devolvían `res.data` tal cual, así que `imagen` era lo que
+ * Strapi quisiera y el arreglo estaba repartido en tres renders con `mediaSrc()`. Ahora la
+ * portada converge una sola vez acá (`MediaItem | null`, con el `alt` del admin) y las
+ * bitácoras relacionadas pasan por `filasParaPlantilla`, que es lo que declara
+ * `EntradaBitacora.imagen` desde 12a.
+ */
+export function normalizeExperimento(raw: any): Experimento {
+  return {
+    ...raw,
+    imagen: normalizarParaPlantilla(raw).imagen,
+    ...(Array.isArray(raw.bitacoras) ? { bitacoras: filasParaPlantilla(raw.bitacoras) } : {}),
+  } as Experimento;
 }
