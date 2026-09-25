@@ -1655,12 +1655,18 @@ corrieron** — no solo `count(galeria)=0` en las tres tablas, sino `slug=''` en
 del Grupo C en el esquema. No se hizo `npm run build` como pedía el paso 2: `dist/` está
 compartida con otros agentes y 0 referencias a `*.png` en `src/`, `strapi/`, `public/` y
 `tests/` es la evidencia de que mover no puede romper render (Astro copia `public/` tal cual).
+**Esa laguna se cerró el 2026-09-25 sin tocar `dist/`**: build aislado del HEAD `0d6593f` en
+`/tmp` (Complete! en 11,7 s), preview en puerto propio y crawl de las mismas 185 URLs —
+**185/185 responden 200** y ninguna de las nueve filas del censo se mueve (`523a89c`). O sea que
+el `mv` de los 19 `.png` y el retiro de `VAPEvidenceGallery` no dejaron referencia rota, que era
+lo que el paso 2 buscaba probar.
 
 **Files:**
 - Delete (solo en el servidor): los 19 `public/images/cafe-menu/*.png` con gemelo `.webp`
 - Delete: `strapi/scripts/populate-galerias.sql`, `populate-galerias-productos.sql`, `populate-polinizacion.sql`. **La premisa del plan original ("escriben en la tabla legacy `proyecto_meliponarios` de Flask, no en Strapi") es FALSA, medida el 2026-09-25:** los tres apuntan a tablas vivas de Strapi v5 (`UPDATE proyecto_meliponarios` 6, `UPDATE productos` 11, `UPDATE cultivo_polinizacions` 6, y las tres existen en la BD con `published_at`). Se retiran por otra razón, que es la buena: escriben JSON crudo en la columna `galeria` por `id` de fila sin API ni publish, que es exactamente el mecanismo de dispersión que este plan elimina.
 - Modify: `src/pages/tierras/propiedades/[slug].astro` (el slot `fotos_evidencia` que nunca renderiza, ancla `VAPEvidenceGallery`)
-- **Null (en la BD, con dump previo): los 12 hotlinks de `images.unsplash.com`** medidos el 2026-09-25 en el censo de hosts de `4b1b63e`, repartidos en 7 columnas: `anfitriones.foto_perfil_url`, `anfitriones.foto_territorio`, `anfitriones.video_thumbnail`, `anfitriones.galeria_fotos`, `experiencias.imagen_hero_url`, `experiencias.galeria_urls`, `experiencias.mapa_imagen_url`. `esPintable()` ya no los pinta, pero el valor sigue ahí y el admin los muestra como si fueran contenido. Dos de ellos son el **retrato de stock de dos anfitriones con nombre y apellido reales** (`don-hernando-caficultor`, `luz-elenia-herbalista`) presentado como su cara: hay que decidir con el dueño si se retira y se deja la ficha sin foto (el mosaico Icon ya está diseñado para eso) o si se reemplaza por foto propia.
+- **Null (en la BD, con dump previo): las 12 celdas con hotlinks de `images.unsplash.com`** — 18 URLs dentro, porque una celda json puede traer varias — medidas el 2026-09-25 en el censo de hosts de `4b1b63e`, repartidas en 7 columnas: `anfitriones.foto_perfil_url` 2/2, `anfitriones.foto_territorio` 2/2, `anfitriones.galeria_fotos` 2/3, `anfitriones.video_thumbnail` 1/1, `experiencias.imagen_hero_url` 2/2, `experiencias.galeria_urls` 2/7, `experiencias.mapa_imagen_url` 1/1 (celdas/URLs). `esPintable()` ya no los pinta, pero el valor sigue ahí y el admin los muestra como si fueran contenido. Dos de ellos son el **retrato de stock de dos anfitriones con nombre y apellido reales** (`don-hernando-caficultor`, `luz-elenia-herbalista`) presentado como su cara: hay que decidir con el dueño si se retira y se deja la ficha sin foto (el mosaico Icon ya está diseñado para eso) o si se reemplaza por foto propia.
+- **Los placeholders de embed son 5 celdas con 6 ocurrencias**, no 2: `experiencias.video_url`, `experiencias.link_drone` y `anfitriones.video_url` (los tres rickroll), `experiencias.tour_360_url` (demo de momento360) y una **quinta dentro del json de `experiencias.galeria_urls`**, que mezcla el video rickroll y el tour demo con las 5 fotos. Esa quinta no se pone a `null`: hay que **reescribir la celda** quitando los dos ítems, porque `galeria_urls` es la única galería que tienen las 2 experiencias publicadas (`experiencias.galeria`, la relación media, está vacía: `files = 0`).
 
 - [ ] **Step 1: Verificar cero referencias antes de borrar, otra vez, ahora**
 
@@ -1865,7 +1871,7 @@ sha256sum -c /home/ubuntu/negocio/data/app_iwage/docs/superpowers/metrics/censo/
 | URLs de terceros en `src/` | 20 | |
 | 404 de producción por imagen | 5 | |
 
-Dos filas que la tabla original de la spec no tenía y que el después sí tiene que reportar, porque el plan las mueve: los **8 valores de Unsplash que quedaron en columnas de la BD** (F1 limpió `src/` pero no la base de datos) y los **2 embeds placeholder** (un rickroll y un tour demo del proveedor). "0 URLs de terceros" en el código sin decir nada de la BD es un verde que engaña.
+Dos filas que la tabla original de la spec no tenía y que el después sí tiene que reportar, porque el plan las mueve: los **12 valores de Unsplash que quedaron en columnas de la BD** (18 URLs dentro; F1 limpió `src/` pero no la base de datos) y los **5 embeds placeholder** (6 ocurrencias: tres celdas rickroll, una de tour demo del proveedor y una quinta celda — el json de `experiencias.galeria_urls` — que dentro repite uno de cada; la cuenta por columna está en el Files de la Task 14 y la consulta de verificación en el gate 3 de `metrics/2026-09-25-despues.md`). "0 URLs de terceros" en el código sin decir nada de la BD es un verde que engaña.
 
 - [ ] **Step 3: Escribir el informe con las diferencias no explicadas**
 
