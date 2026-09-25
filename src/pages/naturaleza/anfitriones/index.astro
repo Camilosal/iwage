@@ -44,7 +44,7 @@ const hero = await getHeroBySlug('/naturaleza/anfitriones');
               <a href={`/naturaleza/anfitriones/${host.slug}`} class="group p-6 rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all duration-300 text-center">
                 <div class="relative inline-block mb-4">
                   {foto ? (
-                    <img src={foto} alt={host.nombre} class="w-24 h-24 rounded-full object-cover ring-2 ring-gray-100 group-hover:ring-[#d4920a]/40 transition-all" loading="lazy" />
+                    <img src={foto.url} alt={foto.alt || host.nombre} class="w-24 h-24 rounded-full object-cover ring-2 ring-gray-100 group-hover:ring-[#d4920a]/40 transition-all" loading="lazy" />
                   ) : (
                     <div class="w-24 h-24 rounded-full bg-[#4a7c23]/10 ring-2 ring-gray-100 flex items-center justify-center" role="img" aria-label={`Sin foto de ${host.nombre}`}>
                       <Icon name="user" class="w-9 h-9 text-[#4a7c23]/50" />

@@ -31,7 +31,7 @@ const jsonLd = {
   '@type': 'Person',
   name: host.nombre,
   description: host.especialidad,
-  ...(foto && { image: absUrl(foto) }),
+  ...(foto && { image: absUrl(foto.url) }),
   jobTitle: host.especialidad,
   address: host.arraigo ? { '@type': 'PostalAddress', addressLocality: host.arraigo } : undefined,
   aggregateRating: host.numero_resenas > 0 ? {
@@ -50,7 +50,7 @@ const jsonLd = {
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#2d5016_0%,transparent_50%)] opacity-30"></div>
     <div class="relative z-10 max-w-4xl mx-auto text-center">
       {foto ? (
-        <img src={foto} alt={host.nombre} class="w-32 h-32 rounded-full object-cover mx-auto mb-6 ring-4 ring-[#d4920a]/30" />
+        <img src={foto.url} alt={foto.alt || host.nombre} class="w-32 h-32 rounded-full object-cover mx-auto mb-6 ring-4 ring-[#d4920a]/30" />
       ) : (
         <div class="w-32 h-32 rounded-full bg-white/10 ring-4 ring-[#d4920a]/30 flex items-center justify-center mx-auto mb-6" role="img" aria-label={`Sin foto de ${host.nombre}`}>
           <Icon name="user" class="w-12 h-12 text-white/50" />
@@ -245,7 +245,7 @@ const jsonLd = {
     </section>
 
     <!-- Media Gallery -->
-    {host.galeria_fotos && host.galeria_fotos.length > 0 && (
+    {host.galeria && host.galeria.length > 0 && (
       <section>
         <div class="mb-5">
           <div class="flex items-center gap-3 mb-1">
@@ -255,7 +255,7 @@ const jsonLd = {
           <h2 class="text-2xl font-light text-[#1a3009]">En su territorio</h2>
         </div>
         <MediaGallery
-          items={host.galeria_fotos.map((g: any) => mediaSrc(g.url)).filter(Boolean) as string[]}
+          items={host.galeria}
           title={host.nombre}
           columns={3}
         />

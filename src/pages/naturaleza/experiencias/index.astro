@@ -128,7 +128,7 @@ function buildUrl(overrides: Record<string, string>) {
               <a href={`/naturaleza/experiencias/${exp.slug}`} class="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300">
                 <div class="relative h-48 overflow-hidden">
                   {foto ? (
-                    <img src={foto} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <img src={foto.url} alt={foto.alt || exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   ) : (
                     <div class="w-full h-full flex items-center justify-center bg-[#4a7c23]/10" role="img" aria-label={`Sin foto de ${exp.titulo}`}>
                       <Icon name="leaf" class="w-12 h-12 text-[#4a7c23]/40" />

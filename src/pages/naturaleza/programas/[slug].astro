@@ -2,7 +2,6 @@
 import BrandLayout from '@/layouts/BrandLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getPaqueteBySlug, getPaquetes, formatPrecioCOP, DIFICULTAD_LABELS } from '@/lib/naturaleza';
-import { mediaSrc } from '@/lib/media';
 import { getBrand } from '@/config/brands';
 import BookingWidget from '@/components/reservas/BookingWidget';
 
@@ -14,10 +13,11 @@ export async function getStaticPaths() {
 const { pkg } = Astro.props;
 if (!pkg) return Astro.redirect('/naturaleza/programas', 302);
 
-// null = el paquete no tiene imagen en Strapi; quien la pinta cae al mosaico Icon.
-const heroUrl = mediaSrc(pkg.imagen_hero?.url ?? null);
+// null = el paquete no tiene imagen en Strapi; quien la pinta cae al mosaico Icon
+// (nunca una foto de stock). pkg.imagen_hero ya viene como MediaItem del borde.
+const heroImg = pkg.imagen_hero;
 const dificultad = pkg.dificultad ? DIFICULTAD_LABELS[pkg.dificultad] : null;
-const galleryUrls = (pkg.imagenes || []).map((img) => mediaSrc(img.url)).filter(Boolean);
+const galeria = pkg.imagenes || [];
 const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 ---
 
@@ -25,8 +25,8 @@ const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
 
   <!-- Hero -->
   <section class="relative min-h-[60vh] flex items-end overflow-hidden bg-[#0e1a08]">
-    {heroUrl ? (
-      <img src={heroUrl} alt={pkg.titulo} class="absolute inset-0 w-full h-full object-cover" />
+    {heroImg ? (
+      <img src={heroImg.url} alt={heroImg.alt || pkg.titulo} class="absolute inset-0 w-full h-full object-cover" />
     ) : (
       <div class="absolute inset-0 flex items-center justify-center" aria-hidden="true">
         <Icon name="compass" class="w-72 h-72 text-white/10" />
@@ -105,12 +105,12 @@ const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
         )}
 
         <!-- Gallery -->
-        {galleryUrls.length > 0 && (
+        {galeria.length > 0 && (
           <section>
             <h2 class="font-serif text-2xl text-[#1a3009] mb-4">Galería</h2>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {galleryUrls.map((url) => (
-                <img src={url} alt={pkg.titulo} class="rounded-xl w-full h-40 object-cover" loading="lazy" />
+              {galeria.map((img) => (
+                <img src={img.url} alt={img.alt || pkg.titulo} class="rounded-xl w-full h-40 object-cover" loading="lazy" />
               ))}
             </div>
           </section>

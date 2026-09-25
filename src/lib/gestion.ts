@@ -2,11 +2,14 @@
  * Iwagé Gestión — Strapi data access layer
  * Handles managed properties with cross-brand relations.
  */
-import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc } from './media';
+import { strapiFetch, CACHE_TTL } from './strapi.ts';
+import { toMediaItem, toMediaList, type MediaItem } from './media.ts';
 
 /** API interna de app_reservas (server-side) para filtros de disponibilidad */
-const RESERVAS_API = import.meta.env.RESERVAS_API_URL || 'http://reservas_app:4326';
+// `?.` y no `import.meta.env` pelado: ese objeto lo inyecta Astro/Vite y en Node NO
+// existe. Sin el encadenado el módulo no se puede importar desde `node --test`, y sin
+// importarlo no hay forma de probar el mapeo de media (`normalizePropiedadGestion`).
+const RESERVAS_API = import.meta.env?.RESERVAS_API_URL || 'http://reservas_app:4326';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -22,7 +25,13 @@ export interface Complemento {
   moneda: string;
   precio_por: 'persona' | 'grupo' | 'noche' | 'unidad';
   icono: string | null;
-  imagen_url: string | null;
+  /**
+   * La foto del servicio. `complemento.imagen` es `media` en el schema; el twin string
+   * `imagen_url` (Grupo C) se sigue leyendo DENTRO de `normalizarComplemento` porque con
+   * `files = 0` es la única columna que podría tener valor. No se entrega por separado:
+   * la plantilla recibe un `MediaItem` o `null`. Su retiro es el Task 14.
+   */
+  imagen: MediaItem | null;
 }
 
 /** Producto local recomendado (tienda del meliponario) vinculado al alojamiento para cross-selling. */
@@ -35,7 +44,8 @@ export interface ProductoRecomendado {
   precio: number;
   presentacion: string | null;
   categoria: string;
-  imagen: string | null;
+  /** `producto.imagen` es `media` en el schema: el `string | null` que estaba declarado mentía. */
+  imagen: MediaItem | null;
   destacado: boolean;
   stock_disponible: boolean;
 }
@@ -53,7 +63,8 @@ export interface ExperienciaGestion {
   cupo_maximo_desc: string | null;
   nivel_dificultad: number;
   precio_desde: number | null;
-  imagen: string | null;
+  /** Portada de la experiencia (`experiencia.imagen_hero`, que es `media`), ya normalizada. */
+  imagen: MediaItem | null;
   es_destacado: boolean;
 }
 
@@ -81,11 +92,24 @@ export interface PropiedadGestion {
   capacidad_huespedes: number | null;
   amenidades: string[] | null;
   highlights: string[] | null;
-  imagen_principal: { url: string; alternativeText?: string } | null;
-  galeria: Array<{ url: string; alternativeText?: string }> | null;
+  /** Portada (`propiedad-gestion.imagen_principal`, que es `media`). */
+  imagen_principal: MediaItem | null;
+  /** Galería (`propiedad-gestion.galeria`, `media` multiple), ya aplanada y deduplicada. */
+  galeria: MediaItem[];
   propiedad_tierras: { id: number; slug: string; titulo: string; precio?: number; operacion?: string } | null;
   experiencias: Array<{ id: number; slug: string; titulo: string; categoria?: string; precio_desde?: number }> | null;
-  anfitriones: Array<{ id: number; slug: string; nombre: string; foto_perfil?: any; foto_perfil_url?: string; nivel_escalafon?: number; especialidad?: string }> | null;
+  anfitriones: Array<{
+    id: number;
+    slug: string;
+    nombre: string;
+    /**
+     * Antes `any`: salía el objeto media crudo de Strapi y la plantilla pintaba
+     * `[object Object]` en el `src` (`gestion.ts:291`, defecto 2 del brief).
+     */
+    foto_perfil: MediaItem | null;
+    nivel_escalafon?: number;
+    especialidad?: string;
+  }> | null;
   proveedores: Array<{ id: number; slug: string; nombre: string; producto?: string; ubicacion?: string }> | null;
   complementos: Complemento[] | null;
   productos: ProductoRecomendado[] | null;
@@ -255,7 +279,103 @@ export async function getAllPropiedadGestionSlugs(): Promise<string[]> {
 
 // ── Helpers ────────────────────────────────────────────
 
-function normalizePropiedadGestion(raw: any): PropiedadGestion {
+/**
+ * Un medio de estas fichas puede llegar por dos caminos y hay que recorrerlos en orden:
+ * el campo `media` del schema (lo que escribió el admin) y el twin string `*_url` de la
+ * sincronización vieja. Con `files = 0` en la BD (medido), el twin es hoy el ÚNICO valor
+ * alcanzable en varias fichas, así que se sigue leyendo; el retiro de esa columna es el
+ * Task 14, no este. Lo que cambia acá es la SALIDA: siempre `MediaItem | null`, nunca el
+ * objeto crudo ni el string suelto.
+ */
+function medioCrudo(...formas: unknown[]): MediaItem | null {
+  for (const forma of formas) {
+    const item = toMediaItem(forma);
+    if (item) return item;
+  }
+  return null;
+}
+
+/** Servicio adicional: `complemento.imagen` es `media`; `imagen_url` es el twin. */
+export function normalizarComplemento(raw: any): Complemento {
+  return {
+    id: raw?.id,
+    documentId: raw?.documentId,
+    slug: raw?.slug,
+    nombre: raw?.nombre,
+    descripcion: raw?.descripcion || null,
+    categoria: raw?.categoria || 'otro',
+    precio: raw?.precio ? Number(raw.precio) : 0,
+    moneda: raw?.moneda || 'COP',
+    precio_por: raw?.precio_por || 'persona',
+    icono: raw?.icono || null,
+    imagen: medioCrudo(raw?.imagen, raw?.imagen_url),
+  };
+}
+
+/** Producto local del alojamiento: `producto.imagen` ya es `media` en el schema. */
+export function normalizarProductoRecomendado(raw: any): ProductoRecomendado {
+  return {
+    id: raw?.id,
+    documentId: raw?.documentId,
+    slug: raw?.slug,
+    nombre: raw?.nombre,
+    descripcion_corta: raw?.descripcion_corta || null,
+    precio: raw?.precio ? Number(raw.precio) : 0,
+    presentacion: raw?.presentacion || null,
+    categoria: raw?.categoria || 'miel',
+    imagen: medioCrudo(raw?.imagen),
+    destacado: raw?.destacado || false,
+    // Con la columna ausente no hay stock informado: se asume disponible, como antes.
+    stock_disponible: raw?.stock_disponible !== false,
+  };
+}
+
+/** Anfitrión vinculado a la propiedad: `anfitrion.foto_perfil` es `media`, `foto_perfil_url` el twin. */
+function normalizarAnfitrionVinculado(raw: any): NonNullable<PropiedadGestion['anfitriones']>[number] {
+  return {
+    id: raw?.id,
+    slug: raw?.slug,
+    nombre: raw?.nombre,
+    // Acá estaba el `foto_perfil: a.foto_perfil` crudo que pintaba `[object Object]`.
+    foto_perfil: medioCrudo(raw?.foto_perfil, raw?.foto_perfil_url),
+    nivel_escalafon: raw?.nivel_escalafon,
+    especialidad: raw?.especialidad,
+  };
+}
+
+/**
+ * Fila cruda de `experiencias` → tarjeta del listado de Gestión. Exportada y total
+ * (cualquier fila decodificable sale con `imagen: MediaItem | null`) por la misma razón
+ * que `filasParaPlantilla` en la bitácora.
+ */
+export function experienciaGestionParaPlantilla(raw: any): ExperienciaGestion {
+  const fila = raw && typeof raw === 'object' ? raw : {};
+  return {
+    id: fila.id,
+    documentId: fila.documentId,
+    slug: fila.slug,
+    titulo: fila.titulo,
+    resumen: fila.resumen || null,
+    categoria: fila.categoria || 'Naturaleza',
+    ubicacion: fila.ubicacion || null,
+    duracion: fila.duracion || null,
+    cupo_maximo_desc: fila.cupo_maximo_desc || null,
+    nivel_dificultad: fila.nivel_dificultad || 1,
+    precio_desde: fila.precio_desde ? Number(fila.precio_desde) : null,
+    // Tercer término: una fila que ya pasó por el borde trae el `MediaItem` en `imagen`
+    // (así se devuelve `experienciaGestionParaPlantilla` sobre su propia salida).
+    imagen: medioCrudo(fila.imagen_hero, fila.imagen_hero_url, fila.imagen),
+    es_destacado: fila.es_destacado || false,
+  };
+}
+
+/**
+ * Fila cruda de Strapi → ficha para plantilla. Exportada para que `node --test` pueda
+ * tocarla: es el único sitio donde se abre la forma de Strapi de esta ficha, y su
+ * contrato (`MediaItem`, nunca el objeto crudo) se prueba en
+ * `tests/normalizar-medio-3.test.mjs`.
+ */
+export function normalizePropiedadGestion(raw: any): PropiedadGestion {
   return {
     id: raw.id,
     documentId: raw.documentId,
@@ -280,56 +400,28 @@ function normalizePropiedadGestion(raw: any): PropiedadGestion {
     capacidad_huespedes: raw.capacidad_huespedes || null,
     amenidades: Array.isArray(raw.amenidades) ? raw.amenidades : null,
     highlights: Array.isArray(raw.highlights) ? raw.highlights : null,
-    imagen_principal: raw.imagen_principal ? { url: raw.imagen_principal.url, alternativeText: raw.imagen_principal.alternativeText } : null,
-    galeria: Array.isArray(raw.galeria) ? raw.galeria.map((img: any) => ({ url: img.url, alternativeText: img.alternativeText })) : null,
+    imagen_principal: medioCrudo(raw.imagen_principal),
+    // `toMediaList` aplana el array anidado de la relación `multiple`, deduplica el mismo
+    // archivo dos veces y se queda con la variante más rica en alt/caption.
+    galeria: toMediaList(raw.galeria),
     propiedad_tierras: raw.propiedad_tierras ? { id: raw.propiedad_tierras.id, slug: raw.propiedad_tierras.slug, titulo: raw.propiedad_tierras.titulo, precio: raw.propiedad_tierras.precio ? Number(raw.propiedad_tierras.precio) : undefined, operacion: raw.propiedad_tierras.operacion } : null,
     experiencias: Array.isArray(raw.experiencias) ? raw.experiencias.map((e: any) => ({ id: e.id, slug: e.slug, titulo: e.titulo, categoria: e.categoria, precio_desde: e.precio_desde ? Number(e.precio_desde) : undefined })) : null,
-    anfitriones: Array.isArray(raw.anfitriones) ? raw.anfitriones.map((a: any) => ({
-      id: a.id,
-      slug: a.slug,
-      nombre: a.nombre,
-      foto_perfil: a.foto_perfil,
-      foto_perfil_url: a.foto_perfil_url,
-      nivel_escalafon: a.nivel_escalafon,
-      especialidad: a.especialidad,
-    })) : null,
+    anfitriones: Array.isArray(raw.anfitriones) ? raw.anfitriones.map(normalizarAnfitrionVinculado) : null,
     proveedores: Array.isArray(raw.proveedores) ? raw.proveedores.map((p: any) => ({ id: p.id, slug: p.slug, nombre: p.nombre, producto: p.producto, ubicacion: p.ubicacion })) : null,
-    complementos: Array.isArray(raw.complementos) ? raw.complementos.map((c: any) => ({
-      id: c.id,
-      documentId: c.documentId,
-      slug: c.slug,
-      nombre: c.nombre,
-      descripcion: c.descripcion || null,
-      categoria: c.categoria || 'otro',
-      precio: c.precio ? Number(c.precio) : 0,
-      moneda: c.moneda || 'COP',
-      precio_por: c.precio_por || 'persona',
-      icono: c.icono || null,
-      imagen_url: mediaSrc(c.imagen?.url ?? c.imagen_url),
-    })) : null,
-    productos: Array.isArray(raw.productos) ? raw.productos.map((p: any) => ({
-      id: p.id,
-      documentId: p.documentId,
-      slug: p.slug,
-      nombre: p.nombre,
-      descripcion_corta: p.descripcion_corta || null,
-      precio: p.precio ? Number(p.precio) : 0,
-      presentacion: p.presentacion || null,
-      categoria: p.categoria || 'miel',
-      imagen: mediaSrc(p.imagen),
-      destacado: p.destacado || false,
-      stock_disponible: p.stock_disponible !== false,
-    })) : null,
+    complementos: Array.isArray(raw.complementos) ? raw.complementos.map(normalizarComplemento) : null,
+    productos: Array.isArray(raw.productos) ? raw.productos.map(normalizarProductoRecomendado) : null,
     seo_titulo: raw.seo_titulo || null,
     seo_descripcion: raw.seo_descripcion || null,
   };
 }
 
-/** Get image URL for a managed property */
-export function propiedadGestionImagen(prop: PropiedadGestion): string | null {
-  if (prop.imagen_principal?.url) return mediaSrc(prop.imagen_principal.url);
-  if (prop.galeria && prop.galeria.length > 0) return mediaSrc(prop.galeria[0].url);
-  return null;
+/**
+ * Portada de la propiedad como `MediaItem`: la foto principal y, solo si no la hay, la
+ * primera pieza de la galería. `null` = sin evidencia → la tarjeta cae al mosaico `Icon`.
+ * Antes devolvía `string`, y por eso el `alternativeText` del admin no podía bajar al `alt`.
+ */
+export function propiedadGestionImagen(prop: PropiedadGestion): MediaItem | null {
+  return medioCrudo(prop?.imagen_principal) ?? toMediaList(prop?.galeria)[0] ?? null;
 }
 
 /** Format price display based on type */
@@ -429,21 +521,7 @@ export async function getExperienciasGestion(categoria?: string): Promise<Experi
       pagination: { pageSize: 50 },
     });
 
-    return (res.data || []).map((e: any) => ({
-      id: e.id,
-      documentId: e.documentId,
-      slug: e.slug,
-      titulo: e.titulo,
-      resumen: e.resumen || null,
-      categoria: e.categoria || 'Naturaleza',
-      ubicacion: e.ubicacion || null,
-      duracion: e.duracion || null,
-      cupo_maximo_desc: e.cupo_maximo_desc || null,
-      nivel_dificultad: e.nivel_dificultad || 1,
-      precio_desde: e.precio_desde ? Number(e.precio_desde) : null,
-      imagen: mediaSrc(e.imagen_hero?.url ?? e.imagen_hero_url),
-      es_destacado: e.es_destacado || false,
-    }));
+    return (res.data || []).map(experienciaGestionParaPlantilla);
   } catch {
     return [];
   }

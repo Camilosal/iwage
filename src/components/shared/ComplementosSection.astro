@@ -1,5 +1,6 @@
 ---
 import Icon from '@/components/shared/Icon.astro';
+import type { MediaItem } from '@/lib/media';
 
 /**
  * ComplementosSection — Sección interactiva de servicios adicionales.
@@ -21,7 +22,8 @@ export interface Props {
     moneda: string;
     precio_por: string;
     icono: string | null;
-    imagen_url: string | null;
+    /** MediaItem ya normalizado por el módulo (gestion/naturaleza): null -> mosaico Icon. */
+    imagen: MediaItem | null;
   }>;
   origen?: string;
   brand: string;
@@ -149,8 +151,8 @@ const accentDark = brand === 'naturaleza' ? '#2d5016' : '#122640';
 
             {/* Contenido completo del detalle (se clona dentro del modal) */}
             <template class="comp-detail-tpl">
-              {comp.imagen_url ? (
-                <img src={comp.imagen_url} alt={`Imagen de referencia de ${comp.nombre}`} class="w-full h-52 object-cover" loading="lazy" />
+              {comp.imagen ? (
+                <img src={comp.imagen.url} alt={comp.imagen.alt || `Imagen de referencia de ${comp.nombre}`} class="w-full h-52 object-cover" loading="lazy" />
               ) : (
                 <div class="w-full h-44 flex flex-col items-center justify-center gap-2" style={`background: linear-gradient(135deg, ${accentColor}14, ${accentColor}30)`}>
                   <Icon name={icono} class="w-14 h-14" style={`color: ${accentColor}`} />

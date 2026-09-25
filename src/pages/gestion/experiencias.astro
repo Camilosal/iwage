@@ -89,7 +89,7 @@ function fmtPrecio(n: number): string {
               <!-- Imagen -->
               <div class="relative h-44 bg-gray-100 overflow-hidden">
                 {exp.imagen ? (
-                  <img src={exp.imagen} alt={exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  <img src={exp.imagen.url} alt={exp.imagen.alt || exp.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 ) : (
                   <div class="w-full h-full flex items-center justify-center bg-[#2E7D32]/10">
                     <Icon name="leaf" class="w-12 h-12 text-[#2E7D32]/40" />

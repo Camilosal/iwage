@@ -12,7 +12,10 @@ interface Props {
 }
 
 const { prop, checkin, checkout, huespedes } = Astro.props;
-const img = propiedadGestionImagen(prop);
+// `propiedadGestionImagen()` entrega `MediaItem | null`: la foto existe o no existe (con
+// Strapi caído el listado viene vacío y la tarjeta cae al mosaico `Icon` de abajo). El
+// `alt` es el `alternativeText` del admin, con el título de la propiedad de respaldo.
+const portada = propiedadGestionImagen(prop);
 const tipo = tipoAlojamientoInfo(prop.tipo_alojamiento);
 
 function formatPrecio(n: number): string {
@@ -31,8 +34,8 @@ const href = `/gestion/alojamientos/${prop.slug}${fechasQS ? `?${fechasQS}` : ''
 <a href={href} class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#52B788]/40 hover:shadow-xl transition-all duration-300">
   <!-- Image -->
   <div class="relative h-48 bg-gray-100 overflow-hidden">
-    {img ? (
-      <img src={img} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+    {portada ? (
+      <img src={portada.url} alt={portada.alt || prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
     ) : (
       <div class="w-full h-full flex items-center justify-center bg-[#1e3a5f]/10">
         <Icon name={tipo.icon} class="w-14 h-14 text-white/40" />

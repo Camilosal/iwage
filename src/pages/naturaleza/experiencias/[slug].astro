@@ -80,7 +80,7 @@ const jsonLd = {
   '@type': 'TouristTrip',
   name: exp.titulo,
   description: exp.resumen,
-  ...(heroImg && { image: absUrl(heroImg) }),
+  ...(heroImg && { image: absUrl(heroImg.url) }),
   touristType: exp.categoria,
   location: exp.ubicacion ? {
     '@type': 'Place',
@@ -100,7 +100,7 @@ const jsonLd = {
   <!-- Hero -->
   <section class="relative min-h-[60vh] flex items-end overflow-hidden bg-[#0e1a08]">
     {heroImg ? (
-      <img src={heroImg} alt={exp.titulo} class="absolute inset-0 w-full h-full object-cover opacity-50" loading="eager" />
+      <img src={heroImg.url} alt={heroImg.alt || exp.titulo} class="absolute inset-0 w-full h-full object-cover opacity-50" loading="eager" />
     ) : (
       <div class="absolute inset-0 flex items-center justify-center" role="img" aria-label={`Sin foto de ${exp.titulo}`}>
         <Icon name="mountain" class="w-40 h-40 text-white/10" />
@@ -445,6 +445,8 @@ const jsonLd = {
           <div class="flex flex-wrap gap-3 mb-6" role="tablist" aria-label="Anfitriones de esta ruta">
             {anfitrionesOrdenados.map((host, idx) => {
               const precioHost = precioDeAnfitrion(host.slug);
+              // La foto ya viene `MediaItem` de `naturaleza.ts`: un solo pedido por anfitrión.
+              const fotoHost = anfitrionFoto(host);
               return (
                 <button
                   type="button"
@@ -461,8 +463,8 @@ const jsonLd = {
                       : 'bg-white border-gray-200 text-[#1a3009] hover:border-[#4a7c23]/40',
                   ]}
                 >
-                  {anfitrionFoto(host) ? (
-                    <img src={anfitrionFoto(host)} alt={host.nombre} class="w-9 h-9 rounded-full object-cover border-2 border-white/40 shrink-0" loading="lazy" />
+                  {fotoHost ? (
+                    <img src={fotoHost.url} alt={fotoHost.alt || host.nombre} class="w-9 h-9 rounded-full object-cover border-2 border-white/40 shrink-0" loading="lazy" />
                   ) : (
                     <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center shrink-0" role="img" aria-label={`Sin foto de ${host.nombre}`}>
                       <Icon name="user" class="w-4 h-4 opacity-70" />
@@ -484,14 +486,15 @@ const jsonLd = {
               const j = exp.anfitriones_data?.find((d) => d.anfitrion_id === host.slug);
               const nivel = nivelInfo(host.nivel_escalafon);
               const precioHost = j?.precio_personalizado || null;
+              const fotoPanel = anfitrionFoto(host);
               return (
                 <div data-host-panel={host.slug} role="tabpanel" class:list={['p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm', idx > 0 && 'hidden']}>
                   <div class="flex flex-col lg:flex-row gap-8">
                     <!-- Host identity -->
                     <div class="w-full lg:w-1/4 flex flex-col items-center text-center">
                       <div class="relative w-28 h-28 mb-4">
-                        {anfitrionFoto(host) ? (
-                          <img src={anfitrionFoto(host)} alt={host.nombre} class="w-full h-full object-cover rounded-full border-4 border-white shadow-xl" loading="lazy" />
+                        {fotoPanel ? (
+                          <img src={fotoPanel.url} alt={fotoPanel.alt || host.nombre} class="w-full h-full object-cover rounded-full border-4 border-white shadow-xl" loading="lazy" />
                         ) : (
                           <div class="w-full h-full rounded-full bg-[#4a7c23]/10 flex items-center justify-center" role="img" aria-label={`Sin foto de ${host.nombre}`}>
                             <Icon name="user" class="w-10 h-10 text-[#4a7c23]/50" />
@@ -773,10 +776,11 @@ const jsonLd = {
           <div class="space-y-3">
             {exp.anfitriones.map((host) => {
               const nivel = nivelInfo(host.nivel_escalafon);
+              const fotoHost = anfitrionFoto(host);
               return (
                 <a href={`/naturaleza/anfitriones/${host.slug}`} class="flex items-center gap-3 group">
-                  {anfitrionFoto(host) ? (
-                    <img src={anfitrionFoto(host)} alt={host.nombre} class="w-10 h-10 rounded-full object-cover" loading="lazy" />
+                  {fotoHost ? (
+                    <img src={fotoHost.url} alt={fotoHost.alt || host.nombre} class="w-10 h-10 rounded-full object-cover" loading="lazy" />
                   ) : (
                     <div class="w-10 h-10 rounded-full bg-[#4a7c23]/10 flex items-center justify-center shrink-0" role="img" aria-label={`Sin foto de ${host.nombre}`}>
                       <Icon name="user" class="w-4 h-4 text-[#4a7c23]/50" />
@@ -870,12 +874,14 @@ const jsonLd = {
         </a>
       </div>
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {related.map((rel) => (
+        {related.map((rel) => {
+          const portadaRel = experienciaImagen(rel);
+          return (
           <a href={`/naturaleza/experiencias/${rel.slug}`} class="group block">
             <div class="rounded-2xl border border-gray-100 overflow-hidden bg-white shadow-sm hover:shadow-md transition-all h-full flex flex-col">
               <div class="relative h-40 overflow-hidden">
-                {experienciaImagen(rel) ? (
-                  <img src={experienciaImagen(rel)} alt={rel.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+                {portadaRel ? (
+                  <img src={portadaRel.url} alt={portadaRel.alt || rel.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
                 ) : (
                   <div class="w-full h-full flex items-center justify-center bg-[#4a7c23]/10" role="img" aria-label={`Sin foto de ${rel.titulo}`}>
                     <Icon name="leaf" class="w-10 h-10 text-[#4a7c23]/40" />
@@ -894,7 +900,8 @@ const jsonLd = {
               </div>
             </div>
           </a>
-        ))}
+          );
+        })}
       </div>
     </section>
   )}

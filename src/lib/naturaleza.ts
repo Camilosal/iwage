@@ -2,8 +2,8 @@
  * Iwagé Naturaleza — Strapi data access layer
  * Handles experiences, hosts, packages, and filters.
  */
-import { strapiFetch, CACHE_TTL } from './strapi';
-import { mediaSrc, toMediaList, type MediaItem } from './media.ts';
+import { strapiFetch, CACHE_TTL } from './strapi.ts';
+import { toMediaItem, toMediaList, type MediaItem } from './media.ts';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -31,10 +31,15 @@ export interface Experiencia {
   descripcion_fondo_impacto: string | null;
   es_destacado: boolean;
   publicado: boolean;
-  imagen_hero: { url: string; alternativeText?: string } | null;
-  imagen_hero_url: string | null;
-  galeria: Array<{ url: string; alternativeText?: string }> | null;
-  galeria_urls: Array<{ url: string; tipo?: string; titulo?: string }> | null;
+  /**
+   * Portada. `experiencia.imagen_hero` es `media` en el schema; el twin string que dejó la
+   * sincronización (`imagen_hero_url`, Grupo C) se sigue leyendo DENTRO de
+   * `experienciaParaPlantilla` porque con `files = 0` en la BD es el único valor alcanzable
+   * hoy. No se entrega por separado: sale un `MediaItem` o `null`. Retiro = Task 14.
+   */
+  imagen_hero: MediaItem | null;
+  /** Galería: la relación `media` y la columna json `galeria_urls` fusionadas y deduplicadas. */
+  galeria: MediaItem[];
   video_url: string | null;
   tour_360_url: string | null;
   link_drone: string | null;
@@ -68,7 +73,7 @@ export interface ProveedorVinculado {
   nombre: string;
   producto: string | null;
   ubicacion: string | null;
-  foto: { url: string } | null;
+  foto: MediaItem | null;
 }
 
 export interface PropiedadVinculada {
@@ -81,7 +86,7 @@ export interface PropiedadVinculada {
   precio: number | null;
   estado: string | null;
   ubicacion_municipio: string | null;
-  imagen_principal: { url: string } | null;
+  imagen_principal: MediaItem | null;
 }
 
 export interface PropiedadGestionVinculada {
@@ -98,7 +103,7 @@ export interface PropiedadGestionVinculada {
   capacidad_huespedes: number | null;
   numero_habitaciones: number | null;
   ubicacion_municipio: string | null;
-  imagen_principal: { url: string } | null;
+  imagen_principal: MediaItem | null;
 }
 
 export interface SafetyContent {
@@ -158,7 +163,8 @@ export interface Complemento {
   moneda: string;
   precio_por: 'persona' | 'grupo' | 'noche' | 'unidad';
   icono: string | null;
-  imagen_url: string | null;
+  /** `complemento.imagen` es `media`; el twin `imagen_url` se lee dentro del normalizador. */
+  imagen: MediaItem | null;
 }
 
 export interface Anfitrion {
@@ -167,8 +173,8 @@ export interface Anfitrion {
   slug: string;
   nombre: string;
   especialidad: string | null;
-  foto_perfil: { url: string; alternativeText?: string } | null;
-  foto_perfil_url: string | null;
+  /** Foto del anfitrión: media de Strapi con el twin `foto_perfil_url` de respaldo. */
+  foto_perfil: MediaItem | null;
   video_thumbnail: string | null;
   video_url: string | null;
   manifiesto: string | null;
@@ -178,7 +184,14 @@ export interface Anfitrion {
   anos_en_territorio: number | null;
   generaciones_familia: number | null;
   foto_territorio: string | null;
-  galeria_fotos: Array<{ url: string; caption?: string; tipo?: string }> | null;
+  /**
+   * La galería del anfitrión. `anfitrion.galeria_fotos` era una columna json que el schema
+   * YA no declara (la reemplazó `galeria`, tipo `media` multiple); el valor viejo quedó
+   * huérfano en la BD y Strapi no lo devuelve, así que el bloque que lo pintaba no
+   * renderizaba nada. Acá se entrega la relación real del schema. Su gemela en `files`
+   * todavía está en cero: la galería se llena cuando el importador vincule los archivos.
+   */
+  galeria: MediaItem[];
   nivel_escalafon: number;
   nombre_escalafon: string | null;
   descripcion_escalafon: string | null;
@@ -229,8 +242,8 @@ export interface Paquete {
   dificultad: number | null;
   incluye: string[] | null;
   no_incluye: string[] | null;
-  imagen_hero: { url: string; alternativeText?: string } | null;
-  imagenes: Array<{ url: string; alternativeText?: string }> | null;
+  imagen_hero: MediaItem | null;
+  imagenes: MediaItem[];
   activo: boolean;
   destacado: boolean;
   experiencias_data: Array<{ slug?: string; titulo?: string }> | null;
@@ -287,8 +300,10 @@ export interface ExperienciaFilters {
 // Relaciones cross-brand del modelo "Ecosistema Iwagé" (todas existen en el schema de
 // Strapi: experiencia ↔ propiedad / propiedad-gestion / proveedor / anfitrion).
 const POPULATE_EXP = ['imagen_hero', 'galeria', 'anfitriones', 'proveedores', 'propiedades', 'propiedades_gestion', 'complementos'];
-const POPULATE_HOST = ['foto_perfil'];
-const POPULATE_HOST_DETAIL = ['foto_perfil', 'experiencias'];
+// `galeria` es la relación `media` que reemplazó a la columna json vieja del anfitrión
+// (ver `Anfitrion.galeria`): sin poblarla, la galería de la ficha sale siempre vacía.
+const POPULATE_HOST = ['foto_perfil', 'galeria'];
+const POPULATE_HOST_DETAIL = ['foto_perfil', 'galeria', 'experiencias'];
 const POPULATE_PKG = ['imagen_hero', 'imagenes'];
 
 export async function getExperiencias(filters: ExperienciaFilters = {}): Promise<{
@@ -327,7 +342,7 @@ export async function getExperiencias(filters: ExperienciaFilters = {}): Promise
       cacheKey: `strapi:experiencias:${JSON.stringify({ ...filters })}`,
     });
     return {
-      data: res.data || [],
+      data: (res.data || []).map(experienciaParaPlantilla),
       total: res.meta?.pagination?.total || 0,
       page: res.meta?.pagination?.page || page,
       pageSize: res.meta?.pagination?.pageSize || pageSize,
@@ -346,7 +361,7 @@ export async function getExperienciaBySlug(slug: string): Promise<Experiencia | 
       pagination: { pageSize: 1 },
       cacheKey: `strapi:experiencia:${slug}`,
     });
-    return res.data?.[0] || null;
+    return res.data?.[0] ? experienciaParaPlantilla(res.data[0]) : null;
   } catch {
     return null;
   }
@@ -369,7 +384,7 @@ export async function getAnfitriones(page = 1, pageSize = 20): Promise<{
       sort: 'nivel_escalafon:desc',
       pagination: { page, pageSize },
     });
-    return { data: res.data || [], total: res.meta?.pagination?.total || 0 };
+    return { data: (res.data || []).map(anfitrionParaPlantilla), total: res.meta?.pagination?.total || 0 };
   } catch {
     return { data: [], total: 0 };
   }
@@ -384,7 +399,7 @@ export async function getAnfitrionBySlug(slug: string): Promise<Anfitrion | null
       pagination: { pageSize: 1 },
       cacheKey: `strapi:anfitrion:${slug}`,
     });
-    return res.data?.[0] || null;
+    return res.data?.[0] ? anfitrionParaPlantilla(res.data[0]) : null;
   } catch {
     return null;
   }
@@ -401,7 +416,7 @@ export async function getPaquetes(destacadoOnly = false): Promise<Paquete[]> {
       sort: 'destacado:desc',
       pagination: { pageSize: 50 },
     });
-    return res.data || [];
+    return (res.data || []).map(paqueteParaPlantilla);
   } catch {
     return [];
   }
@@ -416,7 +431,7 @@ export async function getPaqueteBySlug(slug: string): Promise<Paquete | null> {
       pagination: { pageSize: 1 },
       cacheKey: `strapi:paquete:${slug}`,
     });
-    return res.data?.[0] || null;
+    return res.data?.[0] ? paqueteParaPlantilla(res.data[0]) : null;
   } catch {
     return null;
   }
@@ -452,32 +467,162 @@ export async function getIniciativas(): Promise<Iniciativa[]> {
 
 // ── Helpers ────────────────────────────────────────────
 
-/** `null` = la experiencia no tiene imagen propia. Quien la pinta debe caer al mosaico Icon. */
-export function experienciaImagen(exp: Experiencia): string | null {
-  // Priority: imagen_hero_url (direct URL from sync) > imagen_hero (Strapi media) > galeria_urls > galeria
-  // mediaSrc resuelve las dos formas: la ruta cruda que dejó la sincronización y el objeto media de Strapi.
-  return (
-    mediaSrc(exp.imagen_hero_url)
-    ?? mediaSrc(exp.imagen_hero)
-    ?? mediaSrc(exp.galeria_urls?.[0])
-    ?? mediaSrc(exp.galeria?.[0])
-    ?? null
-  );
+/**
+ * ── El borde Strapi → plantilla ────────────────────────────────────────────────
+ *
+ * Antes de esto, `getExperiencias`/`getAnfitriones`/`getPaquetes` devolvían la fila de
+ * Strapi TAL CUAL, con la interfaz declarando por encima `{ url; alternativeText? }`: un
+ * tipo que mentía (defecto 3 del brief) y un `alternativeText` del admin que nunca llegaba
+ * al `alt` (defecto 1). Las tres firmas de un medio —objeto de Strapi, string de la BD
+ * vieja o twin `*_url`, y `MediaItem` de una fila que ya pasó por dos bordes— convergen
+ * acá y salen en el contrato de `./media.ts`.
+ *
+ * Es el mismo diseño de `filasParaPlantilla` (bitácora, `26393d2`): no muta la entrada
+ * (`strapiFetch` reparte el MISMO objeto desde Redis vía `inflightFetches`), es total
+ * (cualquier fila decodificable sale con `MediaItem | null`, sin lanzar) y no inventa: si
+ * no hay pieza, `null`, y la tarjeta cae al mosaico `Icon`.
+ */
+
+type Registro = Record<string, any>;
+
+const esObjeto = (v: unknown): v is Registro => !!v && typeof v === 'object' && !Array.isArray(v);
+
+/**
+ * Un medio de estas fichas puede llegar por el campo `media` del schema o por el twin
+ * string que dejó la sincronización. Se prueban en orden —el `media` primero, que es lo
+ * que escribió el admin— y sale el primer `MediaItem` útil o `null`. Con `files = 0` en la
+ * BD (medido con SELECT), el twin es hoy el único valor alcanzable; retirar la columna es
+ * Task 14, retirar su lectura de acá también.
+ */
+function medioCrudo(...formas: unknown[]): MediaItem | null {
+  for (const forma of formas) {
+    const item = toMediaItem(forma);
+    if (item) return item;
+  }
+  return null;
 }
 
-/** Get all gallery items (merging galeria_urls and Strapi media galeria) */
+/** Copia sin las columnas gemelas que el borde ya no entrega (el valor vive en el MediaItem). */
+function sinClaves(fila: Registro, ...claves: string[]): Registro {
+  const copia: Registro = { ...fila };
+  for (const clave of claves) delete copia[clave];
+  return copia;
+}
+
+/**
+ * Galería: la relación `media` y la columna json sincronizada se funden en una sola lista.
+ * `toMediaList` aplana el array anidado, deduplica por host+ruta y deja la variante más
+ * rica en `alt`/`caption`, así que el `alternativeText` de la media le gana al `titulo`
+ * histórico del json. Medido sobre las 12 entradas con datos hoy: cero fusiones, o sea la
+ * fusión no esconde ninguna pieza real (ver el reporte de la rebanada).
+ */
+function galeriaFusionada(media: unknown, json: unknown): MediaItem[] {
+  return toMediaList([].concat(media ?? [], json ?? []));
+}
+
+/** Servicio adicional vinculado a experiencias y alojamientos. */
+export function normalizarComplemento(raw: unknown): Complemento {
+  const fila = esObjeto(raw) ? raw : {};
+  return {
+    ...fila,
+    descripcion: fila.descripcion ?? null,
+    precio: fila.precio ? Number(fila.precio) : 0,
+    moneda: fila.moneda || 'COP',
+    icono: fila.icono ?? null,
+    imagen: medioCrudo(fila.imagen, fila.imagen_url),
+  };
+}
+
+export function proveedorParaPlantilla(raw: unknown): ProveedorVinculado {
+  const fila = esObjeto(raw) ? raw : {};
+  return { ...fila, foto: medioCrudo(fila.foto) } as ProveedorVinculado;
+}
+
+export function propiedadVinculadaParaPlantilla(raw: unknown): PropiedadVinculada {
+  const fila = esObjeto(raw) ? raw : {};
+  return { ...fila, imagen_principal: medioCrudo(fila.imagen_principal) } as PropiedadVinculada;
+}
+
+export function propiedadGestionVinculadaParaPlantilla(raw: unknown): PropiedadGestionVinculada {
+  const fila = esObjeto(raw) ? raw : {};
+  return { ...fila, imagen_principal: medioCrudo(fila.imagen_principal) } as PropiedadGestionVinculada;
+}
+
+/**
+ * Experiencia → ficha de plantilla. `nivel` corta la recursión de las relaciones
+ * cruzadas (experiencia → anfitrión → experiencia): Strapi solo pobla un nivel, y aun así
+ * el borde no debe seguir cadenas indefinidamente.
+ */
+function experienciaCruda(raw: unknown, nivel = 0): Experiencia {
+  const fila = esObjeto(raw) ? raw : {};
+  return {
+    ...sinClaves(fila, 'imagen_hero_url', 'galeria_urls'),
+    imagen_hero: medioCrudo(fila.imagen_hero, fila.imagen_hero_url),
+    galeria: galeriaFusionada(fila.galeria, fila.galeria_urls),
+    complementos: Array.isArray(fila.complementos) ? fila.complementos.map(normalizarComplemento) : null,
+    proveedores: Array.isArray(fila.proveedores) ? fila.proveedores.map(proveedorParaPlantilla) : null,
+    propiedades: Array.isArray(fila.propiedades) ? fila.propiedades.map(propiedadVinculadaParaPlantilla) : null,
+    propiedades_gestion: Array.isArray(fila.propiedades_gestion) ? fila.propiedades_gestion.map(propiedadGestionVinculadaParaPlantilla) : null,
+    anfitriones: Array.isArray(fila.anfitriones)
+      ? fila.anfitriones.map((a: unknown) => anfitrionCrudo(a, nivel + 1))
+      : null,
+  } as Experiencia;
+}
+
+export function experienciaParaPlantilla(raw: unknown): Experiencia {
+  return experienciaCruda(raw, 0);
+}
+
+/**
+ * Anfitrión → ficha de plantilla. Las `experiencias` poblabadas en la ficha de detalle
+ * salen por `anfitrionCruda(nivel 0)`, así que sus propias relaciones cruzadas (volver a
+ * anfitriones) se dejan vacías: la página solo usa slug y título.
+ */
+function anfitrionCruda(raw: unknown, nivel = 0): Anfitrion {
+  const fila = esObjeto(raw) ? raw : {};
+  return {
+    ...sinClaves(fila, 'foto_perfil_url', 'galeria_fotos'),
+    foto_perfil: medioCrudo(fila.foto_perfil, fila.foto_perfil_url),
+    galeria: galeriaFusionada(fila.galeria, fila.galeria_fotos),
+    experiencias: Array.isArray(fila.experiencias)
+      ? (nivel === 0 ? fila.experiencias.map((e: unknown) => experienciaCruda(e, 1)) : fila.experiencias)
+      : null,
+    // `foto_territorio` y `video_thumbnail` son columnas string del schema (Grupo C
+    // residual): no hay media que normalizar, así que siguen saliendo como texto.
+  } as Anfitrion;
+}
+
+export function anfitrionParaPlantilla(raw: unknown): Anfitrion {
+  return anfitrionCruda(raw, 0);
+}
+
+export function paqueteParaPlantilla(raw: unknown): Paquete {
+  const fila = esObjeto(raw) ? raw : {};
+  return {
+    ...fila,
+    imagen_hero: medioCrudo(fila.imagen_hero),
+    imagenes: toMediaList(fila.imagenes),
+  } as Paquete;
+}
+
+/**
+ * `null` = la experiencia no tiene imagen propia. Quien la pinta debe caer al mosaico Icon.
+ * Cadena de respaldo equivalente a la vieja `imagen_hero_url → imagen_hero → galeria`:
+ * el `MediaItem` de la portada ya resolvió media y twin adentro, y la galería ya fusionó
+ * la columna json. La diferencia es que ahora trae el `alt` del admin.
+ */
+export function experienciaImagen(exp: Experiencia): MediaItem | null {
+  return medioCrudo(exp?.imagen_hero) ?? toMediaList(exp?.galeria)[0] ?? null;
+}
+
+/** Galería de la experiencia como `MediaItem[]` (la fila ya vino normalizada del borde). */
 export function experienciaGaleria(exp: Experiencia): MediaItem[] {
-  // `galeria_urls` es la columna sincronizada y puede llegar con la forma histórica;
-  // `toMediaList` también la entiende. El alternativeText de la relación de media es el pie.
-  const crudo: unknown = exp.galeria_urls?.length
-    ? exp.galeria_urls
-    : (exp.galeria ?? []).map((g) => ({ url: g.url, caption: g.alternativeText ?? undefined }));
-  return toMediaList(crudo);
+  return toMediaList(exp?.galeria);
 }
 
 /** `null` = el anfitrión no tiene foto propia; la tarjeta cae al mosaico Icon. Sin stock de Unsplash. */
-export function anfitrionFoto(host: Anfitrion): string | null {
-  return mediaSrc(host.foto_perfil_url) ?? mediaSrc(host.foto_perfil) ?? null;
+export function anfitrionFoto(host: Anfitrion): MediaItem | null {
+  return medioCrudo(host?.foto_perfil);
 }
 
 export function formatPrecioCOP(value: number | null | undefined): string {
