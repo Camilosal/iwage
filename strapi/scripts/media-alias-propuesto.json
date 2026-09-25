@@ -1,0 +1,121 @@
+{
+  "aviso": [
+    "ESTO ES UNA PROPUESTA, NO EL ENVASE QUE LEE EL IMPORTADOR POR DEFECTO. Nadie lo aplica solo: `strapi/scripts/media-alias.json` sigue vacío y `media-import.mjs` no lee ningún alias sin `--alias=<ruta>`.",
+    "Qué hay acá: 27 pares archivo→bitácora, uno por fila, en la forma 1 del contrato (clave = ruta que produce el inventario, valor = {endpoint, slug}). Generado por script desde `.superpowers/sdd/2026-09-24-media-strapi-consolidation/alias-firmes.json` el 2026-09-25, no transcrito a mano.",
+    "Por qué hace falta un alias: medido en disco, las 36 tapas de `public/images/bitacora/` traen un slug RECORTADO (`bitacora-abeja-cultivo.webp`) mientras el slug publicado es más largo (`cuando-la-abeja-llega-al-cultivo`). Ninguna regla por nombre se dispara: 0 de 36 enlazables por regla.",
+    "Qué NO cubre: 9 de las 36 tapas siguen sin par firme — `bitacora-calendario-manejo`, `bitacora-conservacion-cosecha`, `bitacora-cosecha-miel`, `bitacora-miel-chef`, `bitacora-miel-cocina`, `bitacora-modulo6-division`, `bitacora-modulo9-cosecha`, `bitacora-red-meliponicultores`, `bitacora-territorio-pijao`. Dos de ellas (`miel-chef` / `miel-cocina`) se disputan la misma publicación: eso es una decisión de nombre, no un dato que falta.",
+    "Cómo se usa, en seco: STRAPI_URL=… STRAPI_TOKEN=… node strapi/scripts/media-import.mjs --dry-run --alias=strapi/scripts/media-alias-propuesto.json — y recién después de la lectura humana, `--apply`.",
+    "El documentId no va acá: lo aporta la lectura de la API. Un alias que nombre un slug que no exista en la lectura no se escribe y aparece en `motivosAlias` con el motivo exacto.",
+    "Validado por `tests/media-alias-propuesto.test.mjs`: rutas existentes, endpoints de la tabla, slugs distintos, y `manifesto()` firmando las 27 filas sin mandar ninguna a `motivosAlias`."
+  ],
+  "alias": {
+    "public/images/bitacora/bitacora-abeja-cultivo.webp": {
+      "endpoint": "bitacoras",
+      "slug": "cuando-la-abeja-llega-al-cultivo"
+    },
+    "public/images/bitacora/bitacora-atraer-colonia.webp": {
+      "endpoint": "bitacoras",
+      "slug": "como-atraer-una-colonia-de-angelitas-sin-comprarla-batumen-feromonas-y-la-trampa-que-funciona"
+    },
+    "public/images/bitacora/bitacora-botiquin-natural.webp": {
+      "endpoint": "bitacoras",
+      "slug": "el-botiquin-natural-recetas-con-miel-de-angelita-y-propoleos"
+    },
+    "public/images/bitacora/bitacora-caso-don-manuel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "caso-la-finca-de-don-manuel"
+    },
+    "public/images/bitacora/bitacora-fermentacion-miel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion"
+    },
+    "public/images/bitacora/bitacora-flora-melifera.webp": {
+      "endpoint": "bitacoras",
+      "slug": "flora-melifera-nativa"
+    },
+    "public/images/bitacora/bitacora-guia-completa.webp": {
+      "endpoint": "bitacoras",
+      "slug": "guia-completa-de-meliponicultura-atraccion-captura-trasiego-manejo-y-division-de-colonias-de-angelita"
+    },
+    "public/images/bitacora/bitacora-heroinas-guadua.webp": {
+      "endpoint": "bitacoras",
+      "slug": "las-heroinas-de-la-guadua-rota"
+    },
+    "public/images/bitacora/bitacora-inpa-vs-af.webp": {
+      "endpoint": "bitacoras",
+      "slug": "cajas-inpa-vs-af-c2-b7-comparativas"
+    },
+    "public/images/bitacora/bitacora-jardin-suspendido.webp": {
+      "endpoint": "bitacoras",
+      "slug": "el-jardin-suspendido-10-plantas-en-matera-que-complementan-la-flora-del-meliponario"
+    },
+    "public/images/bitacora/bitacora-meliponario-finca.webp": {
+      "endpoint": "bitacoras",
+      "slug": "quieres-montar-un-meliponario-en-tu-finca-o-ciudad"
+    },
+    "public/images/bitacora/bitacora-miel-vs-apis.webp": {
+      "endpoint": "bitacoras",
+      "slug": "miel-angelita-vs-apis-mellifera"
+    },
+    "public/images/bitacora/bitacora-modulo1-meliponas.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-1-que-son-las-abejas-meliponas"
+    },
+    "public/images/bitacora/bitacora-modulo2-especies.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-2-c2-b7-especies-de-meliponas-en-colombia-region-central"
+    },
+    "public/images/bitacora/bitacora-modulo3-nido.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-3-c2-b7-el-nido-por-dentro"
+    },
+    "public/images/bitacora/bitacora-modulo4-trasiego.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-4-c2-b7-el-trasiego-o-mudanza-de-nido"
+    },
+    "public/images/bitacora/bitacora-modulo5-manejo.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-5-c2-b7-manejo-y-revision-periodica"
+    },
+    "public/images/bitacora/bitacora-modulo7-alimentacion.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-7-c2-b7-alimentacion-suplementaria-cuando-que-y-como"
+    },
+    "public/images/bitacora/bitacora-modulo8-plagas.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-8-c2-b7-plagas-y-enfermedades-identificacion-y-control"
+    },
+    "public/images/bitacora/bitacora-parque-tacuray.webp": {
+      "endpoint": "bitacoras",
+      "slug": "corredor-ambala-parque-tacuray"
+    },
+    "public/images/bitacora/bitacora-polinizacion-aguacate.webp": {
+      "endpoint": "bitacoras",
+      "slug": "resultados-polinizacion-aguacate-hass"
+    },
+    "public/images/bitacora/bitacora-polinizacion-maracuya.webp": {
+      "endpoint": "bitacoras",
+      "slug": "resultados-polinizacion-maracuya"
+    },
+    "public/images/bitacora/bitacora-polinizacion-mora.webp": {
+      "endpoint": "bitacoras",
+      "slug": "resultados-polinizacion-mora-castilla"
+    },
+    "public/images/bitacora/bitacora-propiedades-medicinales.webp": {
+      "endpoint": "bitacoras",
+      "slug": "propiedades-medicinales-miel-angelita"
+    },
+    "public/images/bitacora/bitacora-pureza-miel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "pureza-en-la-miel-de-angelita-lo-que-no-es-adulteracion"
+    },
+    "public/images/bitacora/bitacora-ruta-miel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "la-ruta-de-la-miel-del-nido-silvestre-a-tu-frasco"
+    },
+    "public/images/bitacora/bitacora-sabor-territorio.webp": {
+      "endpoint": "bitacoras",
+      "slug": "el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida"
+    }
+  }
+}
