@@ -2,8 +2,12 @@
  * Iwagé Tierras — Strapi data access layer
  * Handles property listings, filters, and detail pages.
  */
-import { strapiFetch, strapiSingle, CACHE_TTL } from './strapi';
-import { mediaSrc } from './media';
+import { strapiFetch, strapiSingle, CACHE_TTL } from './strapi.ts';
+// `toMediaItem`/`toMediaList` son el contrato de medios del sitio (`src/lib/media.ts`).
+// Los imports runtime de un módulo de `src/lib` llevan extensión `.ts`: sin ella solo los
+// resuelve el bundler de Astro, y `node --test` carga este archivo directo
+// (`tests/normalizar-medio-4.test.mjs`). Precedente: `src/lib/bitacora-ruta.ts:8`.
+import { toMediaItem, toMediaList, type MediaItem } from './media.ts';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -45,8 +49,18 @@ export interface Propiedad {
   distancia_centro_poblado: number | null;
   sello_vap: 'oro' | 'plata' | 'bronce' | 'cuarentena';
   modelo_sugerido: { titulo?: string; valor?: string; icono?: string } | null;
-  imagenes: Array<{ url: string; alternativeText?: string }> | null;
-  imagen_principal: { url: string; alternativeText?: string } | null;
+  /**
+   * Los dos campos son `type: media` en
+   * `strapi/src/api/propiedad/content-types/propiedad/schema.json` (`imagen_principal`
+   * simple, `imagenes` múltiple) y salen de `normalizePropiedad` ya como `MediaItem`:
+   * `url` reducida a ruta de sitio (nginx proxya `/uploads`; una URL con el host interno
+   * del compose es un roto en el navegador), `alt` tomado del `alternativeText` del admin
+   * y `kind`/`provider` resueltos por `src/lib/media.ts`.
+   * `null` en `imagenes` sigue significando "Strapi no trajo el campo" (una relación
+   * vacía sale `[]`), así que las plantillas no cambian de contrato.
+   */
+  imagenes: MediaItem[] | null;
+  imagen_principal: MediaItem | null;
   detalle_rural: DetalleRural | null;
   verificacion_vap: VerificacionVAP | null;
   perfil_comprador: 'productivo' | 'campestre' | 'nomada' | 'turistico' | 'patrimonial';
@@ -340,7 +354,13 @@ export async function getPropiedadesDestacadas(limit = 6): Promise<Propiedad[]> 
 
 // ── Helpers ────────────────────────────────────────────
 
-function normalizePropiedad(raw: any): Propiedad {
+/**
+ * Fila cruda de Strapi → `Propiedad` para plantilla. Está exportada por la misma razón que
+ * `filasParaPlantilla` en `src/lib/bitacora-resumen.ts`: el mapeo tiene que poder probarse
+ * sin Redis ni red (`tests/normalizar-medio-4.test.mjs`), y NO muta la fila de entrada —
+ * `strapiFetch` reparte el mismo objeto entre llamadas concurrentes.
+ */
+export function normalizePropiedad(raw: any): Propiedad {
   return {
     id: raw.id,
     documentId: raw.documentId,
@@ -379,8 +399,20 @@ function normalizePropiedad(raw: any): Propiedad {
     distancia_centro_poblado: raw.distancia_centro_poblado ? Number(raw.distancia_centro_poblado) : null,
     sello_vap: raw.sello_vap || 'plata',
     modelo_sugerido: raw.modelo_sugerido || null,
-    imagenes: Array.isArray(raw.imagenes) ? raw.imagenes.map((img: any) => ({ url: img.url, alternativeText: img.alternativeText })) : null,
-    imagen_principal: raw.imagen_principal ? { url: raw.imagen_principal.url, alternativeText: raw.imagen_principal.alternativeText } : null,
+    // `toMediaList`/`toMediaItem` en vez de abrir el objeto media campo a campo. Lo que
+    // arregla no es cosmética:
+    //  · `alt` del admin — el `.map((img: any) => ({ url, alternativeText }))` dejaba la
+    //    clave con el nombre de Strapi, y ninguna plantilla la leía: el `alt` salía del
+    //    título de la propiedad, no de la foto.
+    //  · la ruta — `mediaSrc()` dentro de `propiedadImagen()` solo reducía UNA de las dos
+    //    salidas; `prop.imagenes[0].url` pintado directo en una plantilla se servía con el
+    //    host interno del compose (`http://strapi_backend:1337/…`), que el navegador no ve.
+    //  · la basura — `{ url: img.url }` sobre un elemento `null` lanzaba `TypeError` que
+    //    `getPropiedades` atrapaba EN BLOQUE y devolvía `data: []`: un dato feo se
+    //    disfrazaba de "Strapi caído" y vaciaba el catálogo.
+    // `null` sigue significando "el campo no vino" (relación no populateada), no "vacía".
+    imagenes: Array.isArray(raw.imagenes) ? toMediaList(raw.imagenes) : null,
+    imagen_principal: toMediaItem(raw.imagen_principal),
     detalle_rural: raw.detalle_rural || null,
     verificacion_vap: raw.verificacion_vap || null,
     perfil_comprador: raw.perfil_comprador || 'productivo',
@@ -400,11 +432,38 @@ export function formatPrecio(precio: number | null, moneda = 'COP'): string {
   return `$${precio.toLocaleString('es-CO')}`;
 }
 
-/** Get image URL from Strapi media */
-export function propiedadImagen(prop: Propiedad): string | null {
-  if (prop.imagen_principal?.url) return mediaSrc(prop.imagen_principal.url);
-  if (prop.imagenes && prop.imagenes.length > 0) return mediaSrc(prop.imagenes[0].url);
-  return null;
+/**
+ * La portada de una propiedad como `MediaItem` — no como ruta.
+ *
+ * Antes devolvía `string | null` (`mediaSrc(...)`), y por esa firma las tres tarjetas del
+ * catálogo pintaban `alt={prop.titulo}`: el `alternativeText` del admin no tenía camino al
+ * `<img>`. Acá sale el item completo, así que la plantilla hace
+ * `src={img.url}` + `alt={img.alt || prop.titulo}`.
+ *
+ * SIN FALLBACK de imagen: si Strapi no trajo nada devuelve `null` y la tarjeta cae al
+ * mosaico `Icon`. Ninguna ruta de stock entra por acá (es la regla que el brief fija para
+ * toda la fase; `LOCAL_IMAGES` en `cafe.ts` es el patrón que NO hay que reproducir).
+ */
+export function propiedadImagen(prop: Propiedad): MediaItem | null {
+  const item = toMediaItem(prop.imagen_principal) ?? toMediaList(prop.imagenes ?? [])[0] ?? null;
+  return item && item.url ? item : null;
+}
+
+/**
+ * La galería de la ficha (`/tierras/propiedades/[slug]`) como `MediaItem[]`: la portada
+ * delante y una sola vez. `toMediaList` deduplica por host+pathname, así que una portada
+ * que además está en `imagenes` no sale dos veces ni desplaza a las demás.
+ *
+ * Devuelve `[]` (nunca `null`) para que el guard de la plantilla sea `galeria.length > 0`.
+ */
+export function propiedadGaleria(prop: Propiedad): MediaItem[] {
+  const portada = propiedadImagen(prop);
+  const resto = toMediaList(prop.imagenes ?? []);
+  if (!portada) return resto;
+  // La portada va primero, y si ya estaba en `imagenes` se quita de ahí (`toMediaList` ya
+  // la hubiera dejado en su posición original).
+  const clave = portada.url.toLowerCase();
+  return [portada, ...resto.filter((i) => i.url.toLowerCase() !== clave)];
 }
 
 /** Format area display */

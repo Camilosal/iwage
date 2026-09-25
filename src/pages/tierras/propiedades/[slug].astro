@@ -10,8 +10,7 @@ import ProtectionPeriodAlert from '@/components/tierras/ProtectionPeriodAlert.as
 import Storytelling from '@/components/tierras/Storytelling.astro';
 import MediaGallery from '@/components/shared/MediaGallery.astro';
 import AgendarVisita from '@/components/tierras/AgendarVisita.astro';
-import { getPropiedadBySlug, getAllPropiedadSlugs, formatPrecio, formatArea, propiedadImagen, SELLOS_VAP } from '@/lib/tierras';
-import { mediaSrc } from '@/lib/media';
+import { getPropiedadBySlug, getAllPropiedadSlugs, formatPrecio, formatArea, propiedadGaleria, SELLOS_VAP } from '@/lib/tierras';
 import { getBrand } from '@/config/brands';
 
 const { slug } = Astro.params;
@@ -21,10 +20,12 @@ if (!prop) {
   return Astro.redirect('/tierras/propiedades');
 }
 
-const images = prop.imagenes?.map(img => mediaSrc(img.url)).filter(Boolean) || [];
-if (prop.imagen_principal?.url && !images.includes(mediaSrc(prop.imagen_principal.url)!)) {
-  images.unshift(mediaSrc(prop.imagen_principal.url)!);
-}
+// La galería ya sale normalizada del módulo (`propiedadGaleria`): `MediaItem[]` con la
+// portada delante, las rutas reducidas a `/uploads/...` y `alt` del `alternativeText` del
+// admin. Antes se re-mapeaba `prop.imagenes` acá con `mediaSrc()` encima de la forma armada
+// a mano: dos bordes resolviendo lo mismo y el `alt` perdido antes de llegar a
+// `MediaGallery`, que sí sabe pintarlo.
+const images = propiedadGaleria(prop);
 
 // Build Ficha Técnica sections
 const dr = prop.detalle_rural;

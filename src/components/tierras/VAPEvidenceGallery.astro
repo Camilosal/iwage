@@ -1,5 +1,6 @@
 ---
 import Icon from '@/components/shared/Icon.astro';
+import { toMediaItem, type MediaItem } from '@/lib/media';
 
 interface FotoEvidencia {
   url: string;
@@ -12,9 +13,28 @@ interface Props {
 }
 
 const { fotos } = Astro.props;
+
+/**
+ * Cada foto pasa por `toMediaItem()` ANTES de pintarse: la ruta que sale al HTML es de
+ * sitio (`/uploads/…`), no la absoluta con el host interno del compose, y el `label` del
+ * admin es el `alt` — no el nombre del archivo.
+ *
+ * Medido, para no prometer lo que no está: este slot está INACTIVO hoy. Quien lo alimenta
+ * es `prop.fotos_evidencia` (`src/pages/tierras/propiedades/[slug].astro`), y ese campo
+ * no lo entrega `normalizePropiedad` ni existe como atributo en
+ * `strapi/src/api/propiedad/content-types/propiedad/schema.json`. Se normaliza igual,
+ * para que el día que el campo llegue no se cuele la forma cruda; no se inventa el dato.
+ */
+const resueltas: Array<{ media: MediaItem; label: string; item_clave: string }> = (fotos ?? [])
+  .map((foto) => ({
+    media: toMediaItem({ url: foto?.url, alternativeText: foto?.label }),
+    label: foto?.label ?? '',
+    item_clave: foto?.item_clave ?? '',
+  }))
+  .filter((f): f is { media: MediaItem; label: string; item_clave: string } => !!f.media);
 ---
 
-{fotos && fotos.length > 0 && (
+{resueltas.length > 0 && (
   <div class="vap-evidence mt-8">
     <div class="flex items-center gap-2 mb-4">
       <Icon name="camera" class="w-5 h-5" />
@@ -22,17 +42,17 @@ const { fotos } = Astro.props;
     </div>
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {fotos.map((foto, idx) => (
+      {resueltas.map((foto, idx) => (
         <button
           class="vap-evidence-item group relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 cursor-zoom-in hover:shadow-xl transition-all"
           data-index={idx}
-          data-url={foto.url}
+          data-url={foto.media.url}
           data-label={foto.label}
-          data-clave={foto.item_clave || ''}
+          data-clave={foto.item_clave}
         >
           <img
-            src={foto.url}
-            alt={foto.label}
+            src={foto.media.url}
+            alt={foto.media.alt || foto.label}
             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
           />

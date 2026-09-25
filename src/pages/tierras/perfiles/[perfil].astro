@@ -70,11 +70,15 @@ const { data: propiedades } = await getPropiedades({ perfil: perfilId, pageSize:
       <div class="max-w-7xl mx-auto">
         <h2 class="text-xl font-bold text-[#1B4332] mb-6">Propiedades para este perfil</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {propiedades.map((prop) => (
+          {propiedades.map((prop) => {
+            // Una sola resolución por tarjeta; el `MediaItem` trae la ruta de sitio y el
+            // `alternativeText` del admin, que antes se perdía contra `prop.titulo`.
+            const img = propiedadImagen(prop);
+            return (
             <a href={`/tierras/propiedades/${prop.slug}`} class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#52B788]/40 hover:shadow-lg transition-all">
               <div class="h-44 bg-gray-100 overflow-hidden">
-                {propiedadImagen(prop) ? (
-                  <img src={propiedadImagen(prop)!} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                {img ? (
+                  <img src={img.url} alt={img.alt || prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 ) : (
                   <div class="w-full h-full flex items-center justify-center bg-[#1B4332]/10"><Icon name="mountain" class="w-6 h-6 text-[#1B4332]/40" /></div>
                 )}
@@ -85,7 +89,8 @@ const { data: propiedades } = await getPropiedades({ perfil: perfilId, pageSize:
                 <p class="text-lg font-bold text-[#1B4332] mt-2">{formatPrecio(prop.precio, prop.moneda)}</p>
               </div>
             </a>
-          ))}
+            );
+          })}
         </div>
         <div class="text-center mt-8">
           <a href={`/tierras/propiedades?perfil=${perfilId}`} class="inline-block bg-[#1B4332] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#1B4332]/90 transition-all">Ver todas <Icon name="arrow-right" class="w-3.5 h-3.5 inline" /></a>

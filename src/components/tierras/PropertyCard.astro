@@ -7,13 +7,15 @@ interface Props {
 }
 
 const { prop } = Astro.props;
+// `propiedadImagen` entrega el `MediaItem` (ruta de sitio + `alt` del admin), no una ruta:
+// así el `alternativeText` que se escribe en Strapi llega al `<img>` y no se pierde.
 const img = propiedadImagen(prop);
 ---
 
 <a href={`/tierras/propiedades/${prop.slug}`} class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#52B788]/40 hover:shadow-xl transition-all">
   <div class="relative h-52 bg-gray-100 overflow-hidden">
     {img ? (
-      <img src={img} alt={prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+      <img src={img.url} alt={img.alt || prop.titulo} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
     ) : (
       <div class="w-full h-full flex items-center justify-center bg-[#1B4332]/10">
         <Icon name="mountain" class="w-8 h-8" />
