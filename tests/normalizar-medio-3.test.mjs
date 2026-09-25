@@ -276,10 +276,17 @@ test('naturaleza: el anfitrión pinta su foto con el alt del admin, y la galerí
     slug: 'don-hernando', nombre: 'Don Hernando',
     foto_perfil: { id: 41, url: 'http://iwage_strapi:1337/uploads/a/hernando.webp', alternativeText: 'Don Hernando con su cepo' },
     galeria: [{ url: '/uploads/a/cafetal.webp', alternativeText: 'Cafetal', caption: 'Vereda Santagueda' }],
+    // La columna legacy, tal como está en las 2 filas huérfanas de `anfitriones`: si algún
+    // caller la trae (sync directo a la BD, fixture), no puede ni declararse ni pintar. La
+    // URL es `/uploads/...` a propósito: con un hotlink de Unsplash lo filtraba `esPintable()`
+    // más abajo y el candado pasaba vacío (comprobado con mutant el 2026-09-25).
+    galeria_fotos: [{ url: '/uploads/a/cepo-viejo.webp', titulo: 'Valor huérfano de la BD' }],
   });
   assert.equal(anfitrionFoto(host).url, '/uploads/a/hernando.webp');
   assert.equal(anfitrionFoto(host).alt, 'Don Hernando con su cepo', 'anfitrionFoto() devolvía un string: el alt no existía');
   assert.equal(host.galeria[0].caption, 'Vereda Santagueda');
+  assert.deepEqual(host.galeria.map((m) => m.url), ['/uploads/a/cafetal.webp'],
+    'galeria_fotos mete el valor huérfano de la BD en la galería: la columna ya no es fuente');
   assert.equal('galeria_fotos' in host, false, 'anfitrionParaPlantilla sigue declarando galeria_fotos, un campo que ya no está en el schema');
 
 

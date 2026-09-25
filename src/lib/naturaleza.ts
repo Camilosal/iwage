@@ -583,7 +583,10 @@ function anfitrionCruda(raw: unknown, nivel = 0): Anfitrion {
   return {
     ...sinClaves(fila, 'foto_perfil_url', 'galeria_fotos'),
     foto_perfil: medioCrudo(fila.foto_perfil, fila.foto_perfil_url),
-    galeria: galeriaFusionada(fila.galeria, fila.galeria_fotos),
+    // `galeria_fotos` ya no está en el schema, pero la columna sigue en `anfitriones` con 2
+    // JSON huérfanos de Unsplash. Passarla a la fusión no agregaba nada (Strapi no la
+    // selecciona) y dejaba la puerta abierta a que resucitara si alguien la re-declara.
+    galeria: toMediaList(fila.galeria),
     experiencias: Array.isArray(fila.experiencias)
       ? (nivel === 0 ? fila.experiencias.map((e: unknown) => experienciaCruda(e, 1)) : fila.experiencias)
       : null,
