@@ -658,3 +658,58 @@ test('F2-a la salida no depende del orden de entrada: mismos baldes con el inven
   }));
   assert.equal(vuelta, ida, 'barajar el inventario no puede cambiar ningún balde');
 });
+
+test('F2-a abreviatura con puntos: `E.F.M.` se pliega en UN token de la identidad', () => {
+  // Dientes agregados al verificar F2-a: el mutante «borrar el plegado de
+  // puntos de `normalizar()`» sobrevivió la primera corrida, porque las siglas
+  // MEDIDAS de la BD (`Meliponario I.E. Ambalá`) están cubiertas dos veces —
+  // `ie` es token de parada y `i`/`e` son iniciales sueltas que se descartan—.
+  // Este es el caso que distingue la regla: una abreviatura cuyas letras forman
+  // un token de dos o más caracteres. Sin el plegado, `E.F.M.` deja `e`, `f`,
+  // `m` (tres iniciales que se botan), la identidad pierde un token y el archivo
+  // `producto-efm-…-1` deja de pertenecer a nadie: cae a `pendientes`.
+  const archivo = 'public/images/galeria/producto-efm-ambala-1.webp';
+  const m = manifesto({
+    archivos: [archivo],
+    registros: [{ endpoint: 'productos', documentId: 'prd-efm', slug: null, nombre: 'Miel E.F.M. Ambalá' }],
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'productos',
+    documentId: 'prd-efm',
+    campo: 'galeria',
+    archivo,
+    origen: 'nombre',
+  }], 'la abreviatura plegada es parte del `nombre`');
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.ambiguos, []);
+});
+
+test('F2-a acentos fuera, `ñ` incluida: `Caja INPA Pequeña` ≡ `producto-inpa-pequena`', () => {
+  // Segundo mutante que sobrevivió al primer pase: `normalizar()` pliega los
+  // acentos por dos caminos (borrar `.normalize('NFD')` sí rompe pruebas; borrar
+  // solo el strip de marcas combinantes no, porque una vocal descompuesta cae
+  // como separador y el token sale igual). La línea hace falta con `ñ`: sin ella
+  // `Pequeña` se parte en `peque` + `n` + `a` y la identidad se deforma, así que
+  // el arte de ese producto no pertenece a nadie. El nombre es MEDIDO
+  // (`strapi/scripts/seed-productos.mjs`, 14 productos); el archivo es la forma
+  // en que ese arte está escrito en disco.
+  const archivo = 'public/images/galeria/producto-inpa-pequena.webp';
+  const m = manifesto({
+    archivos: [archivo],
+    registros: [
+      { endpoint: 'productos', documentId: 'caja-inpa-pequena', slug: null, nombre: 'Caja INPA Pequeña' },
+      { endpoint: 'productos', documentId: 'caja-inpa-mediana', slug: null, nombre: 'Caja INPA Mediana' },
+    ],
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'productos',
+    documentId: 'caja-inpa-pequena',
+    campo: 'imagen',
+    archivo,
+    origen: 'nombre',
+  }], 'la `ñ` plegada es parte del nombre: no casa con `Mediana` ni se pierde');
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.ambiguos, []);
+});
