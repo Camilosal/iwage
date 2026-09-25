@@ -575,10 +575,13 @@ if (faq.length > 0) {
             avisameEl.href = waLink(`¡Hola Iwagé! ¿Cuándo estará disponible nuevamente "${v.nombre}"?`);
           }
 
-          // Imagen principal de la galería (si la variación tiene una propia)
-          const mainImg = document.querySelector('[data-gal-main-img]');
-          if (mainImg && v.imagen && mainImg.getAttribute('src') !== v.imagen) {
-            mainImg.setAttribute('src', v.imagen);
+          // Imagen principal de la galería (si la variación tiene una propia).
+          // Se le PIDE a la galería en vez de reescribir el `<img>`: el visor pinta su propia
+          // lista de items, así que tocar solo el thumbnail dejaba el lightbox con la foto del
+          // producto base y revertía la del recuadro al navegar entre piezas.
+          if (v.imagen) {
+            const galeria = document.querySelector('[data-gallery-wrapper]')?.__iwageGallery;
+            galeria?.setMainImage(v.imagen);
           }
 
           // Estado activo de los selectores

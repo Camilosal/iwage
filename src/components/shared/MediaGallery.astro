@@ -274,5 +274,31 @@ const itemsJson = JSON.stringify(items).replace(/</g, '\\u003c');
       if (e.key === 'ArrowLeft') show(current - 1);
       if (e.key === 'ArrowRight') show(current + 1);
     });
+
+    // API: cambiar la pieza principal DESPUÉS del render es lo que hace la ficha de tienda
+    // al elegir una variación. El visor pinta `items[]` (parseado del JSON), no el DOM del
+    // thumbnail, así que reescribir `<img src>` por fuera dejaba el lightbox con la foto del
+    // producto base —y `show(0)` revertía hasta el thumbnail. Por eso el mutante vive acá,
+    // que es donde están las dos copias de ese dato.
+    wrapper.__iwageGallery = {
+      setMainImage(url) {
+        // `url` llega de un `.textContent` ajeno a este archivo: se recorta igual que en
+        // `rawOf()` de `lib/media.ts`, o un `'   '` pintaría un `src` vacío.
+        const limpia = typeof url === 'string' ? url.trim() : '';
+        const item = items[0];
+        if (!item || !limpia) return false;
+        // `render !== 'img'`: si la primera pieza es video o embed no hay `<img>` que
+        // reemplazar, y pintar una foto encima mentiría sobre lo que es el activo.
+        if (item.render !== 'img') return false;
+        item.url = limpia;
+        item.embed = limpia; // con render 'img', `embed === url` (misma convención del servidor)
+        const thumb = wrapper.querySelector('[data-gal-main-img]');
+        if (thumb) thumb.src = limpia;
+        const stripImg = strips[0]?.querySelector('img');
+        if (stripImg) stripImg.src = limpia;
+        if (current === 0 && img) img.src = limpia;
+        return true;
+      },
+    };
   })();
 </script>
