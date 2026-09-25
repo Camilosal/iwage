@@ -18,13 +18,11 @@ export default defineConfig({
   integrations: [
     react(),
   ],
-  image: {
-    remotePatterns: [
-      { protocol: 'http', hostname: 'iwage_strapi', port: '1337' },
-      { protocol: 'http', hostname: 'localhost', port: '1337' },
-      { protocol: 'https', hostname: 'iwage.co' },
-    ],
-  },
+  // Sin bloque `image`: con `strapiImage()` muerto (F1) no queda NINGUN consumidor de la
+  // pipeline de imágenes de Astro. Medido sobre todo `src/**`: cero `astro:assets`, cero
+  // `<Image`, cero `getImage()`. Los remotePatterns de aquí declaraban un allowlist de
+  // hosts que nada pedía; los medios se pintan con la ruta relativa que devuelve
+  // `mediaSrc()` y la resuelve nginx contra el mismo Strapi.
   security: {
     checkOrigin: true,
   },
