@@ -27,8 +27,18 @@
       "enum": ["meliponas", "granja"],
       "default": "meliponas"
     },
-    "imagen": { "type": "string" },
-    "galeria": { "type": "json" },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images", "videos"]
+    },
     "stock_disponible": { "type": "boolean", "default": true },
     "stock_cantidad": { "type": "integer" },
     "destacado": { "type": "boolean", "default": false },

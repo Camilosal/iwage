@@ -13,7 +13,17 @@
     "origen_meliponario": { "type": "string" },
     "origen_altitud": { "type": "string" },
     "perfil_cata": { "type": "text" },
-    "galeria": { "type": "json" },
-    "imagen": { "type": "string" }
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images", "videos"]
+    },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    }
   }
 }

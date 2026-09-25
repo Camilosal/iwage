@@ -14,8 +14,18 @@
     "nombre_cientifico": { "type": "string" },
     "familia_botanica": { "type": "string" },
     "icono": { "type": "string" },
-    "imagen": { "type": "string" },
-    "galeria": { "type": "json" },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images", "videos"]
+    },
 
     "descripcion": { "type": "richtext" },
     "descripcion_corta": { "type": "text", "maxLength": 250 },

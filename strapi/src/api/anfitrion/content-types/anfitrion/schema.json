@@ -60,8 +60,11 @@
     "foto_territorio": {
       "type": "string"
     },
-    "galeria_fotos": {
-      "type": "json"
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images", "videos"]
     },
     "nivel_escalafon": {
       "type": "integer",

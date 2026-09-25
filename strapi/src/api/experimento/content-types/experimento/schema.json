@@ -47,7 +47,10 @@
       "type": "date"
     },
     "imagen": {
-      "type": "string"
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
     },
     "origen": {
       "type": "richtext"
