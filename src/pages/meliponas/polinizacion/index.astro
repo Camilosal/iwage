@@ -160,9 +160,12 @@ const planes = [
       <SectionHeader
         label="Cultivos"
         title="Cultivos que polinizamos"
-        subtitle="Cada cultivo tiene condiciones específicas. Ingresa para ver la ficha completa."
+        subtitle={cultivos.length > 0
+          ? 'Cada cultivo tiene condiciones específicas. Ingresa para ver la ficha completa.'
+          : undefined}
       />
     </ScrollReveal>
+    {cultivos.length > 0 ? (
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {cultivos.map((c, i) => (
         <ScrollReveal delay={i * 80}>
@@ -222,6 +225,15 @@ const planes = [
         </ScrollReveal>
       ))}
     </div>
+    ) : (
+      <div class="rounded-2xl border border-border bg-surface-raised px-6 py-14 text-center">
+        <Icon name="flower-2" class="w-10 h-10 block mx-auto mb-4 text-brand/40" />
+        <h3 class="text-lg font-semibold text-text-primary mb-1">Aún no publicamos cultivos</h3>
+        <p class="text-sm text-text-secondary max-w-md mx-auto">
+          Próximamente mostraremos aquí los cultivos que polinizamos.
+        </p>
+      </div>
+    )}
   </Section>
 
   <!-- Proceso + Beneficios -->

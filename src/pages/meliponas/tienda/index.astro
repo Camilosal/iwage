@@ -42,80 +42,96 @@ const pills = CATEGORIAS.filter((c) => agrupados.some((g) => g.producto.categori
         <SectionHeader
           label="Tienda"
           title="Productos del meliponario"
-          subtitle="Miel con trazabilidad por lote, cajas en nogal cafetero y kits para empezar tu meliponario."
+          subtitle={agrupados.length > 0
+            ? 'Miel con trazabilidad por lote, cajas en nogal cafetero y kits para empezar tu meliponario.'
+            : undefined}
         />
       </div>
     </header>
   )}
 
-  <!-- Shipping info -->
-  <div class="max-w-6xl mx-auto px-6 mb-8">
-    <div class="bg-accent-muted rounded-xl px-5 py-3 flex items-center gap-3">
-      <Icon name="truck" class="w-5 h-5 text-accent shrink-0" />
-      <p class="text-sm text-text-secondary">
-        Envío a todo Colombia · Pago contra entrega disponible en Ibagué · Empaque refrigerado para miel
-      </p>
+  <!-- Condiciones de compra: solo con catálogo publicado, para no prometer envíos de nada -->
+  {agrupados.length > 0 && (
+    <div class="max-w-6xl mx-auto px-6 mb-8">
+      <div class="bg-accent-muted rounded-xl px-5 py-3 flex items-center gap-3">
+        <Icon name="truck" class="w-5 h-5 text-accent shrink-0" />
+        <p class="text-sm text-text-secondary">
+          Envío a todo Colombia · Pago contra entrega disponible en Ibagué · Empaque refrigerado para miel
+        </p>
+      </div>
     </div>
-  </div>
+  )}
 
   <!-- Products -->
   <Section class="!pt-0">
-    <!-- Filtro por categoría (pills) -->
-    <div class="flex flex-wrap gap-2 mb-8" id="filtro-categorias">
-      <button
-        type="button"
-        class="filtro-pill"
-        data-categoria="todos"
-        aria-pressed="true"
-      >
-        Todos
-      </button>
-      {pills.map((c) => (
-        <button
-          type="button"
-          class="filtro-pill"
-          data-categoria={c.id}
-          aria-pressed="false"
-        >
-          {c.label}
-        </button>
-      ))}
-    </div>
-
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="grid-productos">
-      {agrupados.map((g, i) => {
-        const p = g.producto;
-        const rec = resolveRecurso(catalogo, p.slug, p.nombre);
-        return (
-        <div class="producto-item h-full" data-categoria={p.categoria}>
-          <ScrollReveal delay={i * 60} class="h-full">
-            <ProductCard
-              name={g.nombre}
-              description={p.descripcion_corta ?? p.descripcion ?? ''}
-              price={g.precioDesde}
-              presentation={g.numVariaciones > 1 ? g.etiquetas.join(' · ') : p.presentacion ?? undefined}
-              image={p.imagen ?? undefined}
-              destacado={p.destacado}
-              slug={p.slug}
-              precioComparativo={g.numVariaciones > 1 ? undefined : p.precio_comparativo}
-              envioGratis={p.envio_gratis}
-              stockDisponible={p.stock_disponible}
-              recursoSlug={rec?.slug ?? `meliponas-${p.slug}`}
-              tipo={rec?.tipo ?? 'producto'}
-              tipoDisponibilidad={rec?.tipo_disponibilidad ?? 'inmediato'}
-              requierePago={rec?.requiere_pago ?? true}
-              origen={rec?.origen ?? 'iwage_meliponas'}
-              brand="meliponas"
-              categoriaLabel={categoriaLabel.get(p.categoria)}
-              variaciones={g.numVariaciones}
-              ejeVariacion={g.eje}
-              precioDesde={g.numVariaciones > 1}
-            />
-          </ScrollReveal>
+    {agrupados.length > 0 ? (
+      <>
+        <!-- Filtro por categoría (pills) -->
+        <div class="flex flex-wrap gap-2 mb-8" id="filtro-categorias">
+          <button
+            type="button"
+            class="filtro-pill"
+            data-categoria="todos"
+            aria-pressed="true"
+          >
+            Todos
+          </button>
+          {pills.map((c) => (
+            <button
+              type="button"
+              class="filtro-pill"
+              data-categoria={c.id}
+              aria-pressed="false"
+            >
+              {c.label}
+            </button>
+          ))}
         </div>
-        );
-      })}
-    </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="grid-productos">
+          {agrupados.map((g, i) => {
+            const p = g.producto;
+            const rec = resolveRecurso(catalogo, p.slug, p.nombre);
+            return (
+            <div class="producto-item h-full" data-categoria={p.categoria}>
+              <ScrollReveal delay={i * 60} class="h-full">
+                <ProductCard
+                  name={g.nombre}
+                  description={p.descripcion_corta ?? p.descripcion ?? ''}
+                  price={g.precioDesde}
+                  presentation={g.numVariaciones > 1 ? g.etiquetas.join(' · ') : p.presentacion ?? undefined}
+                  image={p.imagen ?? undefined}
+                  destacado={p.destacado}
+                  slug={p.slug}
+                  precioComparativo={g.numVariaciones > 1 ? undefined : p.precio_comparativo}
+                  envioGratis={p.envio_gratis}
+                  stockDisponible={p.stock_disponible}
+                  recursoSlug={rec?.slug ?? `meliponas-${p.slug}`}
+                  tipo={rec?.tipo ?? 'producto'}
+                  tipoDisponibilidad={rec?.tipo_disponibilidad ?? 'inmediato'}
+                  requierePago={rec?.requiere_pago ?? true}
+                  origen={rec?.origen ?? 'iwage_meliponas'}
+                  brand="meliponas"
+                  categoriaLabel={categoriaLabel.get(p.categoria)}
+                  variaciones={g.numVariaciones}
+                  ejeVariacion={g.eje}
+                  precioDesde={g.numVariaciones > 1}
+                />
+              </ScrollReveal>
+            </div>
+            );
+          })}
+        </div>
+      </>
+    ) : (
+      <div class="rounded-2xl border border-border bg-surface-raised px-6 py-14 text-center">
+        <Icon name="package" class="w-10 h-10 block mx-auto mb-4 text-brand/40" />
+        <h2 class="text-lg font-semibold text-text-primary mb-1">Aún no publicamos productos</h2>
+        <p class="text-sm text-text-secondary max-w-md mx-auto">
+          Próximamente mostraremos aquí los productos del meliponario.
+        </p>
+      </div>
+    )}
   </Section>
 </BrandLayout>
 

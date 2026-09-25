@@ -263,3 +263,75 @@ test('la galería lee kind/caption/alt también en el script del navegador', () 
     );
   }
 });
+
+// ── Task 9 (F1): Strapi es el único dueño de los datos, y eso se mide ───────
+//
+// El barrido que faltaba. `SEED_CULTIVOS` (`src/lib/polinizacion.ts`) sobrevivió al commit
+// `a6c38fa` porque el gate del plan buscaba las otras agujas y esa constante se escribe con
+// otro prefijo: seis fichas inventadas (`documentId: 'seed-1'..'seed-6'`, `+14% amarre`)
+// seguían llegando al HTML de `/meliponas/polinizacion` cuando Strapi caía — medido en el
+// informe de la Tarea 9, fix round 1. Esta aserción es la que lo habría cortado sola, y es
+// la que corta las regresiones de F2 y F3, donde los seeds vuelven a tener motivo de aparecer.
+//
+// Dientes y sus dos condiciones, ambas medidas:
+//  · se camina TODO `src/**` (`.astro`/`.ts`/`.tsx`) línea a línea y se listan TODOS los
+//    culpables como `ruta:línea: código`, no solo el primero;
+//  · los comentarios se quitan antes de casar, con el `sinComentarios()` ya establecido arriba:
+//    «Sin stock de Unsplash» en el JSDoc de `lib/naturaleza.ts:478` es documentación de por qué
+//    ya no está, no el bug. El coste declarado es un gate más flojo sobre la prosa — un array
+//    en código no puede esconderse dentro de un comentario, así que los dientes no se pierden.
+//
+// Auto-ceguera (el bug que esta sección tuvo antes): cada aguja se arma en dos mitades con
+// `aguja()`, así que el texto de ESTE archivo nunca contiene ninguna de las cuatro cadenas de
+// forma contigua; y `archivosEn()` solo devuelve `.astro`/`.ts`/`.tsx` bajo `src/`, nunca `.mjs`.
+// Ninguna de las dos defensas depende de la otra.
+function aguja(izq, der) {
+  return izq + der;
+}
+
+const AGUJAS_SEMILLA = [
+  // 16 líneas en 14 archivos servían fotos de stock en lugar de un activo propio.
+  { motivo: 'foto de stock de un tercero', re: new RegExp(aguja('uns', 'plash'), 'i') },
+  // Dominio muerto: `curl` responde 000 (paso 1 del brief). Nadie lo sirve.
+  { motivo: 'hotlink a un dominio que no sirve nada', re: new RegExp(aguja('tienda\\.', 'iwage\\.co')) },
+  // Registros inventados que se hacen pasar por filas de Strapi (precios, existencias, métricas).
+  { motivo: 'seed que se hace pasar por filas de Strapi', re: new RegExp(`\\b${aguja('FALLBACK', '_')}[A-Za-z0-9_]*`) },
+  { motivo: 'seed que se hace pasar por filas de Strapi', re: new RegExp(aguja('SEED', '_CULTIVOS')) },
+];
+
+// Excepciones DECLARADAS y ya falladas por el controller — no se "arreglan", se nombran:
+//  · `FALLBACK_HISTORIAS_HOME` (pages/cafe/index.astro:54): 4 registros cuyas imágenes son
+//    archivos producidos y versionados (`/images/cafe-menu/visitante-*.webp`), no stock ajeno ni
+//    rutas 404. Lo retira la **Tarea 12/13** cuando `historia-visitante` esté poblado en Strapi.
+//  · `INICIATIVAS_FALLBACK` (pages/naturaleza/impacto.astro:54): son métricas inventadas
+//    («1.200 plántulas», «12 becados»), no medios; el caso se escaló al dueño y no lo decide
+//    esta gate. Se declara igualmente: la aguja ruling es `FALLBACK_` (prefijo) y hoy ni siquiera
+//    lo alcanza, así que esta entrada deja escrita la excepción por si la aguja se aprieta.
+const EXCEPCIONES_SEMILLA = {
+  'pages/cafe/index.astro': new Set([aguja('FALLBACK', '_HISTORIAS_HOME')]),
+  'pages/naturaleza/impacto.astro': new Set([aguja('INICIATIVAS', '_FALLBACK')]),
+};
+
+test('ningún seed vuelve a suplantar a Strapi en src/: ni stock de tercero, ni dominio muerto, ni FALLBACK_, ni SEED_CULTIVOS', () => {
+  const culpables = [];
+  for (const archivo of archivosEn(SRC)) {
+    const ruta = enSrc(archivo);
+    const permitidos = EXCEPCIONES_SEMILLA[ruta];
+    sinComentarios(readFileSync(archivo, 'utf8'))
+      .split('\n')
+      .forEach((linea, i) => {
+        for (const { motivo, re } of AGUJAS_SEMILLA) {
+          const casa = linea.match(re);
+          if (!casa) continue;
+          if (permitidos?.has(casa[0])) continue;
+          culpables.push(`    ${ruta}:${i + 1}: ${linea.trim().slice(0, 160)}  ← ${motivo} («${casa[0]}»)`);
+        }
+      });
+  }
+
+  assert.equal(
+    culpables.join('\n'),
+    '',
+    `Strapi es el único dueño de los datos de contenido (Tarea 9 / F1). Fuentes inventadas o de tercero en src/:\n${culpables.join('\n')}`,
+  );
+});

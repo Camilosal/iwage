@@ -98,7 +98,7 @@ export async function collectSitemapUrls(): Promise<{ urls: SitemapUrl[]; failed
     fetchAllSlugs('experimentos', void 0, failed),
     fetchAllSlugs('productos', void 0, failed),
     fetchAllSlugs('proyecto-meliponarios', void 0, failed),
-    // Cultivos: getCultivos() replica la página (incluye fallback a datos semilla)
+    // Cultivos: lo que devuelva Strapi (F1 ya no tiene datos semilla); sin `slug` no nace URL.
     getCultivos()
       .then((cs) => cs.filter((c) => c.slug).map((c) => ({ slug: c.slug }) as SlugEntry))
       .catch(() => {
