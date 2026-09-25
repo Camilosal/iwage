@@ -3,10 +3,13 @@
 **Para:** el dueño del sitio. Cada puerta es una decisión suya, no de este agente: el código está
 escrito y medido, lo que falta es ejecutar sobre infraestructura compartida y sobre datos.
 
-**Estado del trabajo:** `master` en `be6b92c`, **adelantado 91 commits sobre `origin/master`**
-(nada publicado). `npm test` 309/309. Censo en tres pasadas
-(`docs/superpowers/metrics/2026-09-25-despues.md`). Todo lo de abajo está en el orden correcto; el
-orden **no es negociable** en G2 → G3 → G5, y la razón está escrita en cada una.
+**Estado del trabajo:** `master` en `3513d4b`. Conteos como comando, no como número que caduca:
+`git rev-list --count origin/master..HEAD` para lo no publicado y
+`git rev-list --count ffb0a9c..HEAD` para el rango del plan. `npm test` en la suite de `tests/`.
+Censo en tres pasadas (`docs/superpowers/metrics/2026-09-25-despues.md`). Todo lo de abajo está en
+el orden correcto; el orden **no es negociable** en G2 → G3 → G5, y la razón está escrita en cada
+una. **G1 está ejecutada el 2026-09-25** (su sección dice cómo se verificó); las demás siguen
+cerradas.
 
 Cómo se lee cada puerta: *qué desbloquea* → *precondición medible* → *comandos* → *qué debe salir*
 → *rollback*.
@@ -20,50 +23,115 @@ valor). Los cuatro archivos están versionados y el repo es público.
 - Rotar el token de Strapi y la contraseña de base de datos que aparezcan ahí.
 - Reemplazar el literal por lectura de entorno, y borrar el valor de la historia si se va a
   publicar el repo tal cual: un `git rm` no borra el valor del historial.
-- **No empujar (`git push`) hasta haber rotado.** Con 91 commits locales pendientes, este es el
-  momento barato de hacerlo, no después.
+- **No empujar (`git push`) hasta haber rotado.** Con los commits locales que haya
+  (`git rev-list --count origin/master..HEAD`), este es el momento barato de hacerlo, no después.
 
-## G1 · Volumen durable para `uploads` (F0)
+## G1 · Volumen durable para `uploads` (F0) — **EJECUTADA el 2026-09-25 16:33 UTC**
 
 **Desbloquea:** que lo que se suba en G3 sobreviva a cualquier rebuild. Sin esto, G3 y G4 son
 esfuerzo que se borra solo.
 
-**Precondición, verificada el 2026-09-25:** `docker inspect iwage_strapi --format '{{json .Mounts}}'`
-→ `[]`, y dentro del contenedor `/app/public/uploads` solo tiene `.gitkeep` (0 bytes, 25-jul). No
-hay material que rescatar, y concuerda con `files = 0` en la BD. La causa es `strapi/Dockerfile:7`
+**Precondición, verificada antes de tocar:** `docker inspect iwage_strapi --format '{{json .Mounts}}'`
+→ `[]`, y dentro del contenedor `/app/public/uploads` solo tenía `.gitkeep` (0 bytes, 25-jul). No
+había material que rescatar, y concordaba con `files = 0` en la BD. La causa es `strapi/Dockerfile:7`
 (`RUN mkdir -p public/uploads`): el directorio vive en la capa escribible de la imagen.
 
-**Comandos** (archivo fuera del repo: `/home/ubuntu/negocio/docker-compose.yml`, servicio
-`iwage_strapi`, ~línea 1104):
+### Lo que casi reviente la puerta (y por eso no se corrió el `up -d` a ciegas)
+
+El runbook decía «`docker compose up -d iwage_strapi`» y eso, medido el 2026-09-25, **no era
+neutro**: el tag `negocio-iwage_strapi:latest` apuntaba a `f43819fd` (build del 24-sep 03:22)
+mientras el contenedor corría sobre `8c5a190d`. Dos hechos distintos, y ambos importan:
+
+- **Recrear = desplegar el build de otra persona sin autorización.** Era G2 disfrazado de G1.
+- **La imagen del contenedor vivo ya no existía en el store** (`Error response from daemon: No such
+  image: 8c5a190d…`, y watchtower lo reportaba desde el 24-sep como `Reason: container image info
+  missing`). O sea: si ese contenedor se detenía, no había forma de volver a arrancarlo con *su*
+  código. El CMS estaba sobre una imagen huérfana.
+
+Se resolvió **por medida, no por suposición**: la huella md5 del árbol de esquemas dentro del
+contenedor vivo, dentro de `f43819fd` y en `git archive ffb0a9c^ strapi/src/api` es la misma,
+`47e98b0f9032cbdb8ae53ecbd373f17c` (HEAD, con el Task 11, es `f251d28d…`: **distinto**). Y `/app/src`
++ `/app/config` completos dan `1ba7daffaaa5b030175231f4cfed4993` en los dos. Conclusión: el build de
+ayer es **pre-consolidación, igual al que estaba corriendo**, así que recrear no migra esquema ni
+sube código nuevo. Con eso la puerta vuelve a ser G1, y solo G1. Efecto lateral bueno: el contenedor
+nuevo apunta a una imagen que **sí existe y está etiquetada**, así que el problema huérfano se cerró
+en el mismo movimiento.
+
+Verificado además: **watchtower no puede recrear este servicio** (no tiene lista explícita de
+monitoreo, pero cada noche intenta `pull` de `negocio-iwage_strapi:latest` y falla con
+`pull access denied` — logs del 22, 23 y 24-sep). No hay riesgo de que alguien lo reinicie solo.
+
+### Seguro tomado antes de reiniciar
+
+```bash
+docker exec iwage_strapi sh -c 'tar czf - public/uploads' > /home/ubuntu/backup/iwage-uploads-2026-09-25.tar.gz   # 137 B: .gitkeep
+docker exec -i sostenibilidad_db pg_dump -U admin -d iwage > /home/ubuntu/backup/iwage-pre-g1-2026-09-25-1633.sql  # 2,5 MB (BD de 17 MB)
+cp /home/ubuntu/negocio/docker-compose.yml /home/ubuntu/negocio/docker-compose.yml.bak-g1-2026-09-25-1630
+```
+
+El `pg_dump` no lo pide G1 (no se toca el esquema) y aun así se tomó: la puerta detiene el CMS de un
+sitio vivo, y un dump de 17 MB cuesta un segundo.
+
+### Aplicado
+
+Cuatro líneas en `/home/ubuntu/negocio/docker-compose.yml` —**archivo fuera del repo, no versionado**,
+así que el cambio no va en ningún commit y su respaldo es el `.bak-g1-2026-09-25-1630`:
 
 ```yaml
-# dentro de iwage_strapi:, entre ports: y environment: (4 espacios)
+# iwage_strapi:, entre ports: y environment:
     volumes:
       - iwage_strapi_uploads:/app/public/uploads
-
-# bloque top-level volumes: (~línea 1437)
+# bloque top-level volumes:, después de swetrix-events-data
   iwage_strapi_uploads:
+    driver: local
 ```
 
-```bash
-cd /home/ubuntu/negocio
-docker compose up -d iwage_strapi          # reinicia el CMS: ~30 servicios comparten este archivo
+Las dos anclas se buscaron por texto exacto y **la edición aborta si alguna aparece ≠ 1 vez**; el
+`diff` contra el respaldo devolvió solo esas cuatro líneas. `docker compose config --quiet` → OK; los
+dos warnings de `ADMIN_USER`/`ADMIN_PASS` ya estaban en el respaldo (son de otros servicios), no los
+introdujo esta edición. Luego `docker compose up -d iwage_strapi`: recreó **una** cosa
+(`Volume negocio_iwage_strapi_uploads Created`, `Container iwage_strapi Recreated`);
+`sostenibilidad_db` (Up 5 weeks) y `iwage_web` no se tocaron.
+
+### Medido después
+
+```
+Mounts            → 1 mount: negocio_iwage_strapi_uploads → /app/public/uploads (rw)
+_health           → 204   ← ERRATA: este runbook decía «200». Strapi responde 204 No Content.
+estado healthy    → a los ~18 s (ventana real de indisponibilidad del CMS)
+env               → mismo conjunto de variables (md5 de nombres 5c2c2c3d… idéntico). El md5 de
+                    valores cambia (f014bae7… → e255861c…) y la diferencia es HOSTNAME, que es el
+                    id corto del contenedor. Los secretos no se imprimieron nunca.
+files (BD)        → 0, como antes
 ```
 
-**Qué debe salir:**
+**Durabilidad, probada de la forma fuerte** (no «confía en Docker»): se escribió
+`/app/public/uploads/.g1-probe` desde Strapi y se leyó **desde el volumen, sin pasar por el
+contenedor** — `docker run --rm -v negocio_iwage_strapi_uploads:/v:ro alpine:3 cat /v/.g1-probe`.
+Detalle que salió del paso: al montar, Docker copia el contenido que había en la imagen hacia el
+volumen nuevo, así que el `.gitkeep` de `strapi/Dockerfile:7` sobrevivió. La sonda se retiró.
 
-```bash
-docker inspect iwage_strapi --format '{{json .Mounts}}'   # un mount → /app/public/uploads
-docker volume inspect iwage_strapi_uploads --format '{{.Name}}'
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:1338/_health   # 200 tras el start_period
-```
+**La premisa de `mediaSrc`, cerrada por fin con un archivo real.** El texto anterior decía «`falta la
+prueba con un archivo real, que es el paso final de G3»`. Se hizo aquí, que es donde toca:
+`https://iwage.co/uploads/g1-probe.txt` → **200 y el contenido**, o sea que la pata de nginx
+(`nginx.conf:92`, `location ^~ /uploads` → `upstream strapi_backend`) funciona de punta a punta sobre
+una URL relativa de sitio, exactamente la forma que emite `mediaSrc()`. La sonda se borró y esa misma
+URL pasó a **404**, y el volumen quedó solo con `.gitkeep` (4.0K). Nada de prueba quedó en producción.
 
-Y la premisa de `mediaSrc` (URL relativa de sitio): `nginx.conf:92` del repo ya tiene
-`location ^~ /uploads` → `upstream strapi_backend`, verificado por lectura. Falta la prueba con un
-archivo real, que es el paso final de G3.
+**Inventario de salud del sitio tras la ventana:** `/`, `/meliponas`, `/tierras`, `/gestion`,
+`/cafe/menu`, `/ayuda` → 200; fichas `don-hernando-caficultor` y `luz-elenia-herbalista` → 200.
+(`/experiencias` y `/bitacora` dan 404 **porque no existen como rutas**: van bajo `/naturaleza/…`; no
+son regresión de esta puerta.)
 
-**Rollback:** quitar el bloque `volumes:` y `docker compose up -d iwage_strapi`. El volumen queda
-vacío e inofensivo; `docker volume rm negocio_iwage_strapi_uploads` si se quiere borrar.
+**Para G2, dato útil:** el disco raíz está en **97% (7.1 G libres)** y `docker compose build` de
+Strapi cuesta unos 400 MB por capa. Los 48 archivos que sube G3 son **7.3 MB** en total
+(`bitacora` 5.2 M + `galeria` 2.2 M), así que G3 cabe holgado; G2 merece un `df -h /` antes de
+arrancar y, si hace falta, limpieza de imágenes colgantes **decidida por el dueño**, que es quien
+sabe qué otros proyectos las usan.
+
+**Rollback:** quitar el bloque `volumes:` (o restaurar el `.bak-g1-2026-09-25-1630`) y
+`docker compose up -d iwage_strapi`. El volumen queda inofensivo;
+`docker volume rm negocio_iwage_strapi_uploads` si se quiere borrar.
 
 ## G2 · Reconstruir Strapi con los esquemas de `fa240b2`
 
@@ -82,6 +150,22 @@ protege los datos es que el `dist/` del contenedor está viejo.
 que toca, 9 tienen 0 valores y la décima (`anfitriones.galeria_fotos` → `galeria`) son 2 filas de
 Unsplash que la decisión F1 mandaba quitar igual. El peligro real es el Grupo C (G5), y por eso ese
 commit va **después** de G3.
+
+**Estado medido tras G1 (2026-09-25), que cambia dos cosas de esta puerta:**
+- El primer paso del orden **ya está hecho**: `/app/public/uploads` es un volumen nombrado, así que lo
+  que suba G3 sobrevive a este rebuild. Era el motivo de G1.
+- **Hay a dónde volver, que antes no lo había.** El contenedor quedó recreado sobre
+  `negocio-iwage_strapi:latest` = `f43819fd`, cuya huella de `/app/src`+`/app/config`
+  (`1ba7daff…`) y de esquemas (`47e98b0f…`, igual a `ffb0a9c^`) es idéntica a lo que corría. O sea: si
+  el build de G2 se cae a mitad, `docker compose up -d iwage_strapi` con `strapi/src/api` en el commit
+  anterior reconstruye el estado actual **desde una imagen que existe en el store**. Antes no: la
+  imagen del contenedor vivo estaba borrada.
+- Conviene decirlo sin eufemismos: **este `docker compose build` sí es un cambio de código real**
+  (`latest` es pre-consolidación; HEAD trae `fa240b2`), así que el `pg_dump` de arriba no es
+  ceremonia — es la única reversión del `dropColumn` que Strapi hace al arrancar.
+- Disco: 97% usado, **7.1 G libres**, y el build cuesta unos 400 MB dejando `f43819fd` colgante. Medir
+  `df -h /` antes de arrancar; la limpieza de imágenes colgantes la decide el dueño (otros proyectos
+  del mismo store pueden necesitarlas).
 
 ```bash
 cd /home/ubuntu/negocio

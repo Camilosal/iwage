@@ -26,9 +26,29 @@
 
 # FASE F0 — que lo existente se vea y el sitio no se caiga
 
-El hallazgo que gobierna esta fase: `strapiImage()` (`src/lib/strapi.ts:222-227`) antepone `STRAPI_URL`, que en Docker es `http://iwage_strapi:1337`, un host que el navegador no resuelve. Y `iwage_strapi` no tiene ningún volumen montado (`docker inspect iwage_strapi --format '{{json .Mounts}}'` → `[]`), así que lo que se sube al admin se pierde en el siguiente rebuild. Ninguna otra fase tiene sentido antes de cerrar estas dos.
+El hallazgo que gobierna esta fase: `strapiImage()` (`src/lib/strapi.ts:222-227`) antepone `STRAPI_URL`, que en Docker es `http://iwage_strapi:1337`, un host que el navegador no resuelve. Y `iwage_strapi` no tenía ningún volumen montado (`docker inspect iwage_strapi --format '{{json .Mounts}}'` → `[]`), así que lo que se subía al admin se perdía en el siguiente rebuild. Ninguna otra fase tiene sentido antes de cerrar estas dos. **(Cerradas las dos: la primera por el Task 2, la segunda por el Task 1, ejecutado el 2026-09-25; hoy `Mounts` devuelve el volumen `negocio_iwage_strapi_uploads`.)**
 
 ### Task 1: Volumen durable para los uploads de Strapi
+
+**EJECUTADO el 2026-09-25 16:33 UTC** por autorización explícita del dueño («abre el gate G1»). El
+registro completo, con las mediciones, está en `docs/superpowers/runbooks/2026-09-25-gates-de-medios.md`,
+sección G1. Resumen y dos verdades incómodas:
+
+- El `docker compose up -d iwage_strapi` que este task daba por inocuo **no lo era**: el tag
+  `negocio-iwage_strapi:latest` apuntaba a un build del 24-sep distinto de la imagen que corría, y la
+  imagen del contenedor vivo ya estaba **borrada del store**. Se despejó por medida (md5 del árbol de
+  esquemas y de `/app/src`+`/app/config` idénticos entre las dos, y ambas iguales a `ffb0a9c^`, no a
+  HEAD) antes de reiniciar: recrear no subía código nuevo ni migraba esquema.
+- Step 4, **desviación deliberada y mejor**: en vez del segundo `--force-recreate` (que habría abierto
+  otra ventana de caída del CMS) se probó la durabilidad leyendo el archivo **desde el volumen montado
+  en otro contenedor**. Es la misma garantía que pide el plan —el dato vive fuera de la capa del
+  contenedor— sin pagar dos reinicios. La sonda se retiró y el volumen quedó en 4.0K.
+- Step 5 **sí se hizo como estaba**: `https://iwage.co/uploads/g1-probe.txt` → 200 con contenido, y 404
+  al borrar la sonda. Cierra la premisa de `mediaSrc` relativo sobre producción, con nginx de por medio.
+- Step 6: el comando de respaldo está **documentado** (abajo y en el runbook), pero **no** lo añadí a la
+  rutina de backups de `/home/ubuntu/negocio/`: tocar esa rutina es otra decisión del dueño y alcanza a
+  otros proyectos. El respaldo de hoy es a mano: un tar de 137 B y, por si acaso, un `pg_dump` de 2,5 MB
+  tomado antes de detener el CMS.
 
 **Files:**
 - Modify: `/home/ubuntu/negocio/docker-compose.yml` (bloque `iwage_strapi:`, línea ~1104-1141, fuera del repo)
@@ -38,7 +58,7 @@ El hallazgo que gobierna esta fase: `strapiImage()` (`src/lib/strapi.ts:222-227`
 - Consumes: nada.
 - Produces: `/app/public/uploads` persistente entre recreaciones del contenedor. El contrato de URL que firma este task — `/uploads/<archivo>` servido por nginx del sitio— lo consumen `mediaSrc` (Task 2) y el importador (Task 10).
 
-- [ ] **Step 1: Verificar el estado actual (evidencia antes y después)**
+- [x] **Step 1: Verificar el estado actual (evidencia antes y después)**
 
 Run:
 ```bash
@@ -47,11 +67,11 @@ docker exec iwage_strapi sh -c 'ls -la /app/public/uploads | head'
 ```
 Expected: `[]` en mounts, y en el directorio solo `.gitkeep`. Si ya hay archivos, **detenerse**: hay material que todavía no se perdió y hay que copiarlo al volumen antes de montarlo (`docker cp iwage_strapi:/app/public/uploads ./uploads-salvamento`).
 
-- [ ] **Step 2: Pedir autorización para editar el compose y recrear el servicio**
+- [x] **Step 2: Pedir autorización para editar el compose y recrear el servicio**
 
 Este paso es un bloqueo real: `/home/ubuntu/negocio/docker-compose.yml` es compartido por ~30 servicios y `docker compose up -d iwage_strapi` reinicia el CMS. No se ejecuta sin un "sí" del dueño.
 
-- [ ] **Step 3: Añadir el volumen nombrado**
+- [x] **Step 3: Añadir el volumen nombrado**
 
 En el bloque `iwage_strapi:`, insertar después de `ports:` (mismo nivel de sangría, 4 espacios):
 
@@ -74,7 +94,7 @@ docker compose config | grep -A3 "iwage_strapi_uploads"
 ```
 Expected: `OK`, y el volumen resuelto con nombre `negocio_iwage_strapi_uploads`.
 
-- [ ] **Step 4: Recrear y verificar la persistencia**
+- [x] **Step 4: Recrear y verificar la persistencia**
 
 ```bash
 cd /home/ubuntu/negocio && docker compose up -d iwage_strapi
@@ -90,7 +110,7 @@ docker exec iwage_strapi cat /app/public/uploads/_persistencia.txt
 ```
 Expected: `prueba`. Luego limpiar: `docker exec iwage_strapi rm /app/public/uploads/_persistencia.txt`.
 
-- [ ] **Step 5: Verificar que nginx sirve /uploads desde el sitio**
+- [x] **Step 5: Verificar que nginx sirve /uploads desde el sitio**
 
 ```bash
 docker exec iwage_strapi sh -c 'printf "iwage" > /app/public/uploads/_probe.txt'
@@ -99,7 +119,7 @@ docker exec iwage_strapi rm /app/public/uploads/_probe.txt
 ```
 Expected: `200`. Esto es lo que hace viable `mediaSrc` relativo: `/uploads/x` funciona en el navegador sin conocer el host interno. Si da `404`, **no continuar**: la premisa de F0 no se cumple y hay que revisar `nginx.conf:92` (`location ^~ /uploads` → `upstream strapi_backend` → `iwage_strapi:1337`).
 
-- [ ] **Step 6: Sumar el respaldo de uploads al ritual existente de backup**
+- [x] **Step 6: Sumar el respaldo de uploads al ritual existente de backup**
 
 ```bash
 ls -la /home/ubuntu/negocio/*.sql /home/ubuntu/negocio/backup* 2>/dev/null
@@ -111,7 +131,7 @@ docker run --rm -v negocio_iwage_strapi_uploads:/from -v /home/ubuntu/backup:/to
   sh -c 'cd /from && tar czf /to/iwage-uploads-$(date +%F).tar.gz .'
 ```
 
-- [ ] **Step 7: Commit (docs del repo)**
+- [x] **Step 7: Commit (docs del repo)**
 
 ```bash
 cd /home/ubuntu/negocio/data/app_iwage
@@ -1903,13 +1923,13 @@ Todo lo de esta sección vive fuera del repo: los dos primeros cambios en `/home
 
 | Fecha | Cambio | Reversible con |
 |---|---|---|
-| _pendiente de 'sí' del dueño_ | `iwage_strapi` gana `iwage_strapi_uploads:/app/public/uploads` | `docker compose down iwage_strapi` + quitar el bloque `volumes:` |
-| _pendiente de 'sí' del dueño_ | Respaldo `docker run ... tar czf /home/ubuntu/backup/iwage-uploads-*.tar.gz` añadido a la rutina | n/a |
+| 2026-09-25 | `iwage_strapi` gana el volumen `negocio_iwage_strapi_uploads:/app/public/uploads` (`docker-compose.yml` +4 líneas) | `cp docker-compose.yml.bak-g1-2026-09-25-1630 docker-compose.yml && docker compose up -d iwage_strapi`; el volumen sobra inofensivo |
+| _pendiente de 'sí' del dueño_ | Respaldo `docker run ... tar czf /home/ubuntu/backup/iwage-uploads-*.tar.gz` añadido a la rutina | n/a (hoy se respaldó a mano: `iwage-uploads-2026-09-25.tar.gz`, 137 B) |
 | 2026-09-25 | Dump previo `iwage-pre-f2-2026-09-25.sql` | restaurar el dump |
 | _pendiente de 'sí' del dueño_ | Reconstrucción del contenedor con los esquemas nuevos (`fa240b2`) | checkout de `strapi/src/api` + rebuild |
 | 2026-09-25 | 19 png movidos a `/home/ubuntu/backup/png-cafe-menu-2026-09-25` | moverlos de vuelta |
 
-### Task 1 — evidencia leída y parche preparado (no aplicado)
+### Task 1 — evidencia leída y parche preparado (2026-09-25 por la mañana) / **aplicado esa misma tarde**
 
 Step 1, todo por lectura, el 2026-09-25:
 
@@ -1929,7 +1949,13 @@ El parche, aplicado sobre una copia en memoria y validado con `yaml.safe_load` s
   iwage_strapi_uploads:
 ```
 
-Step 2 en adelante **no se ejecutaron**: editar ese compose y recrear el servicio reinicia el CMS que comparten ~30 servicios. Queda a la espera del 'sí' del dueño.
+Step 2 en adelante **no se habían ejecutado aquí**: editar ese compose y recrear el servicio reinicia
+el CMS que comparten ~30 servicios, y hacía falta el 'sí' del dueño. **El 'sí' llegó el mismo 2026-09-25
+y el task se ejecutó** — con un hallazgo en el camino que el parche preparado no veía: el tag
+`negocio-iwage_strapi:latest` se había desplazado a un build del 24-sep y la imagen del contenedor vivo
+ya no existía en el store, así que el `up -d` habría desplegado código ajeno. Se despejó por medida
+(esquemas y `/app/src`+`/app/config` byte a byte iguales entre las dos imágenes, ambas iguales a
+`ffb0a9c^`) antes de reiniciar. Paso a paso y con las mediciones, en G1 del runbook.
 
 ## Self-review de este plan
 
