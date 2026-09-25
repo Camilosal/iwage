@@ -19,6 +19,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { montarGaleria, guionDelComponente } from './helpers/dom-mini.mjs';
+import { sinComentarios } from './helpers/sin-comentarios.mjs';
 
 const RAIZ = process.env.IWAGE_SRC
   ? resolve(process.env.IWAGE_SRC)
@@ -133,11 +134,24 @@ test('las dos fichas de tienda usan la API y ya no le tocan el src al thumbnail'
 test('el DOM mínimo sigue pareciéndose al fuente: los hooks que el montaje asume existen', () => {
   // `dom-mini` no parsea el template: supone los hooks. Si la galería los renombra, el montaje
   // quedaría probando un DOM que ya no existe y el teste sería una mentira verde.
+  //
+  // Dos cosas que la versión de arriba (`fuenteGaleria.includes(h)`) NO veía, medidas con
+  // mutant el 2026-09-25 al renombrar `data-gal-img` → `data-gal-foto` en `MediaGallery.astro`:
+  //  · `data-gal-img` seguía estando, como PREFIJO de `data-gal-img-placeholder`. Se casa el
+  //    nombre completo: `(?<![-\w])…(?![-\w])`, nombre entero o nada.
+  //  · `fuenteGaleria` incluye el `<script>`, que menciona cada hook en su `querySelector()`.
+  //    Se barre solo el TEMPLATE —lo que se EMITE—, cortado antes del `<script define:vars>`
+  //    (la línea `<script data-gal-items>` queda adentro, que es donde se emite ese) y sin
+  //    comentarios, para que nombrar un hook en un `<!-- -->` no valga de evidencia.
   const HOOKS = [
     'data-gallery-wrapper', 'data-gal-lightbox', 'data-gal-items', 'data-gal-open',
     'data-gal-main-img', 'data-gal-stage', 'data-gal-img', 'data-gal-img-placeholder',
     'data-gal-counter', 'data-gal-title', 'data-gal-prev', 'data-gal-next', 'data-gal-strip', 'data-gal-close',
   ];
-  const faltos = HOOKS.filter((h) => !fuenteGaleria.includes(h));
+  const CIERRE = fuenteGaleria.indexOf('<script define:vars');
+  assert.ok(CIERRE > 0, 'MediaGallery ya no tiene el <script define:vars>: cambió la forma del componente');
+  const TEMPLATE = sinComentarios(fuenteGaleria.slice(0, CIERRE));
+  assert.ok(TEMPLATE.includes('data-gallery-wrapper'), 'el corte del template no deja nada que parear');
+  const faltos = HOOKS.filter((h) => !new RegExp(`(?<![-\\w])${h}(?![-\\w])`).test(TEMPLATE));
   assert.deepEqual(faltos, [], `MediaGallery ya no emite estos hooks y hay que actualizar el montaje: ${faltos.join(', ')}`);
 });

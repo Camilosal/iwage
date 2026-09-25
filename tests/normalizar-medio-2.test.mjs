@@ -15,14 +15,25 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 process.env.APP_URL = process.env.APP_URL || 'https://iwage.co';
 process.env.STRAPI_URL = process.env.STRAPI_URL || 'http://iwage_strapi:1337';
 
 const RAIZ = resolve(fileURLToPath(new URL('..', import.meta.url)));
+
+/** Rutas relativas a `RAIZ`, con `/`, de todo lo que cuelga de `dir`. */
+function archivosEn(dir) {
+  const out = [];
+  for (const entrada of readdirSync(join(RAIZ, dir))) {
+    const absoluto = join(join(RAIZ, dir), entrada);
+    if (statSync(absoluto).isDirectory()) out.push(...archivosEn(join(dir, entrada)));
+    else out.push(relative(RAIZ, absoluto).replace(/\\/g, '/'));
+  }
+  return out;
+}
 
 /** Un `MediaItem` bien formado, con lo que las plantillas de esta capa leen. */
 const PORTADA = {
@@ -318,20 +329,58 @@ test('la aguja tiene dientes: se traga el MediaItem crudo y deja pasar lo resuel
   }
 });
 
-test('barrido: ninguna plantilla de la capa interpola la portada cruda', () => {
+/**
+ * Excepciones al barrido, cada una atada a la EVIDENCIA de que ese campo es un `string` y no
+ * un `MediaItem`. No son excepciones por nombre de archivo ni por nombre de atributo: si la
+ * declaración deja de decir `string` (o deja de resolver con `historiaImagen()`), el respaldo
+ * se cae y el barrido vuelve a pedir cuentas en esa línea.
+ */
+const VISTA_DE_STRINGS = {
+  'src/pages/cafe/visitantes.astro': {
+    respalda: 'src={h.imagen',
+    evidencia: /imagen:\s*historiaImagen\(h\)/,
+  },
+  'src/pages/tierras/perfiles/index.astro': {
+    respalda: 'src={perfil.ext.imagen',
+    evidencia: /imagen:\s*string\s*\|\s*null/,
+  },
+};
+
+test('barrido: ninguna plantilla del sitio interpola la portada cruda', () => {
+  // Medido el 2026-09-25 en la revisión de la ronda 13: esta barría SOLO `ARCHIVOS_CAPA`
+  // (20 archivos a mano) y el mismo defecto vivía fuera de la lista — insertar
+  // `image={p.imagen_principal}` en `src/pages/gestion/alojamientos/index.astro` seguía verde,
+  // y eso que alojamientos pinta `imagen_principal`. Ahora recorre todo `src/`; la lista fija
+  // sigue abajo, como canario de inventario de la capa.
   const culpables = [];
-  for (const ruta of ARCHIVOS_CAPA) {
-    const absoluto = join(RAIZ, ruta);
-    assert.ok(existsSync(absoluto), `${ruta}: desapareció, actualiza la lista del barrido`);
-    const fuente = readFileSync(absoluto, 'utf8');
+  for (const ruta of archivosEn('src')) {
+    if (!/\.(astro|tsx?)$/.test(ruta)) continue;
+    const fuente = readFileSync(join(RAIZ, ruta), 'utf8');
     for (const [i, linea] of fuente.split('\n').entries()) {
       const casa = linea.match(INTERPOLACION_CRUDA);
       if (!casa) continue;
       if (PROP_MEDIAITEM.has(casa[1])) continue;
+      const ex = VISTA_DE_STRINGS[ruta];
+      if (ex && casa[1] === ex.respalda && ex.evidencia.test(fuente)) continue;
       culpables.push(`${ruta}:${i + 1}: ${casa[1]}`);
     }
   }
   assert.deepEqual(culpables, [], `portada cruda interpolada (pintaría [object Object]): ${culpables.join(', ')}`);
+});
+
+test('ARCHIVOS_CAPA sigue siendo el inventario de la capa (y los dos respaldos, ciertos)', () => {
+  for (const ruta of ARCHIVOS_CAPA) {
+    assert.ok(existsSync(join(RAIZ, ruta)), `${ruta}: desapareció, actualiza la lista del barrido`);
+  }
+  // Las dos excepciones del barrido valen mientras el campo sea un string. Si alguien las pasa
+  // a `MediaItem`, hay que quitar la excepción, no dejarla quieta tapando el defecto.
+  for (const [ruta, ex] of Object.entries(VISTA_DE_STRINGS)) {
+    assert.match(
+      readFileSync(join(RAIZ, ruta), 'utf8'),
+      ex.evidencia,
+      `${ruta}: el respaldo de la excepción «${ex.respalda}» ya no está: el campo dejó de ser un string resuelto`,
+    );
+  }
 });
 
 test('barrido: la capa ya no resuelve media en el render', () => {

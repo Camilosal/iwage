@@ -183,7 +183,8 @@ test('la galería es una sola: ProductGallery no resucita ni se referencia', () 
  * hereda los tokens del tema—, así que la MISMA pieza de Strapi se comportaba distinto según la
  * ficha. Esa es la dispersión que la F1 vino a cerrar.
  *
- * La aguja es la decisión de elemento por `kind`. Se queda barriendo TODO `src/` en vez de
+ * La aguja son las dos formas de decidir el elemento por cuenta propia: comparar `kind` a mano
+ * y preguntar `isEmbed()`. Se queda barriendo TODO `src/` en vez de
  * reducirse a `pages/` (lo cual la dejaría verde y muda): lo que distingue a una galería
  * re-implementada de un consumidor legítimo del contrato no es el directorio sino si pinta
  * UNA pieza o una LISTA, y eso se fija nombrando las dos excepciones con su razón.
@@ -197,6 +198,10 @@ const FUERA_DE_LA_REGLA = {
 };
 
 test('ninguna página reimplementa la cuadrícula de medios: la decisión de elemento es del componente', () => {
+  // La aguja cubre las DOS formas de decidir qué elemento pintar: comparar `kind` a mano y
+  // preguntar `isEmbed()`. Medido con mutant el 2026-09-25: una cuadrícula reimplementada que
+  // decide con `isEmbed(item)` pasaba verde por la versión literal (`kind === 'video'`), y el
+  // daño es el mismo —la MISMA pieza de Strapi comportándose distinto según la ficha.
   const culpables = [];
   for (const archivo of archivosEn(SRC)) {
     const ruta = enSrc(archivo);
@@ -205,7 +210,7 @@ test('ninguna página reimplementa la cuadrícula de medios: la decisión de ele
     sinComentarios(readFileSync(archivo, 'utf8'))
       .split('\n')
       .forEach((linea, i) => {
-        if (/kind\s*===\s*['"](video|tour360)['"]/.test(linea)) {
+        if (/kind\s*===\s*['"](video|tour360)['"]|isEmbed\s*\(/.test(linea)) {
           culpables.push(`    ${ruta}:${i + 1}: ${linea.trim().slice(0, 120)}`);
         }
       });
@@ -213,7 +218,7 @@ test('ninguna página reimplementa la cuadrícula de medios: la decisión de ele
   assert.equal(
     culpables.join('\n'),
     '',
-    `una página vuelve a decidir qué elemento pintar según kind (F1: la única galería es MediaGallery):\n${culpables.join('\n')}`,
+    `una página vuelve a decidir qué elemento pintar (F1: la única galería es MediaGallery; con \`isEmbed()\` fuera del componente pasa lo mismo que con \`kind\`):\n${culpables.join('\n')}`,
   );
 });
 
