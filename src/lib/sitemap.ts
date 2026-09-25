@@ -99,6 +99,12 @@ export async function collectSitemapUrls(): Promise<{ urls: SitemapUrl[]; failed
     fetchAllSlugs('productos', void 0, failed),
     fetchAllSlugs('proyecto-meliponarios', void 0, failed),
     // Cultivos: lo que devuelva Strapi (F1 ya no tiene datos semilla); sin `slug` no nace URL.
+    // OJO: `getCultivos` se traga su propio error y devuelve [] (el `catch` de `getCultivos` en
+    // `polinizacion.ts`), así que
+    // este `.catch` hoy no corre y una caída de Strapi NO entra en `failed` por este carril — el
+    // índice sale sin fichas de cultivo y con el TTL completo de cache. Se deja como contención
+    // para el día que la capa de datos propague, que es cuando el `Promise.all` de arriba
+    // convertiría un fallo de 11 colecciones en un sitemap de cero.
     getCultivos()
       .then((cs) => cs.filter((c) => c.slug).map((c) => ({ slug: c.slug }) as SlugEntry))
       .catch(() => {

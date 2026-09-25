@@ -252,9 +252,11 @@ test('la galería lee kind/caption/alt también en el script del navegador', () 
 //  · se camina TODO `src/**` (`.astro`/`.ts`/`.tsx`) línea a línea y se listan TODOS los
 //    culpables como `ruta:línea: código`, no solo el primero;
 //  · los comentarios se quitan antes de casar, con el `sinComentarios()` ya establecido arriba:
-//    «Sin stock de Unsplash» en el JSDoc de `lib/naturaleza.ts:478` es documentación de por qué
-//    ya no está, no el bug. El coste declarado es un gate más flojo sobre la prosa — un array
-//    en código no puede esconderse dentro de un comentario, así que los dientes no se pierden.
+//    «Sin stock de Unsplash», que está en el JSDoc de `anfitrionFoto` en `lib/naturaleza.ts`, es
+//    documentación de por qué ya no está, no el bug. (Se cita por símbolo y no por número de
+//    línea: este archivo decía «línea 478» y el comentario se había mudado a la 623.) El coste
+//    declarado es un gate más flojo sobre la prosa — un array en código no puede esconderse
+//    dentro de un comentario, así que los dientes no se pierden.
 //
 // Auto-ceguera (el bug que esta sección tuvo antes): cada aguja se arma en dos mitades con
 // `aguja()`, así que el texto de ESTE archivo nunca contiene ninguna de las cuatro cadenas de
