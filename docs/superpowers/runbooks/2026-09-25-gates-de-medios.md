@@ -3,13 +3,18 @@
 **Para:** el dueño del sitio. Cada puerta es una decisión suya, no de este agente: el código está
 escrito y medido, lo que falta es ejecutar sobre infraestructura compartida y sobre datos.
 
-**Estado del trabajo:** `master` en `3513d4b`. Conteos como comando, no como número que caduca:
+**Estado del trabajo:** `master` local, que se lee con `git log -1 --format='%h %s'` (al escribir esto
+era `6c5be83`). Conteos como comando, no como número que caduca:
 `git rev-list --count origin/master..HEAD` para lo no publicado y
 `git rev-list --count ffb0a9c..HEAD` para el rango del plan. `npm test` en la suite de `tests/`.
 Censo en tres pasadas (`docs/superpowers/metrics/2026-09-25-despues.md`). Todo lo de abajo está en
 el orden correcto; el orden **no es negociable** en G2 → G3 → G5, y la razón está escrita en cada
-una. **G1 está ejecutada el 2026-09-25** (su sección dice cómo se verificó); las demás siguen
-cerradas.
+una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC y G2 esa misma noche (23:40 → 00:02 UTC del 26)**; cada
+sección dice qué se midió para verificarla. Siguen cerradas: **G3** (importar y enlazar, necesita el
+token que solo tiene el dueño), **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie
+autorizó todavía). Que el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
+medido, no es una sorpresa: ver G2 «Medido después», punto 4 — las 185 URLs sirven exactamente las
+mismas referencias de medio con el bundle viejo.
 
 Cómo se lee cada puerta: *qué desbloquea* → *precondición medible* → *comandos* → *qué debe salir*
 → *rollback*.
@@ -153,13 +158,15 @@ mount: `docker exec iwage_strapi du -sh /app/public/uploads` o
 `docker run --rm -v negocio_iwage_strapi_uploads:/v:ro alpine:3 sh -c 'du -sh /v; ls -a /v'`. Hoy
 concuerdan: **4.0K, solo `.gitkeep`**.
 
-## G2 · Reconstruir Strapi con los esquemas de `fa240b2`
+## G2 · Reconstruir Strapi con los esquemas de `fa240b2` — **EJECUTADA el 2026-09-25 (23:40 → 00:02 UTC del 26)**
 
-**Desbloquea:** todo el F2 visible. Hoy el contenedor sirve el esquema **anterior**, así que los
-`populate` de los campos que pasaron a `media` contestan `400 Invalid key` y las superficies se
-degradan a vacías (bitácora las 7, tienda, proyectos, polinización y las fichas de anfitrión). La
-sonda completa está en `populate-runtime-probe.mjs` (directorio SDD). Esto es condición de
-despliegue, no de curiosidad: desplegar la rama **antes** de esta puerta deja esas páginas vacías.
+**Desbloquea:** todo el F2 visible. Antes de esta puerta el contenedor servía el esquema **anterior**,
+así que los `populate` de los campos que pasaron a `media` contestaban `400 Invalid key` y las
+superficies se degradaban a vacías (bitácora las 7, tienda, proyectos, polinización y las fichas de
+anfitrión). La sonda completa está en `populate-runtime-probe.mjs` (directorio SDD). Esto era
+condición de despliegue, no de curiosidad: desplegar la rama **antes** de esta puerta deja esas
+páginas vacías. **Ya no: G2 se ejecutó el 2026-09-25 y el runtime es el esquema de `fa240b2`** (ver
+«Medido después» al final de esta sección).
 
 **Advertencia medida:** Strapi 5.55.0 **borra la columna** de todo atributo que ya no está en el
 esquema, en cada arranque (`@strapi/database/dist/schema/builder.mjs:277-279` → `dropColumn`; el
@@ -183,11 +190,14 @@ commit va **después** de G3.
 - Conviene decirlo sin eufemismos: **este `docker compose build` sí es un cambio de código real**
   (`latest` es pre-consolidación; HEAD trae `fa240b2`), así que el `pg_dump` de arriba no es
   ceremonia — es la única reversión del `dropColumn` que Strapi hace al arrancar.
-- Disco: 97% usado, **7.1 G libres**, y el build cuesta unos 400 MB dejando `f43819fd` colgante. Medir
-  `df -h /` antes de arrancar (hoy: 6,9 G libres, 17 veces lo que gasta un build de Strapi). **No
-  podar imágenes después de este build**: ver G1, «Para G2, dato útil». Si hace falta espacio, podar
-  cache de compilación (`docker builder prune`, 2,5 GB recuperables), que no deja ningún código
-  irrecuperable.
+- Disco: medir `df -h /` antes de arrancar. **La estimación anterior («el build cuesta unos 400 MB»)
+  estaba mal por un factor de ~8**: durante el `npm install` la libre cayó de 4,9 G a **1,8 G**, y al
+  terminar el build quedó en 4,5 G. El pico transitorio (capas intermedias + `node_modules` + admin
+  panel + exportación de la imagen) es de varios GB, no de cientos de MB. A 98% de uso esto es lo que
+  puede reventar la puerta, y un `docker compose build` que falla por `ENOSPC` **no** rompe el
+  servicio: deja `latest` en la imagen vieja. **No podar imágenes después de este build**: ver G1,
+  «Para G2, dato útil». Si hace falta espacio, podar cache de compilación (`docker builder prune`),
+  que no deja ningún código irrecuperable.
 
 ```bash
 cd /home/ubuntu/negocio
@@ -202,7 +212,66 @@ curl -s 'http://127.0.0.1:1338/api/bitacoras?populate=imagen' | head -c 200   # 
 curl -s 'http://127.0.0.1:1338/api/cultivo-polinizacions' -o /dev/null -w '%{http_code}\n'   # 200 (hoy 404)
 ```
 
-**Rollback:** el dump. Y si el arranque cae, `strapi/src/api` al commit anterior y rebuild.
+**Aplicado:** `pg_dump` previo (`/home/ubuntu/backup/iwage-pre-rebuild-2026-09-25.sql`, 2.515.184 B) →
+build de `negocio-iwage_strapi` → imagen nueva `c5d3fc49` en `latest`, con la reversión anclada en la
+etiqueta `pre-fa240b2` (= `f43819fd`, la que estaba corriendo). `docker compose up -d iwage_strapi` recreó
+el contenedor: Strapi **5.55.1**, `Launched in 15679 ms`, `Strapi started successfully`, `/_health` → 204,
+`/admin` → 200. En los logs del arranque no hay ni un `error`; lo único que aparece es un
+`DeprecationWarning` de `pg` que ya estaba.
+
+**Un detalle del build que conviene no tragarse:** `strapi build` imprimió **`Found 8 error(s).`** de TS y
+siguió adelante (compila igual, construye el admin panel y sale 0). Los ocho son `env.int`/`env.bool`/
+`env.array` en `config/database.ts` y `config/server.ts` (el `env` de Strapi sí los tiene; es el tipado) y
+dos `'result' is possibly 'null'` en `src/api/experiencia/controllers/experiencia.ts:65`. Medido con
+`git log -1 -- <archivo>`: los tres archivos no se tocan desde julio (`d90e25a`, `0c0c13a`) y `fa240b2` no
+los tocó, o sea que **son preexistentes y no son riesgo de esta puerta**. Pero significan que el build de
+Strapi no es una barrera de tipos: un error de TS real en un esquema pasaría igual de inadvertido.
+
+**Medido después — la superficie de pérdida fue exactamente la prevista:**
+
+- Inventario de columnas (`information_schema.columns`, 1.007 → 996): **11 borradas, 0 nuevas**. Las 11
+  son una por una las que anticipó el diff `ffb0a9c^`→`HEAD`: `anfitriones.galeria_fotos` (retirado) y las
+  10 que cambiaron de `string`/`jsonb` a `media`. Que no aparezca ninguna columna nueva es lo esperado en
+  v5: el media no es una columna, vive en `files` + `files_related_mph` (relación polimórfica), así que el
+  campo nuevo `anfitriones.galeria` **no deja huella en el inventario** y su prueba es por API, no por SQL.
+- Censo de los 25 pares (tabla, columna) con valores: **55 → 53**. Las 14 columnas que siguen existiendo
+  conservan valor por valor (`NINGUNO` distinto en la comparación programática); los 2 que se perdieron son
+  las dos filas Unsplash de `anfitriones.galeria_fotos`, que la decisión F1 mandaba quitar y que están en
+  el dump. Cero pérdida imprevista.
+- Sonda de `populate`, el mismo comando en los dos lados de la puerta: **4 de 10 endpoints**
+  (`bitacoras`, `productos`, `proyecto-meliponarios`, `cultivo-polinizaciones`) contestaban
+  `400 Invalid key` con el `populate` que ya pedía el código — valor «antes» registrado en la Ronda 4b
+  del ledger de SDD (`.superpowers/sdd/2026-09-24-media-strapi-consolidation/ledger.md`, que no va al
+  repo). Después: **0 de 10 en 400**. En la corrida de hoy `bitacoras` sin `populate`
+  devuelve una fila con 0 campos de medio y con `populate=imagen` la misma fila devuelve 1, que es
+  lo que prueba que el campo existe y se puebla; `anfitriones?populate=galeria` → 200 con
+  `galeria: []` (campo nuevo, vacío hasta G3). Siguen los dos `403` (`experimentos`,
+  `historia-visitantes`) que ya lo eran antes de esta puerta y no le pertenecen: son permisos
+  públicos, o sea G7.
+
+- Sitio servido, que es lo que importa a un visitante: re-crawl de las **mismas 185 URLs** con el mismo
+  mapeo índice→URL del «antes» (`/home/ubuntu/backup/iwaudit-post-g2-2026-09-25/`). **185 en 200**;
+  comparando los conjuntos de referencias de medio (img/og/srcset/poster) página por página:
+  **0 perdidas, 0 nuevas en las 185**. A nivel de bytes, en cambio, `sha256sum -c` da `0 OK`, y eso es el
+  refactor de JSON-LD de otro flujo ya desplegado (reordenó claves, p. ej. `"url":"https://iwage.co/"`),
+  no G2 — para descartarlo no se asumió: la misma comparación sobre la copia del «antes» da 185 OK, así
+  que la máquina compara bien y lo que cambió fue el orden del JSON-LD.
+- Fila 3 del censo: `files = 0`, `files_related_mph = 0` (máquina `0|0`). G2 **no enlaza** material; eso
+  es G3. Y el volumen de G1 sobrevivió la recreación: `iwage_strapi_uploads -> /app/public/uploads rw=true`,
+  `du -sh` 4.0K con su `.gitkeep`.
+- `npm test` después del rebuild: **334/334**. El repo no cambió por esta puerta; se corre igual, porque
+  el tree es compartido.
+
+**Consecuencia para las siguientes puertas:** la advertencia de Strapi 5.55 («borra la columna que ya no
+está en el esquema») quedó **confirmada en producción**: 11 columnas cayeron en un solo arranque. Para G5
+(Grupo C, 49 valores vivos en columnas `string`) esto no es una nota: es el procedimiento obligatorio —
+dump antes, y si un atributo sale del esquema la columna desaparece con sus valores, sin aviso.
+
+**Rollback:** el dump. Y si el arranque cae, `strapi/src/api` al commit anterior y rebuild. Hoy, con las
+dos imágenes en el store, hay además un rollback de un comando:
+`docker tag negocio-iwage_strapi:pre-fa240b2 negocio-iwage_strapi:latest && docker compose up -d iwage_strapi`.
+Ojo con lo que ese comando **no** revierte: devuelve el código y el esquema, pero no devuelve las 11 columnas
+que el arranque nuevo ya borró con sus datos — eso solo lo repone el dump.
 
 ## G3 · Importar y enlazar las 47 piezas huérfanas (`--apply`)
 

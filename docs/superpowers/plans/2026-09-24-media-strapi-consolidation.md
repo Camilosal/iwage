@@ -1342,6 +1342,15 @@ git commit -m "feat(media): importador idempotente de assets huérfanos con mape
 
 ### Task 11: Esquema: de cinco representaciones a dos
 
+> **Cerrado el 2026-09-25 con la puerta G2 ejecutada** (receta y mediciones en
+> `docs/superpowers/runbooks/2026-09-25-gates-de-medios.md`, sección G2). Lo que dejó: 11 columnas fuera
+> del esquema **borradas de la base** — 10 vacías y `anfitriones.galeria_fotos` con 2 filas Unsplash que
+> la decisión F1 ya mandaba quitar — y **0 valores imprevistos perdidos** (censo de medios 55 → 53). El
+> `populate` que el código pedía desde `fa240b2` pasó de 4 endpoints en `400` a **0 en 400**, y las 185
+> URLs del sitio siguen en 200 con **cero referencias de medio ganadas o perdidas**. Queda abierto el
+> Step 5 (re-enlazar lo volcado), que es la puerta G3.
+
+
 **Files:**
 - Modify: `strapi/src/api/bitacora/content-types/bitacora/schema.json` (`imagen`: string → media)
 - Modify: idem en `producto`, `lote-miel`, `experimento`, `cultivo-polinizacion`, `proyecto-meliponario` — **6 campos con `bitacora`, los seis medidos vacíos**
@@ -1355,7 +1364,7 @@ git commit -m "feat(media): importador idempotente de assets huérfanos con mape
 - Consumes: `MediaItem`, `toMediaList` (el código tolera las dos formas desde el Task 2, así que esquema y plantillas pueden avanzar en cualquier orden).
 - Produces: en cada content-type con portada, exactamente un campo editable de portada; en cada uno con conjunto, un `galeria` media multiple que admite video.
 
-- [ ] **Step 1: Respaldo antes de tocar nada**
+- [x] **Step 1: Respaldo antes de tocar nada**
 
 ```bash
 cd /home/ubuntu/negocio
@@ -1364,7 +1373,7 @@ ls -la /home/ubuntu/backup/
 ```
 Expected: un `.sql` del tamaño esperable de la BD. Si `/home/ubuntu/backup` no existe, crearlo. **Sin respaldo no se ejecuta este task.**
 
-- [ ] **Step 2: Volcar los valores de los `string` que van a cambiar de tipo**
+- [x] **Step 2: Volcar los valores de los `string` que van a cambiar de tipo**
 
 Un `string` con una ruta no sobrevive a la conversión a media: el campo queda `null`. Por eso el volcado va antes:
 
@@ -1378,7 +1387,7 @@ Repetir por cada campo de los **7** que cambian de tipo. El `/tmp` es transitori
 
 Medido ya (2026-09-25), para que nadie vuelva a adivinar: `bitacoras.imagen` 0/112 · `productos.imagen` 0/28 · `lote_miels.imagen` 0/1 · `experimentos.imagen` 0/20 · `cultivo_polinizacions.imagen` 0/12 · `proyecto_meliponarios.imagen` 0/12 → **el volcado de esos seis es vacío y la conversión no pierde nada**. `anfitriones.foto_territorio` 2/2 con URLs de `images.unsplash.com` → no son material propio: se deciden con el dueño (decisión F1 = sin hotlinks externos), no se convierten en media. La columna real es `document_id`, no `documentid`.
 
-- [ ] **Step 3: Cambiar los esquemas, en grupos que se puedan revisar juntos**
+- [x] **Step 3: Cambiar los esquemas, en grupos que se puedan revisar juntos**
 
 Grupo A — portadas `string` → `media`. En `bitacora/schema.json`, sustituir:
 
@@ -1422,7 +1431,7 @@ Medido en la BD lo que hay dentro de estos campos, porque cambia el riesgo del g
 
 La validación de **dominio** no puede expresarse en `schema.json`: se hace en el modelo. Añadir a cada content-type con embed un archivo `src/api/<ct>/content-types/<ct>/lifecycles.ts`... no: Strapi v5 no valida dominios con lifecycle sin escribir el `beforeSave` a mano, y eso es código de CMS que duplica la regla. La decisión es más simple y vive en un solo sitio: **`classify()` de `src/lib/media.ts` ya etiqueta el `provider`, y `MediaGallery` solo abre un `<iframe>` si `provider ∈ {youtube, vimeo, drive}` o `kind === 'tour360'`.** Un valor arbitrario en `embed_video` queda como un tile roto, no como HTML inyectado. Se anota en el Step 6 como límite aceptado del diseño.
 
-- [ ] **Step 4: Reconstruir y validar el esquema**
+- [x] **Step 4: Reconstruir y validar el esquema**
 
 Medido: el contenedor `iwage_strapi` corre `npm run start` con `MOUNTS=[]` y la app en `/app` (el código entra por `COPY . .` del `Dockerfile`, y su línea 14 copia cada `schema.json` de `src/` a `dist/src/`). Consecuencia útil: **los cambios del Step 3 en el árbol están inertes hasta el rebuild**, así que se pueden escribir, commitear y revisar sin tocar el servicio en marcha. Nada de este task afecta a producción hasta que el dueño autorice el rebuild. (Y la misma medida corrige el Step 1 de Task 1: el volumen que hace falta montar es `/app/public/uploads`, no `/opt/app/...`.)
 
@@ -1468,7 +1477,7 @@ Orden forzado, todo detras de una respuesta del dueño:
 
 Sin ese paso, el Step 3 deja el sitio con 7 hérores rotos — es el único daño visible que puede causar esta fase.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /home/ubuntu/negocio/data/app_iwage
@@ -1926,7 +1935,7 @@ Todo lo de esta sección vive fuera del repo: los dos primeros cambios en `/home
 | 2026-09-25 | `iwage_strapi` gana el volumen `negocio_iwage_strapi_uploads:/app/public/uploads` (`docker-compose.yml` +4 líneas) | `cp docker-compose.yml.bak-g1-2026-09-25-1630 docker-compose.yml && docker compose up -d iwage_strapi`; el volumen sobra inofensivo |
 | _pendiente de 'sí' del dueño_ | Respaldo `docker run ... tar czf /home/ubuntu/backup/iwage-uploads-*.tar.gz` añadido a la rutina | n/a (hoy se respaldó a mano: `iwage-uploads-2026-09-25.tar.gz`, 137 B) |
 | 2026-09-25 | Dump previo `iwage-pre-f2-2026-09-25.sql` | restaurar el dump |
-| _pendiente de 'sí' del dueño_ | Reconstrucción del contenedor con los esquemas nuevos (`fa240b2`) | checkout de `strapi/src/api` + rebuild |
+| 2026-09-25 **ejecutada (G2)** | Reconstrucción del contenedor con los esquemas nuevos (`fa240b2`): imagen `c5d3fc49` en `latest`, arrancando con **drop de 11 columnas**. Dump previo `iwage-pre-rebuild-2026-09-25.sql` (2.515.184 B) | `docker tag negocio-iwage_strapi:pre-fa240b2 negocio-iwage_strapi:latest && docker compose up -d iwage_strapi` revierte código y esquema; **las columnas caídas solo las repone el dump** |
 | 2026-09-25 | 19 png movidos a `/home/ubuntu/backup/png-cafe-menu-2026-09-25` | moverlos de vuelta |
 
 ### Task 1 — evidencia leída y parche preparado (2026-09-25 por la mañana) / **aplicado esa misma tarde**
