@@ -1,18 +1,167 @@
 {
   "aviso": [
-    "ENVASE VACÍO A PROPÓSITO. No es un olvido: cada fila de abajo es un enlace que se escribe en la base de datos.",
-    "Para qué sirve: hay emparejamientos que ningún nombre permite deducir. Medido en disco el 2026-09-25, las 36 tapas de public/images/bitacora/ traen el slug RECORTADO (bitacora-caso-don-manuel.webp) mientras que el slug de esa publicación es más largo (caso-la-finca-de-don-manuel, front-matter de Publicaciones/Meliponario/caso-la-finca-de-don-manuel.md). Como el archivo es más corto que el slug, ninguna regla por nombre puede dispararse: 0 de 36 enlazables por regla.",
-    "De dónde sale el vocabulario: de la lectura de SOLO LECTURA que el dueño ya midió y dejó en .superpowers/sdd/2026-09-24-media-strapi-consolidation/f2-vocabulario-medido.md (slugs, nombres y documentIds reales). Las 29 filas de tapas de bitácora de ese artefacto siguen siendo una PROPUESTA (`alias-bitacoras-propuesta.json`) que necesita su revisión humana: no se copia de ahí ni se adivina.",
-    "Quién la consume: node strapi/scripts/media-import.mjs --alias=strapi/scripts/media-alias.json (por defecto no se lee ningún alias).",
-    "FORMA 1 — la de siempre. La clave es la ruta EXACTA que produce el inventario y el valor nombra al registro por endpoint y slug. El documentId no va acá: lo aporta la lectura de la API, y un alias no puede inventar un id.",
-    "  \"public/images/bitacora/bitacora-caso-don-manuel.webp\": { \"endpoint\": \"bitacoras\", \"slug\": \"caso-la-finca-de-don-manuel\" }",
-    "FORMA 2 — clave = `documentId`, y es la única que puede firmar a un registro SIN `slug`: medido, `proyecto-meliponarios` trae `slug: null` en 6 de 6, `cultivo-polinizaciones` en 6 de 6 y 3 de 14 `productos` también. La fila trae el destino explícito (`endpoint`, `campo`) y una lista ORDENADA de archivos; el orden de la lista ES el orden del campo repetible, y `aplicar()` lo escribe completo o no escribe ese enlace.",
-    "  \"kha36pt75bxaswafj1r0njl4\": { \"endpoint\": \"proyecto-meliponarios\", \"campo\": \"galeria\", \"archivos\": [\"public/images/galeria/proyecto-ambala-1.webp\", \"public/images/galeria/proyecto-ambala-2.webp\"] }",
-    "Ejemplos ESCRITOS como ejemplo: los dos pares de arriba son reales (medidos en el repo y en el artefacto de vocabulario), pero la lista no se activa mientras `alias` siga vacío; no copie una fila sin verificarla contra la BD.",
-    "Qué exige una fila: `endpoint` de la tabla de medios (strapi/scripts/lib/media-manifest.mjs, ENDPOINTS_CON_MEDIO), archivos que existen en el inventario y dentro del directorio de ese endpoint, y —en la forma 2— un `campo` que sea un campo de medio declarado (`imagen`/`foto` de portada o el repetible `galeria`), con `archivos` no vacío. Más de un archivo solo en el campo repetible.",
-    "Qué hace el importador con una fila que no se puede firmar (archivo ausente del inventario, endpoint/slug o documentId que no aparece en la lectura, campo que la tabla no conoce, ruta fuera del directorio del endpoint, un archivo ya declarado en otra fila, o un registro que ya tiene otra fila para ese campo): no escribe nada y reporta el motivo exacto en `motivosAlias`. Esa lista es de RAZONES, no de archivos: el archivo del que habla sigue contando una sola vez, en `enlazar` o en `pendientes` (los tres baldes son una partición del inventario).",
-    "Y con una coincidencia apenas sospechosa (el nombre base termina en -slug con un prefijo que no es del endpoint, o dos archivos que reclaman el mismo registro, o un archivo que reclaman varios registros sin `slug` que los desempate): tampoco. Solo una fila de alias convierte un `revisar` en enlace.",
-    "La clave `aviso` se ignora al leer; lo único que se parsea es el objeto `alias`."
+    "ENVASE ACEPTADO DE G3 — ejecutado el 2026-09-26. Son las 33 filas de `media-alias-propuesto.json` sin tocar: 27 pares archivo→bitácora (forma 1) y 6 proyecto→galería (forma 2). Nadie las transcribió a mano; la revisión fue la corrida en seco.",
+    "Qué midió el seco antes de aceptarlas (`--dry-run`, con el token de alcance mínimo de G3): 106 registros leídos en 6 endpoints, 67 archivos en inventario, 33 filas de alias y 0 motivos sin firmar — es decir, las 33 filas aterrizaron en un destino real y ninguna quedó colgando. El recibo completo está en /home/ubuntu/backup/g3-dryrun-2026-09-26.txt.",
+    "Qué escribió `--apply` con este archivo: 34 enlaces y 37 archivos. El enlace 34 (`public/images/cafe-menu/espresso-doble.webp` → `item-menus/eco9rlgy5goi8wabtjzp2ueu.imagen`) NO viene de acá: lo produjo la regla de `slug` exacto del manifiesto. Es identidad correcta (el nombre del archivo es el slug del ítem) pero queda fuera del censo de G3 y se consigna como desviación medida, porque el `cafe-menu` por nombre es materia de G6.",
+    "La sonda obligatoria de un registro (antes del lote) dejó tres hechos: `POST /api/upload` responde 201 y Strapi renombra el archivo (`bitacora-inpa-vs-af.webp` → `/uploads/bitacora_inpa_vs_af_2348f58e8c.webp`), así que la idempotencia por NOMBRE sigue siendo la correcta porque `name` conserva el original; el valor del campo `media` es el `id` numérico y el `PUT /api/bitacoras/{documentId}` lo acepta; y la relación quedó escrita en las DOS filas del documento (la publicada y el borrador, `files_related_mph.related_id` 190 y 101), o sea que no hace falta ningún paso de publicación después del lote.",
+    "Qué NO cubre y por qué sigue abierto: 9 de las 36 tapas de bitácora no tienen par firme (`calendario-manejo`, `conservacion-cosecha`, `cosecha-miel`, `miel-chef`, `miel-cocina`, `modulo6-division`, `modulo9-cosecha`, `red-meliponicultores`, `territorio-pijao`) y dos de ellas (`miel-chef`/`miel-cocina`) se disputan la misma publicación: eso es una decisión de nombre, no un dato que falte. Las 18 restantes de `cafe-menu` son G6. Los 3 de galería en `revisar` (`producto-caja-1`, `producto-miel-1`, `-2`) son colisiones que este archivo no resuelve.",
+    "Decisión del dueño que este archivo NO toma: los 6 proyectos reciben su serie completa en `galeria` y `imagen` (portada) queda vacío. Sacar el primer archivo de la serie y ponerlo de portada es editar estas filas, y mientras un archivo esté declarado en dos filas el manifiesto lo manda a `ambiguo` y no escribe nada.",
+    "Quién lo consume: `STRAPI_URL=… STRAPI_TOKEN=… node strapi/scripts/media-import.mjs --apply` (sin flags corre en seco). El token sale SOLO del entorno; nunca va en este archivo ni en la línea de comandos. El de G3 (`media-import-g3-2026-09-26`) vence a los 7 días y tiene 17 acciones: `find`/`findOne` en los 6 endpoints del inventario, `update` solo en `bitacora` y `proyecto-meliponario`, y `upload` en la media library.",
+    "Las claves `aviso` y cualquier otra fuera de `alias` se ignoran al leer."
   ],
-  "alias": {}
+  "alias": {
+    "public/images/bitacora/bitacora-abeja-cultivo.webp": {
+      "endpoint": "bitacoras",
+      "slug": "cuando-la-abeja-llega-al-cultivo"
+    },
+    "public/images/bitacora/bitacora-atraer-colonia.webp": {
+      "endpoint": "bitacoras",
+      "slug": "como-atraer-una-colonia-de-angelitas-sin-comprarla-batumen-feromonas-y-la-trampa-que-funciona"
+    },
+    "public/images/bitacora/bitacora-botiquin-natural.webp": {
+      "endpoint": "bitacoras",
+      "slug": "el-botiquin-natural-recetas-con-miel-de-angelita-y-propoleos"
+    },
+    "public/images/bitacora/bitacora-caso-don-manuel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "caso-la-finca-de-don-manuel"
+    },
+    "public/images/bitacora/bitacora-fermentacion-miel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion"
+    },
+    "public/images/bitacora/bitacora-flora-melifera.webp": {
+      "endpoint": "bitacoras",
+      "slug": "flora-melifera-nativa"
+    },
+    "public/images/bitacora/bitacora-guia-completa.webp": {
+      "endpoint": "bitacoras",
+      "slug": "guia-completa-de-meliponicultura-atraccion-captura-trasiego-manejo-y-division-de-colonias-de-angelita"
+    },
+    "public/images/bitacora/bitacora-heroinas-guadua.webp": {
+      "endpoint": "bitacoras",
+      "slug": "las-heroinas-de-la-guadua-rota"
+    },
+    "public/images/bitacora/bitacora-inpa-vs-af.webp": {
+      "endpoint": "bitacoras",
+      "slug": "cajas-inpa-vs-af-c2-b7-comparativas"
+    },
+    "public/images/bitacora/bitacora-jardin-suspendido.webp": {
+      "endpoint": "bitacoras",
+      "slug": "el-jardin-suspendido-10-plantas-en-matera-que-complementan-la-flora-del-meliponario"
+    },
+    "public/images/bitacora/bitacora-meliponario-finca.webp": {
+      "endpoint": "bitacoras",
+      "slug": "quieres-montar-un-meliponario-en-tu-finca-o-ciudad"
+    },
+    "public/images/bitacora/bitacora-miel-vs-apis.webp": {
+      "endpoint": "bitacoras",
+      "slug": "miel-angelita-vs-apis-mellifera"
+    },
+    "public/images/bitacora/bitacora-modulo1-meliponas.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-1-que-son-las-abejas-meliponas"
+    },
+    "public/images/bitacora/bitacora-modulo2-especies.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-2-c2-b7-especies-de-meliponas-en-colombia-region-central"
+    },
+    "public/images/bitacora/bitacora-modulo3-nido.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-3-c2-b7-el-nido-por-dentro"
+    },
+    "public/images/bitacora/bitacora-modulo4-trasiego.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-4-c2-b7-el-trasiego-o-mudanza-de-nido"
+    },
+    "public/images/bitacora/bitacora-modulo5-manejo.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-5-c2-b7-manejo-y-revision-periodica"
+    },
+    "public/images/bitacora/bitacora-modulo7-alimentacion.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-7-c2-b7-alimentacion-suplementaria-cuando-que-y-como"
+    },
+    "public/images/bitacora/bitacora-modulo8-plagas.webp": {
+      "endpoint": "bitacoras",
+      "slug": "modulo-8-c2-b7-plagas-y-enfermedades-identificacion-y-control"
+    },
+    "public/images/bitacora/bitacora-parque-tacuray.webp": {
+      "endpoint": "bitacoras",
+      "slug": "corredor-ambala-parque-tacuray"
+    },
+    "public/images/bitacora/bitacora-polinizacion-aguacate.webp": {
+      "endpoint": "bitacoras",
+      "slug": "resultados-polinizacion-aguacate-hass"
+    },
+    "public/images/bitacora/bitacora-polinizacion-maracuya.webp": {
+      "endpoint": "bitacoras",
+      "slug": "resultados-polinizacion-maracuya"
+    },
+    "public/images/bitacora/bitacora-polinizacion-mora.webp": {
+      "endpoint": "bitacoras",
+      "slug": "resultados-polinizacion-mora-castilla"
+    },
+    "public/images/bitacora/bitacora-propiedades-medicinales.webp": {
+      "endpoint": "bitacoras",
+      "slug": "propiedades-medicinales-miel-angelita"
+    },
+    "public/images/bitacora/bitacora-pureza-miel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "pureza-en-la-miel-de-angelita-lo-que-no-es-adulteracion"
+    },
+    "public/images/bitacora/bitacora-ruta-miel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "la-ruta-de-la-miel-del-nido-silvestre-a-tu-frasco"
+    },
+    "public/images/bitacora/bitacora-sabor-territorio.webp": {
+      "endpoint": "bitacoras",
+      "slug": "el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida"
+    },
+    "p5zx0qoqh509c7afu29i9l3x": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-ambala-1.webp",
+        "public/images/galeria/proyecto-ambala-2.webp"
+      ]
+    },
+    "d2bwg76mu4khsq4tssfd1kds": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-bonifacio-1.webp"
+      ]
+    },
+    "jh40ab12twgbym6qjdcxd40k": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-carmen-1.webp",
+        "public/images/galeria/proyecto-carmen-2.webp"
+      ]
+    },
+    "cv3sedttdehpnfu5dmp7z6az": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-cumbre-1.webp",
+        "public/images/galeria/proyecto-cumbre-2.webp"
+      ]
+    },
+    "dmhhqrkc903ezoymd7mpz97i": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-esperanza-1.webp"
+      ]
+    },
+    "iocafvy43tl2h0ighwqfge0s": {
+      "endpoint": "proyecto-meliponarios",
+      "campo": "galeria",
+      "archivos": [
+        "public/images/galeria/proyecto-poblado-1.webp"
+      ]
+    }
+  }
 }

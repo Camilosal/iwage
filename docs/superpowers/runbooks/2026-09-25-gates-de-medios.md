@@ -4,15 +4,14 @@
 escrito y medido, lo que falta es ejecutar sobre infraestructura compartida y sobre datos.
 
 **Estado del trabajo:** `master` local, que se lee con `git log -1 --format='%h %s'` (al escribir esto
-era `6c5be83`). Conteos como comando, no como número que caduca:
+era `616f8d4`). Conteos como comando, no como número que caduca:
 `git rev-list --count origin/master..HEAD` para lo no publicado y
 `git rev-list --count ffb0a9c..HEAD` para el rango del plan. `npm test` en la suite de `tests/`.
 Censo en tres pasadas (`docs/superpowers/metrics/2026-09-25-despues.md`). Todo lo de abajo está en
 el orden correcto; el orden **no es negociable** en G2 → G3 → G5, y la razón está escrita en cada
-una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC y G2 esa misma noche (23:40 → 00:02 UTC del 26)**; cada
-sección dice qué se midió para verificarla. Siguen cerradas: **G3** (importar y enlazar, necesita el
-token que solo tiene el dueño), **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie
-autorizó todavía). Que el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
+una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC, G2 esa misma noche (23:40 → 00:02 UTC del 26) y G3 el
+2026-09-26 (01:47 → 03:20 UTC)**; cada sección dice qué se midió para verificarla. Siguen cerradas:
+**G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Que el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
 medido, no es una sorpresa: ver G2 «Medido después», punto 4 — las 185 URLs sirven exactamente las
 mismas referencias de medio con el bundle viejo.
 
@@ -209,7 +208,7 @@ docker compose build iwage_strapi && docker compose up -d iwage_strapi
 
 ```bash
 curl -s 'http://127.0.0.1:1338/api/bitacoras?populate=imagen' | head -c 200   # data[], no 400
-curl -s 'http://127.0.0.1:1338/api/cultivo-polinizacions' -o /dev/null -w '%{http_code}\n'   # 200 (hoy 404)
+curl -s 'http://127.0.0.1:1338/api/cultivo-polinizaciones' -o /dev/null -w '%{http_code}\n'   # 200 (hoy 404)
 ```
 
 **Aplicado:** `pg_dump` previo (`/home/ubuntu/backup/iwage-pre-rebuild-2026-09-25.sql`, 2.515.184 B) →
@@ -218,6 +217,13 @@ etiqueta `pre-fa240b2` (= `f43819fd`, la que estaba corriendo). `docker compose 
 el contenedor: Strapi **5.55.1**, `Launched in 15679 ms`, `Strapi started successfully`, `/_health` → 204,
 `/admin` → 200. En los logs del arranque no hay ni un `error`; lo único que aparece es un
 `DeprecationWarning` de `pg` que ya estaba.
+
+**Re-medido el 2026-09-26, sin token** (durante la verificación de G3): `bitacoras`,
+`proyecto-meliponarios`, `item-menus` e `cultivo-polinizaciones` → **200**; `experimentos` e
+`historia-visitantes` → **403**. El 404 de la línea de arriba era **el path que había escrito yo**, no un
+problema de esquema: `cultivo_polinizacions` es el `collectionName` de la tabla y la URL del
+content-api sale del `pluralName`, que es `cultivo-polinizaciones`. La predicción de G2 sí se cumplió. Los
+dos 403 siguen siendo lectura denegada por permisos públicos: eso es G7, no una regresión de esta puerta.
 
 **Un detalle del build que conviene no tragarse:** `strapi build` imprimió **`Found 8 error(s).`** de TS y
 siguió adelante (compila igual, construye el admin panel y sale 0). Los ocho son `env.int`/`env.bool`/
@@ -273,10 +279,15 @@ dos imágenes en el store, hay además un rollback de un comando:
 Ojo con lo que ese comando **no** revierte: devuelve el código y el esquema, pero no devuelve las 11 columnas
 que el arranque nuevo ya borró con sus datos — eso solo lo repone el dump.
 
-## G3 · Importar y enlazar las 47 piezas huérfanas (`--apply`)
+## G3 · Importar y enlazar las piezas huérfanas (`--apply`) — **EJECUTADA el 2026-09-26 (01:47 → 03:20 UTC)**
 
-**Desbloquea:** la fila 3 del censo (hoy **0 de 180** registros publicados con un medio enlazado) y
-la meta de la fila 1 (≤ 85). Son 36 tapas de bitácora + 11 de `galeria`; en disco hay **48**
+**Desbloqueaba:** la fila 3 del censo, que estaba en **`0|0`** — ni un archivo en la media library, ni
+un enlace — y, a través del render, la meta de la fila 1 (≤ 85), que es de bundle y por lo tanto se mueve
+con G8, no acá. El título prometía «47 piezas»: **36 tapas de bitácora + 11 de `galeria`**. Lo que esta
+puerta podía escribir sin decidir en nombre del dueño eran **36 archivos en 33 enlaces**: 27 tapas y las
+9 fotos de las 6 series de proyecto. Quedan 12 afuera — 9 tapas sin par firme y 3 `producto-*` en
+disputa —, y los doce están listados abajo como decisión del dueño, no como fallo del importador. (El 47 del plan descontaba `proyecto-ambala-1`, que sí se escribió.) En disco
+hay **48**
 archivos entre los dos directorios, y la diferencia es `proyecto-ambala-1.webp`. El censo lo cuenta
 como «referenciado» por el grep de `src/`, pero la única coincidencia (`meliponas/index.astro:160`)
 está dentro de un bloque comentado `{/* … */}`: no pinta, así que el archivo está huérfano de hecho.
@@ -307,9 +318,12 @@ campos de la tabla, ningún destino repetido, ningún archivo declarado dos vece
 `manifesto()` firma las 33 sin mandar una a `motivosAlias` — con el inventario tomado **del disco**
 (48 archivos), no de la propia lista de la propuesta.
 
-> Para versionar la propuesta una vez decidida: `strapi/scripts/` está ignorado por `.gitignore:36`,
-> así que hace falta `git add -f strapi/scripts/media-alias-propuesto.json`. Sin el `-f`, `git add`
-> rechaza el lote completo y el commit no corre.
+> Para versionar lo que se escriba en esa carpeta, medido: `.gitignore:36` es `scripts/`, que casa
+> `strapi/scripts/**` para cualquier archivo **nuevo** (`git check-ignore -v
+> strapi/scripts/nuevo-prueba.json` devuelve la regla). Los dos envases de alias, en cambio, ya estaban
+> versionados antes de la regla —`git ls-files strapi/scripts` los lista—, así que sus modificaciones sí
+> entran al commit: `git add` los stagea y de paso avisa «paths are ignored» y sale con 1. El aviso es
+> ruido sobre el directorio, no un rechazo; con `git add -f` desaparece.
 
 **Lo que sigue siendo decisión del dueño** — las 9 tapas que la propuesta no toca:
 
@@ -368,23 +382,138 @@ censo de la fila «nos falta»).
 # 1) en seco con la propuesta: hay que leer el reporte antes de escribir
 STRAPI_URL=http://127.0.0.1:1338 STRAPI_TOKEN=<token> \
   node strapi/scripts/media-import.mjs --dry-run --alias=strapi/scripts/media-alias-propuesto.json
-# 2) solo después de la revisión: copiar las filas aceptadas a media-alias.json (hoy vacío) y aplicar
+# 2) solo después de la revisión: copiar las filas aceptadas a media-alias.json y aplicar
 STRAPI_URL=http://127.0.0.1:1338 STRAPI_TOKEN=<token> \
   node strapi/scripts/media-import.mjs --apply --alias=strapi/scripts/media-alias.json
 ```
 
-**Qué debe salir:**
+**Aplicado**, en este orden y con esta evidencia:
+
+1. Seco con la propuesta: `106 registros · 67 archivos · 33 filas de alias` → **34 enlaces**, 3 en
+   `revisar`, 27 `pendientes`, 6 ambigüedades y **0 motivos de alias sin firmar**. Recibo:
+   `/home/ubuntu/backup/g3-dryrun-2026-09-26.txt`. La corrida reprodujo, número por número, lo que el
+   propio `aviso` de la propuesta declaraba (9 tapas sin par, 3 galería en disputa, 6 portadas vacías):
+   un seco que coincide con lo predicho es la única revisión humana que este formato admite a distancia,
+   y por eso va citada en vez de «leído y aprobado».
+2. Dump previo: `iwage-pre-g3-2026-09-26.sql` (2.518.525 B, 0600, fuera del repo). Con `files` y
+   `files_related_mph` en 0 el vuelco costaba segundos, y era la única forma de deshacer una escritura
+   masiva sobre datos ajenos.
+3. **La sonda de un registro, antes del lote** —`.superpowers/sdd/2026-09-24-media-strapi-consolidation/g3-probe.mjs`,
+   réplica literal de `aplicar()`— sobre `bitacoras/ihybt6pwuzveeu70kd31u4hb`:
+   · `POST /api/upload` → **201**, `id` 1, y Strapi **renombra** en destino:
+     `bitacora-inpa-vs-af.webp` pasa a `/uploads/bitacora_inpa_vs_af_2348f58e8c.webp`. La idempotencia
+     por **nombre** del importador sigue siendo la clave buena porque `name` conserva el original; por URL
+     no se podría comparar.
+   · El valor de un campo `media` es el **`id` numérico** y `PUT /api/bitacoras/{documentId}` lo acepta
+     (200). Era la variante que el brief dejaba explícitamente sin comprobar.
+   · La relación quedó escrita en las **dos** filas del documento (`files_related_mph.related_id` 190 y
+     101, publicada y borrador) y el `GET …&status=published` la devuelve populateada. Con 56 publicados y
+     56 drafts conviviendo en `bitacoras`, esta era la pregunta que podía dejar el lote en 33 enlaces
+     invisibles: **no hace falta ningún paso de publicación después del `--apply`.**
+4. `--apply --alias=strapi/scripts/media-alias.json` (el envase aceptado, copia exacta de la propuesta):
+   **33 enlaces `ok`, 1 falla, exit 1**. Recibo: `/home/ubuntu/backup/g3-apply-2026-09-26.txt`.
+
+**Medido después — se movió exactamente la fila que había que mover.**
 
 ```sql
 select (select count(*) from files) as assets, (select count(*) from files_related_mph) as enlaces;
 ```
-→ `47` y un número de enlaces ≥ 47 (hoy `0|0`). Y en el sitio, una ficha de bitácora con su tapa
-servida desde `/uploads/...` — esa prueba cierra la premisa de `mediaSrc` que en G1 solo se pudo
-ver en la config de nginx.
+1. → **`37|72`** (antes `0|0`). Reparto de los 72: 54 en `api::bitacora.bitacora.imagen` = 27 documentos
+   × 2 versiones, y 18 en `api::proyecto-meliponario.galeria` = 6 × 2 versiones × hasta 2 fotos en orden.
+   Archivos: 37, de los cuales 36 enlazados y 1 huérfano (se explica en el token).
+2. Cobertura sobre lo publicado: **27** bitácoras con `imagen` en su fila publicada (de 56) y **6/6**
+   proyectos con la serie completa en `galeria`, en el orden declarado (`proyecto_ambala_1…` antes que
+   `…_2`).
+3. La API **pública, sin token** ya los sirve con URL relativa: `GET /api/bitacoras?populate=imagen` →
+   `/uploads/bitacora_polinizacion_mora_3431e0e589.webp`; `GET /api/proyecto-meliponarios?populate[galeria][populate]=*`
+   → las dos URLs, en orden.
+4. Servido por nginx: `https://iwage.co/uploads/bitacora_inpa_vs_af_2348f58e8c.webp` → **200, 68 950 B,
+   `image/webp`**, byte por byte igual que el `1338` local. Esta es la prueba que en G1 solo se había visto
+   en la config: el `mediaSrc` relativo tiene destino real. **Pero** las fichas desplegadas siguen pintando
+   el fallback (`og:image` = `hero-meliponas.webp` en las tres URLs medidas): el bundle en producción es el
+   del 24-09 y no lee `media`. El cambio visible es de G8, y está medido como tal, no como éxito de G3.
+5. Durabilidad: `/app/public/uploads` es el volumen nombrado `negocio_iwage_strapi_uploads`
+   (dispositivo 2049, contra 73 de `/app`) — un rebuild no se lleva los 37 archivos.
+6. Censo con el **mismo** crawl de G2 y `--con-bd`, para no cambiar de parser entre las dos mitades:
+   `/home/ubuntu/backup/g3-censo-2026-09-26.txt`. Diff contra el post-G2: **una sola línea**, la fila 3
+   `0|0` → `37|72`. Las otras nueve no se movieron porque el bundle es el mismo.
+7. `npm test`: **334/334**. El guard que exigía «el envase sigue vacío» ya no describía una puerta
+   autorizada: `tests/media-alias-propuesto.test.mjs` ahora exige que `media-alias.json` sea **igual** a la
+   propuesta fila por fila, que sus endpoints sean solo `bitacoras` y `proyecto-meliponarios`, y que la
+   fila que sirvió de sonda siga en su destino. Mutación probada: una fila metida directo al envase rompe
+   el teste (`# fail 1`).
 
-**Rollback:** el dump de G2 (los enlaces y los `files` salen con él), y en el CMS se puede
-desenlazar a mano. Idempotencia del importador: por **nombre**, así que repetir no duplica; no
-detecta re-producción (mismo nombre, bytes distintos).
+**Rollback:** `iwage-pre-g3-2026-09-26.sql` (previo a esta escritura) o el dump de G2; los enlaces y los
+registros `files` salen con cualquiera de los dos. Los bytes de `/uploads` no están en ningún dump: se
+reponen del volumen o del backup de G1, y en el CMS se puede desenlazar a mano. Idempotencia del
+importador: por **nombre**, así que repetir no duplica; no detecta re-producción (mismo nombre, bytes
+distintos).
+
+### El token con el que corrió G3 — buscado, generado, y qué NO se rotó
+
+La puerta pedía «busca y usa, o genera y rota, y déjalo documentado». Las dos mitades se hicieron; la
+rotación se dejó abierta a propósito, por una razón medida.
+
+**Buscado.** En el entorno de `iwage_web` hay un token que el sitio desplegado **sí usa**:
+`src/lib/strapi.ts:136` manda `Authorization: Bearer ${STRAPI_API_TOKEN}`, y el digesto de ese valor
+(HMAC-SHA512 con `API_TOKEN_SALT`) coincide con la fila 3 de `strapi_api_tokens` — `seed-token`,
+`full-access`, creado el 2026-08-09. Con él `/granja/experimentos` responde 200 y sin él 403, así que
+**sostiene producción**: no se puede revocar sin repuntar el envase de `iwage_web` y reiniciar el
+contenedor, y eso es un despliegue (G8), no una puerta de datos. Las literales del repo, en cambio, están
+muertas: el token que aparece en texto claro en `strapi/scripts/seed-heroes.mjs` no digiere contra ninguna
+fila de `strapi_api_tokens` (3 filas medidas), o sea que ya no abre nada — pero sigue publicado, que es
+motivo de G0, no de esta puerta.
+
+**Generado.** Un token nuevo, `custom`, de alcance mínimo y caducidad corta. Es el que corrió el lote.
+
+| dato | valor |
+|---|---|
+| nombre / id | `media-import-g3-2026-09-26` / 5 |
+| tipo | `custom`, `kind = content-api` |
+| vida | 7 días: `lifespan 604800000`, vence `2026-10-03T01:59:28Z` |
+| acciones (17) | `find` + `findOne` en los 6 endpoints del inventario; `update` **solo** en `api::bitacora` y `api::proyecto-meliponario`; `plugin::upload.content-api.find` / `.findOne` / `.upload` |
+| dónde vive el valor | `/tmp/g3-tok/g3.token`, 0600, **fuera del repo**; la salida del arranque que lo imprimió quedó redactada (`grep -av THEKEY`), así que hay una sola copia |
+| cómo se usa | `STRAPI_TOKEN=$(cat /tmp/g3-tok/g3.token)` — nunca en un argumento de comando ni en un archivo versionado |
+
+Para mintear otro sin este agente: `docker compose run --rm --no-deps -T iwage_strapi sh -c 'cd /app && npx
+strapi console'` con un script por stdin. Dos cosas que no están en la doc y costaron medirlas: los UIDs
+válidos salen de `strapi.contentAPI.permissions.providers.action.keys()` (143 acciones) — **no** del
+`actionProvider` de admin, que solo conoce las 64 del panel y no tiene `getAll()`—, y el atributo se llama
+`lifespan` y no `duration`, con valores fijos (7/30/90 días). Tercera trampa, esta de ejecución: el REPL
+cierra con el EOF del stdin y se lleva por delante la escritura a mitad. Por esa vía quedó el id 4 creado
+**sin ninguna fila de permisos y con la `accessKey` perdida** (nunca se imprimió), o sea inutilizable; se
+borró esa fila antes de seguir. El arranque bueno fue `{ cat script.js; sleep 90; } | docker compose run …`.
+
+**Alcance verificado en vivo, con control negativa:** `GET /api/upload/files` 200 · `GET /api/bitacoras` 200
+· `POST /api/upload` sin archivo **400 «Files are empty»** (pasó autenticación y autorización) ·
+`GET /api/proyecto-meliponarios` 200 · `PUT /api/hero-configuracions/x` **403**. Ese 403 es el que dejó el
+lote en 33 de 34: el enlace que el manifiesto derivó por `slug` exacto sobre `item-menus` no está en el
+alcance de G3, y el token lo rechazó en vez de escribirlo. Es la guarda funcionando, y consigna la
+desviación: G3 escribió un enlace menos de los que el seco anunció, y ninguno en un endpoint que no sean
+bitácora y meliponario.
+
+**Consecuencia medida de ese rechazo:** el `POST /api/upload` de ese enlace ya había subido
+`espresso-doble.webp` antes del `PUT` — el importador sube y después enlaza —, así que la media library
+quedó en **37 archivos con 36 enlazados**. El huérfano no se borra: es la foto correcta del ítem correcto,
+G6 la va a necesitar, y `plugin::upload.content-api.destroy` tampoco está en el alcance.
+
+**Lo que NO se rotó y por qué.** Fila 3 (`seed-token`, full-access): ver arriba, sostiene producción; su
+rotación es repuntar `iwage_web` + reinicio = G8. Filas 1 y 2 (`Read Only`, `Full Access`, las dos por
+defecto del 08-09, `last_used_at` vacío): no se revocan acá porque `last_used_at` no se actualiza en toda
+llamada autenticada — medido: una llamada 200 a las 01:35:10 dejó el sello en 00:48:22 —, así que «no lo usó
+nadie» no es demostrable desde la BD y borrar un token ajeno en producción no entra en esta puerta. Es
+inventario para G0, con el digesto como evidencia de cuál es cuál.
+
+**Hallazgo de G0 que salió de esta corrida.** En el contenedor corriendo, `API_TOKEN_SALT`,
+`ADMIN_JWT_SECRET`, `APP_KEYS` y `TRANSFER_TOKEN_SALT` son **los valores por defecto publicados en
+`docker-compose.yml`**, y `ENCRYPTION_KEY` no está definido. El efecto concreto y medido: al crear el token 5
+el log avisó `Encryption key is missing from admin.secrets.encryptionKey configuration` y su columna
+`encrypted_key` quedó **NULL** (las filas 1, 2 y 3 tienen 64, 64 y 128). La autenticación no se rompe —el
+strategy busca por `access_key = HMAC-SHA512(API_TOKEN_SALT, token)`—, pero el panel no puede volver a
+mostrar la clave: un `accessKey` se entrega una sola vez, en la creación. Con salt por defecto y conocido,
+cualquiera que lea el dump de `strapi_api_tokens` puede precomputar el digesto de un token candidado y
+adivinar cuál es cuál. Rotar `API_TOKEN_SALT` invalida los tokens existentes, así que va atado a la
+reemisión del `seed-token`, otra vez G0 → G8.
 
 ## G4 · Vaciar Unsplash y placeholders en la base
 

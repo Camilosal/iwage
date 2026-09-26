@@ -17,9 +17,13 @@
  * medido en 6/6, así que ninguna regla por nombre los firma; solo una clave `documentId`
  * puede. Por eso el teste separa las filas por forma y exige a cada una lo suyo.
  *
- * Y la segunda mitad, que es la que protege el estado actual: `media-alias.json` (el
- * nombre que el importador usaría si alguien le pasa la ruta por defecto) sigue vacío
- * en su clave `alias`. proponente ≠ aplicado.
+ * Y la segunda mitad, que protege el estado DESPUÉS de G3 (aplicado el 2026-09-26 con
+ * autorización del dueño): `media-alias.json` —el nombre que el importador lee cuando se
+ * le pasa `--alias` por defecto— ya no está vacío, y lo que se le exige es ser EXACTAMENTE
+ * la propuesta aceptada, ni una fila más ni en otro endpoint. proponente ≠ aplicado sigue
+ * siendo la invariant, pero ahora se verifica por igualdad de contenido, no por vacuidad:
+ * una fila que se añade directo al envase se salta el `--dry-run` y la revisión humana, y
+ * ese es exactamente el movimiento que este teste tiene que romper.
  *
  * El envase es parte del contrato, y no lo inventó este teste: `leerAlias()` exige
  * `{"aviso": …, "alias": {…}}` y aborta con `no trae un objeto en la clave "alias"`
@@ -204,7 +208,15 @@ test('manifesto() firma las 33 filas y no manda ninguna a motivosAlias', () => {
   }
 });
 
-test('lo propuesto no es lo aplicado: el `alias` de `media-alias.json` sigue vacío', () => {
+test('el envase aplicado es la propuesta, exacta: ni una fila más y ni un endpoint más', () => {
   const aplicado = JSON.parse(readFileSync(join(RAIZ, 'strapi/scripts/media-alias.json'), 'utf8'));
-  assert.deepEqual(aplicado.alias, {}, 'si alguien llenó el envase, la puerta del dueño se abrió sin decirlo');
+  assert.deepEqual(
+    aplicado.alias,
+    alias,
+    'media-alias.json se salió de la propuesta: toda fila nueva exige seco y revisión del dueño',
+  );
+  const endpoints = [...new Set(Object.values(aplicado.alias).map((v) => v.endpoint))].sort();
+  assert.deepEqual(endpoints, ['bitacoras', 'proyecto-meliponarios'], 'G3 no escribe en otros endpoints');
+  assert.equal(aplicado.alias['public/images/bitacora/bitacora-inpa-vs-af.webp'].slug,
+               'cajas-inpa-vs-af-c2-b7-comparativas', 'la fila que sirvió de sonda se fue de su destino');
 });

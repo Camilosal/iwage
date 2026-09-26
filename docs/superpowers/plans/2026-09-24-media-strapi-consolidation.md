@@ -1444,11 +1444,26 @@ curl -s -o /dev/null -w '%{http_code}\n' -g 'http://127.0.0.1:1338/api/bitacoras
 ```
 Expected: `sin errores de esquema` y `200` o `403` (403 = endpoint existe pero pide token: el esquema cargó).
 
-- [ ] **Step 5: Re-enlazar lo volcado**
+- [x] **Step 5: Re-enlazar lo volcado** — respondido y ejecutado el 2026-09-26 (G3)
 
 Con el `--apply` del Task 10 sobre los campos ya convertidos. **Primero, la sonda obligatoria de UN registro** (no se lanza el lote sin su respuesta): `bitacoras` tiene 112 filas para 56 `document_id` — 56 con `published_at not null` (las que sirve la API) y 56 borradores — y el vínculo de media cuelga de `files_related_mph.related_id`, que es **el `id` de la fila**. Hay que comprobar si el `PUT /api/bitacoras/{documentId}` escribe en la fila publicada o solo en el borrador; si es el borrador, el importador necesita el `POST …/publish` detras del mismo guard `--apply`, o un `--apply` "exitoso" no cambia una sola fila de lo que ve un visitante. Anotar la respuesta en el reporte de la tarea.
 
 Nota: `hero_configuracions` tiene **0 borradores** (sus 39 filas entraron por SQL crudo desde `strapi/scripts/seed-heroes-pg.mjs`, salteándose el servicio de documentos). Un `PUT` por `documentId` ahí puede crear la fila borrador que no existe; verificar que no rompe ningún `uid` antes de tocar los hérores.
+
+> **Medido el 2026-09-26, primero con la sonda de un registro y después con el lote.** La pregunta que
+> abría este paso se contestó en la base, no en la doc: el `PUT /api/bitacoras/{documentId}` escribe en
+> **las dos filas** del documento — `files_related_mph.related_id` 190 (publicada) y 101 (borrador) para el
+> mismo `document_id`—, así que **no hace falta ningún `POST …/publish` detrás del `--apply`**, que era el
+> riesgo real: 33 enlaces que el visitante nunca vería. El valor que acepta un campo `media` es el **`id`
+> numérico** del archivo, y `POST /api/upload` responde 201 **renombrando** el destino
+> (`bitacora-inpa-vs-af.webp` → `/uploads/bitacora_inpa_vs_af_2348f58e8c.webp`), lo que confirma que la
+> idempotencia solo puede ser por `name`. Lote: **33 enlaces escritos, 0 duplicados**, con 27 bitácoras que
+> tienen tapa en su fila publicada y 6/6 proyectos con la serie en el orden declarado; `files` pasó de 0 a
+> **37** y `files_related_mph` de 0 a **72** (uno de los 37 archivos quedó sin enlazar a propósito — ver el
+> runbook, G3). Lo que no se escribió es decisión de nombre, no mecánica: 9 tapas sin par firme y 3
+> `producto-*` en disputa. `hero_configuracions` **no se tocó**: el token de esta corrida no tiene `update`
+> en ese endpoint y la puerta de los hérores es G4, así que el aviso de los 0 borradores queda en pie para
+> quien la abra.
 
 Verificar en la BD. **La consulta del plan estaba mal**: `files_links` con `parent_id`/`parent_table` no existe en Strapi v5. Tablas medidas: `files`, `files_related_mph(id, file_id, related_id, related_type, field, "order")`, `files_folder_lnk`, `upload_folders`. Y hoy `select count(*) from files` = **0**, o sea la librería está vacía antes de cualquier `--apply`:
 
@@ -1937,6 +1952,7 @@ Todo lo de esta sección vive fuera del repo: los dos primeros cambios en `/home
 | 2026-09-25 | Dump previo `iwage-pre-f2-2026-09-25.sql` | restaurar el dump |
 | 2026-09-25 **ejecutada (G2)** | Reconstrucción del contenedor con los esquemas nuevos (`fa240b2`): imagen `c5d3fc49` en `latest`, arrancando con **drop de 11 columnas**. Dump previo `iwage-pre-rebuild-2026-09-25.sql` (2.515.184 B) | `docker tag negocio-iwage_strapi:pre-fa240b2 negocio-iwage_strapi:latest && docker compose up -d iwage_strapi` revierte código y esquema; **las columnas caídas solo las repone el dump** |
 | 2026-09-25 | 19 png movidos a `/home/ubuntu/backup/png-cafe-menu-2026-09-25` | moverlos de vuelta |
+| 2026-09-26 **ejecutada (G3)** | Importar y enlazar las 33 unidades aceptadas: 36 archivos a `/uploads` sobre el volumen `negocio_iwage_strapi_uploads`; `files` 0 → **37**, `files_related_mph` 0 → **72**; 27 bitácoras y 6 proyectos con medio en su fila publicada. Token dedicado `media-import-g3-2026-09-26` (`custom`, 17 acciones, vence 2026-10-03). Dump previo `iwage-pre-g3-2026-09-26.sql` (2.518.525 B) | `psql < iwage-pre-g3-2026-09-26.sql` repone `files` y enlaces; los bytes quedan en el volumen (no los toca un rebuild) y repetir el `--apply` no duplica, porque la identidad es el `name` |
 
 ### Task 1 — evidencia leída y parche preparado (2026-09-25 por la mañana) / **aplicado esa misma tarde**
 
