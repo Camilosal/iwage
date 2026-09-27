@@ -89,7 +89,17 @@
  *                     segunda es la única que puede firmar un registro **sin
  *                     `slug`**, que medido en la BD es el caso de
  *                     `proyecto-meliponarios` y `cultivo-polinizaciones` (6/6 con
- *                     `slug` null) y de 3 de 14 `productos`.
+ *                     `slug` null) y de 3 de 14 `productos`. Esa misma fila puede
+ *                     traer `portada: <ruta>`, que tiene que ser una de sus
+ *                     `archivos`: al ganar la unidad escribe DOS enlaces — el
+ *                     campo repetible con la serie y `campo` de la tabla con la
+ *                     portada declarada. Es la salida para el caso medido de los
+ *                     6 proyectos, que tienen `galeria` y `imagen` y donde
+ *                     derivar la portada de la galería está prohibido por un teste
+ *                     (`tests/normalizar-medio-2.test.mjs`: dos campos diciendo lo
+ *                     mismo). La portada NO es una unidad nueva ni un reclamo
+ *                     nuevo: sale de la unidad que ya ganó, así que la disputa, el
+ *                     libro de dueños y la PARTICIÓN no la ven.
  *   nivel `REGLA`   (1) el nombre base (o la raíz de la serie) es exactamente
  *                     `slug`, `<marca>-slug` o `<prefijo-del-endpoint>-slug`.
  *                     Enlace con `origen` omitido (o `'slug'` si es serie).
@@ -200,16 +210,19 @@
  * · una fila que no se puede firmar (el archivo no está en el inventario, ningún
  *   registro trae ese endpoint/slug o ese documentId, el campo no es un campo de
  *   medio de la tabla, la ruta cae fuera del directorio del endpoint, el archivo
- *   está en otra fila, o el registro ya tiene otra fila para ese campo) NO
- *   escribe nada: su motivo va a `motivosAlias` con la razón exacta.
+ *   está en otra fila, el registro ya tiene otra fila para ese campo, la fila por
+ *   ruta declara `portada`, o la `portada` declarada no es una de sus `archivos`
+ *   o no cae en la fila que escribe el campo repetible) NO escribe nada: su
+ *   motivo va a `motivosAlias` con la razón exacta.
  *   `motivosAlias` **no es un balde de archivos** (ver PARTICIÓN arriba).
  *
  * DE DÓNDE TIENE QUE SALIR EL VOCABULARIO: de la lectura de SOLO LECTURA que ya
  * está medida en `.superpowers/sdd/2026-09-24-media-strapi-consolidation/
- * f2-vocabulario-medido.md` (slugs, documentIds y nombres reales). Las 29 filas
- * de tapas de bitácora siguen siendo una PROPUESTA que necesita la revisión del
- * dueño: el envase del repo, `strapi/scripts/media-alias.json`, se shippea sin
- * ninguna fila real.
+ * f2-vocabulario-medido.md` (slugs, documentIds y nombres reales). Las 34 filas
+ * de tapas de bitácora fueron revisadas por humano una por una (D3: mirando el
+ * `.webp` contra el título, no por parecido de nombre) y `strapi/scripts/
+ * media-alias.json` hoy es el RECIBO de lo aplicado, no una plantilla vacía: las
+ * filas que hay ahí ya están escritas en la BD y se citan con su corrida.
  */
 
 const RAIZ = 'public/images';
@@ -474,7 +487,7 @@ function agruparSeries(infos) {
  * @param {{
  *   archivos: string[],
  *   registros: Array<{endpoint: string, documentId: string, slug?: string, nombre?: string, marca?: string, campo?: string}>,
- *   alias?: Record<string, {endpoint: string, slug: string} | {endpoint: string, campo: string, archivos: string[]}>
+ *   alias?: Record<string, {endpoint: string, slug: string} | {endpoint: string, campo: string, archivos: string[], portada?: string}>
  * }} in rutas de archivo → registro declarado, o `{}` / ausente si no hay alias
  * @returns {{
  *   enlazar: Array<{endpoint: string, documentId: string, campo: string, archivo?: string, archivos?: string[], origen?: string}>,
@@ -542,7 +555,12 @@ export function manifesto({ archivos, registros, alias = {} }) {
     const campos = camposDeTabla(cfg);
     let rutas;
     let i;
+    let portada = null;
     if (porRutaKey) {
+      if (fila.portada !== undefined) {
+        motivosAlias.push({ archivo: clave, motivo: `una fila por ruta no declara portada: ${clave}` });
+        continue;
+      }
       if (typeof fila.slug !== 'string') {
         motivosAlias.push({ archivo: clave, motivo: `el alias no trae \`endpoint\` y \`slug\` de texto: ${clave}` });
         continue;
@@ -577,6 +595,23 @@ export function manifesto({ archivos, registros, alias = {} }) {
           motivo: `la fila de ${clave} trae ${fila.archivos.length} archivos para ${campo}, que no es un campo repetible de ${fila.endpoint}`,
         });
         continue;
+      }
+      if (fila.portada !== undefined) {
+        if (campo !== cfg.campoMultiple) {
+          motivosAlias.push({
+            archivo: clave,
+            motivo: `la fila de ${clave} declara portada en ${campo}, que no es el campo repetible de ${fila.endpoint}`,
+          });
+          continue;
+        }
+        if (typeof fila.portada !== 'string' || !fila.archivos.includes(fila.portada)) {
+          motivosAlias.push({
+            archivo: clave,
+            motivo: `la portada de ${clave} no está en sus \`archivos\`: ${String(fila.portada)}`,
+          });
+          continue;
+        }
+        portada = { campo: cfg.campo, archivo: fila.portada };
       }
       rutas = [];
       let roto = null;
@@ -626,6 +661,7 @@ export function manifesto({ archivos, registros, alias = {} }) {
       campo,
       archivos: rutas,
       clave: porRutaKey ? clave : `${clave}:${campo}`,
+      ...(portada ? { portada } : {}),
       mejorExt: Math.min(...rutas.map((a) => RANGO_EXT[porRuta.get(a).ext])),
       idLen: 0,
     });
@@ -748,7 +784,13 @@ export function manifesto({ archivos, registros, alias = {} }) {
     const campos = [...new Set(us.map((u) => u.campo))].sort();
     const notas = [];
     const enlaces = [];
+    /** campos que ya escribió una `portada` declarada: no se vuelven a escribir */
+    const escritos = new Map();
     for (const campo of campos) {
+      if (escritos.has(campo)) {
+        notas.push(`${campo} ya lo escribió la portada declarada en ${escritos.get(campo)}`);
+        continue;
+      }
       const delCampo = us.filter((u) => u.campo === campo);
       // Una serie con UN archivo en disputa no puede escribirse a medias: todos sus
       // miembros van a `revisar` (dejar el par 2 en `pendientes` era justo lo que
@@ -798,6 +840,19 @@ export function manifesto({ archivos, registros, alias = {} }) {
           ...(gana.archivos.length > 1 ? { archivos: gana.archivos } : { archivo: gana.archivos[0] }),
           ...(marcaOrigen(gana.nivel, gana.archivos) ?? {}),
         });
+        // La portada declarada es un segundo enlace de la MISMA unidad ganadora,
+        // no un reclamo nuevo: el archivo ya era miembro de la serie, así que la
+        // disputa y la PARTICIÓN siguen viendo un archivo con un solo balde.
+        if (gana.portada) {
+          enlaces.push({
+            endpoint: reg.endpoint,
+            documentId: reg.documentId,
+            campo: gana.portada.campo,
+            archivo: gana.portada.archivo,
+            ...marcaOrigen(NIVEL.ALIAS, [gana.portada.archivo]),
+          });
+          escritos.set(gana.portada.campo, gana.clave);
+        }
       }
       // Anotado el balde, el archivo deja de estar disponible: así un `revisar` por
       // sufijo no cae también en `pendientes` y los reclamantes que pierden se nombran.

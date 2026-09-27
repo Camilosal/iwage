@@ -252,10 +252,14 @@ function imprimir({ manifiesto: m, porNombre, leidos, registros, archivos, filas
   // líneas: se imprimen las dos y la de archivos es la que vale como inventario.
   // Nunca se suma un cuarto arreglo a ese total: `ambiguos` y `motivosAlias` son
   // listas de RAZONES, no de archivos, y un mismo archivo puede tener varias.
-  const enlazados = m.enlazar.flatMap(archivosDelEnlace);
+  // Y se cuentan por archivo DISTINTO, no por suma por enlace: la cabida del
+  // contrato es un archivo → un balde, pero una fila de alias con `portada` escribe
+  // DOS enlaces del mismo registro sobre el MISMO archivo (la portada es miembro de
+  // su propia serie). Sumando longitudes, `3 de 2` apagaba la guarda de abajo.
+  const enlazados = new Set(m.enlazar.flatMap(archivosDelEnlace));
   console.log(`${m.enlazar.length} enlaces · ${m.revisar.length} en revisar (NO se escriben) · ${m.pendientes.length} pendientes · ${m.ambiguos.length} ambigüedades · ${m.motivosAlias.length} motivo(s) de alias sin firmar`);
-  console.log(`archivos: ${enlazados.length} enlazados + ${m.revisar.length} en revisar + ${m.pendientes.length} pendientes = ${enlazados.length + m.revisar.length + m.pendientes.length} de ${archivos.length}`);
-  if (enlazados.length + m.revisar.length + m.pendientes.length !== archivos.length) {
+  console.log(`archivos: ${enlazados.size} enlazados + ${m.revisar.length} en revisar + ${m.pendientes.length} pendientes = ${enlazados.size + m.revisar.length + m.pendientes.length} de ${archivos.length}`);
+  if (enlazados.size + m.revisar.length + m.pendientes.length !== archivos.length) {
     console.warn('  LA PARTICIÓN NO CIERRA: hay archivos sin balde o en dos baldes. No usar esta salida como inventario.');
   }
   for (const e of m.enlazar) {

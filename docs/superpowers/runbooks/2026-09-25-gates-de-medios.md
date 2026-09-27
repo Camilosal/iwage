@@ -13,11 +13,14 @@ una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC, G2 esa misma noche (23:40 → 00:
 2026-09-26 (01:47 → 03:20 UTC)**; cada sección dice qué se midió para verificarla. **G0, a medias el
 2026-09-27**: scrub de las cuatro publicaciones, guarda anti-credenciales en la suite, rol propio
 `iwage_app` creado y probado, y clave de cifrado del panel definida y cableada (efectiva al recrear, o sea
-G8); falta la rotación coordinada del host, que no es de esta puerta. **Y una segunda corrida de `--apply`
-sobre la base viva, también el 2026-09-27: D3**, que enlazó 7 tapas que G3 dejó sin par y reasignó una mal
-asignada — 34 de 56 bitácoras publicadas con tapa—; está documentada en su propia sección bajo G3, con dump
-previo y verificación medida. Siguen
-cerradas: **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Que
+G8); falta la rotación coordinada del host, que no es de esta puerta. **Y dos corridas más de `--apply`
+sobre la base viva, ambas el 2026-09-27: D3 y D4.** D3 enlazó 7 tapas que G3 dejó sin par y reasignó una mal
+asignada — 34 de 56 bitácoras publicadas con tapa—. D4 llenó la portada de los 6 proyectos: `imagen` pasó de 0
+a 6 documentos con portada, declarándola en la misma fila del envase que escribe su galería. Cada corrida está
+documentada en su propia sección bajo G3, con dump previo y verificación medida. Siguen
+cerradas: **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Abrió una
+decisión nueva, **D11**: los 6 proyectos siguen con `slug: null` y por eso su ficha de detalle es inalcanzable —
+es contenido y URLs, no medios, y lo decide el dueño (está escrito en la sección de D4). Que
 el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
 medido, no es una sorpresa: ver G2 «Medido después», punto 4 — las 185 URLs sirven exactamente las
 mismas referencias de medio con el bundle viejo.
@@ -701,6 +704,79 @@ contenido. Sale del alcance de este envase y queda nombrada en el `aviso`.
 `tests/media-alias-propuesto.test.mjs` pasó de 27/12 a 34/5 en sus cuentas y en la lista de huérfanos
 enumerados; su guarda de igualdad se volvió a probar por mutación (una fila metida directo al envase
 aplicado → `not ok 8`, restaurada → 8 pass). `npm test` **338/338**.
+
+### Resuelto el 2026-09-27 (decisión D4): la portada de los 6 proyectos entra como dato declarado
+
+El envase aplicado dejó los 6 `proyecto-meliponarios` con `galeria` completa (9 láminas) y `imagen` vacío:
+**0 de 6 con portada**, medido en `files_related_mph`. Las fichas salían sin figura
+(`ProjectCard.astro:33` es `{image && (`) y la página de proyecto pintaba un degradado en el hero.
+
+Las dos salidas baratas estaban cerradas, y no por descuido:
+
+· **Derivar la portada desde la plantilla** (`imagen ?? galeria[0]`) lo prohíbe un teste escrito a propósito
+en `tests/normalizar-medio-2.test.mjs:180` — «la galería se está usando de portada: dos campos diciendo lo
+mismo». Además `src/pages/meliponas/index.astro:235` ya tenía esa regla duplicada en la plantilla, que es
+exactamente la dispersión que la consolidación vino a quitar.
+· **Declarar el archivo en dos filas** (una para `galeria`, otra para `imagen`) lo rechaza el manifiesto:
+`aliasPorArchivo` marca el archivo como ya declarado y la segunda fila se descarta. Y re-clave del libro de
+dueños por `(archivo, campo)` habría dejado que dos **documentos distintos** se queden con la misma lámina
+para campos distintos — más dispersión, no menos.
+
+**El contrato que se abrió.** Una fila forma 2 puede traer `portada: <ruta>`, que **tiene que ser una de sus
+propias `archivos`**. Al ganar esa unidad, escribe los dos enlaces desde el mismo lugar: el campo repetible
+con la serie y `imagen` de la tabla con la portada declarada. No es una unidad nueva ni un reclamo nuevo, así
+que la detección de disputas, el libro de dueños y la PARTICIÓN siguen viendo un archivo con un solo balde.
+Una fila por ruta no puede declararla (su clave ya es un archivo) y declararla en una fila que no escribe el
+campo repetible se descarta con su motivo exacto. Cinco testes nuevos en `tests/media-manifest.test.mjs`
+(bloque `F2-b`) fijan las cuatro reglas y la precedencia sobre la regla de `nombre`.
+
+**Qué se eligió y cómo.** Las 9 láminas miradas una por una: en los 3 proyectos con dos fotos, la `-1` es la
+vista general del proyecto y la `-2` un detalle; en los 3 de una sola foto la portada es esa foto. Criterio
+editorial, escrito en el `aviso` del envase en vez de deducido por el código.
+
+**El seco del 2026-09-27** (`--dry-run --alias=…-propuesto.json`, mismo token de G3, 403 de control
+negativo ya probado): 106 registros, 67 archivos, 40 filas, **47 enlaces** (40 de fila + 6 portadas + 1 regla
+de `slug` sobre `item-menus`), 3 en revisar, 20 pendientes, 6 ambigüedades, 0 motivosAlias. Cero
+`POST /api/upload`: las 6 portadas son archivos que ya estaban en la librería.
+
+**El bug que esta corrida encontró — en el reporte, no en la BD.** El primer seco avisó
+`archivos: 50 enlazados … = 73 de 67` y encendió `LA PARTICIÓN NO CIERRA`. El manifiesto estaba bien; el que
+contaba mal era `imprimir()` de `strapi/scripts/media-import.mjs`, que sumaba las longitudes por enlace y con
+una portada contaba dos veces el mismo archivo. Como esa línea es la guarda que dice «esta salida SÍ sirve
+como inventario» para las Tareas 11 y 14, un falso positivo ahí es tan caro como un falso negativo: se cuenta
+por archivo **distinto**. `tests/media-flags.test.mjs` lo fija corriendo el CLI real contra su stub: la
+contabilidad cierra `2 de 2`, el aviso no aparece, se suben **dos** archivos y no tres, y salen dos `PUT`
+(`galeria: [900, 901]` y `imagen: 900`).
+
+**`--apply`:** 46 enlaces `ok` y 1 falla — la misma de G3 y D3 (`espresso-doble.webp` → `item-menus`, 403; es
+D6). Exit 1 por esa única razón. Backup antes de escribir: `/home/ubuntu/backup/d4-pre-2026-09-27.sql`
+(0600, 2.610.637 B).
+
+**Medido después.** `files_related_mph` sobre `api::proyecto-meliponario.proyecto-meliponario`: `imagen` pasó
+de 0 a **12 filas** (6 documentos × borrador y publicado) y `galeria` sigue en 18 — reescribir la serie en el
+mismo orden no la recortó. `GET /api/proyecto-meliponarios?status=published&populate=imagen,galeria`
+devuelve las 6 con portada igual a la `-1` de su serie y galería completa (2+2+2+1+1+1). Servido:
+`/uploads/proyecto_ambala_1_c596855ccf.webp` y `/uploads/proyecto_bonifacio_1_d2b2e6a8c9.webp` → 200
+`image/webp`. Censo de la librería: 44 archivos, 98 filas de enlace (68 bitácora + 18 galería + 12 portada) y
+**un solo archivo sin enlace**, `espresso-doble.webp`. Verificado en BD, API y URL servida; no en navegador,
+porque `npm run build` está prohibido en este tree compartido y publicar es D10.
+
+**Hallazgo nuevo, para decidir (D11) y no arreglado acá.** Los 6 proyectos tienen `slug: null` medido en 6/6
+también en el endpoint publicado. `getProyectoBySlug` filtra por `slug`, así que la ficha de detalle —el
+consumidor principal de la portada que acaba de entrar— es inalcanzable: `ProjectCard.astro:32` ya protege el
+`href` (`slug ? … : undefined`) y por eso no se ve un enlace roto, pero el `/meliponas/proyectos/null` que
+armaba `meliponas/index.astro:170` nunca existió. Las dos salidas son del dueño: rellenar los `slug` en el
+panel (contenido) o rutear por `documentId` (cambia URLs y el sitemap). No es un asunto de medios y no se
+resolvió solo.
+
+**Qué cambió en el repo.** `strapi/scripts/lib/media-manifest.mjs` (la clave `portada` y su contrato en el
+header), `strapi/scripts/media-import.mjs` (contabilidad por archivo distinto), los dos envases (las 6
+`portada` + el `aviso` del recibo con la corrida), `tests/media-manifest.test.mjs` (+5 testes `F2-b`),
+`tests/media-flags.test.mjs` (+1 teste de CLI) y `tests/media-alias-propuesto.test.mjs` (cuentas: 40 filas /
+6 portadas / 46 enlaces, y la aritmética ahora es por archivo distinto). `npm test` **344/344**. Las tres
+mutaciones del contrato nuevo (suprimir la emisión, suprimir el control de pertenencia, suprimir la reserva
+del campo) ponen la suite roja. Nada empujado, nada desplegado.
+
 ## G4 · Vaciar Unsplash y placeholders en la base
 
 **Desbloquea:** que el admin no muestre como contenido lo que el sitio ya se niega a pintar.

@@ -56,6 +56,12 @@ const F2 = entradas.filter(([, f]) => 'archivos' in f);
 const FILAS_F1 = 34;
 const FILAS_F2 = 6;
 /**
+ * Filas que declaran `portada` (D4, 2026-09-27): las 6 series de proyecto. Cada una
+ * escribe DOS campos —`galeria` con la serie y `imagen` con la lámina declarada—, así
+ * que esta cuenta es la diferencia entre `enlazar.length` y el número de filas.
+ */
+const FILAS_CON_PORTADA = 6;
+/**
  * Las 5 rutas que a PROPÓSITO no tienen fila, después de D3: 2 tapas de bitácora sin
  * destino — `calendario-manejo`, porque la lámina es defectuosa (pseudo-texto ilegible)
  * y su asunto ya tiene tapa en `modulo5-manejo`, y `red-meliponicultores`, porque la
@@ -88,9 +94,15 @@ test('cada fila es de UNA forma del contrato, ni mezcla ni invento', () => {
     const forma2 = 'archivos' in f;
     assert.ok(!(forma1 && forma2), `${clave}: no puede traer slug y archivos a la vez`);
     assert.ok(forma1 || forma2, `${clave}: fila que no es forma 1 ni forma 2`);
+    if ('portada' in f) {
+      assert.ok(forma2, `${clave}: una fila por ruta no declara portada, su clave ya es un archivo`);
+      assert.ok(f.archivos.includes(f.portada), `${clave}: portada fuera de sus archivos`);
+    }
   }
   assert.equal(F1.length, FILAS_F1, 'creció la propuesta: hay que revisar la cuenta y decirlo acá');
   assert.equal(F2.length, FILAS_F2, 'creció la propuesta: hay que revisar la cuenta y decirlo acá');
+  assert.equal(F2.filter(([, f]) => 'portada' in f).length, FILAS_CON_PORTADA,
+    'la cuenta de portadas declaradas cambió: hay que revisar cuál lámina es la portada y decirlo acá');
 });
 
 test('forma 1: endpoint de la tabla, slug de texto, archivo en su directorio y en el inventario', () => {
@@ -173,7 +185,10 @@ test('manifesto() firma las 40 filas y no manda ninguna a motivosAlias', () => {
   const m = manifesto({ archivos: inventario, registros, alias });
 
   assert.deepEqual(m.motivosAlias, [], `ninguna fila se pudo firmar: ${JSON.stringify(m.motivosAlias)}`);
-  assert.equal(m.enlazar.length, entradas.length, 'enlazar no cubre exactamente la propuesta');
+  // Una fila con `portada` son DOS enlaces del mismo registro, así que la cuenta de
+  // entradas no es la cuenta de filas.
+  assert.equal(m.enlazar.length, entradas.length + FILAS_CON_PORTADA,
+    'enlazar no cubre exactamente la propuesta');
   // Ningún archivo de la propuesta queda sin enlazar...
   const enlazados = new Set(m.enlazar.flatMap(archivosDelEnlace));
   assert.deepEqual(archivos.filter((a) => !enlazados.has(a)), [], 'un archivo propuesto y no enlazado es un alias que no ató');
@@ -185,9 +200,11 @@ test('manifesto() firma las 40 filas y no manda ninguna a motivosAlias', () => {
   // `archivosDelEnlace` es el helper del contrato para esto: una serie de UN solo
   // archivo sale con `archivo`, no con `archivos` (bonifacio, esperanza y poblado lo
   // midieron). Discriminar por la presencia de `archivos` reordenaba esas tres.
+  // Se cuentan archivos DISTINTOS, no la suma por enlace: la portada declarada es un
+  // segundo enlace sobre un archivo que ya está en su propia serie.
   assert.equal(
-    m.enlazar.reduce((n, e) => n + archivosDelEnlace(e).length, 0),
-    archivos.length,
+    new Set(m.enlazar.flatMap(archivosDelEnlace)).size,
+    new Set(archivos).size,
     'la cuenta de archivos enlazados no cierra con la del inventario de la propuesta',
   );
 
@@ -199,8 +216,14 @@ test('manifesto() firma las 40 filas y no manda ninguna a motivosAlias', () => {
     if (destinosF2.has(enlace.documentId)) {
       // Forma 2: el campo y el orden los fija la fila declarada, no la tabla.
       const fila = alias[enlace.documentId];
-      assert.equal(enlace.campo, fila.campo, `${los[0]}: campo inesperado para ${enlace.documentId}`);
-      assert.deepEqual(los, fila.archivos, `${enlace.documentId}: se reordenó o se recortó la serie`);
+      if (enlace.campo === fila.campo) {
+        assert.deepEqual(los, fila.archivos, `${enlace.documentId}: se reordenó o se recortó la serie`);
+      } else {
+        // El segundo enlace de la misma unidad: la portada, campo de la tabla y un solo archivo.
+        assert.equal(enlace.campo, ENDPOINTS_CON_MEDIO[fila.endpoint].campo,
+          `${enlace.documentId}: campo inesperado en la portada`);
+        assert.deepEqual(los, [fila.portada], `${enlace.documentId}: la portada enlazada no es la declarada`);
+      }
     } else {
       assert.equal(enlace.campo, ENDPOINTS_CON_MEDIO[enlace.endpoint].campo, `${los[0]}: campo inesperado`);
       assert.equal(enlace.documentId, documentIdPorSlug.get(alias[los[0].replace(RAIZ + '/', '')].slug));

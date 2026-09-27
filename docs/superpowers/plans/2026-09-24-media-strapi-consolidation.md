@@ -1474,6 +1474,11 @@ Nota: `hero_configuracions` tiene **0 borradores** (sus 39 filas entraron por SQ
 > `producto-*` en disputa. Esas 9 se resolvieron el 2026-09-27 con D3: 7 enlazadas, 1 reasignación (una tapa
 > de G3 estaba en el artículo equivocado) y 2 retiradas —una lámina defectuosa y una cuyo artículo no existe—,
 > con lo que `files` pasó de 37 a **44**, los enlaces de 72 a **86** y las bitácoras con tapa de 27 a **34**.
+> D4, el mismo día, llenó la portada de los 6 proyectos declarándola en la fila que ya escribía su galería:
+> `imagen` sobre `api::proyecto-meliponario` pasó de 0 a **12** filas de enlace (6 documentos × borrador y
+> publicado), el total de enlaces de 86 a **98** y `files` siguió en **44** — no se subió ni un archivo, las 6
+> portadas son láminas que ya estaban en la librería. Los 6 proyectos siguen sin `slug` (medido 6/6 también en
+> el endpoint publicado), así que su ficha de detalle es inalcanzable: es **D11**, contenido y URLs, no medios.
 > Los 3 `producto-*` siguen en disputa: eso es D5. `hero_configuracions` **no se tocó**: el token de esta corrida no tiene `update`
 > en ese endpoint y la puerta de los hérores es G4, así que el aviso de los 0 borradores queda en pie para
 > quien la abra.

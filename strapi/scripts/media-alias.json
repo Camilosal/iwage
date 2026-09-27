@@ -1,6 +1,6 @@
 {
   "aviso": [
-    "ENVASE ACEPTADO — G3 el 2026-09-26 (33 filas) y D3 el 2026-09-27 (7 filas nuevas y UNA reasignación). Son las 40 filas de `media-alias-propuesto.json` sin tocar: 34 pares archivo→bitácora (forma 1) y 6 proyecto→galería (forma 2). Nadie las transcribió a mano; la revisión fue la corrida en seco de cada lote.",
+    "ENVASE ACEPTADO — G3 el 2026-09-26 (33 filas), D3 el 2026-09-27 (7 filas nuevas y UNA reasignación) y D4 el 2026-09-27 (6 `portada` declaradas en las filas que ya estaban: ninguna fila nueva). Son las 40 filas de `media-alias-propuesto.json` sin tocar: 34 pares archivo→bitácora (forma 1) y 6 proyecto→galería (forma 2). Nadie las transcribió a mano; la revisión fue la corrida en seco de cada lote.",
     "Qué midió el seco antes de aceptarlas (`--dry-run`, con el token de alcance mínimo de G3): 106 registros leídos en 6 endpoints, 67 archivos en inventario, 33 filas de alias y 0 motivos sin firmar — es decir, las 33 filas aterrizaron en un destino real y ninguna quedó colgando. El recibo completo está en /home/ubuntu/backup/g3-dryrun-2026-09-26.txt.",
     "Qué escribió `--apply` con este archivo: 34 enlaces y 37 archivos. El enlace 34 (`public/images/cafe-menu/espresso-doble.webp` → `item-menus/eco9rlgy5goi8wabtjzp2ueu.imagen`) NO viene de acá: lo produjo la regla de `slug` exacto del manifiesto. Es identidad correcta (el nombre del archivo es el slug del ítem) pero queda fuera del censo de G3 y se consigna como desviación medida, porque el `cafe-menu` por nombre es materia de G6.",
     "La sonda obligatoria de un registro (antes del lote) dejó tres hechos: `POST /api/upload` responde 201 y Strapi renombra el archivo (`bitacora-inpa-vs-af.webp` → `/uploads/bitacora_inpa_vs_af_2348f58e8c.webp`), así que la idempotencia por NOMBRE sigue siendo la correcta porque `name` conserva el original; el valor del campo `media` es el `id` numérico y el `PUT /api/bitacoras/{documentId}` lo acepta; y la relación quedó escrita en las DOS filas del documento (la publicada y el borrador, `files_related_mph.related_id` 190 y 101), o sea que no hace falta ningún paso de publicación después del lote.",
@@ -9,9 +9,13 @@
     "D3 — qué escribió `--apply`: 40 enlaces `ok` y 1 falla. La falla es la misma de G3 y por la misma razón: el enlace 41 (`espresso-doble.webp` → `item-menus/…`) lo derivó la regla de `slug` exacto del manifiesto, no una fila de este archivo, y el token lo rechazó con 403 en vez de escribirlo. Sale en exit 1, que es el diseño. Estado final medido: `files` 37→44, enlaces `files_related_mph` 72→86 (8 documentos × 2 versiones, menos los 2 enlaces que reemplazó la reasignación), 34 de 56 bitácoras publicadas con tapa, 0 archivos en dos documentos y 0 enlaces huérfanos. Las 7 láminas nuevas subieron a 1200×675 `image/webp` y responden 200 en `/uploads/`.",
     "D3 — la reasignación, que es la parte que puede pasar desapercibida: `bitacora-fermentacion-miel.webp` quedó en G3 sobre el Módulo 9 (conservación y cosecha) pero muestra frascos con espuma y burbujas, o sea fermentación. Se fue a `fermentacion-burbujas-y-un-frasco-que-explota` y el Módulo 9 pasó a `bitacora-modulo9-cosecha.webp`, que sí muestra la caja, las abejas y el extractor. Como el `PUT` reemplaza la relación, el enlace viejo desapareció: medido en la API publicada, los dos documentos responden uno y un solo archivo, cada uno el suyo.",
     "D3 — hallazgo aparte, NO de este envase: `conservacion-y-cosecha-de-miel` y `conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion` (Módulo 9) son el mismo artículo publicado dos veces — 98,99% de similitud medida sobre el cuerpo. Cada uno recibió su tapa y ninguna se escribe dos veces; fusionarlas o retirar una es decisión del dueño sobre el contenido, no sobre el cableado.",
-    "Decisión del dueño que este archivo NO toma: los 6 proyectos reciben su serie completa en `galeria` y `imagen` (portada) queda vacío. Sacar el primer archivo de la serie y ponerlo de portada es editar estas filas, y mientras un archivo esté declarado en dos filas el manifiesto lo manda a `ambiguo` y no escribe nada.",
+    "D4 (2026-09-27) tomó la decisión que estaba acá como \"NO toma\": los 6 `proyecto-meliponarios` reciben además su portada en `imagen`. No fue deducción de la plantilla —eso lo prohíbe `tests/normalizar-medio-2.test.mjs`— sino una clave `portada` en la misma fila que escribe la serie, con la lámina `-1` declarada en las 6. Medido al mirar las 9 fotos: en los 3 proyectos con dos láminas la `-1` es la vista general y la `-2` un detalle; en los 3 de una sola, la portada es esa foto.",
     "Quién lo consume: `STRAPI_URL=… STRAPI_TOKEN=… node strapi/scripts/media-import.mjs --apply` (sin flags corre en seco). El token sale SOLO del entorno; nunca va en este archivo ni en la línea de comandos. El de G3 (`media-import-g3-2026-09-26`) vence a los 7 días y tiene 17 acciones: `find`/`findOne` en los 6 endpoints del inventario, `update` solo en `bitacora` y `proyecto-meliponario`, y `upload` en la media library.",
-    "Las claves `aviso` y cualquier otra fuera de `alias` se ignoran al leer."
+    "Las claves `aviso` y cualquier otra fuera de `alias` se ignoran al leer.",
+    "D4 — qué midió el seco del 2026-09-27 antes de escribir: 106 registros, 67 archivos, 40 filas, 47 enlaces (40 de fila + 6 portadas + 1 regla de `slug` sobre `item-menus`), 3 en revisar, 20 pendientes, 6 ambigüedades (las mismas de D3: la regla de `nombre` también veía la serie que la fila ya declaró), 0 motivosAlias y la PARTICIÓN cerrando 44 + 3 + 20 = 67 de 67.",
+    "D4 — qué escribió `--apply`: 46 enlaces `ok` y 1 falla, otra vez la misma de G3/D3 (`espresso-doble.webp` → `item-menus` con 403; es D6). Cero `POST /api/upload`: las 6 portadas son archivos que ya estaban en la librería, así que no se subió ni se duplicó ninguno.",
+    "D4 — verificación medida después de escribir: en `files_related_mph`, `field='imagen'` sobre `api::proyecto-meliponario.proyecto-meliponario` pasó de 0 a 12 filas (6 documentos × borrador y publicado). Las filas de `galeria` siguen en 18: reescribir la serie con el mismo orden no la recortó. `GET /api/proyecto-meliponarios?status=published&populate=imagen,galeria` devuelve las 6 con portada igual a la `-1` de su serie y la galería completa (2+2+2+1+1+1). Servido: `/uploads/proyecto_ambala_1_c596855ccf.webp` y `/uploads/proyecto_bonifacio_1_d2b2e6a8c9.webp` responden 200 `image/webp`. Censo: 44 archivos en la librería, 98 filas de enlace (68 bitácora + 18 galería + 12 portada) y UN solo archivo sin enlace: `espresso-doble.webp`.",
+    "D4 — el bug que esta corrida encontró, y no en la BD: el reporte del importador sumaba las longitudes de `archivosDelEnlace` por enlace, así que una portada —segundo enlace sobre un archivo que ya es miembro de su propia serie— inflaba el conteo y encendía `LA PARTICIÓN NO CIERRA` (`3 enlazados … = 3 de 2` en el primer seco). El manifiesto nunca estuvo mal: el que contaba mal era el aviso que dice si la salida sirve como inventario. Se cuenta por archivo DISTINCTO en `strapi/scripts/media-import.mjs:imprimir`, y `tests/media-flags.test.mjs` lo fija con el CLI real contra un stub (incluye que se suban DOS archivos y no tres)."
   ],
   "alias": {
     "public/images/bitacora/bitacora-abeja-cultivo.webp": {
@@ -156,14 +160,16 @@
       "archivos": [
         "public/images/galeria/proyecto-ambala-1.webp",
         "public/images/galeria/proyecto-ambala-2.webp"
-      ]
+      ],
+      "portada": "public/images/galeria/proyecto-ambala-1.webp"
     },
     "d2bwg76mu4khsq4tssfd1kds": {
       "endpoint": "proyecto-meliponarios",
       "campo": "galeria",
       "archivos": [
         "public/images/galeria/proyecto-bonifacio-1.webp"
-      ]
+      ],
+      "portada": "public/images/galeria/proyecto-bonifacio-1.webp"
     },
     "jh40ab12twgbym6qjdcxd40k": {
       "endpoint": "proyecto-meliponarios",
@@ -171,7 +177,8 @@
       "archivos": [
         "public/images/galeria/proyecto-carmen-1.webp",
         "public/images/galeria/proyecto-carmen-2.webp"
-      ]
+      ],
+      "portada": "public/images/galeria/proyecto-carmen-1.webp"
     },
     "cv3sedttdehpnfu5dmp7z6az": {
       "endpoint": "proyecto-meliponarios",
@@ -179,21 +186,24 @@
       "archivos": [
         "public/images/galeria/proyecto-cumbre-1.webp",
         "public/images/galeria/proyecto-cumbre-2.webp"
-      ]
+      ],
+      "portada": "public/images/galeria/proyecto-cumbre-1.webp"
     },
     "dmhhqrkc903ezoymd7mpz97i": {
       "endpoint": "proyecto-meliponarios",
       "campo": "galeria",
       "archivos": [
         "public/images/galeria/proyecto-esperanza-1.webp"
-      ]
+      ],
+      "portada": "public/images/galeria/proyecto-esperanza-1.webp"
     },
     "iocafvy43tl2h0ighwqfge0s": {
       "endpoint": "proyecto-meliponarios",
       "campo": "galeria",
       "archivos": [
         "public/images/galeria/proyecto-poblado-1.webp"
-      ]
+      ],
+      "portada": "public/images/galeria/proyecto-poblado-1.webp"
     }
   }
 }

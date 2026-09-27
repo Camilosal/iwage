@@ -471,3 +471,112 @@ test('el CLI rechaza un envase de alias mal formado antes de hablar con la red, 
     await new Promise((resolve) => servidor.close(() => resolve()));
   }
 });
+
+// --- la portada declarada, del lado del CLI -----------------------------------
+//
+// `portada` es la única clave del envase que escribe DOS campos del mismo
+// registro desde una sola fila. Dos cosas se ven mal si el conteo del reporte
+// suma entradas en vez de archivos: el aviso `LA PARTICIÓN NO CIERRA` (que es la
+// guarda que dice "esta salida SÍ sirve como inventario") se enciende con la
+// propuesta de D4 aplicada, y un tercer `POST /api/upload` subiría la misma
+// lámina dos veces a la librería. Medido el 2026-09-27: el seco decía
+// `3 enlazados ... = 3 de 2` y avisaba.
+
+test('una fila con `portada` escribe los dos campos sin romper la contabilidad ni duplicar el upload', async (t) => {
+  const peticiones = [];
+  const put = [];
+  let proximoId = 900;
+  const servidor = createServer((req, res) => {
+    const ruta = (req.url ?? '').split('?')[0];
+    const trozos = [];
+    req.on('data', (c) => trozos.push(c));
+    req.on('end', () => {
+      const cuerpo = Buffer.concat(trozos).toString('utf8');
+      peticiones.push(`${req.method} ${ruta}`);
+      const json = (v) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(v));
+      };
+      if (req.method === 'GET' && ruta in LECTURAS_GALERIA) return json(LECTURAS_GALERIA[ruta]);
+      if (req.method === 'POST' && ruta === '/api/upload') {
+        const nombre = /filename="([^"]+)"/.exec(cuerpo)?.[1] ?? '';
+        return json([{ id: proximoId++, name: nombre, url: `/uploads/900/${nombre}` }]);
+      }
+      if (req.method === 'PUT' && ruta.startsWith('/api/')) {
+        put.push({ ruta, cuerpo: JSON.parse(cuerpo) });
+        return json({});
+      }
+      res.writeHead(501, { 'Content-Type': 'application/json' });
+      res.end('{}');
+    });
+  });
+  let raiz = null;
+  try {
+    const escuchando = await new Promise((resolve) => {
+      const fallo = (e) => resolve({ ok: false, codigo: e.code ?? e.message });
+      servidor.once('error', fallo);
+      servidor.listen(0, '127.0.0.1', () => {
+        servidor.removeListener('error', fallo);
+        resolve({ ok: true });
+      });
+    });
+    if (!escuchando.ok) {
+      t.skip(`no se pudo abrir un socket propio en 127.0.0.1 (${escuchando.codigo})`);
+      return;
+    }
+    const env = {
+      ...process.env,
+      STRAPI_URL: `http://127.0.0.1:${servidor.address().port}`,
+      STRAPI_TOKEN: 'falso-para-stub-127',
+    };
+    raiz = arbolDePrueba({ galeria: ['proyecto-ambala-2.webp', 'proyecto-ambala-1.webp'] });
+    writeFileSync(join(raiz, 'portada.json'), JSON.stringify({
+      aviso: ['envase de prueba: una fila que escribe galeria e imagen'],
+      alias: {
+        p1: {
+          endpoint: 'proyecto-meliponarios',
+          campo: 'galeria',
+          archivos: [
+            'public/images/galeria/proyecto-ambala-1.webp',
+            'public/images/galeria/proyecto-ambala-2.webp',
+          ],
+          portada: 'public/images/galeria/proyecto-ambala-1.webp',
+        },
+      },
+    }));
+    const cli = join(raiz, 'strapi', 'scripts', 'media-import.mjs');
+
+    // 1) en seco: DOS enlaces de UN registro y la contabilidad por archivos distintos.
+    peticiones.length = 0;
+    const seco = await correr(cli, ['--dry-run', '--alias=portada.json'], env);
+    assert.equal(seco.status, 0, seco.stderr);
+    assert.deepEqual(peticiones.filter((p) => !p.startsWith('GET ')), [], '--dry-run: cero peticiones que no sean GET');
+    assert.match(seco.stdout, /archivos: 2 enlazados \+ 0 en revisar \+ 0 pendientes = 2 de 2/,
+      'la portada no puede inflar el conteo de archivos');
+    assert.doesNotMatch(seco.stdout + seco.stderr, /PARTICIÓN NO CIERRA/,
+      'y no puede apagar la guarda que dice que la salida sirve como inventario');
+    assert.match(seco.stdout, /2 enlaces ·/, 'dos líneas de enlace, una por campo');
+    assert.equal((seco.stdout.match(/proyecto-meliponarios\/p1\.imagen/g) ?? []).length, 1,
+      'el enlace de la portada se imprimió exactamente una vez');
+
+    // 2) `--apply`: DOS uploads (no tres) y dos PUT, uno por campo.
+    peticiones.length = 0;
+    put.length = 0;
+    proximoId = 900;
+    const apply = await correr(cli, ['--apply', '--alias=portada.json'], env);
+    assert.equal(apply.status, 0, apply.stderr);
+    assert.deepEqual(
+      peticiones.filter((p) => p.startsWith('POST ') || p.startsWith('PUT ')),
+      ['POST /api/upload', 'POST /api/upload', 'PUT /api/proyecto-meliponarios/p1', 'PUT /api/proyecto-meliponarios/p1'],
+      'la lámina de la portada se sube una sola vez: la librería no se duplica',
+    );
+    assert.deepEqual(put, [
+      { ruta: '/api/proyecto-meliponarios/p1', cuerpo: { data: { galeria: [900, 901] } } },
+      { ruta: '/api/proyecto-meliponarios/p1', cuerpo: { data: { imagen: 900 } } },
+    ], 'primero la serie en orden, después la portada declarada (id del archivo -1)');
+  } finally {
+    if (raiz) rmSync(raiz, { recursive: true, force: true });
+    servidor.closeAllConnections?.();
+    await new Promise((resolve) => servidor.close(() => resolve()));
+  }
+});

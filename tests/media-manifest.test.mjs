@@ -565,6 +565,150 @@ test('F2-a un alias por `documentId` le gana a la regla y firma a un registro qu
   assert.deepEqual(m.pendientes, []);
 });
 
+// --- PORTADA DECLARADA (D4) -------------------------------------------------
+// `normalizeProyecto` se niega a derivar la portada de la galería y lo fija un
+// teste propio (`la galería se está usando de portada: dos campos diciendo lo
+// mismo`), así que la portada de un proyecto solo puede llegar como DATO
+// declarado. La declaración vive en la misma fila que escribe la serie — con lo
+// que la disputa, el libro de reclamos y la PARTICIÓN no se enteran: un archivo
+// sigue teniendo un solo balde y la portada es un segundo enlace de la unidad
+// que ya ganó, no un reclamo nuevo.
+// -----------------------------------------------------------------------------
+
+test('F2-b la portada declarada en la fila de la serie escribe LOS DOS campos', () => {
+  // `nombre` sin relación con ningún archivo: lo único que llega a este registro
+  // es lo declarado, así que `ambiguos` vacío prueba que la portada no es un
+  // reclamo más que disputarse nada.
+  const m = manifesto({
+    archivos: GALERIA_AMBALA,
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Meliponario Sin Fotos' },
+    ],
+    alias: {
+      p1: {
+        endpoint: 'proyecto-meliponarios', campo: 'galeria',
+        archivos: GALERIA_AMBALA, portada: GALERIA_AMBALA[0],
+      },
+    },
+  });
+  assert.deepEqual(m.enlazar, [
+    {
+      endpoint: 'proyecto-meliponarios', documentId: 'p1', campo: 'galeria',
+      archivos: GALERIA_AMBALA, origen: 'alias',
+    },
+    {
+      endpoint: 'proyecto-meliponarios', documentId: 'p1', campo: 'imagen',
+      archivo: GALERIA_AMBALA[0], origen: 'alias',
+    },
+  ]);
+  // Un archivo, un balde: la portada es miembro de la serie y no abre un bucket propio.
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.ambiguos, []);
+  assert.deepEqual(m.motivosAlias, []);
+});
+
+test('F2-b una portada que no es miembro de sus `archivos` descarta la fila entera', () => {
+  // No es "escribe la galería y pierde la portada": la fila dice una cosa
+  // inconsistente y no se le cree ninguna.
+  const ajena = 'public/images/galeria/proyecto-ambala-9.webp';
+  const m = manifesto({
+    archivos: GALERIA_AMBALA,
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Meliponario Sin Fotos' },
+    ],
+    alias: {
+      p1: { endpoint: 'proyecto-meliponarios', campo: 'galeria', archivos: GALERIA_AMBALA, portada: ajena },
+    },
+  });
+  assert.deepEqual(m.motivosAlias, [
+    { archivo: 'p1', motivo: `la portada de p1 no está en sus \`archivos\`: ${ajena}` },
+  ]);
+  assert.deepEqual(m.enlazar, []);
+  assert.deepEqual(m.revisar, []);
+  // El motivo es lista de RAZONES: los archivos siguen cayendo a `pendientes`.
+  assert.deepEqual(m.pendientes, GALERIA_AMBALA);
+});
+
+test('F2-b `portada` solo tiene sentido en la fila que escribe el campo repetible', () => {
+  // Una fila de `imagen` ya es una portada: declarar otra encima es un dato que
+  // no se puede leer, así que se reporta en vez de ignorarse.
+  const m = manifesto({
+    archivos: GALERIA_AMBALA,
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Meliponario Sin Fotos' },
+    ],
+    alias: {
+      p1: {
+        endpoint: 'proyecto-meliponarios', campo: 'imagen',
+        archivos: [GALERIA_AMBALA[0]], portada: GALERIA_AMBALA[0],
+      },
+    },
+  });
+  assert.deepEqual(m.motivosAlias, [
+    {
+      archivo: 'p1',
+      motivo: 'la fila de p1 declara portada en imagen, que no es el campo repetible de proyecto-meliponarios',
+    },
+  ]);
+  assert.deepEqual(m.enlazar, []);
+});
+
+test('F2-b una fila por ruta no declara portada: su clave ya es un archivo', () => {
+  // El nombre de la tapa no casaba con ningún slug, así que lo único que escribe
+  // esta fila es su declaración: descartada ella, no hay enlace.
+  const tapa = 'public/images/bitacora/bitacora-sin-titulo.webp';
+  const m = manifesto({
+    archivos: [tapa],
+    registros: [{ endpoint: 'bitacoras', documentId: 'b1', slug: 'la-miel' }],
+    alias: {
+      [tapa]: { endpoint: 'bitacoras', slug: 'la-miel', portada: tapa },
+    },
+  });
+  assert.deepEqual(m.motivosAlias, [
+    { archivo: tapa, motivo: `una fila por ruta no declara portada: ${tapa}` },
+  ]);
+  assert.deepEqual(m.enlazar, []);
+});
+
+test('F2-b la portada declarada le gana a la que deduciría el nombre', () => {
+  // `proyecto-ambala-meliponario.png` no es serie (no trae índice): es una tapa
+  // suelta que el `nombre` del proyecto reclamaría para `imagen`. Si se escribiera,
+  // el PUT de la portada declarada y el suyo llegarían al mismo slot y ganaría el
+  // orden del manifiesto. La declaración humana manda y la suelta queda pendiente.
+  const suelta = 'public/images/galeria/proyecto-ambala-meliponario.png';
+  const m = manifesto({
+    archivos: [...GALERIA_AMBALA, suelta],
+    registros: [
+      { endpoint: 'proyecto-meliponarios', documentId: 'p1', slug: null, nombre: 'Meliponario I.E. Ambalá' },
+    ],
+    alias: {
+      p1: {
+        endpoint: 'proyecto-meliponarios', campo: 'galeria',
+        archivos: GALERIA_AMBALA, portada: GALERIA_AMBALA[0],
+      },
+    },
+  });
+  assert.deepEqual(m.enlazar, [
+    {
+      endpoint: 'proyecto-meliponarios', documentId: 'p1', campo: 'galeria',
+      archivos: GALERIA_AMBALA, origen: 'alias',
+    },
+    {
+      endpoint: 'proyecto-meliponarios', documentId: 'p1', campo: 'imagen',
+      archivo: GALERIA_AMBALA[0], origen: 'alias',
+    },
+  ]);
+  assert.deepEqual(m.pendientes, [suelta]);
+  assert.deepEqual(m.revisar, []);
+  const nota = m.ambiguos.find((a) => /portada/.test(a.motivo));
+  assert.deepEqual(nota, {
+    slug: null,
+    documentId: 'p1',
+    motivo: 'imagen ya lo escribió la portada declarada en p1:galeria',
+  });
+});
+
 test('F2-a dos producciones para el mismo registro y el mismo campo: ninguna gana', () => {
   // Forma de la colisión medida con `bitacora-miel-chef` + `bitacora-miel-cocina`
   // sobre un artículo: dos archivos que casan con la misma identidad.
