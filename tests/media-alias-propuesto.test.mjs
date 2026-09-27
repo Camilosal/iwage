@@ -1,6 +1,6 @@
 /**
  * El envase de alias que el importador recibe con `--alias=<ruta>` es un archivo de
- * decisiones editoriales, y este teste no decide ninguna: verifica que las 33 filas
+ * decisiones editoriales, y este teste no decide ninguna: verifica que las 40 filas
  * PROPUESTAS (`strapi/scripts/media-alias-propuesto.json`) son mecánicamente válidas
  * —el archivo existe en el inventario, el endpoint está en la tabla del manifiesto,
  * el campo es de los que la tabla declara, el slug y el documentId no se repiten— y
@@ -12,6 +12,12 @@
  * transcripción a mano es justo donde nace un alias que apunta a un registro equivocado.
  * Con este teste, un archivo mal escrito o un endpoint fuera de tabla se ve acá, no el
  * día del `--apply`.
+ *
+ * D3 (2026-09-27) sumó 7 filas y reasignó una, y las decidió mirando los `.webp` contra
+ * el título de cada publicación. Es la clase de trabajo que este teste cubre sin poder
+ * juzgarlo: puede probar que `bitacora-miel-chef.webp` apunta a un slug que existe, está
+ * solo una vez y no se lo disputa nadie — no que la lámina sea la del chef y no la de
+ * las recetas. Eso último se miró con los ojos y quedó contado en el `aviso` del envase.
  *
  * Las dos formas no son un capricho: los 6 `proyecto-meliponarios` tienen `slug: null`
  * medido en 6/6, así que ninguna regla por nombre los firma; solo una clave `documentId`
@@ -46,26 +52,20 @@ const entradas = Object.entries(alias);
 // Forma 1 = la clave es la ruta del archivo. Forma 2 = la clave es el documentId.
 const F1 = entradas.filter(([, f]) => 'slug' in f);
 const F2 = entradas.filter(([, f]) => 'archivos' in f);
-/** 27 tapas de bitácora + 6 series de proyecto: lo que hay que revisar, contado. */
-const FILAS_F1 = 27;
+/** 34 tapas de bitácora (27 de G3 + 7 de D3) + 6 series de proyecto: lo que hay que revisar, contado. */
+const FILAS_F1 = 34;
 const FILAS_F2 = 6;
 /**
- * Las 12 rutas que a PROPÓSITO no tienen fila: 9 tapas de bitácora sin par firme (la
- * disputa `miel-chef`/`miel-cocina`, dos ambigüedades de cosecha, `modulo6`/`modulo9`
- * flojos, `territorio-pijao` sin decidir y dos tapas cuyo artículo no existe en la BD)
- * y 3 archivos de producto ambigüos. Enumeradas, no derivadas: si una de estas cambia
- * de estado, este teste se pone rojo y alguien la lee.
+ * Las 5 rutas que a PROPÓSITO no tienen fila, después de D3: 2 tapas de bitácora sin
+ * destino — `calendario-manejo`, porque la lámina es defectuosa (pseudo-texto ilegible)
+ * y su asunto ya tiene tapa en `modulo5-manejo`, y `red-meliponicultores`, porque la
+ * lámina está bien pero el artículo no existe en la BD — y 3 archivos de producto
+ * ambigüos. Enumeradas, no derivadas: si una de estas cambia de estado, este teste se
+ * pone rojo y alguien la lee.
  */
 const SIN_PROPUESTA = [
   'public/images/bitacora/bitacora-calendario-manejo.webp',
-  'public/images/bitacora/bitacora-conservacion-cosecha.webp',
-  'public/images/bitacora/bitacora-cosecha-miel.webp',
-  'public/images/bitacora/bitacora-miel-chef.webp',
-  'public/images/bitacora/bitacora-miel-cocina.webp',
-  'public/images/bitacora/bitacora-modulo6-division.webp',
-  'public/images/bitacora/bitacora-modulo9-cosecha.webp',
   'public/images/bitacora/bitacora-red-meliponicultores.webp',
-  'public/images/bitacora/bitacora-territorio-pijao.webp',
   'public/images/galeria/producto-caja-1.webp',
   'public/images/galeria/producto-miel-1.webp',
   'public/images/galeria/producto-miel-2.webp',
@@ -144,10 +144,10 @@ test('los destinos son distintos: dos tapas al mismo slug es disputa, y dos fila
   assert.deepEqual(F2.map(([c]) => c).filter((c) => c.includes('/')), [], 'una forma 2 con clave de ruta');
 });
 
-test('manifesto() firma las 33 filas y no manda ninguna a motivosAlias', () => {
+test('manifesto() firma las 40 filas y no manda ninguna a motivosAlias', () => {
   // Los registros se derivan de la propia propuesta: lo que se prueba acá es la forma
   // del alias contra el resolutor real, no que la API exista (eso se midió por lectura
-  // pública: los 27 slugs y los 6 documentId están en la BD del runtime).
+  // pública: los 34 slugs y los 6 documentId están en la BD del runtime).
   const registros = [
     ...F1.map(([ruta, fila], i) => ({
       endpoint: fila.endpoint,
@@ -177,9 +177,9 @@ test('manifesto() firma las 33 filas y no manda ninguna a motivosAlias', () => {
   // Ningún archivo de la propuesta queda sin enlazar...
   const enlazados = new Set(m.enlazar.flatMap(archivosDelEnlace));
   assert.deepEqual(archivos.filter((a) => !enlazados.has(a)), [], 'un archivo propuesto y no enlazado es un alias que no ató');
-  // ...y lo que NO queda enlazado son exactamente los 12 que se saben sin decisión: 9 tapas
-  // de bitácora y 3 archivos de producto. Si mañana alguien agrega una tapa y no la propone,
-  // esta igualdad la nombra.
+  // ...y lo que NO queda enlazado son exactamente los 5 que se saben sin decisión: 2 tapas
+  // de bitácora sin artículo (o sin lámina usable) y 3 archivos de producto. Si mañana
+  // alguien agrega una tapa y no la propone, esta igualdad la nombra.
   assert.deepEqual(inventario.filter((a) => !enlazados.has(a)).sort(), [...SIN_PROPUESTA].sort(),
     'la cuenta de archivos huérfanos cambió');
   // `archivosDelEnlace` es el helper del contrato para esto: una serie de UN solo

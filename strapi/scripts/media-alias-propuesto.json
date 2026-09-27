@@ -1,13 +1,14 @@
 {
   "aviso": [
-    "ESTO ES LA PROPUESTA con la que se corrió el seco. El 2026-09-26 el dueño abrió G3 y estas 33 filas se copiaron sin tocar a `media-alias.json` (el envase que consume `--alias`), que desde entonces es idéntico acá fila por fila: lo vigila `tests/media-alias-propuesto.test.mjs`. `media-import.mjs` no lee ningún alias sin `--alias=<ruta>`, así que una corrida con este archivo en vez del envase no cambia nada.",
-    "Qué hay acá: 33 filas — 27 pares archivo→bitácora en la forma 1 del contrato (clave = ruta que produce el inventario, valor = {endpoint, slug}) y 6 filas proyecto→galería en la forma 2 (clave = documentId, valor = {endpoint, campo, archivos} en el orden en que se escriben). Generado por script desde `.superpowers/sdd/2026-09-24-media-strapi-consolidation/alias-firmes.json` y de la lectura pública `GET /api/proyecto-meliponarios` el 2026-09-25, no transcrito a mano.",
+    "ESTO ES LA PROPUESTA con la que se corre el seco. El 2026-09-26 el dueño abrió G3 y estas filas se copiaron sin tocar a `media-alias.json` (el envase que consume `--alias`), que desde entonces es idéntico acá fila por fila: lo vigila `tests/media-alias-propuesto.test.mjs`. `media-import.mjs` no lee ningún alias sin `--alias=<ruta>`, así que una corrida con este archivo en vez del envase no cambia nada. El 2026-09-27 creció con D3: 7 filas nuevas y UNA reasignación (aviso 5 más abajo), o sea 40 filas.",
+    "Qué hay acá: 40 filas — 34 pares archivo→bitácora en la forma 1 del contrato (clave = ruta que produce el inventario, valor = {endpoint, slug}) y 6 filas proyecto→galería en la forma 2 (clave = documentId, valor = {endpoint, campo, archivos} en el orden en que se escriben). Las 27 de G3 salieron de script: `.superpowers/sdd/2026-09-24-media-strapi-consolidation/alias-firmes.json` y la lectura pública `GET /api/proyecto-meliponarios` del 2026-09-25. Las 7 de D3 y la reasignación no: se decidieron mirando los `.webp` uno por uno contra el título de la publicación, que es otra manera de llegar y por eso se dice acá.",
     "Por qué las 6 de galería van en forma 2: los 6 `proyecto-meliponarios` tienen `slug: null` medido en 6/6. Ninguna regla por nombre puede firmarlos; solo una clave `documentId` puede. El emparejamiento es FIRME y no ambiguo: de las 6 raíces de serie (`ambala`, `bonifacio`, `carmen`, `cumbre`, `esperanza`, `poblado`), cada una comparte tokens con UN solo registro y con NINGUN otro (similitud 0,33–0,50 contra 0,00 del segundo).",
     "Qué se decidió NO escribir: las 9 fotos de proyecto van a `galeria` completas y `imagen` (portada) queda vacío, porque un archivo no puede declararse en dos filas. Elegir la portada de cada proyecto (sacar el primer archivo de `galeria` y ponerlo en `imagen`) es decisión del dueño, no de este archivo.",
-    "Qué NO cubre: 9 de las 36 tapas de bitácora siguen sin par firme — `bitacora-calendario-manejo`, `bitacora-conservacion-cosecha`, `bitacora-cosecha-miel`, `bitacora-miel-chef`, `bitacora-miel-cocina`, `bitacora-modulo6-division`, `bitacora-modulo9-cosecha`, `bitacora-red-meliponicultores`, `bitacora-territorio-pijao`. Dos de ellas (`miel-chef` / `miel-cocina`) se disputan la misma publicación. Y 3 archivos de galería sin fila: `producto-caja-1` (empata con `Caja AF Estándar`, `Caja INPA con atril`, `Caja INPA Nogal Cafetero`) y `producto-miel-1`/`-2` (los dos `productos` de miel también traen `slug: null`).",
+    "Qué NO cubre hoy: 2 tapas de bitácora sin destino — `bitacora-calendario-manejo` (la lámina está defectuosa: pseudo-texto ilegible en el grabado y su asunto ya tiene tapa en `bitacora-modulo5-manejo`) y `bitacora-red-meliponicultores` (la lámina está bien, pero no existe ningún artículo de una red de meliponicultores: no es falta de alias, es falta de artículo). Y 3 archivos de galería sin fila: `producto-caja-1` (empata con `Caja AF Estándar`, `Caja INPA con atril`, `Caja INPA Nogal Cafetero`) y `producto-miel-1`/`-2` (los dos `productos` de miel también traen `slug: null`).",
+    "D3 (2026-09-27): las 7 filas nuevas cierran las tapas que G3 dejó sin par, y la reasignación corrige un yerro de G3 — `bitacora-fermentacion-miel.webp` estaba en el Módulo 9 (conservación y cosecha) cuando muestra frascos con espuma y burbujas, o sea fermentación: se va a `fermentacion-burbujas-y-un-frasco-que-explota`, y el Módulo 9 pasa a `bitacora-modulo9-cosecha.webp`, que sí muestra la caja, las abejas y el extractor. Cada destino existe como UN documento publicado y 7 de los 8 no tenían tapa. Efecto escribible: el PUT al Módulo 9 reemplaza el enlace, así que ningún archivo queda en dos registros. Hallazgo aparte, NO de este envase: `conservacion-y-cosecha-de-miel` y el Módulo 9 son el mismo artículo en dos publicaciones (98,99% de similitud medida sobre el cuerpo); cada una recibe su tapa y la fusión es decisión del dueño.",
     "Cómo se usa, en seco: STRAPI_URL=… STRAPI_TOKEN=… node strapi/scripts/media-import.mjs --dry-run --alias=strapi/scripts/media-alias-propuesto.json — y recién después de la lectura humana, `--apply`.",
     "El documentId no va acá: lo aporta la lectura de la API. Un alias que nombre un slug que no exista en la lectura no se escribe y aparece en `motivosAlias` con el motivo exacto.",
-    "Validado por `tests/media-alias-propuesto.test.mjs`: rutas existentes, endpoints de la tabla, slugs distintos, y `manifesto()` firmando las 27 filas sin mandar ninguna a `motivosAlias`."
+    "Validado por `tests/media-alias-propuesto.test.mjs`: rutas existentes, endpoints de la tabla, slugs distintos, y `manifesto()` firmando las 40 filas sin mandar ninguna a `motivosAlias`. El teste además fija la cuenta (34 + 6) y nombra los 5 archivos que a propósito no tienen fila."
   ],
   "alias": {
     "public/images/bitacora/bitacora-abeja-cultivo.webp": {
@@ -28,7 +29,7 @@
     },
     "public/images/bitacora/bitacora-fermentacion-miel.webp": {
       "endpoint": "bitacoras",
-      "slug": "conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion"
+      "slug": "fermentacion-burbujas-y-un-frasco-que-explota"
     },
     "public/images/bitacora/bitacora-flora-melifera.webp": {
       "endpoint": "bitacoras",
@@ -117,6 +118,34 @@
     "public/images/bitacora/bitacora-sabor-territorio.webp": {
       "endpoint": "bitacoras",
       "slug": "el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida"
+    },
+    "public/images/bitacora/bitacora-conservacion-cosecha.webp": {
+      "endpoint": "bitacoras",
+      "slug": "conservacion-y-cosecha-de-miel"
+    },
+    "public/images/bitacora/bitacora-cosecha-miel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "lote-l25-05-001-cosecha-mayo"
+    },
+    "public/images/bitacora/bitacora-modulo9-cosecha.webp": {
+      "endpoint": "bitacoras",
+      "slug": "conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion"
+    },
+    "public/images/bitacora/bitacora-modulo6-division.webp": {
+      "endpoint": "bitacoras",
+      "slug": "division-colonias-angelita-tetragonisca-angustula"
+    },
+    "public/images/bitacora/bitacora-territorio-pijao.webp": {
+      "endpoint": "bitacoras",
+      "slug": "abejas-sin-aguijon-cosmovision-pijao"
+    },
+    "public/images/bitacora/bitacora-miel-chef.webp": {
+      "endpoint": "bitacoras",
+      "slug": "la-miel-de-angelita-y-el-chef-maridajes-y-aplicaciones-en-la-alta-cocina"
+    },
+    "public/images/bitacora/bitacora-miel-cocina.webp": {
+      "endpoint": "bitacoras",
+      "slug": "miel-angelita-recetas-cocteleria-preparaciones"
     },
     "p5zx0qoqh509c7afu29i9l3x": {
       "endpoint": "proyecto-meliponarios",

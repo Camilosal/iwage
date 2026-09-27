@@ -1,10 +1,14 @@
 {
   "aviso": [
-    "ENVASE ACEPTADO DE G3 — ejecutado el 2026-09-26. Son las 33 filas de `media-alias-propuesto.json` sin tocar: 27 pares archivo→bitácora (forma 1) y 6 proyecto→galería (forma 2). Nadie las transcribió a mano; la revisión fue la corrida en seco.",
+    "ENVASE ACEPTADO — G3 el 2026-09-26 (33 filas) y D3 el 2026-09-27 (7 filas nuevas y UNA reasignación). Son las 40 filas de `media-alias-propuesto.json` sin tocar: 34 pares archivo→bitácora (forma 1) y 6 proyecto→galería (forma 2). Nadie las transcribió a mano; la revisión fue la corrida en seco de cada lote.",
     "Qué midió el seco antes de aceptarlas (`--dry-run`, con el token de alcance mínimo de G3): 106 registros leídos en 6 endpoints, 67 archivos en inventario, 33 filas de alias y 0 motivos sin firmar — es decir, las 33 filas aterrizaron en un destino real y ninguna quedó colgando. El recibo completo está en /home/ubuntu/backup/g3-dryrun-2026-09-26.txt.",
     "Qué escribió `--apply` con este archivo: 34 enlaces y 37 archivos. El enlace 34 (`public/images/cafe-menu/espresso-doble.webp` → `item-menus/eco9rlgy5goi8wabtjzp2ueu.imagen`) NO viene de acá: lo produjo la regla de `slug` exacto del manifiesto. Es identidad correcta (el nombre del archivo es el slug del ítem) pero queda fuera del censo de G3 y se consigna como desviación medida, porque el `cafe-menu` por nombre es materia de G6.",
     "La sonda obligatoria de un registro (antes del lote) dejó tres hechos: `POST /api/upload` responde 201 y Strapi renombra el archivo (`bitacora-inpa-vs-af.webp` → `/uploads/bitacora_inpa_vs_af_2348f58e8c.webp`), así que la idempotencia por NOMBRE sigue siendo la correcta porque `name` conserva el original; el valor del campo `media` es el `id` numérico y el `PUT /api/bitacoras/{documentId}` lo acepta; y la relación quedó escrita en las DOS filas del documento (la publicada y el borrador, `files_related_mph.related_id` 190 y 101), o sea que no hace falta ningún paso de publicación después del lote.",
-    "Qué NO cubre y por qué sigue abierto: 9 de las 36 tapas de bitácora no tienen par firme (`calendario-manejo`, `conservacion-cosecha`, `cosecha-miel`, `miel-chef`, `miel-cocina`, `modulo6-division`, `modulo9-cosecha`, `red-meliponicultores`, `territorio-pijao`) y dos de ellas (`miel-chef`/`miel-cocina`) se disputan la misma publicación: eso es una decisión de nombre, no un dato que falte. Las 18 restantes de `cafe-menu` son G6. Los 3 de galería en `revisar` (`producto-caja-1`, `producto-miel-1`, `-2`) son colisiones que este archivo no resuelve.",
+    "Qué NO cubre y por qué sigue abierto: 2 tapas de bitácora sin destino — `bitacora-calendario-manejo` (la lámina es defectuosa: pseudo-texto ilegible en el grabado, y su asunto ya tiene tapa en `bitacora-modulo5-manejo`) y `bitacora-red-meliponicultores` (la lámina está bien pero no existe ningún artículo de una red de meliponicultores: no es falta de alias, es falta de artículo) — y 3 archivos de galería que el manifiesto manda a `revisar` porque varios registros los reclaman: `producto-caja-1` (tres cajas) y `producto-miel-1`/`-2` (los dos `productos` de miel traen `slug: null`). Eso es D5, no esto.",
+    "D3 — qué midió el seco del 2026-09-27 antes de escribir: 106 registros, 67 archivos, 40 filas de alias, 41 enlaces, 3 en revisar, 20 pendientes, 6 ambigüedades y 0 motivos de alias sin firmar. Recibo en /tmp/d3-dryrun.txt (no versionado) y dump previo de `files`, `files_related_mph` y `bitacoras` en /home/ubuntu/backup/d3-pre-2026-09-27.sql (0600, 1.598.303 B).",
+    "D3 — qué escribió `--apply`: 40 enlaces `ok` y 1 falla. La falla es la misma de G3 y por la misma razón: el enlace 41 (`espresso-doble.webp` → `item-menus/…`) lo derivó la regla de `slug` exacto del manifiesto, no una fila de este archivo, y el token lo rechazó con 403 en vez de escribirlo. Sale en exit 1, que es el diseño. Estado final medido: `files` 37→44, enlaces `files_related_mph` 72→86 (8 documentos × 2 versiones, menos los 2 enlaces que reemplazó la reasignación), 34 de 56 bitácoras publicadas con tapa, 0 archivos en dos documentos y 0 enlaces huérfanos. Las 7 láminas nuevas subieron a 1200×675 `image/webp` y responden 200 en `/uploads/`.",
+    "D3 — la reasignación, que es la parte que puede pasar desapercibida: `bitacora-fermentacion-miel.webp` quedó en G3 sobre el Módulo 9 (conservación y cosecha) pero muestra frascos con espuma y burbujas, o sea fermentación. Se fue a `fermentacion-burbujas-y-un-frasco-que-explota` y el Módulo 9 pasó a `bitacora-modulo9-cosecha.webp`, que sí muestra la caja, las abejas y el extractor. Como el `PUT` reemplaza la relación, el enlace viejo desapareció: medido en la API publicada, los dos documentos responden uno y un solo archivo, cada uno el suyo.",
+    "D3 — hallazgo aparte, NO de este envase: `conservacion-y-cosecha-de-miel` y `conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion` (Módulo 9) son el mismo artículo publicado dos veces — 98,99% de similitud medida sobre el cuerpo. Cada uno recibió su tapa y ninguna se escribe dos veces; fusionarlas o retirar una es decisión del dueño sobre el contenido, no sobre el cableado.",
     "Decisión del dueño que este archivo NO toma: los 6 proyectos reciben su serie completa en `galeria` y `imagen` (portada) queda vacío. Sacar el primer archivo de la serie y ponerlo de portada es editar estas filas, y mientras un archivo esté declarado en dos filas el manifiesto lo manda a `ambiguo` y no escribe nada.",
     "Quién lo consume: `STRAPI_URL=… STRAPI_TOKEN=… node strapi/scripts/media-import.mjs --apply` (sin flags corre en seco). El token sale SOLO del entorno; nunca va en este archivo ni en la línea de comandos. El de G3 (`media-import-g3-2026-09-26`) vence a los 7 días y tiene 17 acciones: `find`/`findOne` en los 6 endpoints del inventario, `update` solo en `bitacora` y `proyecto-meliponario`, y `upload` en la media library.",
     "Las claves `aviso` y cualquier otra fuera de `alias` se ignoran al leer."
@@ -28,7 +32,7 @@
     },
     "public/images/bitacora/bitacora-fermentacion-miel.webp": {
       "endpoint": "bitacoras",
-      "slug": "conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion"
+      "slug": "fermentacion-burbujas-y-un-frasco-que-explota"
     },
     "public/images/bitacora/bitacora-flora-melifera.webp": {
       "endpoint": "bitacoras",
@@ -117,6 +121,34 @@
     "public/images/bitacora/bitacora-sabor-territorio.webp": {
       "endpoint": "bitacoras",
       "slug": "el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida"
+    },
+    "public/images/bitacora/bitacora-conservacion-cosecha.webp": {
+      "endpoint": "bitacoras",
+      "slug": "conservacion-y-cosecha-de-miel"
+    },
+    "public/images/bitacora/bitacora-cosecha-miel.webp": {
+      "endpoint": "bitacoras",
+      "slug": "lote-l25-05-001-cosecha-mayo"
+    },
+    "public/images/bitacora/bitacora-modulo9-cosecha.webp": {
+      "endpoint": "bitacoras",
+      "slug": "conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion"
+    },
+    "public/images/bitacora/bitacora-modulo6-division.webp": {
+      "endpoint": "bitacoras",
+      "slug": "division-colonias-angelita-tetragonisca-angustula"
+    },
+    "public/images/bitacora/bitacora-territorio-pijao.webp": {
+      "endpoint": "bitacoras",
+      "slug": "abejas-sin-aguijon-cosmovision-pijao"
+    },
+    "public/images/bitacora/bitacora-miel-chef.webp": {
+      "endpoint": "bitacoras",
+      "slug": "la-miel-de-angelita-y-el-chef-maridajes-y-aplicaciones-en-la-alta-cocina"
+    },
+    "public/images/bitacora/bitacora-miel-cocina.webp": {
+      "endpoint": "bitacoras",
+      "slug": "miel-angelita-recetas-cocteleria-preparaciones"
     },
     "p5zx0qoqh509c7afu29i9l3x": {
       "endpoint": "proyecto-meliponarios",

@@ -1471,7 +1471,10 @@ Nota: `hero_configuracions` tiene **0 borradores** (sus 39 filas entraron por SQ
 > tienen tapa en su fila publicada y 6/6 proyectos con la serie en el orden declarado; `files` pasó de 0 a
 > **37** y `files_related_mph` de 0 a **72** (uno de los 37 archivos quedó sin enlazar a propósito — ver el
 > runbook, G3). Lo que no se escribió es decisión de nombre, no mecánica: 9 tapas sin par firme y 3
-> `producto-*` en disputa. `hero_configuracions` **no se tocó**: el token de esta corrida no tiene `update`
+> `producto-*` en disputa. Esas 9 se resolvieron el 2026-09-27 con D3: 7 enlazadas, 1 reasignación (una tapa
+> de G3 estaba en el artículo equivocado) y 2 retiradas —una lámina defectuosa y una cuyo artículo no existe—,
+> con lo que `files` pasó de 37 a **44**, los enlaces de 72 a **86** y las bitácoras con tapa de 27 a **34**.
+> Los 3 `producto-*` siguen en disputa: eso es D5. `hero_configuracions` **no se tocó**: el token de esta corrida no tiene `update`
 > en ese endpoint y la puerta de los hérores es G4, así que el aviso de los 0 borradores queda en pie para
 > quien la abra.
 

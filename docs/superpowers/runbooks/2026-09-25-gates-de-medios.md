@@ -13,7 +13,10 @@ una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC, G2 esa misma noche (23:40 → 00:
 2026-09-26 (01:47 → 03:20 UTC)**; cada sección dice qué se midió para verificarla. **G0, a medias el
 2026-09-27**: scrub de las cuatro publicaciones, guarda anti-credenciales en la suite, rol propio
 `iwage_app` creado y probado, y clave de cifrado del panel definida y cableada (efectiva al recrear, o sea
-G8); falta la rotación coordinada del host, que no es de esta puerta. Siguen
+G8); falta la rotación coordinada del host, que no es de esta puerta. **Y una segunda corrida de `--apply`
+sobre la base viva, también el 2026-09-27: D3**, que enlazó 7 tapas que G3 dejó sin par y reasignó una mal
+asignada — 34 de 56 bitácoras publicadas con tapa—; está documentada en su propia sección bajo G3, con dump
+previo y verificación medida. Siguen
 cerradas: **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Que
 el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
 medido, no es una sorpresa: ver G2 «Medido después», punto 4 — las 185 URLs sirven exactamente las
@@ -627,6 +630,77 @@ de mirar la clave: lanza `Unsupported encryption version` con clave o sin ella. 
 abrir el detalle de esos tokens ya falla hoy. Poner la clave no crea ese fallo; lo que cambia es que los
 tokens **nuevos** sí quedan re-mostrables en el panel.
 
+### Resuelto el 2026-09-27 (decisión D3): las 9 tapas que G3 dejó sin par
+
+**Qué se decidió y con qué evidencia.** G3 cableó 27 pares y dejó 9 láminas de `public/images/bitacora/`
+sin fila, descritas en el `aviso` como «sin par firme». Leyéndolas una por una (los `.webp` se abren y se
+ven: no hubo que adivinar por token de nombre), 7 tenían destino, 1 estaba mal asignada y 2 no tienen a
+dónde ir. Las 7:
+
+| lámina | destino | cómo se vio |
+|---|---|---|
+| `bitacora-conservacion-cosecha` | `conservacion-y-cosecha-de-miel` | frascos en repisa con termómetro e higrómetro y el texto «Temperature: 20–25 °C / Humidity: <60 % / Store in Dark, Cool Place» |
+| `bitacora-cosecha-miel` | `lote-l25-05-001-cosecha-mayo` | cosecha de un lote |
+| `bitacora-modulo9-cosecha` | `conservacion-…-fermentacion-y-extraccion` (Módulo 9) | caja con panales, abejas, frascos y **extractor** (jeringa + espátula) |
+| `bitacora-modulo6-division` | `division-colonias-angelita-tetragonisca-angustula` (Módulo 6) | dos cajas y un panal pasándose entre ellas |
+| `bitacora-territorio-pijao` | `abejas-sin-aguijon-cosmovision-pijao` | paisaje de bosque de niebla con nidos silvestres en troncos |
+| `bitacora-miel-chef` | `la-miel-de-angelita-y-el-chef-…-alta-cocina` | jarra de plata dorado sirviendo miel sobre un **plato emplatado** |
+| `bitacora-miel-cocina` | `miel-angelita-recetas-cocteleria-preparaciones` | **copa de cóctel** con miel, limón y menta, pan y fruta en mesa de cocina |
+
+La disputa `miel-chef` / `miel-cocina` no era disputa: son dos artículos distintos y cada lámina pertenece a
+uno. Lo que las confundía es que los dos títulos hablan de miel en la cocina.
+
+**La reasignación, que es el yerro de G3 que este lote corrigió.** `bitacora-fermentacion-miel.webp` quedó
+sobre el Módulo 9, pero muestra frascos con espuma y burbujas — fermentación. Se fue a
+`fermentacion-burbujas-y-un-frasco-que-explota` y el Módulo 9 recibió `bitacora-modulo9-cosecha.webp`. Un
+`PUT` reemplaza la relación, así que el enlace viejo desaparece solo; no hubo que borrar nada.
+
+**Las dos que NO se cablean, y por qué no son lo mismo.** `bitacora-calendario-manejo.webp` está defectuosa:
+el grabado trae pseudo-texto ilegible (letras que no forman palabras) y su asunto —calendario de manejo— ya
+tiene tapa en `bitacora-modulo5-manejo.webp`. `bitacora-red-meliponicultores.webp` está bien dibujada, pero
+**no existe ningún artículo** de una red de meliponicultores (medido: `select … where titulo ilike '%red%' or
+'%meliponicultor%' or '%calendario%'` devuelve solo `solar-offgrid` y tres del corredor). Retirar una lámina
+mala y no cablear una lámina buena sin artículo son dos decisiones distintas, y ninguna de las dos es
+«falta de alias».
+
+**Antes de escribir, la cuenta que importa.** Cada uno de los 8 destinos existe como **un** documento
+publicado (16 filas = 8 × 2 versiones) y 7 de los 8 no tenían tapa; el octavo era el Módulo 9 con la lámina
+equivocada. Medido en `files_related_mph` (la tabla real de enlace en Strapi 5 con postgres; `upload_media`
+y `_media_bitacora_links` **no existen** en esta base).
+
+**El token: se reutilizó el de G3, no se emitió uno nuevo.** La fila 5 (`media-import-g3-2026-09-26`,
+`custom`, `lifespan` 604 800 000, vence 2026-10-03) ya tenía exactamente lo que D3 necesita, y se verificó en
+vivo en vez de suponerlo: `GET /api/upload/files` 200 · `GET /api/bitacoras` 200 ·
+`GET /api/proyecto-meliponarios` 200 · `GET /api/hero-configuracions` **403** (la negativa sigue siendo
+negativa). Su valor sigue en `/tmp/g3-tok/g3.token` (0600, 256 hex) y nunca entró en un argumento de comando
+ni en un archivo versionado. Emitir un token nuevo para el mismo alcance habría dejado dos vivos.
+
+**Corrida.** Seco con la propuesta de 40 filas: `106 registros · 67 archivos · 40 filas de alias` →
+**41 enlaces, 3 en revisar, 20 pendientes, 6 ambigüedades, 0 motivos de alias sin firmar**. Las 7 nuevas
+aparecen las 7 con `nombre nuevo: hay que subirlo` y ninguna otra. Dump previo de `files`,
+`files_related_mph` y `bitacoras` en `/home/ubuntu/backup/d3-pre-2026-09-27.sql` (0600, 1 598 303 B).
+`--apply`: **40 `ok` y 1 falla**, exit 1 — la falla es `espresso-doble.webp → item-menus/…`, que derivó la
+regla de `slug` exacto del manifiesto (no una fila del envase) y el token rechazó con 403. Es D6/G6, no D3.
+
+**Medido después.** `files` 37 → **44** (+7). Enlaces `files_related_mph` 72 → **86**: +16 (8 documentos ×
+2 versiones) −2 (los que reemplazó la reasignación). **34 de 56** bitácoras publicadas con tapa,
+**0** archivos enlazados a dos documentos, **0** enlaces huérfanos. Las 7 láminas subieron a
+`1200×675 image/webp` y responden 200 en `/uploads/` (43 756 – 171 960 B). Y en la API publicada con
+`status=published&populate=imagen`, los dos documentos de la reasignación devuelven cada uno el suyo:
+Módulo 9 → `bitacora_modulo9_cosecha_061500b42c.webp`, fermentación →
+`bitacora_fermentacion_miel_7b410de327.webp`.
+
+**Un hallazgo de contenido, consignado para el dueño y no arreglado acá.**
+`conservacion-y-cosecha-de-miel` y `conservacion-…-fermentacion-y-extraccion` (Módulo 9) son el **mismo
+artículo publicado dos veces**: 98,99 % de similitud medida sobre el cuerpo con `difflib`. Cada uno recibió
+su tapa y ninguna lámina se escribe dos veces, pero fusionarlos o retirar uno es una decisión sobre el
+contenido. Sale del alcance de este envase y queda nombrada en el `aviso`.
+
+**Qué cambió en el repo.** `media-alias-propuesto.json` creció a 40 filas (34 forma 1 + 6 forma 2) y
+`media-alias.json` quedó idéntico fila por fila, con el recibo de D3 en su `aviso`. El teste
+`tests/media-alias-propuesto.test.mjs` pasó de 27/12 a 34/5 en sus cuentas y en la lista de huérfanos
+enumerados; su guarda de igualdad se volvió a probar por mutación (una fila metida directo al envase
+aplicado → `not ok 8`, restaurada → 8 pass). `npm test` **338/338**.
 ## G4 · Vaciar Unsplash y placeholders en la base
 
 **Desbloquea:** que el admin no muestre como contenido lo que el sitio ya se niega a pintar.
