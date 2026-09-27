@@ -1477,9 +1477,18 @@ Nota: `hero_configuracions` tiene **0 borradores** (sus 39 filas entraron por SQ
 > D4, el mismo día, llenó la portada de los 6 proyectos declarándola en la fila que ya escribía su galería:
 > `imagen` sobre `api::proyecto-meliponario` pasó de 0 a **12** filas de enlace (6 documentos × borrador y
 > publicado), el total de enlaces de 86 a **98** y `files` siguió en **44** — no se subió ni un archivo, las 6
-> portadas son láminas que ya estaban en la librería. Los 6 proyectos siguen sin `slug` (medido 6/6 también en
-> el endpoint publicado), así que su ficha de detalle es inalcanzable: es **D11**, contenido y URLs, no medios.
-> Los 3 `producto-*` siguen en disputa: eso es D5. `hero_configuracions` **no se tocó**: el token de esta corrida no tiene `update`
+> portadas son láminas que ya estaban en la librería. Y **D5**, también el 2026-09-27, cerró los 3 `producto-*`
+> que eran la única cosa en `revisar`: cada uno quedó declarado en su propia fila como `imagen` de un producto
+> (`producto-caja-1` → Caja INPA Nogal Cafetero, `producto-miel-1` → Miel Angelita 120ml, `producto-miel-2` →
+> Miel con propóleo 250ml). Cuesta dos cosas que valen la pena escritas: abrir el alcance del token
+> (`api::producto.producto.update`, 17 → 18 acciones, con la medición de que el alta en la BD surte en el
+> servidor vivo sin reinicio) y arreglar el orden en que un registro cobra sus campos, que hasta acá era
+> alfabético y dejaba el `galeria` deducible por encima del `imagen` declarado. Después: `files` **47**
+> (subieron los 3 y ninguno dos veces), enlaces **104**, `imagen` sobre `api::producto` **6** filas, y un solo
+> archivo sin enlace en toda la librería (`espresso-doble.webp`, que es D6). Los 6 proyectos siguen sin `slug`
+> (medido 6/6 también en el endpoint publicado), así que su ficha de detalle es inalcanzable — y D5 midió lo
+> mismo en 3 de los 14 productos, dos de ellos justo los que acaban de recibir tapa: es **D11**, contenido y
+> URLs, no medios. `hero_configuracions` **no se tocó**: el token de esta corrida no tiene `update`
 > en ese endpoint y la puerta de los hérores es G4, así que el aviso de los 0 borradores queda en pie para
 > quien la abra.
 

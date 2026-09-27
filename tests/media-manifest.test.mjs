@@ -741,16 +741,18 @@ test('F2-a dos producciones para el mismo registro y el mismo campo: ninguna gan
   assert.deepEqual(m.pendientes, []);
 });
 
-test('F2-a un archivo que reclaman tres productos sin `slug` no se reparte: `producto-caja-1`', () => {
-  // Medido: `producto-caja-1.webp` casa por `nombre` con `Caja AF Estándar`,
-  // `Caja INPA con atril` y `Caja INPA Nogal Cafetero`, y los tres traen
-  // `slug: null`. Sin slug no hay largo que desempate: se revisa, no se adivina.
+test('F2-a un archivo que reclaman tres productos por `nombre` no se reparte: `producto-caja-1`', () => {
+  // Medido otra vez el 2026-09-27 (D5): los tres SÍ tienen `slug` — `caja-af-estandar`,
+  // `caja-inpa-con-atril`, `caja-inpa-nogal-cafetero` — y la disputa se mantiene. Es
+  // decir: el desempate por largo de slug no es un "si hay slug", es un criterio del
+  // nivel REGLA. Acá los tres reclaman con la MISMA coincidencia de tokens (`caja`),
+  // así que el largo no informa nada y `idLen` sale 0 para todos: se revisa, no se adivina.
   const m = manifesto({
     archivos: ['public/images/galeria/producto-caja-1.webp'],
     registros: [
-      { endpoint: 'productos', documentId: 'caja-af', slug: null, nombre: 'Caja AF Estándar' },
-      { endpoint: 'productos', documentId: 'caja-atril', slug: null, nombre: 'Caja INPA con atril' },
-      { endpoint: 'productos', documentId: 'caja-nogal', slug: null, nombre: 'Caja INPA Nogal Cafetero' },
+      { endpoint: 'productos', documentId: 'caja-af', slug: 'caja-af-estandar', nombre: 'Caja AF Estándar' },
+      { endpoint: 'productos', documentId: 'caja-atril', slug: 'caja-inpa-con-atril', nombre: 'Caja INPA con atril' },
+      { endpoint: 'productos', documentId: 'caja-nogal', slug: 'caja-inpa-nogal-cafetero', nombre: 'Caja INPA Nogal Cafetero' },
     ],
   });
   assert.deepEqual(m.enlazar, []);
@@ -765,6 +767,76 @@ test('F2-a un archivo que reclaman tres productos sin `slug` no se reparte: `pro
   });
   // Sin UN destinatario no hay a quién escribirle: `documentId` no puede salir.
   assert.equal('documentId' in m.revisar[0], false);
+});
+
+test('F2-c el alias declarado le gana al nombre del MISMO registro: `imagen` antes que `galeria`', () => {
+  // D5, medido el 2026-09-27 con la fila YA escrita. El reporte decía
+  // `enlace (nombre): producto-caja-1.webp → productos/…caja-nogal.galeria` y, contra
+  // ese mismo registro, `la tapa ya está asignada a caja-inpa-nogal-cafetero`. Un
+  // `galeria` deducible por nombre se había comido el archivo antes de que lo
+  // reclamara el `imagen` DECLARADO, solo porque `'galeria' < 'imagen'` alfabéticamente.
+  // La prioridad del módulo es «declarado antes que deducible» y tiene que sostenerse
+  // entre campos de un mismo registro: la foto de un producto con una sola lámina es su
+  // portada, no un álbum de una hoja.
+  const caja = 'public/images/galeria/producto-caja-1.webp';
+  const m = manifesto({
+    archivos: [caja],
+    registros: [
+      { endpoint: 'productos', documentId: 'caja-af', slug: 'caja-af-estandar', nombre: 'Caja AF Estándar' },
+      { endpoint: 'productos', documentId: 'caja-atril', slug: 'caja-inpa-con-atril', nombre: 'Caja INPA con atril' },
+      { endpoint: 'productos', documentId: 'caja-nogal', slug: 'caja-inpa-nogal-cafetero', nombre: 'Caja INPA Nogal Cafetero' },
+    ],
+    alias: { [caja]: { endpoint: 'productos', slug: 'caja-inpa-nogal-cafetero' } },
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'productos', documentId: 'caja-nogal', campo: 'imagen', archivo: caja, origen: 'alias',
+  }]);
+  // La disputa desapareció (el alias es el único reclamo de su nivel) y el archivo no
+  // queda ni pendiente ni en revisar: la PARTICIÓN lo tiene que contar una sola vez.
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.motivosAlias, []);
+  // Los tres que pierden se nombran y se dice contra quién: dos registros ajenos y el
+  // propio `galeria` del ganador, que ya no tiene nada que escribir.
+  const perdidas = m.ambiguos.map((a) => a.motivo);
+  assert.equal(perdidas.length, 3, JSON.stringify(m.ambiguos));
+  for (const motivo of perdidas) {
+    assert.match(motivo, /^la tapa ya está asignada a caja-inpa-nogal-cafetero$/);
+  }
+});
+
+test('F2-c dos filas declaradas parten una serie en disputa: cada producto con su portada, `galeria` sin escribir', () => {
+  // La otra mitad de D5. `producto-miel-1/-2.webp` son una SERIE (raíz `producto-miel`
+  // en `galeria`) y los dos productos de miel la reclamaban entera por nombre: disputa
+  // medida sobre los DOS archivos. Declarar uno por documento no solo reparte la serie —
+  // tiene que impedir que el `galeria` deducible escriba después los dos.
+  const miel1 = 'public/images/galeria/producto-miel-1.webp';
+  const miel2 = 'public/images/galeria/producto-miel-2.webp';
+  const registros = [
+    { endpoint: 'productos', documentId: 'glaozvmm52qn7nq8nsioheu7', slug: null, nombre: 'Miel Angelita 120ml' },
+    { endpoint: 'productos', documentId: 'umydhk4nw9b962o992a83pwr', slug: null, nombre: 'Miel con propóleo 250ml' },
+  ];
+  const alias = {
+    glaozvmm52qn7nq8nsioheu7: { endpoint: 'productos', campo: 'imagen', archivos: [miel1] },
+    umydhk4nw9b962o992a83pwr: { endpoint: 'productos', campo: 'imagen', archivos: [miel2] },
+  };
+  const m = manifesto({ archivos: [miel1, miel2], registros, alias });
+  assert.deepEqual(m.enlazar, [
+    { endpoint: 'productos', documentId: 'glaozvmm52qn7nq8nsioheu7', campo: 'imagen', archivo: miel1, origen: 'alias' },
+    { endpoint: 'productos', documentId: 'umydhk4nw9b962o992a83pwr', campo: 'imagen', archivo: miel2, origen: 'alias' },
+  ]);
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.motivosAlias, []);
+  // Y el orden de entrada no decide: con los registros y el inventario barajados salen
+  // los mismos dos enlaces (ordenados por documento, que es lo único que compara).
+  const porDoc = (a, b) => (a.documentId < b.documentId ? -1 : 1);
+  const alReves = manifesto({
+    archivos: [miel2, miel1],
+    registros: registros.slice().reverse(),
+    alias,
+  });
+  assert.deepEqual(alReves.enlazar.slice().sort(porDoc), m.enlazar.slice().sort(porDoc));
 });
 
 test('F2-a una serie en disputa no escribe a medias: ninguno de sus archivos cae a pendientes', () => {
@@ -1292,14 +1364,19 @@ test('I6/M13 dos filas de alias sobre la misma tapa, en el orden de claves que s
   }]);
 });
 
-test('I6/M17 una serie con un solo miembro en disputa no se escribe a medias: arrastra al otro', () => {
-  // Mutante: `media-manifest.mjs:756` — fuera el filtro del lazo de arrastre
-  // (`for (const u of [])`). MEDIDO con `m17-minimo.mjs`: la rama es alcanzable, pero
-  // NO con dos slugs distintos — los miembros de una serie comparten la raíz, así que o
-  // se disputan todos o ninguno. Hace falta una fila de alias por ruta que salve a UN
-  // solo miembro (`-1`) y deje a `-2` en disputa. Sin el arrastre, `-1` se enlaza solo
-  // (`proyecto-valle-1.webp -> A.imagen`) y la galería queda de un elemento: exactamente
-  // el defecto que esta ronda vino a cerrar.
+test('I6/M17 un miembro en disputa no escribe la galería: lo único que sale es la portada declarada', () => {
+  // Mutante MEDIDO el 2026-09-27 (D5): `media-manifest.mjs:761` — volver el desempate una
+  // salida temprana (`continue;` a secas), o sea «nunca hay disputa». Pone rojos TRES testes
+  // (`F2-a un archivo que reclaman tres productos`, `F2-a una serie en disputa no escribe a
+  // medias` y este); acá el síntoma exacto es que `-2` desaparece de `revisar`: `[]` contra la
+  // fila que lo nombra con sus dos reclamantes. Borrada la detección ya no hay con qué frenar
+  // la escritura, que es lo único que este envase no puede hacer a espaldas del dueño.
+  //
+  // D5 (2026-09-27) movió el orden en que un registro cobra sus campos —declarado antes
+  // que deducible, no alfabético—, y acá se ve exactamente qué cambia y qué no: lo que
+  // sigue bloqueado es el `galeria` (no se escribe una galería a medias), pero el `-1`
+  // declarado ya no espera su turno alfabético y queda como `imagen`. Lo que se protege
+  // igual que antes: `-2` no cae a `pendientes` y ningún archivo aparece en dos baldes.
   const uno = 'public/images/galeria/proyecto-valle-1.webp';
   const dos = 'public/images/galeria/proyecto-valle-2.webp';
   const m = manifesto({
@@ -1310,22 +1387,17 @@ test('I6/M17 una serie con un solo miembro en disputa no se escribe a medias: ar
     ],
     alias: { [uno]: { endpoint: 'proyecto-meliponarios', slug: 'valle' } },
   });
-  assert.deepEqual(m.enlazar, [], 'ninguna mitad de la serie se escribe');
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'proyecto-meliponarios', documentId: 'A', campo: 'imagen', archivo: uno, origen: 'alias',
+  }], 'la serie no se escribe a medias: lo único que sale es la portada declarada');
   assert.deepEqual(m.revisar, [
-    {
-      archivo: uno,
-      endpoint: 'proyecto-meliponarios',
-      documentId: 'A',
-      campo: 'galeria',
-      motivo: `serie bloqueada por un archivo en disputa: ${dos}`,
-    },
     {
       archivo: dos,
       endpoint: 'proyecto-meliponarios',
       campo: 'galeria',
       motivo: 'varios registros reclaman el mismo archivo sin que la identidad lo desempate: proyecto-meliponarios/A, proyecto-meliponarios/B',
     },
-  ], 'el miembro NO disputado va a `revisar` con el nombre del disputado');
+  ], 'el miembro disputado va a `revisar`… y el salvado no vuelve a aparecer acá');
   assert.deepEqual(m.pendientes, [], 'y no cae a `pendientes`, que `aplicar()` sí escribe');
 });
 

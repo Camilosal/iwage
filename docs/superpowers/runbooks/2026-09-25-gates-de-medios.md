@@ -13,14 +13,17 @@ una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC, G2 esa misma noche (23:40 → 00:
 2026-09-26 (01:47 → 03:20 UTC)**; cada sección dice qué se midió para verificarla. **G0, a medias el
 2026-09-27**: scrub de las cuatro publicaciones, guarda anti-credenciales en la suite, rol propio
 `iwage_app` creado y probado, y clave de cifrado del panel definida y cableada (efectiva al recrear, o sea
-G8); falta la rotación coordinada del host, que no es de esta puerta. **Y dos corridas más de `--apply`
-sobre la base viva, ambas el 2026-09-27: D3 y D4.** D3 enlazó 7 tapas que G3 dejó sin par y reasignó una mal
+G8); falta la rotación coordinada del host, que no es de esta puerta. **Y tres corridas más de `--apply`
+sobre la base viva, todas el 2026-09-27: D3, D4 y D5.** D3 enlazó 7 tapas que G3 dejó sin par y reasignó una mal
 asignada — 34 de 56 bitácoras publicadas con tapa—. D4 llenó la portada de los 6 proyectos: `imagen` pasó de 0
-a 6 documentos con portada, declarándola en la misma fila del envase que escribe su galería. Cada corrida está
-documentada en su propia sección bajo G3, con dump previo y verificación medida. Siguen
+a 6 documentos con portada, declarándola en la misma fila del envase que escribe su galería. D5 cerró la única
+disputa que todavía caía en `revisar` —los 3 `producto-*`—, y para escribirla hubo que abrir el alcance del token
+(`update` sobre `api::producto.producto`) y arreglar el orden en que el manifiesto recorre los campos de un mismo
+registro. Cada corrida está documentada en su propia sección bajo G3, con dump previo y verificación medida. Siguen
 cerradas: **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Abrió una
-decisión nueva, **D11**: los 6 proyectos siguen con `slug: null` y por eso su ficha de detalle es inalcanzable —
-es contenido y URLs, no medios, y lo decide el dueño (está escrito en la sección de D4). Que
+decisión nueva, **D11**: los 6 proyectos siguen con `slug: null` y por eso su ficha de detalle es inalcanzable — y
+D5 midió que **3 de los 14 `productos`** están igual, dos de ellos justo los que acaban de recibir tapa. Es
+contenido y URLs, no medios, y lo decide el dueño (está escrito en la sección de D4 y en la de D5). Que
 el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
 medido, no es una sorpresa: ver G2 «Medido después», punto 4 — las 185 URLs sirven exactamente las
 mismas referencias de medio con el bundle viejo.
@@ -776,6 +779,86 @@ header), `strapi/scripts/media-import.mjs` (contabilidad por archivo distinto), 
 6 portadas / 46 enlaces, y la aritmética ahora es por archivo distinto). `npm test` **344/344**. Las tres
 mutaciones del contrato nuevo (suprimir la emisión, suprimir el control de pertenencia, suprimir la reserva
 del campo) ponen la suite roja. Nada empujado, nada desplegado.
+
+### Resuelto el 2026-09-27 (decisión D5): los tres `producto-*`, y el alcance que hubo que abrir para escribirlos
+
+**Qué estaba abierto.** Después de D4 quedaban en el inventario tres archivos que el manifiesto mandaba a
+`revisar` — los únicos que había mandado nunca —: `producto-caja-1.webp`, reclamado por **tres** productos
+distintos que coinciden con él por `nombre` (`caja-af-estandar`, `caja-inpa-con-atril`,
+`caja-inpa-nogal-cafetero`), y `producto-miel-1/2.webp`. Ninguna regla de nombre los desempata, así que la
+única salida honesta era declararlos.
+
+**La decisión editorial, mirando las láminas.** `producto-caja-1` es una caja de madera clara **sin atril** y
+sin tapa de observación ni piso móvil, y es la única de las tres fichas marcada `destacado`: se fue a
+`Caja INPA Nogal Cafetero` —que además es el título con la que la entró su propio seed—. `producto-miel-1`
+(frasco rotulado «NET WT. 110 g») → `Miel Angelita 120ml`; `producto-miel-2` (colando un propóleo) → `Miel con
+propóleo 250ml`. Criterio escrito en el `aviso` del envase, no deducido por el código. Y la forma: **`imagen`,
+una lámina por producto**, no un `galeria` de un elemento —una galería de uno es justamente el defecto que
+estas rondas vinieron a cerrar—.
+
+**El arreglo que hizo falta en el manifiesto.** Declarar `imagen` no alcanzaba: el seco anunciaba
+`la tapa ya está asignada a caja-inpa-nogal-cafetero` **contra sí mismo** y el archivo se iba igual al
+`galeria`. La causa era el orden de recorrido de los campos de un mismo registro, que era alfabético
+(`'galeria' < 'imagen'`): un `galeria` deducible por `nombre` cobraba antes que un `imagen` **declarado** por
+alias, al revés de la prioridad que el módulo pregona en todos los demás ejes. Ahora los campos se ordenan por
+su mejor nivel de decisión (alias → slug → nombre → sufijo) y el alfabético queda solo como desempate. Medido
+con las dos corridas del mismo envase, una con el módulo de `HEAD` y otra con el arreglado: **49 y 50 enlaces,
+y el `diff` toca únicamente las tres líneas de producto** —afuera `producto-caja-1 → ….galeria` y un `galeria`
+de DOS miel-archivos sobre el mismo producto; adentro los tres con `(alias) → ….imagen`, uno por producto—. Los
+otros 47 enlaces salen idénticos, así que el arreglo no mueve nada de lo ya aplicado. Lo fijan los dos testes
+nuevos `F2-c` en `tests/media-manifest.test.mjs`.
+
+**Lo que se borró, con la medición encima.** El lazo que arrastraba a `revisar` a los hermanos de una unidad
+bloqueada se demostró inalcanzable por construcción: los miembros de una serie comparten raíz, y la raíz
+comparte reclamantes —o la disputa los toma a todos en el paso 3, donde ya se nombran, o no toma a ninguno—.
+Instrumentado y corrido sobre la suite completa y sobre el seco de la base viva: **cero casos**. La única forma
+de partir un conjunto era una fila de alias sobre un subconjunto, y esa fila es nivel ALIAS, o sea que cobra
+antes del arreglo de arriba. Se borró la marking muerta y `I6/M17` quedó renombrada con el mutante que sí la
+mata (deshacer el desempate de disputa en `media-manifest.mjs:761`: rojos tres testes).
+
+**El `--apply` se rehusó dos veces, y la segunda vez no.** Primera corrida: 46 enlaces `ok` y **4 fallas** —
+las 3 de `productos` con `403 a PUT /api/productos/<documentId>`, más la de siempre (`espresso-doble.webp` →
+`item-menus`, que es D6)—, exit 1. Como el importador sube y después enlaza, los tres `.webp` ya estaban en la
+librería (`files` 44 → **47**, ids 45/46/47) **sin ningún enlace**: la guarda de alcance funcionando y el
+desorden por delante.
+
+**Cómo se abrió el alcance, y lo que nadie sabía de esta instalación.** El token 5
+(`media-import-g3-2026-09-26`, `custom`) no guarda sus acciones en `strapi_api_tokens` —esa tabla no tiene
+ninguna columna de scopes—, sino en `strapi_api_token_permissions` (una fila por acción) enlazada por
+`strapi_api_token_permissions_token_lnk`. Se agregó `api::producto.producto.update` (fila 18) enlazada al token
+5: **17 → 18 acciones, 0 filas huérfanas**. Volcado previo de las dos tablas en
+`/home/ubuntu/backup/d5-grant-pre-2026-09-27.sql` (0600, 11 346 B), que es también el rollback. **Lo medido:**
+el alta en la base surte en el servidor vivo, **sin rebuild ni reinicio** — sonda con `PUT` a un documentId
+inexistente, que responde 403 sin permiso y 400 con él (misma respuesta que `bitacoras`, ya autorizado):
+`productos` pasó de 403 a 400 en la misma llamada. Y en la misma tanda `item-menus` **siguió en 403**, que es
+la negativa de control: el alcance no se ensanchó de más ni por accidente. Sirve igual para D6.
+
+**Segunda corrida:** 49 enlaces `ok` y 1 falla (la de siempre). Cero subidas nuevas: los tres nombres ya
+estaban y el importador empareja por nombre, así que `files` quedó en **47** con **0 nombres repetidos** —
+repito: esta es la prueba de que reintentar un lote a medio terminar no duplica la librería—.
+
+**Medido después.** `files_related_mph` 98 → **104**; las 6 filas nuevas son `field='imagen'` sobre
+`api::producto.producto` (3 documentos × borrador y publicado) y cada una apunta al archivo declarado:
+`producto-caja-1` → Caja INPA Nogal Cafetero, `producto-miel-1` → Miel Angelita 120ml, `producto-miel-2` → Miel
+con propóleo 250ml. Bitácora (68) y proyectos (18 de `galeria` + 12 de `imagen`) sin moverse. **46 de 47
+archivos con enlace y uno solo sin él** (`espresso-doble.webp`). En la API publicada
+(`status=published&populate=imagen`) los tres devuelven su `/uploads/producto_*_<hash>.webp` a `1024×1024
+image/webp`, y las tres URLs responden 200 (88 318 – 106 304 B). Verificado en BD, API y URL servida; no en
+navegador: `npm run build` está prohibido en este tree y publicar es D10.
+
+**Hallazgo, para decidir (D11) y no arreglado acá.** La D11 de los proyectos se extendió a la tienda: **3 de
+los 14 `productos` tienen `slug: null`**, medido también en la fila publicada, y dos de ellos son justo los que
+acaban de recibir tapa (`Miel Angelita 120ml`, `Miel con propóleo 250ml`). Su foto ya está cableada y servida,
+pero `getProductoBySlug` (`src/lib/tienda.ts:195`) filtra por `slug`, así que la ficha de detalle sigue
+inalcanzable. Mismas dos salidas que con los proyectos: rellenar `slug` en el panel o rutear por `documentId`.
+
+**Qué cambió en el repo.** `strapi/scripts/lib/media-manifest.mjs` (el orden de campos por nivel, y arriba el
+contrato reescrito con la medición del arrastre), `strapi/scripts/media-alias-propuesto.json` y
+`strapi/scripts/media-alias.json` (las 3 filas de `productos`: **43 filas**, 35 forma 1 + 8 forma 2, y el
+recibo en 7 líneas nuevas de `aviso`), `tests/media-manifest.test.mjs` (+2 testes `F2-c`, `I6/M17` renombrado
+con su mutante medido, `F2-a producto-caja-1` actualizado a los tres slugs reales de la base) y
+`tests/media-alias-propuesto.test.mjs` (cuentas 43/35/8/6 y `SIN_PROPUESTA` reducido a las 2 tapas de bitácora).
+`npm test` **346/346**. Nada empujado, nada desplegado.
 
 ## G4 · Vaciar Unsplash y placeholders en la base
 

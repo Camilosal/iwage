@@ -142,10 +142,11 @@
  *
  * · **Un archivo, varios registros** al mismo nivel de confianza: si el largo
  *   del `slug` no deja UN solo ganador, el archivo va a `revisar` con los
- *   contendores nombrados. Medido: `galeria/producto-caja-1.webp` casaba por
- *   `nombre` con `Caja AF Estándar`, `Caja INPA con atril` y `Caja INPA Nogal
- *   Cafetero` a la vez — y los tres sin `slug`, así que el desempate por largo
- *   no existe: `revisar`.
+ *   contendores nombrados. Medido: `galeria/producto-caja-1.webp` casa por `nombre`
+ *   con `Caja AF Estándar`, `Caja INPA con atril` y `Caja INPA Nogal Cafetero` a la
+ *   vez. Re-medido el 2026-09-27 (D5): los tres SÍ tienen `slug`, y la disputa se
+ *   mantiene — el desempate por largo es un criterio del nivel `REGLA`, no de este.
+ *   Sale `revisar`, y de ahí solo se sale declarando (una fila de alias).
  * · **Dos archivos, un registro** (dos unidades distintas del mismo nivel para
  *   el mismo `campo` del mismo registro): ninguna gana; todos los archivos van a
  *   `revisar`. Es la forma de la colisión medida `bitacora-miel-chef` +
@@ -167,10 +168,12 @@
  * es por archivos: `archivosDelEnlace` + `pendientes` + `revisar` cubren el
  * inventario sin repetir ninguno. `ambiguos` y `motivosAlias` son listas de
  * RAZONES, no de archivos: se imprimen y se revisan, pero no suman.
- * `pendientes` se filtra contra el conjunto de archivos que ya tienen balde, y
- * una serie bloqueada arrastra a `revisar` a TODOS sus miembros (si el par 1 está
- * en disputa, el par 2 no puede quedar como si no existiera: eso fue justo lo
- * que hacía escribir una galería de un elemento).
+ * `pendientes` se filtra contra el conjunto de archivos que ya tienen balde, y una
+ * unidad con UN archivo en disputa no escribe ese campo: como los miembros de una
+ * serie comparten raíz, comparten reclamantes, así que o la disputa los nombra a
+ * todos en el paso 3 o no nombra a ninguno. No existe el hermano suelto que hubiera
+ * que arrastrar a `revisar` (eso fue justo lo que hacía escribir una galería de un
+ * elemento, y sigue sin poder escribirse).
  *
  * Nunca se enlaza un archivo que no esté en el directorio del endpoint — ni por
  * regla ni por alias, que fija el emparejamiento pero no abre esa puerta. Entre
@@ -773,6 +776,10 @@ export function manifesto({ archivos, registros, alias = {} }) {
   //         (solo donde eso significa algo); empatados también, el orden de entrada
   //         — que a estas alturas solo ordena el recorrido, porque una coincidencia
   //         sin desempate real ya está bloqueada arriba como disputa.
+  //         La prioridad se aplica en DOS ejes: entre registros (acá) y, dentro del
+  //         mismo registro, entre sus campos (abajo). El segundo eje es el arreglo de
+  //         D5: hasta el 2026-09-27 los campos se recorrían en orden alfabético y un
+  //         `galeria` deducible le robaba el archivo al `imagen` declarado.
   const priorizados = registros
     .map((reg, i) => ({ reg, i, us: unidadesPorRegistro.get(i) ?? [] }))
     .sort((a, b) => (a.us[0]?.nivel ?? SIN_CANDIDATOS) - (b.us[0]?.nivel ?? SIN_CANDIDATOS)
@@ -781,7 +788,19 @@ export function manifesto({ archivos, registros, alias = {} }) {
 
   for (const { reg, i, us } of priorizados) {
     if (!us.length) continue;
-    const campos = [...new Set(us.map((u) => u.campo))].sort();
+    // El orden de los campos del MISMO registro no puede ser alfabético: medido el
+    // 2026-09-27 (D5), `'galeria' < 'imagen'` hacía que un `galeria` deducible por
+    // nombre se comiera el archivo antes de que lo reclamara el `imagen` DECLARADO por
+    // alias, y el registro perdía su propia tapa contra sí mismo. La prioridad del
+    // módulo es «declarado antes que deducible», así que el campo cuyo mejor nivel es
+    // más alto cobra primero; el alfabético queda solo como desempate.
+    const mejorPorCampo = new Map();
+    for (const u of us) {
+      const previo = mejorPorCampo.get(u.campo);
+      if (previo === undefined || u.nivel < previo) mejorPorCampo.set(u.campo, u.nivel);
+    }
+    const campos = [...mejorPorCampo.keys()]
+      .sort((a, b) => mejorPorCampo.get(a) - mejorPorCampo.get(b) || (a < b ? -1 : 1));
     const notas = [];
     const enlaces = [];
     /** campos que ya escribió una `portada` declarada: no se vuelven a escribir */
@@ -792,18 +811,18 @@ export function manifesto({ archivos, registros, alias = {} }) {
         continue;
       }
       const delCampo = us.filter((u) => u.campo === campo);
-      // Una serie con UN archivo en disputa no puede escribirse a medias: todos sus
-      // miembros van a `revisar` (dejar el par 2 en `pendientes` era justo lo que
-      // hacía escribir una galería de un elemento).
-      for (const u of delCampo.filter((x) => x.archivos.some((a) => enDisputa.has(a)))) {
-        const motivo = `serie bloqueada por un archivo en disputa: ${u.archivos.filter((a) => enDisputa.has(a)).join(', ')}`;
-        for (const a of u.archivos) {
-          marcar(a, motivo, { endpoint: reg.endpoint, documentId: reg.documentId, campo });
-        }
-      }
       const firmes = delCampo.filter((u) => !u.archivos.some((a) => enDisputa.has(a)));
       if (!firmes.length) {
-        // Cada archivo de la unidad ya está en `revisar` con su disputa nombrada.
+        // Ninguna unidad del campo escribe, y cada archivo de la bloqueada ya está en
+        // `revisar` con su disputa nombrada. No hay hermanos que arrastrar: los miembros
+        // de una serie comparten raíz, así que comparten reclamantes — o la disputa los
+        // toma a todos (y el paso 3 ya los nombró a todos) o no toma a ninguno. La única
+        // forma de partir el conjunto era una fila de alias sobre un subconjunto, y esa
+        // fila es nivel ALIAS, o sea que cobra antes (ver el orden de `campos`) y su
+        // archivo ya está enlazado. Medido el 2026-09-27 (D5) instrumentando el arrastre:
+        // cero casos en la suite y cero en el seco de la base viva. Si algún día una
+        // unidad puede traer archivos con conjuntos de reclamantes distintos, esta
+        // afirmación se cae y hay que volver a nombrar a los hermanos.
         continue;
       }
       const libres = firmes.filter((u) => u.archivos.every((a) => !ocupado(a)));

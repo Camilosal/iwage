@@ -1,6 +1,6 @@
 /**
  * El envase de alias que el importador recibe con `--alias=<ruta>` es un archivo de
- * decisiones editoriales, y este teste no decide ninguna: verifica que las 40 filas
+ * decisiones editoriales, y este teste no decide ninguna: verifica que las 43 filas
  * PROPUESTAS (`strapi/scripts/media-alias-propuesto.json`) son mecánicamente válidas
  * —el archivo existe en el inventario, el endpoint está en la tabla del manifiesto,
  * el campo es de los que la tabla declara, el slug y el documentId no se repiten— y
@@ -19,9 +19,20 @@
  * solo una vez y no se lo disputa nadie — no que la lámina sea la del chef y no la de
  * las recetas. Eso último se miró con los ojos y quedó contado en el `aviso` del envase.
  *
+ * D5 (2026-09-27) sumó las otras 3 filas que faltaban —los tres `producto-*` que el
+ * manifiesto mandaba a `revisar` porque varios registros los reclamaban— y tampoco las
+ * decidió este teste: eligió el `aviso`. Lo que sí puede probar acá es lo mecánico, que
+ * en este caso ya no es obvio: una fila por ruta contra un `slug` que existe, y dos filas
+ * por `documentId` que parten en dos una SERIE que los dos productos de miel reclamaban
+ * entera. Que la foto del frasco sea la del frasco de 120 ml y no la del propóleo es una
+ * lectura de la lámina, no un predicado.
+ *
  * Las dos formas no son un capricho: los 6 `proyecto-meliponarios` tienen `slug: null`
  * medido en 6/6, así que ninguna regla por nombre los firma; solo una clave `documentId`
- * puede. Por eso el teste separa las filas por forma y exige a cada una lo suyo.
+ * puede. Lo mismo les pasa a 2 de los 3 `productos` de D5 (medido: 3 de 14 sin `slug`),
+ * y por eso la forma 2 ya no es exclusividad de la galería: puede escribir un campo de
+ * portada con UN archivo. Por eso el teste separa las filas por forma y exige a cada una
+ * lo suyo.
  *
  * Y la segunda mitad, que protege el estado DESPUÉS de G3 (aplicado el 2026-09-26 con
  * autorización del dueño): `media-alias.json` —el nombre que el importador lee cuando se
@@ -52,9 +63,9 @@ const entradas = Object.entries(alias);
 // Forma 1 = la clave es la ruta del archivo. Forma 2 = la clave es el documentId.
 const F1 = entradas.filter(([, f]) => 'slug' in f);
 const F2 = entradas.filter(([, f]) => 'archivos' in f);
-/** 34 tapas de bitácora (27 de G3 + 7 de D3) + 6 series de proyecto: lo que hay que revisar, contado. */
-const FILAS_F1 = 34;
-const FILAS_F2 = 6;
+/** 34 tapas de bitácora + 1 producto (D5) en forma 1, y 6 series de proyecto + 2 productos (D5) en forma 2. */
+const FILAS_F1 = 35;
+const FILAS_F2 = 8;
 /**
  * Filas que declaran `portada` (D4, 2026-09-27): las 6 series de proyecto. Cada una
  * escribe DOS campos —`galeria` con la serie y `imagen` con la lámina declarada—, así
@@ -62,19 +73,16 @@ const FILAS_F2 = 6;
  */
 const FILAS_CON_PORTADA = 6;
 /**
- * Las 5 rutas que a PROPÓSITO no tienen fila, después de D3: 2 tapas de bitácora sin
- * destino — `calendario-manejo`, porque la lámina es defectuosa (pseudo-texto ilegible)
- * y su asunto ya tiene tapa en `modulo5-manejo`, y `red-meliponicultores`, porque la
- * lámina está bien pero el artículo no existe en la BD — y 3 archivos de producto
- * ambigüos. Enumeradas, no derivadas: si una de estas cambia de estado, este teste se
- * pone rojo y alguien la lee.
+ * Las 2 rutas que a PROPÓSITO no tienen fila, después de D5: las dos tapas de bitácora
+ * sin destino — `calendario-manejo`, porque la lámina es defectuosa (pseudo-texto
+ * ilegible) y su asunto ya tiene tapa en `modulo5-manejo`, y `red-meliponicultores`,
+ * porque la lámina está bien pero el artículo no existe en la BD. Los 3 `producto-*` que
+ * estaban acá ya tienen fila desde D5. Enumeradas, no derivadas: si una de estas cambia de
+ * estado, este teste se pone rojo y alguien la lee.
  */
 const SIN_PROPUESTA = [
   'public/images/bitacora/bitacora-calendario-manejo.webp',
   'public/images/bitacora/bitacora-red-meliponicultores.webp',
-  'public/images/galeria/producto-caja-1.webp',
-  'public/images/galeria/producto-miel-1.webp',
-  'public/images/galeria/producto-miel-2.webp',
 ];
 
 test('el archivo viene en el envase que `leerAlias()` acepta: {aviso, alias}', () => {
@@ -118,13 +126,20 @@ test('forma 1: endpoint de la tabla, slug de texto, archivo en su directorio y e
   }
 });
 
-test('forma 2: clave con pinta de documentId, campo repetible de la tabla y archivos existentes', () => {
+test('forma 2: clave con pinta de documentId, campo de la tabla y archivos existentes', () => {
   for (const [clave, fila] of F2) {
     assert.match(clave, /^[a-z0-9]{24}$/, `${clave}: la forma 2 se declara por documentId`);
     assert.ok(fila.endpoint in ENDPOINTS_CON_MEDIO, `${clave}: endpoint fuera de la tabla: ${fila.endpoint}`);
     const cfg = ENDPOINTS_CON_MEDIO[fila.endpoint];
-    assert.equal(fila.campo, cfg.campoMultiple,
-      `${clave}: una fila de varios archivos solo puede ir al campo repetible de ${fila.endpoint}`);
+    assert.ok([cfg.campo, cfg.campoMultiple].includes(fila.campo),
+      `${clave}: ${fila.campo} no es un campo de medio de ${fila.endpoint}`);
+    // D5 usa la forma 2 para lo contrario que las series: un producto sin `slug` y con UN
+    // archivo, declarado al campo de portada. Lo que no se puede aflojar es el otro lado:
+    // varios archivos solo caben en el campo repetible.
+    if (fila.archivos.length > 1) {
+      assert.equal(fila.campo, cfg.campoMultiple,
+        `${clave}: una fila de varios archivos solo puede ir al campo repetible de ${fila.endpoint}`);
+    }
     assert.ok(Array.isArray(fila.archivos) && fila.archivos.length > 0, `${clave}: archivos vacío`);
     for (const a of fila.archivos) {
       assert.equal(typeof a, 'string', `${clave}: archivo que no es ruta`);
@@ -156,7 +171,7 @@ test('los destinos son distintos: dos tapas al mismo slug es disputa, y dos fila
   assert.deepEqual(F2.map(([c]) => c).filter((c) => c.includes('/')), [], 'una forma 2 con clave de ruta');
 });
 
-test('manifesto() firma las 40 filas y no manda ninguna a motivosAlias', () => {
+test('manifesto() firma las 43 filas y no manda ninguna a motivosAlias', () => {
   // Los registros se derivan de la propia propuesta: lo que se prueba acá es la forma
   // del alias contra el resolutor real, no que la API exista (eso se midió por lectura
   // pública: los 34 slugs y los 6 documentId están en la BD del runtime).
@@ -239,7 +254,8 @@ test('el envase aplicado es la propuesta, exacta: ni una fila más y ni un endpo
     'media-alias.json se salió de la propuesta: toda fila nueva exige seco y revisión del dueño',
   );
   const endpoints = [...new Set(Object.values(aplicado.alias).map((v) => v.endpoint))].sort();
-  assert.deepEqual(endpoints, ['bitacoras', 'proyecto-meliponarios'], 'G3 no escribe en otros endpoints');
+  assert.deepEqual(endpoints, ['bitacoras', 'productos', 'proyecto-meliponarios'],
+    'el envase aplicado escribe en un endpoint que ninguna decisión abrió (G3, D3, D4 y D5)');
   assert.equal(aplicado.alias['public/images/bitacora/bitacora-inpa-vs-af.webp'].slug,
                'cajas-inpa-vs-af-c2-b7-comparativas', 'la fila que sirvió de sonda se fue de su destino');
 });
