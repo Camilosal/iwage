@@ -11,8 +11,9 @@ Censo en tres pasadas (`docs/superpowers/metrics/2026-09-25-despues.md`). Todo l
 el orden correcto; el orden **no es negociable** en G2 → G3 → G5, y la razón está escrita en cada
 una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC, G2 esa misma noche (23:40 → 00:02 UTC del 26) y G3 el
 2026-09-26 (01:47 → 03:20 UTC)**; cada sección dice qué se midió para verificarla. **G0, a medias el
-2026-09-27**: scrub de las cuatro publicaciones, guarda anti-credenciales en la suite y rol propio
-`iwage_app` creado y probado; falta la rotación coordinada del host, que no es de esta puerta. Siguen
+2026-09-27**: scrub de las cuatro publicaciones, guarda anti-credenciales en la suite, rol propio
+`iwage_app` creado y probado, y clave de cifrado del panel definida y cableada (efectiva al recrear, o sea
+G8); falta la rotación coordinada del host, que no es de esta puerta. Siguen
 cerradas: **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Que
 el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
 medido, no es una sorpresa: ver G2 «Medido después», punto 4 — las 185 URLs sirven exactamente las
@@ -49,13 +50,16 @@ forma — connection string con userinfo, campo de credencial con literal en for
 reconoce en cualquier forma y en cualquier lado. Dos reglas de falso positivo nacieron de medir:
 `apiKey === '…'` y `headers.get('x-api-key')` no cuentan. Dientes probados en las dos mitades: antes del
 scrub marcaba exactamente las 5 líneas reales; con el valor metido suelto en un `.md` que ningún patrón
-cubre, marca `[digesto-quemado]`. `npm test`: **335/335**.
+cubre, marca `[digesto-quemado]`. `npm test`: **335/335** al cerrar esto (338/338 desde que se sumó la
+guarda de `config/admin.ts` del D2, más abajo).
 
 **Endurecimiento contenido, ya hecho.** Como el valor no se puede retirar del historial sin cortar 15
 contenedores (abajo), se le quitó a `iwage` la necesidad de usarlo: rol **`iwage_app`**, `LOGIN`,
 `super=false`, `createdb=false`, con `CONNECT` y `CREATE` en la base `iwage`, `USAGE` y `CREATE` en el
 esquema `public`, `ALL` sobre tablas y secuencias existentes, y `ALTER DEFAULT PRIVILEGES FOR ROLE admin`
 para las futuras — los default privileges son por base de datos, así que no alcanzan a las otras 15.
+Aviso para la conmutación: el rol se llama igual que el **servicio** `iwage_app` del compose (el que
+produce el contenedor `iwage_web`); son cosas distintas.
 Verificado sobre TCP con autenticación por contraseña: `CREATE TABLE` con `serial`, `INSERT`, `UPDATE`,
 `SELECT`, `ADD`/`DROP COLUMN`, `CREATE INDEX` y `DROP TABLE`, todo dentro de un `BEGIN … ROLLBACK` que no
 dejó rastro, y lectura de los datos reales: `bitacoras=112 files=37 enlaces=72 hero=39`. La clave del rol
@@ -566,6 +570,62 @@ mostrar la clave: un `accessKey` se entrega una sola vez, en la creación. Con s
 cualquiera que lea el dump de `strapi_api_tokens` puede precomputar el digesto de un token candidado y
 adivinar cuál es cuál. Rotar `API_TOKEN_SALT` invalida los tokens existentes, así que va atado a la
 reemisión del `seed-token`, otra vez G0 → G8.
+
+### Resuelto el 2026-09-27 (decisión D2): la clave existe, pero en Strapi 5.55.1 no se define por entorno
+
+**Medido, comparando por sha256 el contenedor vivo contra el compose.** Los cuatro secretos siguen con
+el default (`APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `TRANSFER_TOKEN_SALT` → `=default_del_compose?
+True`), y se entiende por qué: el compose los pide como `${IWAGE_STRAPI_APP_KEYS:…}` etc., y **esas cuatro
+variables no existen en `/home/ubuntu/negocio/.env`** (existen las `STRAPI_*` sin prefijo, del otro
+proyecto) → gana el literal del default. `JWT_SECRET`, `DATABASE_PASSWORD` y `RESERVAS_SYNC_TOKEN` sí
+vienen del `.env` (coincidencia verificada por sha, no por lectura del valor).
+
+**Dónde estaba publicado el default.** En dos lugares, con distinto alcance: `docker-compose.yml` vive en
+el repo padre, que **no tiene remoto** (`git remote -v` vacío) → no está publicado; y
+`strapi/config/admin.ts` + `strapi/config/server.ts` viven en este repo, que **sí es público**. Los
+literales que cualquiera podía leer eran los de acá: `env('ADMIN_JWT_SECRET', 'iwage-admin-secret')`,
+`env('API_TOKEN_SALT', 'iwage-api-salt')`, `env('TRANSFER_TOKEN_SALT', 'iwage-transfer-salt')` y
+`env.array('APP_KEYS', ['iwage-key-1','iwage-key-2'])`.
+
+**Por qué no alcanzaba con poner la variable.** Grep sobre `@strapi` instalado (5.55.1): **0** ocurrencias
+del nombre `ENCRYPTION_KEY`. Lo único que consume la configuración es
+`@strapi/admin/dist/server/server/src/services/encryption.mjs`, que hace
+`strapi.config.get('admin.secrets')?.encryptionKey`, avisa `Encryption key is missing…` y **devuelve
+`null`** — por eso el token 5 quedó con `encrypted_key` NULL. Grep de `admin\.secrets`: 4 líneas, todas en
+ese servicio. O sea: la clave se define en `config/admin.ts` y de ahí va al entorno; al revés no.
+
+**Aplicado (código, en este repo).** `admin.ts` perdió los tres literales y ganó
+`secrets: { encryptionKey: env('ENCRYPTION_KEY') }`; `server.ts` perdió el default de `APP_KEYS`. Guarda
+nueva `tests/config-admin.test.mjs` (3 contratos: ningún default publicado, cada secreto leído con un solo
+argumento, `secrets.encryptionKey` presente): roja antes del cambio sobre las 4 líneas exactas, verde
+después, y con dientes probados por mutación —devolver `env('ENCRYPTION_KEY', 'iwage-encryption-default')`
+la hace fallar señalando `admin.ts:5`—. Verificación dinámica con `node --experimental-strip-types` sobre
+los dos archivos resueltos contra un `env` falso: `secrets.encryptionKey → V(ENCRYPTION_KEY)` y los únicos
+defaults que quedan son `HOST` y `STRAPI_URL`, que no son secretos. `npm test` **338/338**.
+
+**Aplicado (host, sin reiniciar nada).** `IWAGE_STRAPI_ENCRYPTION_KEY` generada con `openssl rand -hex 32`
+(64 hex, prefijo sha256 `425154d2eb`, **distinta** de la `STRAPI_ENCRYPTION_KEY` del otro proyecto), escrita
+en el `.env` (0600, ignorado por `.gitignore:42`, no trackeado) con una copia de respaldo en
+`/home/ubuntu/backup/d2-strapi-encryption-key-2026-09-27.txt` (0600). Una línea en el compose de
+`iwage_strapi`: `- ENCRYPTION_KEY=${IWAGE_STRAPI_ENCRYPTION_KEY}`, **sin default flojo**; `diff` contra el
+respaldo = 1 línea agregada; `docker compose config` la renderiza. precedente: `marca_personal_strapi` ya
+tenía ese cableado —a iwage le faltaba—.
+
+**Cuándo hace efecto, y qué NO cambia antes de eso.** El config se compila en la imagen (el contenedor
+corre `/app/dist/config/admin.js`), así que necesita `docker compose up -d --build iwage_strapi` = **G8**.
+Hasta ese momento, crear un token sigue avisando y dejando `encrypted_key` NULL. Y **no se rotó nada**:
+escribir las cuatro `IWAGE_STRAPI_*` en el `.env` sonaría a preparación inofensiva, pero en el próximo
+recreate invalidaría los 4 tokens existentes —entre ellos el `seed-token` (fila 3), cuyo `last_used_at` es
+hoy— sin avisar. Ese orden es el de G8: reemitir → rotar → verificar.
+
+**Dos afirmaciones del párrafo de arriba que esta medición corrigió.** (a) La tabla no es
+`up_permissions_api-token` (no existe) sino **`strapi_api_tokens`**, con `access_key` de 128 hex en las 4
+filas (el digesto `HMAC-SHA512(salt, token)`, irreversible) y `encrypted_key` aparte. (b) Las filas 1, 2 y
+3 tienen `encrypted_key` en **hex puro, sin el prefijo `v1:`**, y `decrypt()` revisa la versión **antes**
+de mirar la clave: lanza `Unsupported encryption version` con clave o sin ella. Como
+`GET /admin/api/api-tokens/:id` (`controllers/api-token.mjs:78`) siempre pide `includeDecryptedKey: true`,
+abrir el detalle de esos tokens ya falla hoy. Poner la clave no crea ese fallo; lo que cambia es que los
+tokens **nuevos** sí quedan re-mostrables en el panel.
 
 ## G4 · Vaciar Unsplash y placeholders en la base
 

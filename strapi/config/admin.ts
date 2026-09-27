@@ -1,5 +1,6 @@
 export default ({ env }: { env: (key: string, fallback?: any) => any }) => ({
-  auth: { secret: env('ADMIN_JWT_SECRET', 'iwage-admin-secret') },
-  apiToken: { salt: env('API_TOKEN_SALT', 'iwage-api-salt') },
-  transfer: { token: { salt: env('TRANSFER_TOKEN_SALT', 'iwage-transfer-salt') } },
+  auth: { secret: env('ADMIN_JWT_SECRET') },
+  apiToken: { salt: env('API_TOKEN_SALT') },
+  transfer: { token: { salt: env('TRANSFER_TOKEN_SALT') } },
+  secrets: { encryptionKey: env('ENCRYPTION_KEY') },
 });
