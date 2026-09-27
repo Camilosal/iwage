@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 import subprocess
 import time
@@ -10,7 +11,7 @@ print("")
 print("1. Logging in to Strapi...")
 login_resp = requests.post(
     "http://127.0.0.1:1340/admin/login",
-    json={"email": "camilosal@me.com", "password": "Pr@yectos123"},
+    json={"email": os.environ["STRAPI_ADMIN_EMAIL"], "password": os.environ["STRAPI_ADMIN_PASSWORD"]},
     timeout=10
 )
 if login_resp.status_code != 200:

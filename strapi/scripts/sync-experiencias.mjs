@@ -17,8 +17,12 @@ const DB_CONFIG = {
   port: Number(process.env.PG_PORT) || 5432,
   database: 'inmobiliaria',
   user: process.env.PG_USER || 'admin',
-  password: process.env.PG_PASSWORD || 'Pr@yectos123',
+  password: process.env.PG_PASSWORD,
 };
+if (!DB_CONFIG.password) {
+  console.error('Falta PG_PASSWORD. La contraseña del DB se lee solo del entorno.');
+  process.exit(1);
+}
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -5,14 +5,18 @@
  *   node strapi/scripts/sync-propiedades.mjs [--dry-run]
  * 
  * Requires:
- *   - FLASK_DB_URL (or defaults to postgres://admin:Pr@yectos123@localhost:5432/inmobiliaria)
+ *   - FLASK_DB_URL (requerida; sin default: la credencial no va en el repo)
  *   - STRAPI_URL (or defaults to http://localhost:1337)
  *   - STRAPI_TOKEN (Bearer token for Strapi API)
  */
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
-const FLASK_DB_URL = process.env.FLASK_DB_URL || 'postgres://admin:Pr%40yectos123@localhost:5432/inmobiliaria';
+const FLASK_DB_URL = process.env.FLASK_DB_URL;
+if (!FLASK_DB_URL) {
+  console.error('Falta FLASK_DB_URL. Se lee solo del entorno.');
+  process.exit(1);
+}
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
 const STRAPI_TOKEN = process.env.STRAPI_TOKEN || '';
 

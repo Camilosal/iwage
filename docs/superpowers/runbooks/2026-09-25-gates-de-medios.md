@@ -10,25 +10,77 @@ era `616f8d4`). Conteos como comando, no como número que caduca:
 Censo en tres pasadas (`docs/superpowers/metrics/2026-09-25-despues.md`). Todo lo de abajo está en
 el orden correcto; el orden **no es negociable** en G2 → G3 → G5, y la razón está escrita en cada
 una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC, G2 esa misma noche (23:40 → 00:02 UTC del 26) y G3 el
-2026-09-26 (01:47 → 03:20 UTC)**; cada sección dice qué se midió para verificarla. Siguen cerradas:
-**G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Que el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
+2026-09-26 (01:47 → 03:20 UTC)**; cada sección dice qué se midió para verificarla. **G0, a medias el
+2026-09-27**: scrub de las cuatro publicaciones, guarda anti-credenciales en la suite y rol propio
+`iwage_app` creado y probado; falta la rotación coordinada del host, que no es de esta puerta. Siguen
+cerradas: **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Que
+el `iwage_web` desplegado sea la imagen del 24-09 y el Strapi sea nuevo ya está
 medido, no es una sorpresa: ver G2 «Medido después», punto 4 — las 185 URLs sirven exactamente las
 mismas referencias de medio con el bundle viejo.
 
 Cómo se lee cada puerta: *qué desbloquea* → *precondición medible* → *comandos* → *qué debe salir*
 → *rollback*.
 
-## G0 · Antes de nada: rotar credenciales (independiente del resto, y urgente)
+## G0 · Credenciales publicadas — **medido y scrubado el 2026-09-27; la rotación sigue abierta**
 
-`reimport_products.py:28` y `strapi/scripts/sync-experiencias.mjs:29` y `:66` tienen **cadenas
-literales largas** donde los demás archivos leen del entorno (clasificado sin imprimir ningún
-valor). Los cuatro archivos están versionados y el repo es público.
+**Qué estaba publicado, en una sola línea:** la contraseña del rol `admin` de PostgreSQL —**superuser del
+clúster compartido**— aparecía en 4 archivos trackeados, en 5 formas: valor de `"password"` en un login del
+panel (`reimport_products.py:13`), detrás de `process.env.PG_PASSWORD ||`
+(`strapi/scripts/sync-experiencias.mjs:20`), dentro de una connection string de respaldo
+(`strapi/scripts/seed-heroes-pg.mjs:12`), y dos veces más para una base `inmobiliaria` que ya no existe en
+el servidor (`strapi/scripts/sync-propiedades.mjs:8` en el comentario de requisitos y `:15` en el default,
+esta vez con el `@` escapado como `%40`). `grep -lF` del valor sobre `git ls-files`: **cero ocurrencias
+después del scrub**. El email personal de ese login también estaba literal y hoy se lee del entorno.
 
-- Rotar el token de Strapi y la contraseña de base de datos que aparezcan ahí.
-- Reemplazar el literal por lectura de entorno, y borrar el valor de la historia si se va a
-  publicar el repo tal cual: un `git rm` no borra el valor del historial.
-- **No empujar (`git push`) hasta haber rotado.** Con los commits locales que haya
-  (`git rev-list --count origin/master..HEAD`), este es el momento barato de hacerlo, no después.
+**Lo que NO era un secreto, medido antes de afirmarlo.** La lectura rápida del par de login decía
+«contraseña del panel en claro». Verificado: el valor coincide byte a byte con `DATABASE_PASSWORD` del
+contenedor (por eso lo encontré dos veces), y **aun así no abre el panel**: `POST /admin/login` con ese par
+devuelve **400** y `select count(*) from up_users` es **0**. El hallazgo lateral importa para las otras
+puertas: **no existe ningún usuario de panel en este Strapi**, así que todo lo que la doc resolvía con
+«hacerlo desde Settings → …» (G7, y el desenlazado a mano que ofrecía el rollback de G3) hoy no tiene
+quién lo haga; se hace por código o se siembra un usuario.
+
+**Aplicado — scrub y guarda.** Los cuatro archivos leen la credencial solo del entorno y abortan con un
+mensaje si falta (`DATABASE_URL`, `PG_PASSWORD`, `FLASK_DB_URL`, `STRAPI_ADMIN_EMAIL` /
+`STRAPI_ADMIN_PASSWORD`); ninguno conserva un default con valor, y los cuatro parsean (`node --check`,
+`py_compile`). Se agregó `tests/no-credenciales-en-repo.test.mjs`: barre `git ls-files` con tres reglas de
+forma — connection string con userinfo, campo de credencial con literal en forma JS, JSON o
+`env.X || 'literal'` (la del bug), y bearer/token — más un **digesto sha256 del valor publicado** que lo
+reconoce en cualquier forma y en cualquier lado. Dos reglas de falso positivo nacieron de medir:
+`apiKey === '…'` y `headers.get('x-api-key')` no cuentan. Dientes probados en las dos mitades: antes del
+scrub marcaba exactamente las 5 líneas reales; con el valor metido suelto en un `.md` que ningún patrón
+cubre, marca `[digesto-quemado]`. `npm test`: **335/335**.
+
+**Endurecimiento contenido, ya hecho.** Como el valor no se puede retirar del historial sin cortar 15
+contenedores (abajo), se le quitó a `iwage` la necesidad de usarlo: rol **`iwage_app`**, `LOGIN`,
+`super=false`, `createdb=false`, con `CONNECT` y `CREATE` en la base `iwage`, `USAGE` y `CREATE` en el
+esquema `public`, `ALL` sobre tablas y secuencias existentes, y `ALTER DEFAULT PRIVILEGES FOR ROLE admin`
+para las futuras — los default privileges son por base de datos, así que no alcanzan a las otras 15.
+Verificado sobre TCP con autenticación por contraseña: `CREATE TABLE` con `serial`, `INSERT`, `UPDATE`,
+`SELECT`, `ADD`/`DROP COLUMN`, `CREATE INDEX` y `DROP TABLE`, todo dentro de un `BEGIN … ROLLBACK` que no
+dejó rastro, y lectura de los datos reales: `bitacoras=112 files=37 enlaces=72 hero=39`. La clave del rol
+nuevo está en `/home/ubuntu/backup/d1-rol-iwage-app-2026-09-27.txt` (0600, fuera del repo) y es la única
+copia.
+
+**Lo que NO se rotó, y por qué.** `ALTER USER admin PASSWORD …` dejaría sin base a
+`sostenibilidad_db` (su propio `POSTGRES_PASSWORD`), `iwage_strapi`, `espacios_plus_web`,
+`espacios_plus_strapi`, `marca_personal_web`, `marca_personal_strapi` (dos variables), `reservas_strapi`,
+`form_handler`, `sostenty_web`, `n8n_app`, `chatwoot_app`, `chatwoot_sidekiq`, `odoo_erp`,
+`listmonk_app`: medido con `docker inspect`, **15 contenedores de otros proyectos llevan el mismo valor**.
+Eso es una rotación coordinada del host, no una decisión de esta puerta. Mitigación medida: `5432` solo
+escucha en **`127.0.0.1:5432`** (`ss -lntp`; `1338` y `1340` tampoco salen a una interfaz pública), así que
+usar el valor exige un pie en la máquina, no una petición desde internet. Aun así el valor está quemado:
+para `iwage` deja de servir en cuanto corra la conmutación.
+
+**Conmutación (G8, o cuando el dueño lo diga).** En `/home/ubuntu/negocio/docker-compose.yml`, sección
+`iwage_strapi`: `DATABASE_USERNAME=iwage_app` y `DATABASE_PASSWORD=<la del archivo 0600>` → `docker compose
+up -d iwage_strapi` → verificar `/_health` 204, `GET /api/bitacoras?populate=imagen` 200, y **sin `error`
+en los logs del arranque**: el schema-sync de Strapi crea tablas al subir, y ese es el criterio de que el
+rol alcanza, no el 200. Inventario de columnas esperado: 996, igual que al cierre de G2.
+**Rollback:** devolver `DATABASE_USERNAME=admin` con el valor viejo, que sigue vivo.
+
+**Historial.** Reescribirlo (`git filter-repo` / BFG) es una decisión aparte y no es el fix: el valor ya
+fue público y GitHub cachea. Si se hiciera, es sobre un clon limpio y obliga a re-clonar el trabajo.
 
 ## G1 · Volumen durable para `uploads` (F0) — **EJECUTADA el 2026-09-25 16:33 UTC**
 

@@ -1110,13 +1110,23 @@ git status --short
 git commit -m "refactor(data): Strapi es el único dueño; fuera seeds, Unsplash y hotlinks muertos"
 ```
 
-**Gate F1 → F2.** `grep -rn "unsplash\|tienda.iwage.co\|FALLBACK_" src/` vacío. Una sola galería en el repo. Un solo tipo de medio. Antes de entrar a F2 hay que haber **rotado la contraseña de admin de Strapi** y haber sacado del repo los cuatro scripts que la contienen en claro: F2 es el primer paso que escribe en la BD.
+**Gate F1 → F2.** `grep -rn "unsplash\|tienda.iwage.co\|FALLBACK_" src/` vacío. Una sola galería en el repo. Un solo tipo de medio. Sobre la credencial: **la parte que dependía de este repo está hecha el 2026-09-27** —los cuatro scripts que la tenían en claro leen solo del entorno y abortan si falta, y `tests/no-credenciales-en-repo.test.mjs` impide que el valor (o cualquier cadena de conexión, Bearer o apikey literal) vuelva a entrar—. Medido ese día, el valor no era una contraseña de admin de Strapi (`up_users` = 0) sino la del rol `admin` de PostgreSQL, compartido con otros proyectos del host; **rotarlo es decisión de host y sigue abierto** (runbook § G0), y no traba escribir en la BD por API, que es lo que hace F2.
 
 ---
 
 # FASE F2 — Strapi como único dueño del esquema
 
-Prerequisito bloqueante: **contraseña de admin de Strapi rotada** y los cuatro scripts con credenciales en claro (`reimport_products.py`, `strapi/scripts/seed-heroes-pg.mjs`, `sync-experiencias.mjs`, `sync-propiedades.mjs`) retirados del repo y del historial reciente. Sin eso no se escribe en la BD.
+Prerequisito bloqueante: los cuatro scripts con credenciales en claro (`reimport_products.py`,
+`strapi/scripts/seed-heroes-pg.mjs`, `sync-experiencias.mjs`, `sync-propiedades.mjs`) **retirados del repo
+el 2026-09-27** (leen solo del entorno y abortan si falta; `tests/no-credenciales-en-repo.test.mjs` lo
+impide). **Corrección de lo que decía este renglón:** la credencial publicada no era una contraseña de
+admin de Strapi —medido: `up_users` está en **0**, el panel no tiene ni un usuario, y el login del script
+devuelve 400—, sino la del rol `admin` de **PostgreSQL**, que es superuser de un clúster compartido por
+~15 contenedores de otros proyectos. Por eso la rotación de ese valor **no** se ejecutó acá: es una
+decisión del host, no de este plan (runbook G0, con el impacto medido). Lo que sí se cerró: `iwage` ya
+tiene rol propio no-superuser (`iwage_app`, smoke de DDL y de lectura verificados) y la conmutación queda
+escrita para G8. Sobre el historial: el valor fue público y sigue siéndolo; `git rm` no lo borra, y
+reescribir la historia no es el fix (runbook G0, párrafo final).
 
 Regla de la fase: un cambio de `schema.json` en Strapi v5 se aplica reconstruyendo el contenedor (`docker compose up -d --build iwage_strapi`), y **no migra datos por sí solo**. Cada task de esquema lleva su propio paso de volcado de los valores existentes.
 

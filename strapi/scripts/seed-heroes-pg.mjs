@@ -9,7 +9,11 @@
 import pg from 'pg';
 import crypto from 'node:crypto';
 
-const DB_URL = process.env.DATABASE_URL || 'postgresql://admin:Pr@yectos123@sostenibilidad_db:5432/iwage';
+const DB_URL = process.env.DATABASE_URL;
+if (!DB_URL) {
+  console.error('Falta DATABASE_URL. Se lee solo del entorno: la contraseña no vive en el repo.');
+  process.exit(1);
+}
 
 const BRAND_IMAGES = {
   cafe: '/images/hero-cafe.webp',
