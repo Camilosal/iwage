@@ -325,6 +325,33 @@ test('naturaleza: relaciones cross-brand (proveedor, propiedad, propiedad-gestio
   assert.equal(exp.propiedades_gestion[0].imagen_principal.url, '/uploads/pg/1.webp');
 });
 
+test('naturaleza: `anfitriones` y `complementos` poblabados también se mapean (el typo que tumbó la sección)', () => {
+  // Medido el 2026-09-28 en el preflight de D10: `/naturaleza/experiencias` no pintaba ninguna
+  // tarjeta y las dos fichas daban 302, porque `experienciaCruda` llamaba `anfitrionCrudo` (sin la
+  // «a») y el `catch` de `getExperiencias`/`getExperienciaBySlug` se comía el ReferenceError
+  // devolviendo `[]`/`null`. Ningún teste cubría estos DOS mapas: los otros tres enlaces del mismo
+  // objeto sí estaban cubiertos arriba.
+  const e = experienciaParaPlantilla({
+    slug: 'r', titulo: 'R',
+    anfitriones: [{ id: 60, slug: 'a', nombre: 'Anfitriona', foto_perfil: { url: ADENTRO, alternativeText: 'Retrato' } }],
+    complementos: [{ id: 61, slug: 'c', nombre: 'Transporte', precio: '20000' }],
+  });
+  assert.equal(e.anfitriones.length, 1, 'el anfitrión poblado se perdió en el mapeo');
+  assert.equal(e.anfitriones[0].nombre, 'Anfitriona');
+  assert.equal(e.anfitriones[0].foto_perfil.alt, 'Retrato');
+  assert.equal(e.anfitriones[0].foto_perfil.url, '/uploads/gestion/finca-paraiso.webp');
+  assert.equal(e.complementos.length, 1, 'el complemento poblado se perdió en el mapeo');
+  assert.equal(e.complementos[0].precio, 20000);
+
+  // Y el borde inverso, que es la misma recursión cruzada: anfitrión → experiencias.
+  const a = anfitrionParaPlantilla({
+    slug: 'a', nombre: 'A',
+    experiencias: [{ slug: 'r', titulo: 'R', anfitriones: [{ slug: 'a', nombre: 'A' }] }],
+  });
+  assert.equal(a.experiencias.length, 1);
+  assert.equal(a.experiencias[0].titulo, 'R');
+});
+
 test('naturaleza: fila basura → null / [] y ninguna excepción; la fila de Strapi no se muta', () => {
   for (const [motivo, fila] of [['nulo', null], ['cero', 0], ['string', 'x'], ['array', []], ['objeto sin nada', {}]]) {
     assert.doesNotThrow(() => experienciaParaPlantilla(fila), `${motivo}: experiencia lanzó`);

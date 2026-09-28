@@ -564,7 +564,7 @@ function experienciaCruda(raw: unknown, nivel = 0): Experiencia {
     propiedades: Array.isArray(fila.propiedades) ? fila.propiedades.map(propiedadVinculadaParaPlantilla) : null,
     propiedades_gestion: Array.isArray(fila.propiedades_gestion) ? fila.propiedades_gestion.map(propiedadGestionVinculadaParaPlantilla) : null,
     anfitriones: Array.isArray(fila.anfitriones)
-      ? fila.anfitriones.map((a: unknown) => anfitrionCrudo(a, nivel + 1))
+      ? fila.anfitriones.map((a: unknown) => anfitrionCruda(a, nivel + 1))
       : null,
   } as Experiencia;
 }
