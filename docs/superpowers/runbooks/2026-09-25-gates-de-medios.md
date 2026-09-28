@@ -1113,6 +1113,26 @@ Y si en G2 se autorizó el retiro de `galeria_fotos` / `*_url`, esta puerta pued
 
 ## G5 · Grupo C: retirar del esquema los últimos campos `string`
 
+**EJECUTADA el 2026-09-28 (Task 15).** Orden del runbook respetado: G3 ya estaba → lectores de `src/`
+pasados a `media` → `pg_dump` previo (`/tmp/iwage-pre-g4.dump`) → commit del esquema (`c4817d9`) →
+rebuild de `negocio-iwage_strapi` → recreate. **Siete columnas string** fuera del esquema:
+`anfitrion.{foto_perfil_url, foto_territorio, video_thumbnail}`,
+`experiencia.{imagen_hero_url, mapa_imagen_url, galeria_urls}`, `complemento.imagen_url`.
+Quedan **embeds legítimos** (no van a `media`, son de tercero con allowlist): `video_url`,
+`tour_360_url`, `link_drone`. Los `49 valores vivos` que advertía esta puerta ya no existen: G4 los
+puso a NULL/`'[]'` el mismo día, así que salir del esquema no cuesta dato.
+
+**Medido tras el recreate** (2026-09-28): `Strapi started successfully` sin error de esquema;
+`GET /api/experiencias` 200 y el `attributes` de una ficha ya **no trae** `imagen_hero_url`,
+`galeria_urls`, `mapa_imagen_url`; trae `video_url`, `tour_360_url`, `link_drone`. La ficha servida de
+`amanecer-en-el-bosque-de-niebla` tiene **0** menciones de `dQw4w9WgXcQ` / `momento360` / `unsplash`.
+`iwage_web` (bundle D10, anterior al código de G5) no rompe: lee los twins defensivamente y Strapi
+ya no los devuelve → `undefined` → `medioCrudo` lo resuelve. El código nuevo de G5 entra en el
+próximo deploy de web. **Fila 4:** 41 → **34** campos (`campos de medio` 41→34; `twin de un media
+(borrar)` y `residual (borrar)` y 1 `portada string` se fueron); `ya media` sigue en 26. Tests **369/369**
+(4 testes reescritos de «el twin funciona» a «nadie re-cablea el twin»: `sinClaves` sigue filtrando las
+columnas muertas y los guards `'x' in ficha === false` lo prueban).
+
 **Desbloquea:** la fila 4 entera (hoy 41 campos en 4 representaciones; faltan 8 por migrar).
 **Ninguno de estos campos puede salir del esquema antes de G3**, o Strapi los abajo en el arranque
 y se pierden **49 valores vivos**: `hero_configuracions.imagen` 39 (el Paso H),
