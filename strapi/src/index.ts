@@ -1,9 +1,14 @@
+// Uno por content-type de `strapi/src/api`. El front solo manda `Authorization` si `STRAPI_API_TOKEN`
+// está en su entorno; por el otro camino pide como rol Public y esta lista es lo único que decide qué
+// ve (403 -> la página pinta su relleno). `tests/strapi-permisos-publicos.test.mjs` guarda que la lista
+// y los schemas no se separen.
 const PUBLIC_APIS = [
   'producto',
   'cultivo-polinizacion',
   'proyecto-meliponario',
   'lote-miel',
-  'articulo',
+  'experimento',
+  'historia-visitante',
   'testimonio',
   'item-menu',
   'proveedor',

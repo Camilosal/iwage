@@ -59,15 +59,17 @@ const fallbackProveedores = proveedores.length > 0 ? proveedores.slice(0, 4) : [
 // título, y la página de destino deriva del mismo título. Un slug inventado aquí produciría una
 // ancla que nadie emite y el deep link moriría sin error.
 //
-// Sus cuatro `imagen` SobREVIVEN a D8, y no por descuido: `historia-visitantes` responde **403** al
-// rol Public (así que `getHistoriasVisitantes()` devuelve `[]` y este relleno es lo que se pinta hoy
-// en producción). Jubilar las imágenes antes de abrir esa puerta es cambiar lo que la gente ve por
-// un hueco. Lo retira **G7 / D9** (permisos públicos), no esta pasada.
+// Sus cuatro `imagen` se fueron el 2026-09-28 con D9. D8 las había dejado citando un 403, y ese
+// razonamiento estaba mal medido: el 403 es del rol Public **sin token**, pero `iwage_web` sí define
+// `STRAPI_API_TOKEN`, así que desde producción la llamada contesta 200 y lo que la gente ve hoy son
+// los `/uploads/visitante_*.webp` de Strapi, no este relleno. Medido en el HTML servido de `/cafe`:
+// 3 rutas `/uploads/visitante_*` y 0 rutas `/images/cafe-menu/visitante-*`. Las filas se quedan:
+// con la base caída son el texto de la sección, y el vacío de imagen ya tiene diseño (Icon tile).
 const FALLBACK_HISTORIAS_HOME: HistoriaVisitante[] = [
-  { id: 1, documentId: 'fb-h1', titulo: 'El colibrí de garganta azul', slug: null, categoria: 'fauna', texto_corto: 'Aparece cada mañana a las 6:40. Primero al limoncillo de la entrada, luego al guamo del costado.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-colibri.webp' }, icono: 'bird', orden: 1, destacado: true },
-  { id: 2, documentId: 'fb-h2', titulo: 'Las angelitas del techo', slug: null, categoria: 'fauna', texto_corto: 'Una colonia de Tetragonisca angustula se instaló en el alero del café hace dos años. Producen la miel del signature.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-angelitas.webp' }, icono: 'bug', orden: 2, destacado: true },
-  { id: 3, documentId: 'fb-h3', titulo: 'El guamo centinela', slug: null, categoria: 'flora', texto_corto: 'Tiene más de 40 años. Da sombra a la mitad del jardín y flores dulces de diciembre a marzo.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-guamo.webp' }, icono: 'tree-pine', orden: 3, destacado: true },
-  { id: 4, documentId: 'fb-h4', titulo: 'Doña Nelly y la receta del pandebono', slug: null, categoria: 'personas', texto_corto: 'Llegó un martes de mercado. Probó el pan de yuca y dijo: "así no se hace, pero está rico".', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-dona-nelly.webp' }, icono: 'heart-handshake', orden: 4, destacado: true },
+  { id: 1, documentId: 'fb-h1', titulo: 'El colibrí de garganta azul', slug: null, categoria: 'fauna', texto_corto: 'Aparece cada mañana a las 6:40. Primero al limoncillo de la entrada, luego al guamo del costado.', texto_largo: '', imagen: null, icono: 'bird', orden: 1, destacado: true },
+  { id: 2, documentId: 'fb-h2', titulo: 'Las angelitas del techo', slug: null, categoria: 'fauna', texto_corto: 'Una colonia de Tetragonisca angustula se instaló en el alero del café hace dos años. Producen la miel del signature.', texto_largo: '', imagen: null, icono: 'bug', orden: 2, destacado: true },
+  { id: 3, documentId: 'fb-h3', titulo: 'El guamo centinela', slug: null, categoria: 'flora', texto_corto: 'Tiene más de 40 años. Da sombra a la mitad del jardín y flores dulces de diciembre a marzo.', texto_largo: '', imagen: null, icono: 'tree-pine', orden: 3, destacado: true },
+  { id: 4, documentId: 'fb-h4', titulo: 'Doña Nelly y la receta del pandebono', slug: null, categoria: 'personas', texto_corto: 'Llegó un martes de mercado. Probó el pan de yuca y dijo: "así no se hace, pero está rico".', texto_largo: '', imagen: null, icono: 'heart-handshake', orden: 4, destacado: true },
 ];
 
 const historiasPool = historias.length > 0 ? historias : FALLBACK_HISTORIAS_HOME;

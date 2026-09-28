@@ -1175,7 +1175,7 @@ sitio**: `strapiFetch` con su propia serialización `populate[]=imagen` y **sin 
 |---|---|---|---|---|
 | `item_menus` | 17 | **16** | **0** | 1 (`te-de-guayaba-agria`) |
 | `proveedors` | 4 | **4** | — | 0 |
-| `historia-visitantes` | 9 en BD | **HTTP 403** | — | lo que se pinta es el relleno |
+| `historia-visitantes` | 9 en BD | **HTTP 403** | — | lo que se pinta es el relleno **en una lectura sin token**; la de producción usa `STRAPI_API_TOKEN` y contesta 200 — ver la corrección de D9 abajo |
 
 Con eso, el argumento de la ronda anterior se cae: la regla por nombre no estaba tapando ningún
 hueco del menú, así que jubilarla no dejó ninguno. El único hueco real (`te-de-guayaba-agria`)
@@ -1195,6 +1195,9 @@ estaban muertos desde D6.
   que los pone en la pantalla. Lo que los jubila es **G7/D9**, no esta pasada. En
   `visitantes.astro` se reemplazó el comentario «lo borra la tarea 12», que prometía algo que la
   tarea 12 no hizo.
+  **Ese razonamiento estaba mal medido: la corrección es D9, que sí las jubiló el 2026-09-28.** El 403 es del rol Public
+  sin token; el sitio desplegado manda token y ya pintaba los `/uploads/visitante_*.webp`. Medición
+  y consecuencia, en § G7.
 
 **Dientes, medidos con mutantes** (`tests/cafe-lee-de-strapi.test.mjs`, 7 testes nuevos; `npm test`
 356 → 363):
@@ -1225,23 +1228,103 @@ dos veces, matando cada servidor por PID al terminar:
 
 | servidor | backend | resultado |
 |---|---|---|
-| `:4901` | Strapi real | `/cafe/menu` 200 · 9 tarjetas · **8 imágenes de `/uploads/` y 0 de `/images/cafe-menu/`**, las 8 resuelven 200 en Strapi · `/cafe` 200 · 4 `/uploads` (los proveedores) + 6 `cafe-menu` (4 `visitante-*` del relleno + 2 `promo-*`) · `/cafe/proveedores` 200 · 4 `/uploads` · `/cafe/visitantes` 200 · 4 `visitante-*` (el relleno, por el 403) |
+| `:4901` | Strapi real | `/cafe/menu` 200 · 9 tarjetas · **8 imágenes de `/uploads/` y 0 de `/images/cafe-menu/`**, las 8 resuelven 200 en Strapi · `/cafe` 200 · 4 `/uploads` (los proveedores) + 6 `cafe-menu` (4 `visitante-*` del relleno + 2 `promo-*`) · `/cafe/proveedores` 200 · 4 `/uploads` · `/cafe/visitantes` 200 · 4 `visitante-*` (el relleno, porque **esta** preview corría sin token) |
 | `:4903` | `STRAPI_URL` y `REDIS_URL` inalcanzables | `/cafe/menu` **200**, 9 tarjetas con su Icon tile (`bg-brand-muted/30`: 27 → 35), `/cafe` y `/cafe/visitantes` 200 |
 
 La segunda fila es la que prueba la decisión: con la base caída el menú no se cae ni saca un `src` roto — saca el
-tile. Y confirma que el relleno de visitantes sigue siendo superficie servida mientras G7 no abra la lectura.
+tile. La última cláusula de la primera fila («el relleno, por el 403») se la llevó puesta D9: ese preview
+corría **sin** `STRAPI_API_TOKEN` y la producción sí lo define, así que lo servido ahí no es lo servido
+allá.
 
-**Lo que queda abierto de G6:** la mitad de visitantes del paso 3, que es G7/D9. Y lo mismo de
-siempre, consignado y no borrado: las dos `promo-*` no tienen campo donde ir (ningún content-type las
-recibe) y `pan-yuca-miel.webp` no tiene ítem.
+**Lo que queda abierto de G6:** las dos `promo-*` sin campo donde ir (ningún content-type las
+recibe) y `pan-yuca-miel.webp` sin ítem — los tres consignados, no borrados. La mitad de visitantes
+del paso 3 ya no queda acá: la cerró D9 en su propia sección.
 
 
-## G7 · Permisos de lectura pública
+## G7 · Permisos de lectura pública — EJECUTADA el 2026-09-28 (decisión D9)
 
-`api::experimento` y `api::historia-visitante` no tienen `find`/`findOne` para el rol Public, así
-que sin token el sitio recibe 403 y esas superficies tiran de su relleno. Se cierra en
-Settings → Roles Públicos, o sembrando los permisos en `strapi/src/bootstrap`. Es la puerta de que
-`getHistoriasVisitantes()` deje de devolver `[]`.
+El texto de esta puerta estaba bien enfocado y mal atribuido: decía «se cierra en Settings → Roles
+Públicos». No hay usuario de panel que abra esa pantalla, así que el único cable posible es el que
+ya existe: `PUBLIC_APIS` en `strapi/src/index.ts:1`, que `bootstrap()` traduce en filas de
+`up_permissions` para el rol Public. El front no manda `Authorization` salvo que `STRAPI_API_TOKEN`
+esté en su entorno (`src/lib/strapi.ts:8`, y `:136-137` sólo lo pega si está definido), y en
+`iwage_strapi` esa variable no existe — medido en el env del contenedor. O sea: **lo que decide qué
+se ve sin token es esa lista**, y a ella le faltaban dos content-types.
+
+**Medido antes / después.**
+
+| superficie | antes (sin token) | después (sin token) |
+|---|---|---|
+| `api::experimento` · `api::historia-visitante` | **403** las dos | **200**; `historia-visitantes` 9 filas / 4 con `imagen`, `experimentos` 10 filas / 0 con `imagen` |
+| `api::item-menu` (control) | 200 | 200 |
+| filas de permiso del rol Public | 50 | **52** — creadas 172-175 (`find`+`findOne` de las dos uids), recogidas 2 huérfanas `api::articulo.*` |
+| `/cafe/visitantes` en preview sin token | 200 con el relleno de texto, 0 `/uploads` | 200 con **4 `/uploads/visitante_*`** y 0 `/images/cafe-menu/` — un `/uploads` ya no puede salir del relleno (sus 9 filas tienen `imagen: null`), así que esas 4 prueban que la lectura es la de Strapi |
+| `/granja/experimentos` en preview sin token | 200 **con 0 fichas**: los 10 experimentos publicados invisibles | 200 con **10 links de ficha** |
+| `npm test` | 363 | **368** |
+
+El «6 actions» que registró el log del bootstrap contra los 4 permisos previstos no es un desfase que
+huba que Tapar: son las 4 filas creadas más las 2 de `articulo` que el sync de Strapi recolectó al
+ver que el content-type ya no existe. 50 + 4 − 2 = 52, y así quedó cerrado por cuenta.
+
+**Qué se cambió.**
+- `strapi/src/index.ts`: `+ experimento`, `+ historia-visitante`, `− articulo` (nombraba un
+  content-type que no está en `src/api` ni como tabla), y un comentario sobre la lista que dice qué la
+  guarda. El bloque de `bootstrap()` que arma `` `api::${api}.${api}.${action}` `` no se tocó: ya era
+  correcto; lo que fallaba era el dato de entrada.
+- `tests/strapi-permisos-publicos.test.mjs` (nuevo, 5 testes): los cuatro guardas de la puerta y la
+  auditoría de extremos — todo literal de endpoint en `src/` tiene que resolver a un content-type
+  publicado a Public.
+- Jubiladas las 8 láminas `visitante-*.webp` que quedaban (`FALLBACK_HISTORIAS_HOME` en
+  `src/pages/cafe/index.astro`, `FALLBACK` en `src/pages/cafe/visitantes.astro`), con sus guardas de
+  filas y de cota movidas en `tests/cafe-lee-de-strapi.test.mjs`.
+- Reconstruida la imagen `negocio-iwage_strapi` y recreado el contenedor vivo (el bootstrap corre al
+  arrancar; el volume de `public/uploads` y la BD no se tocaron).
+
+**Dientes, medidos con mutantes** (cada uno aplicado sobre el tree y revertido por copia, no por
+`git checkout`):
+
+| mutación | rojos | cuáles |
+|---|---|---|
+| sacar `experimento` de `PUBLIC_APIS` | 3 de 5 | la regresión nombrada, la guarda 1 y la 4 |
+| sacar `historia-visitante` | 3 de 5 | las mismas tres |
+| devolver `articulo` a la lista | 2 de 5 | la guarda 2 y la 3 (`CTS.get('articulo')` es `undefined`) |
+| cambiar la plantilla del `action` en `bootstrap()` | 1 de 5 | la guarda 3, por su assert de fuente |
+| `singularName` de un schema puesto en `historia-visitante-x` | 1 de 5 | solo la guarda 3 |
+
+La última fila dice lo que la guarda 3 **no** cubre: con `singularName` roto, la guarda 4 sigue verde
+porque el endpoint del sitio (`historia-visitantes`) resolve por `pluralName`. Es la diferencia entre
+«la ruta existe» y «el `action` que se inserta es el que esa ruta mira», y por eso la guarda 3 existe
+aparte. La mutación de `singularName` se hizo sobre el schema real y se restauró byte a byte.
+
+**Fila 6 del censo:**
+
+```
+antes D9   bitacora 36/36 · galeria 12/12 · cafe-menu 19/13  TOTAL huerfanas=61
+después    bitacora 36/36 · galeria 12/12 · cafe-menu 19/17  TOTAL huerfanas=65
+```
+
+Las 4 nuevas son las `visitante-*` jubiladas. Siguen en disco a propósito: el bundle desplegado las
+pide por URL hasta el deploy (D10), y su salida del repo es la Tarea 16.
+
+**La corrección que desbloqueó esto.** D8 dejó las 8 láminas de visitantes en el tree con el
+argumento de que «el 403 es lo que se pinta en producción». Medido desde adentro de `iwage_web`:
+con-token 200 / sin-token 403 en las dos superficies, y el HTML que sirve `:4321` hoy ya emite
+`/uploads/visitante_*` (3 en `/cafe`, 4 en `/cafe/visitantes`). La premisa era falsa: el 403 es del
+camino **sin** token y la producción va por el camino con token. Lo que D9 arregla es el otro camino
+—el que corre sin credencial, el que se cae si el token se rota o se va del env—, no lo que la gente
+ve hoy. Con la premisa corregida, jubilar esas láminas no tapaba ningún hueco real.
+
+**Dos cosas que esta puerta encontró y NO arregló** (consignadas, no borradas):
+- `seo-landings`: `src/` lo nombra y no hay content-type detrás — 404 por falta de esquema, no de
+  permisos. La guarda 4 lo declara explícitamente en `SIN_CONTENT_TYPE` para que el teste no se lea
+  como si estuviera resuelto.
+- `configuracion-sitio`: singleType con **0 documentos** en `configuracion_sitios`; su 404 es «no hay
+  documento», no un bloqueo de rol. Crearlo es decisión de contenido, no de cableado.
+- Y el hueco de datos que la puerta dejó a la vista: **10 experimentos sin una sola media adjunta**.
+  Ahora se leen; no tienen qué mostrar.
+
+**Rendición:** `.superpowers/sdd/2026-09-24-media-strapi-consolidation/d9-render.txt` (receta del
+build aislado, tablas ANTES / PRODUCCIÓN / DESPUÉS y la cuenta de BD).
 
 ## G8 · Publicar y desplegar
 

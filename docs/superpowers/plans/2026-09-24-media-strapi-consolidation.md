@@ -1673,6 +1673,15 @@ sigue bloqueado es la mitad de visitantes, y por **G7** (403), no por contenido:
 `FALLBACK` de `visitantes.astro` se dejaron intactos a propósito. Detalle y dientes, en el runbook, § G6 «Resuelto
 con D8».
 
+**Corregido el 2026-09-28 con D9.** La cláusula «bloqueado por G7» está mal: el 403 es del rol Public **sin** token,
+y el sitio desplegado (`iwage_web`) define `STRAPI_API_TOKEN`. Medido desde ese contenedor sobre la misma ruta:
+**200 con token, 403 sin token**; y el HTML que ya servía `:4321/cafe` traía `/uploads/visitante_*.webp`, no
+`/images/cafe-menu/visitante-*.webp`. O sea que las cuatro láminas del relleno estaban muertas en producción, y D8 las dejó
+citando un camino que no es el de la producción. D9 las jubiló (`imagen: null` en las 8 filas de
+los dos archivos, filas de texto conservadas) y la cota de `tests/cafe-lee-de-strapi.test.mjs` pasó de 6 tallos a 2:
+no queda ningún `/images/cafe-menu/*` de historia en `src/`. Lo que sí cierra D9 es el otro camino —el sin token—,
+que es el de los previews, el CI y el día que la credencial se rote o venza. Detalle en el runbook, § G7.
+
 **Desvío declarado del paso 2 y del paso 3.** Están escritos como «sustituir cada uso de `itemImage(item)` por
 `item.imagen?.url ?? null`» y lo mismo con `proveedorFoto`. Hacerlo literalmente saca del camino `mediaSrc()`, que es
 lo único que reduce la URL de Strapi a relativa de sitio y filtra el hotlink de tercero — el contrato de F1. Se

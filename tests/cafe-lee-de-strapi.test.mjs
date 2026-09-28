@@ -101,7 +101,7 @@ test('cafe.ts no conoce ningún archivo de public/: ni la tabla ni las rutas', (
   assert.doesNotMatch(codigo, /nombre\.includes\(/);
 });
 
-test('src/ menciona exactamente las 6 piezas de cafe-menu que se consignaron, ni una más ni una menos', () => {
+test('src/ menciona exactamente las 2 piezas de cafe-menu que se consignaron, ni una más ni una menos', () => {
   const usadas = new Set();
   for (const rel of archivosSrc()) {
     for (const m of fuente(rel).matchAll(RE_PIEZA)) usadas.add(m[1]);
@@ -109,15 +109,11 @@ test('src/ menciona exactamente las 6 piezas de cafe-menu que se consignaron, ni
   const ESPERADAS = [
     'promo-duos-perfectos',
     'promo-reutilizable',
-    'visitante-angelitas',
-    'visitante-colibri',
-    'visitante-dona-nelly',
-    'visitante-guamo',
   ];
   assert.deepEqual(
     [...usadas].sort(),
     ESPERADAS,
-    `las 4 proveedor-* y las 9 de ítems se jubilaron con D8; si vuelven acá es un relleno de imagen, y la decisión aprobada es «Strapi único dueño, sin fallbacks de imagen»`,
+    `las 4 proveedor-* y las 9 de ítems se jubilaron con D8, y las 4 visitante-* con D9 (el relleno no se pintaba en producción: el sitio manda token y la BD contesta 200); si vuelven acá es un relleno de imagen, y la decisión aprobada es «Strapi único dueño, sin fallbacks de imagen»`,
   );
   // Y la misma cota sin depender de cómo esté escrita la ruta: los 13 archivos que D8 jubiló no
   // aparecen por su nombre en ningún archivo de `src/`. Un `'/images/cafe-' + 'menu/x.webp'` le
@@ -127,8 +123,9 @@ test('src/ menciona exactamente las 6 piezas de cafe-menu que se consignaron, ni
     'aromatica-flora-nativa', 'cold-brew-ambala', 'chocolate-cacao-local', 'pan-yuca-miel',
     'queso-cumbre-arepa',
     'proveedor-meliponario', 'proveedor-familia-cardona', 'proveedor-finca-cumbre', 'proveedor-cacao-espinal',
+    'visitante-colibri', 'visitante-angelitas', 'visitante-guamo', 'visitante-dona-nelly',
   ];
-  assert.equal(JUBILADAS.length, 13, '9 láminas de ítem + 4 de proveedor: si cambia la cuenta, este teste se lee otra vez');
+  assert.equal(JUBILADAS.length, 17, '9 láminas de ítem + 4 de proveedor + 4 de visitante: si cambia la cuenta, este teste se lee otra vez');
   for (const tallo of JUBILADAS) {
     const vivas = archivosSrc().filter((rel) => fuente(rel).includes(tallo));
     assert.deepEqual(vivas, [], `${tallo}.webp volvió a nombrarse en ${vivas.join(', ')}`);
@@ -159,6 +156,15 @@ test('el relleno conserva sus filas: 17 preparaciones y 4 proveedores, solo sin 
   assert.equal([...home.matchAll(/foto: null/g)].length, 4);
   assert.equal([...home.matchAll(/foto:\s*\{/g)].length, 0, 'un literal de foto volvió a fallbackProveedores');
   assert.equal([...home.matchAll(/^  \{ nombre: '/gm)].length, 4);
+
+  // Las 4 historias del home: D9 jubiló sus láminas (se pintaban desde Strapi, no desde public/),
+  // las filas siguen siendo el texto que se sirve con la base caída.
+  assert.equal([...home.matchAll(/imagen: null/g)].length, 4, 'FALLBACK_HISTORIAS_HOME perdió o ganó filas');
+  assert.equal([...home.matchAll(/imagen:\s*\{/g)].length, 0, 'un literal de imagen volvió a FALLBACK_HISTORIAS_HOME');
+
+  const visitors = fuente('src/pages/cafe/visitantes.astro');
+  assert.equal([...visitors.matchAll(/^      imagen: null,$/gm)].length, 9, 'las 9 historias del relleno de visitantes: 3 por categoría');
+  assert.equal([...visitors.matchAll(/imagen:\s*'/g)].length, 0, 'un literal de imagen volvió al FALLBACK de visitantes.astro');
 });
 
 test('las 19 piezas de cafe-menu siguen en disco: las referencia el bundle desplegado hasta el deploy', () => {

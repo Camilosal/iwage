@@ -336,11 +336,16 @@ const AGUJAS_SEMILLA = [
 
 // Excepciones DECLARADAS y ya falladas por el controller — no se "arreglan", se nombran (se citan
 // por símbolo, no por línea: las líneas se mueren, los símbolos no):
-//  · `FALLBACK_HISTORIAS_HOME` (pages/cafe/index.astro): 4 registros cuyas imágenes son archivos
-//    producidos y versionados (`/images/cafe-menu/visitante-*.webp`), no stock ajeno ni rutas 404.
-//    Re-medido el 2026-09-27 para D8: sigue siendo lo que se pinta, porque `historia-visitantes`
-//    responde **403** al rol Public y `getHistoriasVisitantes()` devuelve `[]`. Lo retira **G7/D9**
-//    (permisos públicos), no la Tarea 12/13: la tabla ya tiene 9 filas con `imagen` escrita.
+//  · `FALLBACK_HISTORIAS_HOME` (pages/cafe/index.astro): la entrada la piden los 4
+//    `documentId: 'fb-h1'…'fb-h4'` cuñados a mano, no las imágenes — las cuatro láminas
+//    `visitante-*.webp` se jubilaron el 2026-09-28 con **D9**. D8 había escrito acá «sigue siendo lo
+//    que se pinta, porque `historia-visitantes` responde 403», y esa generalización estaba mal
+//    medida: el 403 es del rol Public **sin token**, y el sitio desplegado sí tiene token
+//    (`iwage_web` define `STRAPI_API_TOKEN`; medido desde ese contenedor, la misma ruta contesta
+//    **200 con token / 403 sin token**). El HTML que `:4321` ya servía en `/cafe` traía
+//    `/uploads/visitante_*.webp`, o sea que las rutas locales estaban muertas también acá. Lo que D9
+//    arregla no es la producción: es el camino sin token (previews, CI, y el día que la credencial
+//    se rote o venza).
 //  · `FALLBACK_INICIATIVAS` (pages/naturaleza/impacto.astro): métricas sin verificar («1.200
 //    plántulas», «12 becados», «60% avance»), no medios. Medido el 2026-09-25, la tabla
 //    `iniciativas` tiene 0 filas, así que no es el camino raro: es lo que se sirve en cada visita.
