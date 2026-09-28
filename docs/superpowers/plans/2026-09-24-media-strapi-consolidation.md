@@ -1955,6 +1955,40 @@ del rango `851ff10..HEAD`): se volvió a construir y crawlear aparte, las nueve 
 sección «Tercera re-medición» del informe. Ocho no se mueven; la fila 1 sube de 134 a 136 y la
 diferencia está atribuida a dos fichas de anfitrión concretas, no heredada ni supuesta.
 
+**Retiro de huérfanas `.webp` — medido el 2026-09-28 y **BLOQUEADO detrás de un redeploy de `iwage_web`**.**
+No se borró ningún archivo; el tree sigue en `214147e` y los testes en verde (369/369). Qué se midió y por
+qué no toca borrar todavía:
+
+- **Las 65 huérfanas** (fila 6: 36 `bitacora` + 12 `galeria` + 17 `cafe-menu`). Cruzadas contra la media
+  library de Strapi (`/tmp/uploads-list.txt`, 310 archivos): **62 tienen gemelo de mismo `stem` en
+  `/uploads` y 3 no** — `bitacora-calendario-manejo.webp`, `bitacora-red-meliponicultores.webp` y
+  `cafe-menu/pan-yuca-miel.webp`. Los 3 son la **única copia**; jubilarse es decisión de contenido del
+  dueño (enlazarlos a Strapi o aceptar el mosaico Icon), no limpieza de duplicados; además los dos
+  testes nombrados abajo los exigen en disco.
+- **La laguna del md5 se resolvió por píxeles, no por hash.** Los 62 gemelos difieren en bytes (Strapi los
+  recodificó al importar) pero son **la misma imagen**: 57 con aHash 8×8 a distancia 0 y dHash 16×16 a 0,
+  y los otros 5 con dHash 16×16 ≤ 4/256, dimensiones idénticas (1200×675 / 1200×805) y ratio de tamaño
+  0,89–0,98 — huella de un recodificado con pérdida, no de contenido distinto. O sea: son duplicados
+  verdaderos; `/uploads` ya sirve esos mismos píxeles. Manifesto completo (md5 de ambas copias, dims,
+  distancia) en `/tmp/task16-manifest.json` (no versionado).
+- **Referencias.** El **repo** no las pinta: `src/` tiene 0 referencias vivas a las 62 (la única
+  coincidencia es `proyecto-ambala-1.webp` dentro del bloque `{/* … */}` de `meliponas/index.astro:152-166`;
+  la regla `LOCAL_IMAGES` ya cayó con D8). Pero el **bundle desplegado** (`/app/dist` de `iwage_web`,
+  anterior a D8/G5) **todavía las referencia las 65** — medido con `grep -rhoE '/images/(bitacora|galeria|cafe-menu)/…'`
+  sobre el contenedor. Por eso la fila 6 no se mueve sin desplegar antes: el sitio en producción las sirve
+  desde su capa de imagen horneada, y el retiro tiene que ocurrir con el bundle que ya no las menciona.
+- **El gate está escrito y blindado por testes**, no es burocracia: `tests/cafe-lee-de-strapi.test.mjs`
+  afirma `readdirSync(public/images/cafe-menu).filter(webp).length === 19` con el mensaje *«se borran
+  después del deploy (D10), no con D8»*, y `tests/media-alias-propuesto.test.mjs` hace `existsSync()` sobre
+  cada fuente del envase. Borrar ahora pone rojos esos testes y, con un redeploy prematuro, quitaría
+  archivos que el bundle vivo aún emite.
+- **Receta para cuando el dueño autorice el redeploy** (`docker compose build iwage_web && up -d`): tras
+  verificar que el bundle nuevo emite 0 rutas `/images/{huérfanas}` y las 185 URLs siguen 200,
+  `git rm` de las 62 (recuperables por `git show <commit>^:ruta` **y** por copia a
+  `/home/ubuntu/backup/huerfanas-f3-<fecha>/` con MANIFEST+RESTORE), voltear la guarda de `cafe-lee-de-strapi`
+  a su expectativa post-deploy (de 19 a las 6 que sobreviven por diseño), y **consignar las 3 restantes**
+  como decisión de contenido. Nada de esto se ejecutó acá porque un deploy requiere 'sí' explícito del dueño.
+
 **Files:**
 - Create: `docs/superpowers/metrics/2026-09-XX-inventario-medios-post.md` (fecha del día de ejecución)
 
