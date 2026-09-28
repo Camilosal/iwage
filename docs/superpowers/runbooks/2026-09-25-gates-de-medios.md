@@ -948,35 +948,166 @@ reescrito arriba con la contabilidad nueva), `strapi/scripts/media-alias-propues
 (cuentas 66/35/31/6/14, inventario extendido a `cafe-menu/` —67 archivos—, y la guard de duplicados convertida de
 absoluta a «declarada»). `npm test` **353/353**. Nada empujado, nada desplegado.
 
+### Resuelto el 2026-09-27 (decisión D7): las caras son generadas, el hotlink venía de tres seeds, y el conducto se cerró
+
+**Qué estaba abierto.** D6 cerró escribiendo nombres reales sobre láminas generadas y dejó consignado que
+las caras de `proveedor-*` / `visitante-*` seguían con procedencia sin resolver. Dos retratos estaban peor:
+`don-hernando-caficultor` y `luz-elenia-herbalista` salen en el sitio con nombre y apellido, y su foto es un
+banco de imágenes —igual que el territorio de los dos y la miniatura de video de don Hernando. La puerta G4
+pone a cero esos valores en la base, pero es `UPDATE` de contenido y **es del dueño**; lo que sí era de esta
+ronda era tapar el conducto que los produce.
+
+**La procedencia, medida en los 80 archivos locales.** `0` conservan EXIF y `2` traen ICC. Los lienzos son los
+nativos de los generadores: `1024×1024` en 22 archivos y `1376×768` en 7 —el cuadrado y el panorámico de DALL·E
+3—, y el resto es redimensionado (`1200×675` en 36, `1200×805`, `1200×896`). Ninguna persona del sitio viene de
+una cámara cuyo archivo esté en este repo. Eso no demuestra que nadie sea falso; demuestra que **el repo no
+tiene trazabilidad para afirmar que sean reales**, y eso es lo que había que decir antes de seguir poniéndoles
+nombre y calificación promedio en el JSON-LD.
+
+**De dónde salía el hotlink — el hallazgo útil de la ronda.** Las 10 celdas no las escribió nadie en el panel:
+son el producto de tres seeds versionados. `strapi/scripts/seed-experiencias-demo.mjs` llevaba los ocho valores
+soltos (dos retratos, dos territorios, una miniatura, dos heroes, un mapa) más los ítems de galería y el
+`link_drone`; `completar-fichas-experiencias.mjs`, dos mapas y seis ítems de galería (uno de ellos en
+`s2.wklcdn.com`, el CDN de Unsplash, que ni siquiera es el host que se enlazaba); `seed-proyectos.mjs`, un
+hotlink de galería y el rickroll. Mientras los seeds quedaran intactos, cualquier re-run reproducía la deuda
+entera. Se borraron 24 + 34 + 2 líneas verificadas una por una, con inserciones `0` salvo las notas.
+
+La regla de escritura fue **omitir la clave, nunca ponerla en `null`**: un `PUT` con `null` desde un re-run
+también borraría la foto real que el dueño suba mañana, y eso sería cambiar un footgun por otro. Los cuatro
+arreglos de galería quedaron en `[]`.
+
+**Candado: `tests/semillas-sin-hotlinks.test.mjs`.** Barre `strapi/scripts/**/*.mjs`, extrae todo literal
+`http(s)://` y muere si coincide con `images.unsplash.com`, `unsplash.com`, `wklcdn.com`, `picsum.photos`,
+`placehold.co`, `via.placeholder.com`, `dQw4w9WgXcQ` o `momento360.com/e/u/demo`. Dientes probados con mutante:
+reponiendo el ítem de `seed-proyectos.mjs:275` falla nombrando el patrón y la razón. El segundo teste exige que
+cada patrón tenga su muestra y que nadie encoja la lista para que pase (`PROHIBIDAS.length === muestra.length`),
+y que el barrido no sea vacío (`archivos >= 18`, los tres seeds citados deben existir).
+
+**El allowlist de embeds estaba anclado mal, y ya no.** `HOST_EMBED` era una alternancia sin anclar el final,
+así que cualquier tercero cuyo nombre trajera ese trozo pasaba por proveedor: `fotos-panoramicas-360.com` se
+pintaba como tour propio y `notyoutube.com` se clasificaba como YouTube. Hoy es lista cerrada con frontera de
+dominio (`(^|\.)(…)$`). `classify()` **sigue** razonando por parecido y así se quedó, probado con mutante:
+anclarlo también no cambia una sola salida, porque por diseño no le llega nada que no esté en `HOST_EMBED`.
+La guard nueva es `tests/media.test.mjs` («proveedor de embed por host exacto, no por parecido del nombre»):
+8 proveedores que deben pintar y 6 hosts imitados que no pueden llegar a la plantilla ni por `mediaSrc()` ni
+por `toMediaItem()`. Con el allowlist flojo, ese teste falla nombrando `fotos-panoramicas-360.com`.
+
+**Corrección de una cifra que este runbook venía repitiendo mal.** Decía 12 celdas / 18 URLs / 7 columnas de
+Unsplash. Recontado columna por columna el 2026-09-27: **10 / 15 / 6**. El error era la columna
+`anfitriones.galeria_fotos`, que G2 jubiló del esquema —por ese mismo motivo la consulta de verificación
+publicada en G4 reventaba en `psql`— y las 3 URLs descontadas eran las de esa columna. La cifra de
+placeholders (**5 celdas / 6 ocurrencias**) sí seguía bien, y conviene cómo la rompí: el primer recuento que
+hice dio 4/5 porque dejé `anfitriones.video_url` fuera de la consulta. Son **dos columnas homónimas en dos
+tablas** y las dos contienen el rickroll; quien recuente esta puerta tiene que nombrar las dos cada vez.
+Worklist con `documentId` y las dos queries que corren: en G4, reescrito en esta misma ronda.
+
+**Qué se sirve hoy, medido por la ruta de lectura y no por deducción.** Sonda contra el Strapi vivo con el token
+de G3: los dos heroes, los dos territorios, los dos retratos, la miniatura, el mapa y los 7 ítems de tercero de
+las dos galerías salen `null`; `anfitrionFoto()` devuelve `null` para los dos anfitriones. Pero pasan y se pintan los
+cinco embeds de ejemplo: el rickroll de `experiencias.video_url`, el de `experiencias.link_drone`, la demo de
+`momento360` de `tour_360_url` y los dos que viven dentro de `galeria_urls` (ítems `video` y `tour360` de la
+ficha `amanecer-en-el-bosque-de-niebla`); y el rickroll de `anfitriones.video_url`, enlazado en la ficha de don
+Hernando. Y en producción (`iwage.co`, bundle previo a G8) aún se sirven las URLs de
+Unsplash en el HTML de esas dos fichas: **F1 neutraliza en el bundle nuevo, no en el publicado.** Consecuencia:
+al día siguiente de D10 el sitio deja de mentir con las fotos y empieza a montar un video de burla y un tour de
+muestra en una ficha publicada. Ese es, exactamente, el trabajo que queda en G4.
+
+**Qué cambió en el repo.** `src/lib/media.ts` (`HOST_EMBED` anclada + el docstring de `esPintable` reescrito con
+las cifras medidas y la verdad incómoda de los dos embeds que sí pasan), `tests/media.test.mjs` (+1 teste),
+`tests/semillas-sin-hotlinks.test.mjs` (nuevo, 2 testes) y los tres seeds. `npm test` **356/356** (353 antes de
+esta ronda). Nada empujado, nada desplegado.
+
 ## G4 · Vaciar Unsplash y placeholders en la base
 
-**Desbloquea:** que el admin no muestre como contenido lo que el sitio ya se niega a pintar.
-`esPintable()` dejó de pintarlo en F1, pero el valor sigue en la BD: **12 celdas con 18 URLs** de
-Unsplash en 7 columnas de 2 tablas, y **5 celdas con 6 ocurrencias** de embeds placeholder (tres
-rickroll, una demo de momento360 y una quinta dentro del json de `experiencias.galeria_urls`).
+**Desbloquea:** que el admin no muestre como contenido lo que el sitio ya se niega a pintar, y que el día
+después de G8 no quede un rickroll montado en una ficha publicada. `esPintable()` dejó de pintar los hotlinks
+en F1 y D7 cerró el conducto (los tres seeds que los reproducían ya no tienen ni uno), pero el valor sigue en
+la BD. **Recontado columna por columna el 2026-09-27: 10 celdas con 15 URLs de Unsplash en 6 columnas de 2
+tablas** (13 URLs distintas, 12 fotos distintas; tres fotos reutilizadas en dos celdas cada una), **y 5 celdas
+con 6 ocurrencias de embed de ejemplo** (2 URLs distintas: el rickroll cuatro veces y la demo de momento360 dos;
+una de las celdas es `anfitriones.video_url`, columna distinta de la homónima de `experiencias`). La triple de
+Unsplash que venía repitiendo este runbook —12/18/7— estaba vieja: contaba la columna `anfitriones.galeria_fotos`,
+que G2 jubiló del esquema, y por ese mismo motivo la consulta de verificación publicada aquí reventaba en
+`psql`. Las dos queries que sí corren están abajo.
 
-Verificación en un solo número (debe dar 12 hoy y 0 después):
+**Worklist Unsplash** (columna · `id` · `documentId` · `slug` · URLs en esa celda):
+
+- `anfitriones.foto_perfil_url` · 1 · `afsqwymyai7ayu422xxk6evh` · don-hernando-caficultor · 1
+- `anfitriones.foto_perfil_url` · 2 · `pi5eegjukneax6rgk0ox6y1i` · luz-elenia-herbalista · 1
+- `anfitriones.foto_territorio` · 1 · `afsqwymyai7ayu422xxk6evh` · don-hernando-caficultor · 1
+- `anfitriones.foto_territorio` · 2 · `pi5eegjukneax6rgk0ox6y1i` · luz-elenia-herbalista · 1
+- `anfitriones.video_thumbnail` · 1 · `afsqwymyai7ayu422xxk6evh` · don-hernando-caficultor · 1
+- `experiencias.imagen_hero_url` · 1 · `h9ct6yd2cxmwnkusv6gigkh9` · amanecer-en-el-bosque-de-niebla · 1
+- `experiencias.imagen_hero_url` · 2 · `b3go6nqasmwpp605ys0waoyg` · jardin-medicinal-y-saberes-de-montana · 1
+- `experiencias.galeria_urls` · 1 · `h9ct6yd2cxmwnkusv6gigkh9` · amanecer-en-el-bosque-de-niebla · **4**
+- `experiencias.galeria_urls` · 2 · `b3go6nqasmwpp605ys0waoyg` · jardin-medicinal-y-saberes-de-montana · **3**
+- `experiencias.mapa_imagen_url` · 1 · `h9ct6yd2cxmwnkusv6gigkh9` · amanecer-en-el-bosque-de-niebla · 1
+
+Total 10 celdas · 15 URLs. **Tres filas concentran 8 de las 10**: `anfitriones` 1 aporta 3,
+`anfitriones` 2 aporta 2 y `experiencias` 1 aporta 3; la experiencia 2 cierra con 2.
+
+**Worklist placeholders**: cuatro de las cinco celdas son la misma ficha, `amanecer-en-el-bosque-de-niebla`
+(`experiencias` id 1 · `h9ct6yd2cxmwnkusv6gigkh9`), y la quinta es la de don Hernando (`anfitriones` id 1 ·
+`afsqwymyai7ayu422xxk6evh`):
+
+- `experiencias.video_url` · 1 · `https://www.youtube.com/watch?v=dQw4w9WgXcQ`
+- `experiencias.link_drone` · 1 · `https://www.youtube.com/watch?v=dQw4w9WgXcQ`
+- `experiencias.tour_360_url` · 1 · `https://momento360.com/e/u/demo`
+- `experiencias.galeria_urls` · 1 · contiene **además** el rickroll y la demo, como ítems `video` y `tour360`
+- `anfitriones.video_url` · 1 · `https://www.youtube.com/watch?v=dQw4w9WgXcQ`
+
+Las **cinco** se sirven hoy: `video_url`, `link_drone` y `tour_360_url` salen como enlaces clicables en la ficha
+de la experiencia, los dos ítems de `galeria_urls` como material de su galería, y el de `anfitriones` como el
+enlace de video de la ficha del anfitrión. A `esPintable()` le parecen
+legítimos —son YouTube y son momento360—, así que jubilarse con F1 no los toca: `dQw4w9WgXcQ` y
+`momento360.com/e/u/demo` pasan y se pintan.
+
+Verificación en dos números (deben dar **10** y **5 celdas / 6 ocurrencias** hoy, y **0** después):
 
 ```sql
-select (select count(*) from anfitriones where foto_perfil_url  like '%unsplash%')
-     + (select count(*) from anfitriones where foto_territorio::text like '%unsplash%')
-     + (select count(*) from anfitriones where galeria_fotos::text   like '%unsplash%')
-     + (select count(*) from anfitriones where video_thumbnail::text like '%unsplash%')
-     + (select count(*) from experiencias where imagen_hero_url::text like '%unsplash%')
-     + (select count(*) from experiencias where galeria_urls::text    like '%unsplash%')
-     + (select count(*) from experiencias where mapa_imagen_url::text like '%unsplash%') as celdas;
+-- (1) celdas con hotlink de imagen de tercero — hoy 10
+with c as (
+  select x.col, x.id
+  from (
+    select 'foto_perfil_url' col, id, coalesce(foto_perfil_url::text,'')  v from anfitriones
+    union all select 'foto_territorio', id, coalesce(foto_territorio::text,'')  from anfitriones
+    union all select 'video_thumbnail', id, coalesce(video_thumbnail::text,'')  from anfitriones
+    union all select 'imagen_hero_url', id, coalesce(imagen_hero_url::text,'')  from experiencias
+    union all select 'galeria_urls',    id, coalesce(galeria_urls::text,'')     from experiencias
+    union all select 'mapa_imagen_url', id, coalesce(mapa_imagen_url::text,'')  from experiencias
+  ) x where x.v ~* 'unsplash|wklcdn|picsum\.photos|placehold'
+) select count(*) as celdas from c;
+
+-- (2) celdas y ocurrencias de embed de ejemplo — hoy 5 celdas / 6 ocurrencias
+with c as (
+  select x.col, x.id, (regexp_matches(x.v,'https?://[^"\\ ,]+','g'))[1] as url
+  from (
+    select 'video_url' col, id, coalesce(video_url::text,'') v from experiencias
+    union all select 'tour_360_url', id, coalesce(tour_360_url::text,'') from experiencias
+    union all select 'link_drone', id, coalesce(link_drone::text,'') from experiencias
+    union all select 'galeria_urls', id, coalesce(galeria_urls::text,'') from experiencias
+    union all select 'anf_video_url', id, coalesce(video_url::text,'')   from anfitriones
+  ) x
+) select count(distinct (col,id)) as celdas, count(*) as ocurrencias from c
+    where url ~* 'dQw4w9WgXcQ|momento360\.com/e/u/demo';
 ```
+
+Ambas queries son de solo lectura y corren con `docker exec -i sostenibilidad_db psql -U admin -d iwage
+-f - < archivo.sql`; el `::text` en `galeria_urls` es obligatorio porque la columna es `jsonb` y sin él
+Postgres la tira con `operator does not exist: jsonb ~~*`.
 
 Dos cosas que son **decisión de contenido**, no limpieza:
 
-- `don-hernando-caficultor` y `luz-elenia-herbalista` tienen su retrato puesto con un stock de
-  Unsplash, presentados como su cara con nombre y apellido reales. Retirar sin más deja la ficha
-  sin foto (el mosaico Icon ya está diseñado para eso); reemplazar pide foto real.
-- La quinta celda de placeholder **no se pone a `null`**: hay que reescribir el json quitando los
-  dos ítems, porque `galeria_urls` es la única galería que tienen las 2 experiencias publicadas.
+- `don-hernando-caficultor` y `luz-elenia-herbalista` tienen su retrato puesto con un stock de Unsplash,
+  presentados como su cara con nombre y apellido reales. Retirar sin más deja la ficha sin foto (el mosaico
+  Icon ya está diseñado para eso); reemplazar pide foto real.
+- Las 2 celdas de `galeria_urls` **no se ponen a `null`**: hay que reescribir el json quitando los ítems,
+  porque `galeria_urls` es la única galería que tienen las 2 experiencias publicadas.
 
-Y si en G2 se autorizó el retiro de `galeria_fotos` / `*_url`, esta puerta puede absorberse en el
-mismo `UPDATE` posterior a G3 — pero después de G3, nunca antes.
+Y si en G2 se autorizó el retiro de `galeria_fotos` / `*_url`, esta puerta puede absorberse en el mismo
+`UPDATE` posterior a G3 — pero después de G3, nunca antes. Antes de tocar cualquier fila: volcado previo
+(el `pg_dump` de la puerta), y en el mismo commit la receta de recuperación, porque estos valores son el
+único registro de qué había.
 
 ## G5 · Grupo C: retirar del esquema los últimos campos `string`
 

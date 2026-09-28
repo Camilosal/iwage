@@ -7,6 +7,15 @@
  *   node strapi/scripts/seed-experiencias-demo.mjs
  *
  * Requires Strapi running at STRAPI_URL (default http://localhost:1338)
+ * NOTA D7 (2026-09-27): se borraron de aquí los `foto_perfil_url`, `foto_territorio`,
+ * `video_thumbnail`, `imagen_hero_url`, `mapa_imagen_url`, `video_url`, `tour_360_url`,
+ * `link_drone` y los ítems de galería que apuntaban a Unsplash, a `s2.wklcdn.com` y al
+ * placeholder de YouTube (`dQw4w9WgXcQ`). Eran el ORIGEN medido de las 10 celdas con
+ * hotlinks y de las 5 con placeholders que hoy están en la BD (runbook G4), incluidas las
+ * caras de stock de dos anfitriones con nombre real. Los keys se OMITEN, no se ponen a
+ * `null`: un PUT con `null` también borraría la foto real que el dueño ponga después. Las
+ * galerías quedan vacías y `galeria_fotos` es un campo que ya no existe en el esquema.
+ * El candado está en `tests/semillas-sin-hotlinks.test.mjs`.
  */
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1338';
@@ -48,20 +57,13 @@ const ANFITRIONES = [
     slug: 'don-hernando-caficultor',
     nombre: 'Don Hernando Martínez',
     especialidad: 'Caficultor y guía de bosque de niebla',
-    foto_perfil_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&q=80',
-    video_thumbnail: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=70',
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     manifiesto: 'La montaña no se conquista, se escucha. Cada paso que das en mi finca es un paso que da el bosque para respirar.',
     momento_favorito: 'Cuando la niebla se levanta a las 5:40am y los guaduales suenan como un río verde.',
     arraigo: 'Nací en esta vereda. Mi abuelo sembró los primeros cafetos en 1952 y yo sigo aquí, cuidando lo que él empezó.',
     historia_personal: 'Soy tercera generación de caficultores en la vereda La Palma. Después de estudiar agronomía en Ibagué, volví a la finca para transformar el cultivo tradicional en un sistema agroforestal que hoy protege 12 hectáreas de bosque andino. Desde 2019 abrí las puertas de mi finca para que viajeros del mundo entiendan que una taza de café puede salvar un bosque.',
     anos_en_territorio: 58,
     generaciones_familia: 3,
-    foto_territorio: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=70',
-    galeria_fotos: [
-      { url: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=70', caption: 'Cafetal bajo sombra', tipo: 'image' },
-      { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=70', caption: 'Bosque de niebla', tipo: 'image' },
-    ],
+    galeria_fotos: [],
     nivel_escalafon: 4,
     nombre_escalafon: 'Guardián',
     descripcion_escalafon: 'Referente territorial con liderazgo en conservación.',
@@ -102,7 +104,6 @@ const ANFITRIONES = [
     slug: 'luz-elenia-herbalista',
     nombre: 'Luz Elenia Rojas',
     especialidad: 'Herbalista y tejedora de saberes ancestrales',
-    foto_perfil_url: 'https://images.unsplash.com/photo-1544005516-d186bc47c4e8?w=300&q=80',
     video_thumbnail: null,
     video_url: null,
     manifiesto: 'Las plantas hablan si uno sabe callar. Yo solo traduzco lo que la montaña quiere decir.',
@@ -111,10 +112,7 @@ const ANFITRIONES = [
     historia_personal: 'Soy herbalista y agricultora regenerativa. Aprendí de mi abuela el uso de más de 80 plantas medicinales del bosque andino. Hoy combino ese saber ancestral con técnicas de permacultura para crear un jardín que alimenta, cura y enseña. Mis caminatas botánicas son un viaje al conocimiento que la montaña guarda.',
     anos_en_territorio: 45,
     generaciones_familia: 5,
-    foto_territorio: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=70',
-    galeria_fotos: [
-      { url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=70', caption: 'Jardín medicinal', tipo: 'image' },
-    ],
+    galeria_fotos: [],
     nivel_escalafon: 3,
     nombre_escalafon: 'Raíz',
     descripcion_escalafon: 'Impacto ambiental demostrado y comunidad fiel.',
@@ -172,19 +170,7 @@ const EXPERIENCIAS = [
     descripcion_fondo_impacto: 'El 2.5% de tu inversión se destina al Fondo Semillas de Niebla para la siembra de árboles nativos en corredores biológicos.',
     es_destacado: true,
     publicado: true,
-    imagen_hero_url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&q=80',
-    galeria_urls: [
-      { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=70', tipo: 'image', titulo: 'Sendero entre guaduales' },
-      { url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=70', tipo: 'image', titulo: 'Valle al amanecer' },
-      { url: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=70', tipo: 'image', titulo: 'Cafetal bajo sombra' },
-      { url: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800&q=70', tipo: 'image', titulo: 'Rayos de sol entre la niebla' },
-      { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', tipo: 'video', titulo: 'Recorrido completo' },
-      { url: 'https://momento360.com/e/u/demo', tipo: '360', titulo: 'Mirador 360°' },
-    ],
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    tour_360_url: 'https://momento360.com/e/u/demo',
-    link_drone: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    mapa_imagen_url: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=70',
+    galeria_urls: [],
     highlights: [
       'Caminata al alba entre niebla y guaduales centenarios',
       'Cata de café de especialidad en cocina de leña',
@@ -304,12 +290,7 @@ const EXPERIENCIAS = [
     descripcion_fondo_impacto: 'El 2% apoya el Banco Comunitario de Semillas de la vereda La Palma.',
     es_destacado: true,
     publicado: true,
-    imagen_hero_url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&q=80',
-    galeria_urls: [
-      { url: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&q=70', tipo: 'image', titulo: 'Jardín de hierbas' },
-      { url: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=800&q=70', tipo: 'image', titulo: 'Infusión artesanal' },
-      { url: 'https://images.unsplash.com/photo-1508610048659-a06b669e3321?w=800&q=70', tipo: 'image', titulo: 'Plantas medicinales' },
-    ],
+    galeria_urls: [],
     video_url: null,
     tour_360_url: null,
     link_drone: null,

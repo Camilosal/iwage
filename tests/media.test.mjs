@@ -251,3 +251,28 @@ test('embedSrc: convierte YouTube, Vimeo y Drive a su reproductible', () => {
   assert.equal(embedSrc('/uploads/x.mp4'), '/uploads/x.mp4');
   assert.equal(embedSrc('https://docs.google.com/spreadsheets/d/1AbC'), 'https://docs.google.com/spreadsheets/d/1AbC');
 });
+
+/**
+ * La lista de proveedores de embed estaba sin anclar —`(youtu\.?be|vimeo|matterport|kuula|360|pano|tourmkr)`—,
+ * así que bastaba con parecerse. Medido contra la regex vieja y la nueva, hosts que ANTES pasaban
+ * por proveedor: `fotos-panoramicas-360.com` (y `classify()` lo etiquetaba `tour360`: un `<iframe>`
+ * con material ajeno), `panoramica.example.com`, `notyoutube.com`, `vimeo-clone.tk`. Hoy la lista
+ * es cerrada y con frontera de dominio (`(^|\.)…$`).
+ */
+test('esPintable: proveedor de embed por host exacto, no por parecido del nombre', () => {
+  for (const h of ['https://www.youtube.com/watch?v=abc', 'https://youtu.be/abc', 'https://player.vimeo.com/video/1',
+    'https://matterport.com/show/?m=X', 'https://my.matterport.com/show/?m=X', 'https://kuula.co/share/X',
+    'https://drive.google.com/x', 'https://momento360.com/e/u/X']) {
+    assert.equal(esPintable(h), true, `dejó de pintar un proveedor conocido: ${h}`);
+  }
+  for (const h of ['https://fotos-panoramicas-360.com/a.jpg', 'https://panoramica.example.com/miel.webp',
+    'https://notyoutube.com/a.jpg', 'https://vimeo-clone.tk/a.jpg', 'https://watch-youtube.online/a.jpg',
+    'https://mykuula.co/a.jpg']) {
+    assert.equal(esPintable(h), false, `se cuela por parecido de nombre: ${h}`);
+    assert.equal(mediaSrc(h), null);
+    assert.equal(toMediaItem(h), null, `${h}: material de tercero llegó a la plantilla`);
+  }
+  // El host manda con frontera: ni el `kind` ni el `provider` se deciden por parecidos.
+  assert.equal(toMediaItem('https://my.matterport.com/show/?m=X').kind, 'tour360');
+  assert.equal(toMediaItem('https://www.youtube.com/watch?v=abc').provider, 'youtube');
+});

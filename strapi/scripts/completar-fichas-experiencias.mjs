@@ -8,6 +8,12 @@
  * - Conecta la propiedad de Tierras "Finca El Mirador" a ambas experiencias.
  *
  * Uso: node strapi/scripts/completar-fichas-experiencias.mjs
+ * NOTA D7 (2026-09-27): fuera los dos `mapa_imagen_url` y los seis ítems de `galeria_urls`
+ * que hotlinkeaban Unsplash y `s2.wklcdn.com` —material de tercero que `esPintable()` se
+ * niega a pintar, así que escribirlo era meter basura en la BD. Quedan el video de YouTube
+ * y el tour de roundme (procedencia no verificada, consignada en el runbook G4). Candado:
+ * `tests/semillas-sin-hotlinks.test.mjs`. Los keys se omiten, nunca `null`: un PUT con
+ * `null` también borraría la foto real que el dueño ponga después.
  */
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1338';
@@ -24,8 +30,6 @@ const FICHAS = [
       descripcion_fondo_impacto:
         'El 2% de tu reserva financia el vivero de robles nativos y la protección de los nacimientos de agua de la vereda Ambalá, en el Cañón del Combeima.',
       link_drone: 'https://www.youtube.com/watch?v=F3a3gHtiT1o',
-      mapa_imagen_url:
-        'https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1200',
       seo_titulo: 'La Ruta de la Niebla y el Café · Iwagé Naturaleza',
       seo_descripcion:
         'Camina el bosque de niebla del Cañón del Combeima con anfitriones locales: aves endémicas, botánica ancestral y desayuno campesino a la leña. Desde $85.000 COP.',
@@ -78,21 +82,6 @@ const FICHAS = [
         },
       ],
       galeria_urls: [
-        {
-          url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=1000',
-          tipo: 'image',
-          titulo: 'Paisaje andino',
-        },
-        {
-          url: 'https://s2.wklcdn.com/image_31/945142/7307725/4152557Master.jpg',
-          tipo: 'image',
-          titulo: 'Mirador de Ambala',
-        },
-        {
-          url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=1000',
-          tipo: 'image',
-          titulo: 'Bosque de niebla',
-        },
         {
           url: 'https://www.youtube.com/watch?v=F3a3gHtiT1o',
           tipo: 'video',
@@ -173,8 +162,6 @@ const FICHAS = [
       es_destacado: true,
       tour_360_url: 'https://roundme.com/tour/318047/view/1042784/',
       link_drone: 'https://www.youtube.com/watch?v=F3a3gHtiT1o',
-      mapa_imagen_url:
-        'https://images.unsplash.com/photo-1502920514313-52581002a659?auto=format&fit=crop&q=80&w=1200',
       seo_titulo: 'La Senda del Cacao Amazónico · Iwagé Naturaleza',
       seo_descripcion:
         'Vive el cacao fino de aroma desde la mazorca hasta la taza en una finca agroecológica gestionada por Iwagé. Cata de chocolate y bebida ancestral. Desde $110.000 COP.',
@@ -235,21 +222,6 @@ const FICHAS = [
         },
       ],
       galeria_urls: [
-        {
-          url: 'https://images.unsplash.com/photo-1542840410-3092f99611a3?auto=format&fit=crop&q=80&w=1000',
-          tipo: 'image',
-          titulo: 'Cosecha cacao',
-        },
-        {
-          url: 'https://images.unsplash.com/photo-1511381939415-e44015466834?auto=format&fit=crop&q=80&w=1000',
-          tipo: 'image',
-          titulo: 'Cacao en transformación',
-        },
-        {
-          url: 'https://images.unsplash.com/photo-1481391319762-47dff72954d9?auto=format&fit=crop&q=80&w=1000',
-          tipo: 'image',
-          titulo: 'Chocolate artesanal',
-        },
         {
           url: 'https://www.youtube.com/watch?v=F3a3gHtiT1o',
           tipo: 'video',

@@ -107,21 +107,34 @@ const TIPO_VIEJO: Record<string, MediaKind> = {
   imagen: 'imagen', image: 'imagen', video: 'video', '360': 'tour360', tour360: 'tour360', tour: 'tour360',
 };
 
-/** Hosts de terceros que SÍ son contenido legítimo del sitio (video y recorridos). */
-const HOST_EMBED = /(youtu\.?be|vimeo|drive\.google|matterport|kuula|360|pano|tourmkr)/i;
+/**
+ * Hosts de terceros que SÍ son contenido legítimo del sitio (video y recorridos). Cerrada y
+ * anclada con frontera de dominio: la versión anterior era `(360|pano)` sin anclar, así que
+ * cualquier tercero cuyo nombre llevara ese trozo pasaba por proveedor (`fotos-panoramicas-360.com`
+ * se pintaba como tour propio) y `notyoutube.com` se clasificaba como YouTube. `classify()` sigue
+ * razonando por parecido porque ya no le llega nada que no esté en esta lista: aflojar o anclar
+ * ahí no cambia una sola salida (medido con mutante el 2026-09-27).
+ */
+const HOST_EMBED = /(^|\.)(youtu\.be|youtube\.com|youtube-nocookie\.com|vimeo\.com|drive\.google\.com|matterport\.com|kuula\.co|tourmkr\.com|momento360\.com)$/i;
 
 /**
  * ¿Esta URL se puede pintar? Se puede cuando es nuestra (relativa o alguna de las
  * maneras de decir este sitio) o cuando es un proveedor de video/recorrido conocido.
  *
- * Lo que NO pasa: el hotlink de imagen de un tercero. Medido en la BD de Strapi hay
- * **12 filas con `images.unsplash.com`** repartidas en 7 columnas
- * (`anfitriones.foto_perfil_url|foto_territorio|video_thumbnail|galeria_fotos`,
- * `experiencias.imagen_hero_url|galeria_urls|mapa_imagen_url`); dos de ellas son el
- * retrato de stock de un anfitrión con nombre y apellido reales, presentado como su
- * cara. Y no solo mienten: el archivo está fuera del control del dueño del contenido,
- * así que un día deja de servir. La decisión aprobada fue «Strapi único dueño, sin
- * hotlinks de imagen», y el retiro de esas 12 filas es el Task 14 (`--apply`).
+ * Lo que NO pasa: el hotlink de imagen de un tercero. Medido otra vez el 2026-09-27 con esta
+ * misma regla sobre la BD viva: **10 celdas con 15 URLs** de `images.unsplash.com` en 6 columnas
+ * (`anfitriones.foto_perfil_url|foto_territorio|video_thumbnail`,
+ * `experiencias.imagen_hero_url|galeria_urls|mapa_imagen_url`); dos son el retrato de stock de dos
+ * anfitriones con nombre y apellido reales, presentados como su cara. Y no solo mienten:
+ * el archivo está fuera del control del dueño del contenido, así que un día deja de servir. La
+ * decisión aprobada fue «Strapi único dueño, sin hotlinks de imagen», y vaciar esas celdas es la
+ * puerta **G4** del dueño (un `UPDATE`), no algo que este reductor pueda hacer.
+ *
+ * Su límite, también medido: la regla frena la imagen de tercero, pero **no** al placeholder que
+ * vive en un host de embed permitido. Son 5 celdas con 6 ocurrencias de dos URLs: el rickroll
+ * (`youtube.com/watch?v=dQw4w9WgXcQ`) y la demo (`momento360.com/e/u/demo`) pasan y se sirven —enlace
+ * de video y tour— en la ficha de `amanecer-en-el-bosque-de-niebla` y en la de `don-hernando-caficultor`. Distinguirlos por forma es imposible —un `watch?v=` legítimo
+ * y la broma son el mismo string—, así que la única puerta es la data (G4).
  *
  * El filtro va en el reductor y no solo en `toMediaItem` porque hay superficies que
  * llaman a `mediaSrc()` directamente (`naturaleza` con `foto_territorio`, `cafe.ts`,

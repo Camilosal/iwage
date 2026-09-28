@@ -1,6 +1,10 @@
 // Seed script for enhanced Proyecto Meliponario (fichas de proyecto)
 // Run: node scripts/seed-proyectos.mjs
 // Requires: STRAPI_URL and STRAPI_API_TOKEN env vars
+// NOTA D7 (2026-09-27): fuera el ítem de galería con el placeholder de YouTube
+// (`dQw4w9WgXcQ`) y el hotlink de Unsplash: material de tercero que `esPintable()` se niega
+// a pintar. Los keys se omiten, nunca `null`, para que un re-run no borre contenido real.
+// Candado: `tests/semillas-sin-hotlinks.test.mjs`.
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
 const API_TOKEN = process.env.STRAPI_API_TOKEN || '';
@@ -128,7 +132,6 @@ const proyectos = [
     galeria: [
       { url: '/images/galeria/proyecto-cumbre-1.webp', tipo: 'imagen', titulo: 'Colmenas integradas al jardín del ecohotel' },
       { url: '/images/galeria/proyecto-cumbre-2.webp', tipo: 'imagen', titulo: 'Señalética QR de trazabilidad por colmena' },
-      { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', tipo: 'video', titulo: 'Recorrido virtual por el meliponario' },
     ],
     tipo: 'turismo',
     estado: 'activo',
@@ -272,7 +275,6 @@ const proyectos = [
     descripcion_corta: 'Paisajismo con 3 colmenas ornamentales en zonas comunes.',
     galeria: [
       { url: '/images/galeria/proyecto-poblado-1.webp', tipo: 'imagen', titulo: 'Colmenas en el jardín residencial' },
-      { url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&q=70', tipo: 'imagen', titulo: 'Corredor de polinizadores urbano' },
     ],
     tipo: 'residencial',
     estado: 'en-proceso',
