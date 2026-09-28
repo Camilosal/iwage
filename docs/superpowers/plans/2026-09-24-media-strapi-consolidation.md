@@ -1985,9 +1985,12 @@ qué no toca borrar todavía:
 - **Receta para cuando el dueño autorice el redeploy** (`docker compose build iwage_web && up -d`): tras
   verificar que el bundle nuevo emite 0 rutas `/images/{huérfanas}` y las 185 URLs siguen 200,
   `git rm` de las 62 (recuperables por `git show <commit>^:ruta` **y** por copia a
-  `/home/ubuntu/backup/huerfanas-f3-<fecha>/` con MANIFEST+RESTORE), voltear la guarda de `cafe-lee-de-strapi`
-  a su expectativa post-deploy (de 19 a las 6 que sobreviven por diseño), y **consignar las 3 restantes**
-  como decisión de contenido. Nada de esto se ejecutó acá porque un deploy requiere 'sí' explícito del dueño.
+  `/home/ubuntu/backup/huerfanas-f3-<fecha>/` con MANIFEST+RESTORE), y en `cafe-lee-de-strapi` voltear la
+  guarda de disco de 19 al conteo post-deploy: de las 17 huérfanas de café se retiran las **16 con gemelo**,
+  quedan en disco **3** (las 2 `promo-*` que sí se pintan — la otra guarda, `:104`, ya exige «exactamente
+  2» en `src/` y no se toca — más `pan-yuca-miel`, consignada). **Consignar las 3 restantes** (2 `bitacora`
+  sin gemelo + `pan-yuca-miel`) como decisión de contenido. Nada de esto se ejecutó acá porque un deploy
+  requiere 'sí' explícito del dueño.
 
 **Files:**
 - Create: `docs/superpowers/metrics/2026-09-XX-inventario-medios-post.md` (fecha del día de ejecución)
