@@ -109,9 +109,12 @@ const REGISTROS_SIN_FILA = [
  * tiene tapa en `modulo5-manejo`, y `red-meliponicultores`, porque la lámina está bien pero el
  * artículo no existe en la BD. Y tres archivos de `cafe-menu/`: `pan-yuca-miel`, porque el ítem
  * no existe (17 `item_menus` publicados, ninguno es pan de yuca) y las dos `promo-*`, porque las pinta
- * `src/pages/cafe/index.astro:152,176` y ningún content-type tiene un campo donde ir. Estos tres son
- * huecos de CONTENIDO, no de cableado, y son la razón por la que `LOCAL_IMAGES`
- * (`src/lib/cafe.ts:233`) sigue vivo: el paso 3 de G6 queda bloqueado y documentado.
+ * el template de `pages/cafe/index.astro` y ningún content-type tiene un campo donde ir.
+ *
+ * Estaba escrito además que estos tres «son la razón por la que `LOCAL_IMAGES` sigue vivo». Ya no:
+ * D8 (2026-09-27) borró la tabla y las 10 reglas por nombre, medido antes de tocarlas —disparaban
+ * para 0 de las 17 filas publicadas—. Lo que protege esa jubilación es
+ * `tests/cafe-lee-de-strapi.test.mjs`, y lo que se ve en el censo es la fila 6.
  */
 const SIN_PROPUESTA = [
   'public/images/bitacora/bitacora-calendario-manejo.webp',

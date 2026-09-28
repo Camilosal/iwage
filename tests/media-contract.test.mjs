@@ -338,7 +338,9 @@ const AGUJAS_SEMILLA = [
 // por símbolo, no por línea: las líneas se mueren, los símbolos no):
 //  · `FALLBACK_HISTORIAS_HOME` (pages/cafe/index.astro): 4 registros cuyas imágenes son archivos
 //    producidos y versionados (`/images/cafe-menu/visitante-*.webp`), no stock ajeno ni rutas 404.
-//    Lo retira la **Tarea 12/13** cuando `historia-visitante` esté poblado en Strapi.
+//    Re-medido el 2026-09-27 para D8: sigue siendo lo que se pinta, porque `historia-visitantes`
+//    responde **403** al rol Public y `getHistoriasVisitantes()` devuelve `[]`. Lo retira **G7/D9**
+//    (permisos públicos), no la Tarea 12/13: la tabla ya tiene 9 filas con `imagen` escrita.
 //  · `FALLBACK_INICIATIVAS` (pages/naturaleza/impacto.astro): métricas sin verificar («1.200
 //    plántulas», «12 becados», «60% avance»), no medios. Medido el 2026-09-25, la tabla
 //    `iniciativas` tiene 0 filas, así que no es el camino raro: es lo que se sirve en cada visita.
@@ -348,11 +350,14 @@ const AGUJAS_SEMILLA = [
 const EXCEPCIONES_SEMILLA = {
   'pages/cafe/index.astro': new Set([aguja('FALLBACK', '_HISTORIAS_HOME')]),
   'pages/naturaleza/impacto.astro': new Set([aguja('FALLBACK', '_INICIATIVAS')]),
-  // · `fallbackItems` (pages/cafe/menu.astro): 17 filas que duplican las 17 `item_menus`
-  //   published de Strapi, pero con los precios y —lo que pesa hoy— el mapa entre cada ítem y su
-  //   foto producida (`public/images/cafe-menu/*.webp`, 15 archivos que existen y están
-  //   versionados). Borrarlo antes de la Tarea 13 tiraría por la borda ese mapa, que es justo el
-  //   `alias` que consume `strapi/scripts/media-import.mjs`. Se jubila con el `--apply`, no antes.
+  // · `fallbackItems` (pages/cafe/menu.astro): 17 filas que duplican las 17 `item_menus` published
+  //   de Strapi. Lo que la hace falta acá es el `documentId: '1'`…`'17'` — un identificador que
+  //   pone Strapi, cuñado a mano — y nada más: el mapa de fotos que justificaba la entrada se
+  //   jubiló el 2026-09-27 con **D8** (`imagen: null` en las 17 filas, medido por
+  //   tests/cafe-lee-de-strapi.test.mjs). La condición que estaba escrita aquí —«se jubila con el
+  //   `--apply`, no antes»— se cumplió el 2026-09-26 con G3, así que queda dicha por lo que es:
+  //   esta entrada muere cuando mueren las filas, y borrarlas es decisión de contenido (con la
+  //   base caída la página se queda sin menú), no de este plan.
   //   Cota MEDIDA de esta excepción (mutante M-B, 2026-09-25): eximir por constante deja pasar
   //   una fila nueva metida DENTRO del seed declarado (7/0, verde). Lo que sí corta es la
   //   semilla nueva en un archivo no declarado (M-A: 6/1, rojo nombrando

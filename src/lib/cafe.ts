@@ -1,8 +1,8 @@
 /**
  * Café Iwagé — Strapi data access layer
  */
-import { strapiFetch, strapiSingle, CACHE_TTL } from './strapi';
-import { mediaSrc } from './media';
+import { strapiFetch, strapiSingle, CACHE_TTL } from './strapi.ts';
+import { mediaSrc } from './media.ts';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -229,46 +229,20 @@ export const CATEGORIAS_MENU = [
   { slug: 'acompanamiento', label: 'Acompañamientos', icon: 'candy' },
 ] as const;
 
-// Mapping of item families/names to local image paths (fallback when Strapi has no image)
-const LOCAL_IMAGES: Record<string, string> = {
-  'cafe-ambala': '/images/cafe-menu/cafe-origen-ambala.webp',
-  'espresso': '/images/cafe-menu/espresso-doble.webp',
-  'miel-cafe': '/images/cafe-menu/miel-angelita-cafe.webp',
-  'latte-miel': '/images/cafe-menu/latte-miel-canela.webp',
-  'aromatica-flora': '/images/cafe-menu/aromatica-flora-nativa.webp',
-  'cold-brew': '/images/cafe-menu/cold-brew-ambala.webp',
-  'chocolate-local': '/images/cafe-menu/chocolate-cacao-local.webp',
-  'pan-yuca': '/images/cafe-menu/pan-yuca-miel.webp',
-  'queso-cumbre': '/images/cafe-menu/queso-cumbre-arepa.webp',
-  'promo-duos': '/images/cafe-menu/promo-duos-perfectos.webp',
-};
-
+/**
+ * Lo que pinta la tarjeta de una preparación: la URL propia ya reducida a relativa de sitio, o
+ * `null` para que el template muestre el Icon tile.
+ *
+ * Ya no hay regla por nombre acá: `LOCAL_IMAGES` (10 rutas, 12 condiciones —1 por `familia`, 11
+ * por `nombre`) se cayó el 2026-09-27 con la decisión aprobada «Strapi único dueño, sin fallbacks
+ * de imagen». Se midió antes de tocarla: leyendo `item_menus` publicado **sin token**, como lo hace
+ * el sitio, 16 de 17 traían `imagen.url` de Strapi, 1 (`te-de-guayaba-agria`) no tiene lámina, y la
+ * regla por nombre disparaba para **0** filas — no estaba cubriendo nada que hoy se pierda. Las 19
+ * piezas de `public/images/cafe-menu/` siguen en disco porque el bundle desplegado aún las
+ * referencia; se jubilan después del deploy, no antes.
+ */
 export function itemImage(item: ItemMenu): string | null {
-  // First try Strapi image
-  const strapiImg = mediaSrc(item.imagen?.url);
-  if (strapiImg) return strapiImg;
-  
-  // Fall back to local images based on familia or nombre
-  if (item.familia && LOCAL_IMAGES[item.familia]) {
-    return LOCAL_IMAGES[item.familia];
-  }
-  
-  // Try matching by nombre (for items without familia)
-  const nombre = (item.nombre || '').toLowerCase();
-  if (nombre.includes('café de origen') || nombre.includes('cafe de origen') || nombre.includes('ambalá') || nombre.includes('ambala')) {
-    return LOCAL_IMAGES['cafe-ambala'];
-  }
-  if (nombre.includes('espresso')) return LOCAL_IMAGES['espresso'];
-  if (nombre.includes('miel') && nombre.includes('café')) return LOCAL_IMAGES['miel-cafe'];
-  if (nombre.includes('miel') && nombre.includes('cafe')) return LOCAL_IMAGES['miel-cafe'];
-  if (nombre.includes('latte') && nombre.includes('miel')) return LOCAL_IMAGES['latte-miel'];
-  if (nombre.includes('aromática') || nombre.includes('aromatica')) return LOCAL_IMAGES['aromatica-flora'];
-  if (nombre.includes('cold brew')) return LOCAL_IMAGES['cold-brew'];
-  if (nombre.includes('chocolate')) return LOCAL_IMAGES['chocolate-local'];
-  if (nombre.includes('pan de yuca')) return LOCAL_IMAGES['pan-yuca'];
-  if (nombre.includes('queso')) return LOCAL_IMAGES['queso-cumbre'];
-  
-  return null;
+  return mediaSrc(item.imagen?.url);
 }
 
 /**

@@ -43,17 +43,26 @@ const personas = historias.filter(h => h.categoria === 'personas');
 // 2026-09-25 los cuatro literales que había acá eran exactamente esa derivación
 // (`meliponario-iwage`, `familia-cardona`, `finca-la-cumbre`, `cacao-el-espinal`). Dos fuentes
 // de la misma cadena solo aportan la forma de que se separen al cambiar un nombre.
+//
+// Sin `foto` desde D8: las cuatro láminas viven en Strapi (subidas por D6) y el sitio las lee sin
+// token — medido el 2026-09-27: 4 de 4 `proveedors` publicados devuelven `foto.url`—. El relleno
+// queda solo de texto y la tarjeta usa el Icon tile, que ya está diseñado para el vacío.
 const fallbackProveedores = proveedores.length > 0 ? proveedores.slice(0, 4) : [
-  { nombre: 'Meliponario Iwagé', producto: 'Miel de Angelita', ubicacion: 'Corredor Ambalá', distancia_km: 0.2, historia: 'Nuestra propia miel de Tetragonisca angustula. Cosecha limitada, dulzor floral único.', foto: { url: '/images/cafe-menu/proveedor-meliponario.webp' } },
-  { nombre: 'Familia Cardona', producto: 'Café de origen', ubicacion: 'Vereda El Carmen', distancia_km: 2.3, historia: 'Tres generaciones cultivando café en las laderas del Ambalá. Tueste medio, notas de panela y cítricos.', foto: { url: '/images/cafe-menu/proveedor-familia-cardona.webp' } },
-  { nombre: 'Finca La Cumbre', producto: 'Leche y quesos', ubicacion: 'Cajamarca', distancia_km: 3.8, historia: 'Ganadería regenerativa a pequeña escala. Leche cruda para nuestro chocolate y quesos de temporada.', foto: { url: '/images/cafe-menu/proveedor-finca-cumbre.webp' } },
-  { nombre: 'Cacao El Espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, historia: 'La excepción a nuestra regla de 4 km. Cacao fino de aroma del valle del Magdalena, fermentado 5 días.', foto: { url: '/images/cafe-menu/proveedor-cacao-espinal.webp' } },
+  { nombre: 'Meliponario Iwagé', producto: 'Miel de Angelita', ubicacion: 'Corredor Ambalá', distancia_km: 0.2, historia: 'Nuestra propia miel de Tetragonisca angustula. Cosecha limitada, dulzor floral único.', foto: null },
+  { nombre: 'Familia Cardona', producto: 'Café de origen', ubicacion: 'Vereda El Carmen', distancia_km: 2.3, historia: 'Tres generaciones cultivando café en las laderas del Ambalá. Tueste medio, notas de panela y cítricos.', foto: null },
+  { nombre: 'Finca La Cumbre', producto: 'Leche y quesos', ubicacion: 'Cajamarca', distancia_km: 3.8, historia: 'Ganadería regenerativa a pequeña escala. Leche cruda para nuestro chocolate y quesos de temporada.', foto: null },
+  { nombre: 'Cacao El Espinal', producto: 'Cacao fino', ubicacion: 'El Espinal', distancia_km: 38, historia: 'La excepción a nuestra regla de 4 km. Cacao fino de aroma del valle del Magdalena, fermentado 5 días.', foto: null },
 ];
 
 // Historias para la sección del home: mostramos 4 destacadas, con link "Ver todas" si hay más.
 // `slug: null` a propósito: con `slug` vacío en las 9 filas de la BD, la ancla se deriva del
 // título, y la página de destino deriva del mismo título. Un slug inventado aquí produciría una
 // ancla que nadie emite y el deep link moriría sin error.
+//
+// Sus cuatro `imagen` SobREVIVEN a D8, y no por descuido: `historia-visitantes` responde **403** al
+// rol Public (así que `getHistoriasVisitantes()` devuelve `[]` y este relleno es lo que se pinta hoy
+// en producción). Jubilar las imágenes antes de abrir esa puerta es cambiar lo que la gente ve por
+// un hueco. Lo retira **G7 / D9** (permisos públicos), no esta pasada.
 const FALLBACK_HISTORIAS_HOME: HistoriaVisitante[] = [
   { id: 1, documentId: 'fb-h1', titulo: 'El colibrí de garganta azul', slug: null, categoria: 'fauna', texto_corto: 'Aparece cada mañana a las 6:40. Primero al limoncillo de la entrada, luego al guamo del costado.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-colibri.webp' }, icono: 'bird', orden: 1, destacado: true },
   { id: 2, documentId: 'fb-h2', titulo: 'Las angelitas del techo', slug: null, categoria: 'fauna', texto_corto: 'Una colonia de Tetragonisca angustula se instaló en el alero del café hace dos años. Producen la miel del signature.', texto_largo: '', imagen: { url: '/images/cafe-menu/visitante-angelitas.webp' }, icono: 'bug', orden: 2, destacado: true },

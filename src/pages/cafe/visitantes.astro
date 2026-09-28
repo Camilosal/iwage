@@ -13,8 +13,10 @@ const historias = await getHistoriasVisitantes();
 const hero = await getHeroBySlug('/cafe/visitantes');
 
 // Textos de cuando el CMS está vacío: solo narrativa, sin datos de BD.
-// Lo borra la tarea 12. Mientras tanto, las 4 historias con archivo producido
-// conservan su imagen y las demás caen al mosaico Icon (imagen: null).
+// D8 NO lo toca, y es medido: `historia-visitantes` responde 403 al rol Public, así que acá
+// `historias` llega `[]` y este relleno es lo que se pinta hoy en la página. Lo jubila **G7/D9**
+// (permisos públicos), no esta pasada; hasta entonces sus cuatro láminas son contenido servido, no
+// basura. Las historias sin archivo producido siguen cayendo al mosaico Icon (`imagen: null`).
 const FALLBACK: Record<string, { titulo: string; icono: string; texto_corto: string; texto_largo: string; imagen: string | null }[]> = {
   fauna: [
     {

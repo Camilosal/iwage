@@ -1655,14 +1655,29 @@ destraba con el `--apply` del Task 10, cuyo pre-requisito es el volumen de F0.
 **Actualizado el 2026-09-27 con D6 — el paso 1 ya casi se cumple, y los pasos 2 y 3 no.** Medido con el paso 1
 sobre la API publicada: **16 de los 17** `item_menus` tienen `imagen`, 4/4 `proveedors` tienen `foto` y 4/9
 `historia_visitantes` tienen `imagen`. El único ítem sin foto es `te-de-guayaba-agria`, y no le falta cableado sino
-lámina. Consecuencia: **no se borra `LOCAL_IMAGES` todavía** — los pasos 2 y 3 quedan bloqueados por contenido, no
+lámina. Consecuencia (corregida el mismo día por D8, ver abajo): se escribió «**no se borra `LOCAL_IMAGES` todavía** — los pasos 2 y 3 quedan bloqueados por contenido, no
 por alcance, y es la decisión D8 con su gate propio (leer el dato de Strapi en
 `src/pages/cafe/index.astro:47-50,58-61` y `src/pages/cafe/visitantes.astro:23,30,46,69`, que hoy pintan
-literales). El paso 4, verificar en el navegador, sigue sin poder ejecutarse en este tree: `npm run build` está
+literales).» El paso 4, verificar en el navegador, sigue sin poder ejecutarse en este tree: `npm run build` está
 prohibido y publicar es D10. Nota de herramienta para quien repita el paso 1: con los corchetes literales en la URL
 `curl` hace glob y no escribe nada (silencioso), y si los escapas mal Strapi responde **400**. La forma con la que
 se midió: `curl -sg … '?status=published&pagination%5BpageSize%5D=20&populate=imagen'` — corchetes codificados y
 `populate` simple, porque en v5 el populate de un `media` no necesita el `[populate]=*` anidado que pide este paso.
+
+**EJECUTADO el 2026-09-27 con D8 — y el «bloqueado por contenido» de la nota anterior estaba mal medido.** La sonda
+leyó la base como la lee el sitio (`strapiFetch` con su serialización `populate[]=imagen`, sin token): 16 de 17
+`item_menus` traían `imagen.url` de Strapi, 4 de 4 `proveedors` traían `foto`, y la regla por nombre disparaba para
+**0** filas. El único hueco (`te-de-guayaba-agria`) no lo cubría ninguna de las 12 condiciones, así que se servía
+`null` antes y se sirve `null` después: jubilar la tabla no dejaba ningún hueco que antes no estuviera. Lo que sí
+sigue bloqueado es la mitad de visitantes, y por **G7** (403), no por contenido: `FALLBACK_HISTORIAS_HOME` y el
+`FALLBACK` de `visitantes.astro` se dejaron intactos a propósito. Detalle y dientes, en el runbook, § G6 «Resuelto
+con D8».
+
+**Desvío declarado del paso 2 y del paso 3.** Están escritos como «sustituir cada uso de `itemImage(item)` por
+`item.imagen?.url ?? null`» y lo mismo con `proveedorFoto`. Hacerlo literalmente saca del camino `mediaSrc()`, que es
+lo único que reduce la URL de Strapi a relativa de sitio y filtra el hotlink de tercero — el contrato de F1. Se
+conservaron las dos funciones con un cuerpo de una línea (`return mediaSrc(item.imagen?.url)`), que es lo que ya
+hacían `historiaImagen()` y `proveedorFoto()`, y `tests/lectura-medios.test.mjs` las sigue contrando igual.
 
 **Files:**
 - Modify: `src/lib/cafe.ts` (`LOCAL_IMAGES` ~232-243, `itemImage` ~245-268, `proveedorFoto` ~273-275, `proveedorIcono` ~281-291)
@@ -1672,7 +1687,7 @@ se midió: `curl -sg … '?status=published&pagination%5BpageSize%5D=20&populate
 - Consumes: `item-menu.imagen` y `proveedor.foto` ya poblados por Strapi (condición de este task: si el admin no tiene las imágenes, no se borra la regla).
 - Produces: `cafe.ts` sin tablas de imagen hardcoded. `proveedorIcono` se queda: es un icono, no un medio, y su lugar es `Icon`.
 
-- [ ] **Step 1: Confirmar que Strapi ya tiene lo que las reglas inventaban**
+- [x] **Step 1: Confirmar que Strapi ya tiene lo que las reglas inventaban**  *(medido el 2026-09-27: 16/17, 4/4 y 403 en visitantes)*
 
 ```bash
 curl -s -g 'http://127.0.0.1:1338/api/item-menus?populate[imagen][populate]=*' -H "Authorization: Bearer $TOKEN" \
@@ -1680,19 +1695,19 @@ curl -s -g 'http://127.0.0.1:1338/api/item-menus?populate[imagen][populate]=*' -
 ```
 Expected: 0 sin imagen. Si hay N, volver al Task 10 con ese subconjunto antes de borrar la regla; **no** se deja `itemImage` "por si acaso".
 
-- [ ] **Step 2: Borrar `LOCAL_IMAGES`, `itemImage` y su import en las plantillas**
+- [x] **Step 2: Borrar `LOCAL_IMAGES`, `itemImage` y su import en las plantillas**  *(tabla y 12 condiciones fuera; `itemImage` queda como lectura de contrato, ver el desvío arriba)*
 
 Sustituir cada uso de `itemImage(item)` por `item.imagen?.url ?? null` (con el adaptador del Task 12, `item.imagen` ya es `MediaItem | null`, así que `item.imagen?.url`).
 
-- [ ] **Step 3: Lo mismo con `proveedorFoto`**
+- [x] **Step 3: Lo mismo con `proveedorFoto`**  *(la función ya leía de Strapi; lo jubilado acá son los 4 literales `foto:` de `pages/cafe/index.astro` y los 17 `imagen:` de `menu.astro`)*
 
 `grep -rn "proveedorFoto" src/` → sustituir por `p.foto?.url ?? null`. `proveedorIcono` se conserva sin cambios.
 
-- [ ] **Step 4: Verificar el menú en el navegador**
+- [x] **Step 4: Verificar el menú en el navegador**  *(verificado por HTTP, no en navegador y no en el tree vivo: `npm run build` está prohibido acá, así que se construyó en `/tmp/iwage-d8` y se midió contra `astro preview`. Con Strapi real: 9 tarjetas, 8 imágenes de `/uploads/`, 0 de `/images/cafe-menu/`, todas 200. Con Strapi y Redis caídos: 200 y Icon tile en las 9. Tabla completa en el runbook, § G6 «Resuelto con D8».)*
 
 `/cafe/menu`: las 19 preparaciones con su imagen, los 4 proveedores con su foto. Esta es la regresión más probable de todo el plan: si una sola imagen del menú desaparece, se restaura el dato desde Strapi, no la regla de código.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**  *(el commit de esta ronda es el paso)*
 
 ```bash
 git add src/lib/cafe.ts src/pages/cafe

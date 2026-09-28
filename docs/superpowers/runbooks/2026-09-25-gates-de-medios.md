@@ -1123,6 +1123,8 @@ el cambio de cada uno es mecánico y tiene guard) → dump → commit del esquem
 
 ## G6 · Café: borrar la regla por nombre y los seeds literales (Task 13)
 
+**EJECUTADA el 2026-09-27 con D8** en su parte de cableado (la de visitantes queda detrás de G7, y abajo está medido por qué).
+
 **Condición medida el 2026-09-25, y hoy no se cumple:** el paso 1 del task pide «0 items sin
 imagen», y la base tiene `files = 0` con **17** filas en `item_menus` y 4 en `proveedors`. Mientras
 no haya assets, las reglas por nombre son lo único que pinta el menú: se borran después de G3,
@@ -1163,6 +1165,76 @@ esta puerta. El paso 3 —borrar `LOCAL_IMAGES` y los campos de imagen de los ar
 contenido**: mientras `te-de-guayaba-agria` y 5 visitantes no tengan lámina, jubilar la regla deja huecos que hoy
 no deja. Las dos `promo-*` no tienen campo donde ir (ningún content-type las recibe) y `pan-yuca-miel.webp` no
 tiene ítem: quedaron consignados en el `aviso` del envase y en `SIN_PROPUESTA` del teste, no borrados.
+
+### Resuelto el 2026-09-27 (decisión D8) — y el «bloqueado por contenido» de arriba estaba mal medido
+
+La sonda (`.superpowers/sdd/.../d8-camino-real.mjs`, acordonada) leyó la base **como la lee el
+sitio**: `strapiFetch` con su propia serialización `populate[]=imagen` y **sin token**. Dio:
+
+| superficie | filas | salen de Strapi | las resolvía `LOCAL_IMAGES` | `null` |
+|---|---|---|---|---|
+| `item_menus` | 17 | **16** | **0** | 1 (`te-de-guayaba-agria`) |
+| `proveedors` | 4 | **4** | — | 0 |
+| `historia-visitantes` | 9 en BD | **HTTP 403** | — | lo que se pinta es el relleno |
+
+Con eso, el argumento de la ronda anterior se cae: la regla por nombre no estaba tapando ningún
+hueco del menú, así que jubilarla no dejó ninguno. El único hueco real (`te-de-guayaba-agria`)
+tampoco lo cubría —ninguna de sus 12 condiciones casa con ese nombre—, o sea que se servía `null`
+antes y se sirve `null` después. Los `proveedors` ya salían 4 de 4 de Strapi: sus cuatro literales
+estaban muertos desde D6.
+
+**Qué se cambió.**
+- `src/lib/cafe.ts`: fuera `LOCAL_IMAGES` (10 rutas) y sus 12 condiciones (1 por `familia` + 11 por
+  `nombre`); `itemImage()` queda en la misma línea que ya tenían `proveedorFoto()` e
+  `historiaImagen()`: `return mediaSrc(item.imagen?.url)`.
+- `src/pages/cafe/menu.astro`: las 17 filas de `fallbackItems` pasan a `imagen: null`. **Las filas
+  quedan**: con la base caída la página sigue sirviendo el menú y la tarjeta muestra el Icon tile.
+- `src/pages/cafe/index.astro`: los 4 `fallbackProveedores` pasan a `foto: null`.
+- Sin tocar, a propósito: `FALLBACK_HISTORIAS_HOME` (index.astro) y `FALLBACK`
+  (visitantes.astro) conservan sus 8 `visitante-*.webp`, porque el 403 de la tabla de arriba es lo
+  que los pone en la pantalla. Lo que los jubila es **G7/D9**, no esta pasada. En
+  `visitantes.astro` se reemplazó el comentario «lo borra la tarea 12», que prometía algo que la
+  tarea 12 no hizo.
+
+**Dientes, medidos con mutantes** (`tests/cafe-lee-de-strapi.test.mjs`, 7 testes nuevos; `npm test`
+356 → 363):
+- M-D2, `cafe.ts` revertido a HEAD con la tabla y sus reglas: rojos 4 de 7.
+- M-A, una lámina jubilada devuelta a `fallbackItems` escrita por concatenación
+  (`'/images/cafe-' + 'menu/espresso-doble.webp'`): rojos 2 de 7. El regex de la ruta la pierde y la
+  gana la búsqueda del tallo del archivo, que es por lo que el teste busca los 13 nombres jubilados
+  sin depender de cómo esté armada la ruta.
+- La guarda de filas (17 y 4, con `imagen: null` / `foto: null`) es la diferencia entre «jubilé las
+  imágenes» y «jubilé la página».
+
+**Fila 6 del censo — el tránsito que la puerta (4) del orden anunciaba:**
+
+```
+antes    bitacora 36/36 · galeria 12/12 · cafe-menu 19/0   TOTAL huerfanas=48
+después  bitacora 36/36 · galeria 12/12 · cafe-menu 19/13  TOTAL huerfanas=61
+```
+
+Las 13 nuevas son exactamente las 9 láminas de ítem y las 4 `proveedor-*`. `huerfanas.mjs` mide
+«ningún código de `src/` emite la ruta», y desde D8 eso es cierto porque esas piezas se sirven desde
+`/uploads/`: es el tránsito a Strapi-dueño, no una regresión. **Los archivos NO se borran de
+`public/`**: el bundle desplegado todavía los pide por URL, así que se jubilan después del deploy
+(D10) y su salida del repo es la Tarea 16 (F3). El teste nuevo fija que hoy son 19 en disco.
+
+**Render verificado el 2026-09-27 (paso 4 del task, por HTTP y no en navegador).** `npm run build` está prohibido en
+este tree compartido, así que se copió el árbol a `/tmp/iwage-d8`, se construyó allí y se levantó `astro preview`
+dos veces, matando cada servidor por PID al terminar:
+
+| servidor | backend | resultado |
+|---|---|---|
+| `:4901` | Strapi real | `/cafe/menu` 200 · 9 tarjetas · **8 imágenes de `/uploads/` y 0 de `/images/cafe-menu/`**, las 8 resuelven 200 en Strapi · `/cafe` 200 · 4 `/uploads` (los proveedores) + 6 `cafe-menu` (4 `visitante-*` del relleno + 2 `promo-*`) · `/cafe/proveedores` 200 · 4 `/uploads` · `/cafe/visitantes` 200 · 4 `visitante-*` (el relleno, por el 403) |
+| `:4903` | `STRAPI_URL` y `REDIS_URL` inalcanzables | `/cafe/menu` **200**, 9 tarjetas con su Icon tile (`bg-brand-muted/30`: 27 → 35), `/cafe` y `/cafe/visitantes` 200 |
+
+La segunda fila es la que prueba la decisión: con la base caída el menú no se cae ni saca un `src` roto — saca el
+tile. Y confirma que el relleno de visitantes sigue siendo superficie servida mientras G7 no abra la lectura.
+
+**Lo que queda abierto de G6:** la mitad de visitantes del paso 3, que es G7/D9. Y lo mismo de
+siempre, consignado y no borrado: las dos `promo-*` no tienen campo donde ir (ningún content-type las
+recibe) y `pan-yuca-miel.webp` no tiene ítem.
+
 
 ## G7 · Permisos de lectura pública
 
