@@ -1476,3 +1476,141 @@ test('I6/M20 un archivo declarado en dos filas de alias no se reparte entre los 
   assert.equal(mixto.revisar.find((r) => /sin que la identidad lo desempate/.test(r.motivo)), undefined,
     'un documento no puede disputarse contra sí mismo');
 });
+
+// --- D6: `compartida` — la foto de una familia de ítems es UN archivo con N destinatarios.
+// `cafe/menu.astro:361` pinta la imagen EN EL MODAL DE CADA VARIANTE, así que una sola
+// declaración por familia deja seis variantes sin foto. Lo que el contrato no permitía
+// era escribir el mismo archivo en varios documentos: `aliasPorArchivo` reserva UN dueño
+// por archivo y la segunda fila se descarta (I6/M20). `compartida` es la declaración
+// humana de que ese reparto es intencional, y solo eso: no afloja la regla de slug, no
+// cruza endpoints y no cambia la PARTICIÓN (un archivo sigue en UN balde, aunque salga
+// en N entradas de `enlazar`).
+const FLORA = 'public/images/cafe-menu/aromatica-flora-nativa.webp';
+const VARIANTES_FLORA = [
+  { endpoint: 'item-menus', documentId: 'ilaaa6t3n72tmmordbef1a05', slug: 'aromatica-hierbabuena' },
+  { endpoint: 'item-menus', documentId: 'p82ytt0sna9cqp7lopdjpbrz', slug: 'aromatica-limoncillo' },
+  { endpoint: 'item-menus', documentId: 'p65brn4httpgu5amigxgovrh', slug: 'aromatica-guamo' },
+];
+
+test('F2-d la foto de familia declarada `compartida` escribe un enlace por variante', () => {
+  const alias = {};
+  for (const r of VARIANTES_FLORA) alias[r.documentId] = { endpoint: 'item-menus', campo: 'imagen', archivos: [FLORA], compartida: true };
+  const m = manifesto({ archivos: [FLORA], registros: VARIANTES_FLORA, alias });
+  assert.deepEqual(m.enlazar, VARIANTES_FLORA.map((r) => ({
+    endpoint: 'item-menus', documentId: r.documentId, campo: 'imagen', archivo: FLORA, origen: 'alias',
+  })));
+  assert.deepEqual(m.motivosAlias, [], 'las tres filas se firmaron');
+  assert.deepEqual(m.revisar, [], 'coincidencia declarada no es disputa');
+  assert.deepEqual(m.pendientes, []);
+});
+
+test('F2-d `compartida` no abre la puerta a otro endpoint', () => {
+  const m = manifesto({
+    archivos: [FLORA],
+    registros: [
+      ...VARIANTES_FLORA,
+      { endpoint: 'proveedors', documentId: 'upd2jasb6q4ouztydhjwicdl', slug: '' },
+    ],
+    alias: {
+      ...Object.fromEntries(VARIANTES_FLORA.map((r) => [r.documentId, { endpoint: 'item-menus', campo: 'imagen', archivos: [FLORA], compartida: true }])),
+      upd2jasb6q4ouztydhjwicdl: { endpoint: 'proveedors', campo: 'foto', archivos: [FLORA], compartida: true },
+    },
+  });
+  assert.equal(m.enlazar.length, 3);
+  assert.deepEqual(m.motivosAlias, [{
+    archivo: 'upd2jasb6q4ouztydhjwicdl',
+    motivo: `${FLORA} ya está declarado en otra fila de alias`,
+  }]);
+});
+
+test('F2-d una fila compartida sin `compartida` en el otro lado sigue rechazada', () => {
+  const m = manifesto({
+    archivos: [FLORA],
+    registros: VARIANTES_FLORA,
+    alias: {
+      [VARIANTES_FLORA[0].documentId]: { endpoint: 'item-menus', campo: 'imagen', archivos: [FLORA], compartida: true },
+      [VARIANTES_FLORA[1].documentId]: { endpoint: 'item-menus', campo: 'imagen', archivos: [FLORA] },
+    },
+  });
+  assert.deepEqual(m.enlazar, [{
+    endpoint: 'item-menus', documentId: VARIANTES_FLORA[0].documentId, campo: 'imagen', archivo: FLORA, origen: 'alias',
+  }]);
+  assert.deepEqual(m.motivosAlias, [{
+    archivo: VARIANTES_FLORA[1].documentId,
+    motivo: `${FLORA} ya está declarado en otra fila de alias`,
+  }], 'compartir tiene que decirlo las DOS filas');
+});
+
+test('F2-d `compartida` en una fila por ruta se descarta con su motivo', () => {
+  const m = manifesto({
+    archivos: [FLORA],
+    registros: [VARIANTES_FLORA[0]],
+    alias: { [FLORA]: { endpoint: 'item-menus', slug: 'aromatica-hierbabuena', compartida: true } },
+  });
+  assert.deepEqual(m.enlazar, []);
+  assert.deepEqual(m.motivosAlias, [{
+    archivo: FLORA, motivo: `una fila por ruta no declara \`compartida\`: ${FLORA}`,
+  }]);
+  assert.deepEqual(m.pendientes, [FLORA]);
+});
+
+test('F2-d una fila compartida con dos archivos no se firma', () => {
+  const m = manifesto({
+    archivos: ['public/images/galeria/proyecto-ambala-1.webp', 'public/images/galeria/proyecto-ambala-2.webp'],
+    registros: [{ endpoint: 'proyecto-meliponarios', documentId: 'A', slug: 'ambala', nombre: 'Ambalá' }],
+    alias: {
+      A: {
+        endpoint: 'proyecto-meliponarios', campo: 'galeria', compartida: true,
+        archivos: ['public/images/galeria/proyecto-ambala-1.webp', 'public/images/galeria/proyecto-ambala-2.webp'],
+      },
+    },
+  });
+  assert.deepEqual(m.motivosAlias, [{
+    archivo: 'A', motivo: 'una fila compartida declara UN solo archivo: A',
+  }]);
+  // La fila se descartó, no el registro: la galería deducible por slug se escribe igual
+  // (es otro balde de la misma decisión). Lo que no existe es un enlace firmado en alias.
+  assert.equal(m.enlazar.find((e) => e.origen === 'alias'), undefined);
+});
+
+test('F2-d `compartida` solo vale en el campo de portada del endpoint', () => {
+  const tapa = 'public/images/galeria/proyecto-ambala-1.webp';
+  const m = manifesto({
+    archivos: [tapa],
+    registros: [{ endpoint: 'proyecto-meliponarios', documentId: 'A', slug: 'ambala', nombre: 'Ambalá' }],
+    alias: { A: { endpoint: 'proyecto-meliponarios', campo: 'galeria', archivos: [tapa], compartida: true } },
+  });
+  assert.deepEqual(m.motivosAlias, [{
+    archivo: 'A', motivo: '`compartida` solo se declara sobre el campo de portada de proyecto-meliponarios (imagen): A',
+  }]);
+  assert.equal(m.enlazar.find((e) => e.origen === 'alias'), undefined);
+  assert.equal(m.enlazar.find((e) => e.campo === 'imagen'), undefined,
+    'compartir una galería no es una portada disfrazada');
+});
+
+test('F2-d lo declarado compartida le gana a la regla de slug y la nota nombra a los dueños', () => {
+  // El cuarto registro se llama exactamente como el archivo (`aromatica-flora-nativa`), así
+  // que la REGLA lo reclama sin que nadie lo declare. Antes de `compartida` el archivo tenía
+  // un solo dueño y los otros dos variantes se quedaban fuera; ahora los tres declarados
+  // escriben y la regla pierde contra la declaración, que es lo que debe pasar.
+  const m = manifesto({
+    archivos: [FLORA],
+    registros: [
+      ...VARIANTES_FLORA,
+      { endpoint: 'item-menus', documentId: 'ffnqvss36lkvq5s5ih17lc5a', slug: 'aromatica-flora-nativa' },
+    ],
+    alias: Object.fromEntries(VARIANTES_FLORA.map((r) => [r.documentId, {
+      endpoint: 'item-menus', campo: 'imagen', archivos: [FLORA], compartida: true,
+    }])),
+  });
+  assert.equal(m.enlazar.length, 3);
+  assert.deepEqual(m.revisar, []);
+  assert.deepEqual(m.pendientes, []);
+  assert.deepEqual(m.ambiguos, [{
+    slug: 'aromatica-flora-nativa',
+    documentId: 'ffnqvss36lkvq5s5ih17lc5a',
+    // `etiqueta` es el `slug` sin prefijo de endpoint (formato del resto de las notas),
+    // y el orden es el de procesamiento: empatados a nivel ALIAS, slug más largo primero.
+    motivo: 'la tapa ya está asignada a aromatica-hierbabuena, aromatica-limoncillo, aromatica-guamo',
+  }]);
+});

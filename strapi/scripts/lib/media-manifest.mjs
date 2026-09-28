@@ -99,7 +99,15 @@
  *                     (`tests/normalizar-medio-2.test.mjs`: dos campos diciendo lo
  *                     mismo). La portada NO es una unidad nueva ni un reclamo
  *                     nuevo: sale de la unidad que ya ganó, así que la disputa, el
- *                     libro de dueños y la PARTICIÓN no la ven.
+ *                     libro de dueños y la PARTICIÓN no la ven. Esa misma fila puede
+ *                     traer `compartida: true`, que dice «este archivo va en MÁS DE UN
+ *                     documento, a propósito» y es la única cosa que abre la reserva de
+ *                     un dueño por archivo. Nació de D6 medido: `cafe/menu.astro:361`
+ *                     pinta la imagen en el modal de CADA variante, así que la foto de
+ *                     una familia de ítems es un archivo con dos o tres destinatarios.
+ *                     Se exige sobre el campo de portada del endpoint, en una fila de un
+ *                     solo archivo, y la abren las DOS filas: sin la bandera en la
+ *                     segunda sigue siendo el archivo duplicado de siempre.
  *   nivel `REGLA`   (1) el nombre base (o la raíz de la serie) es exactamente
  *                     `slug`, `<marca>-slug` o `<prefijo-del-endpoint>-slug`.
  *                     Enlace con `origen` omitido (o `'slug'` si es serie).
@@ -168,6 +176,12 @@
  * es por archivos: `archivosDelEnlace` + `pendientes` + `revisar` cubren el
  * inventario sin repetir ninguno. `ambiguos` y `motivosAlias` son listas de
  * RAZONES, no de archivos: se imprimen y se revisan, pero no suman.
+ * Excepción que mide D6: un archivo declarado `compartida` aparece en N entradas de
+ * `enlazar` — N documentos, el mismo archivo — y sigue estando en UN solo balde. La
+ * contabilidad por archivo distinto (`new Set(enlazar.flatMap(archivosDelEnlace))`, que
+ * es la que imprime el importador) no se entera; la que suma entradas sí, así que
+ * `enlazar.length` puede ser mayor que la cantidad de archivos enlazados.
+ *
  * `pendientes` se filtra contra el conjunto de archivos que ya tienen balde, y una
  * unidad con UN archivo en disputa no escribe ese campo: como los miembros de una
  * serie comparten raíz, comparten reclamantes, así que o la disputa los nombra a
@@ -199,6 +213,11 @@
  *       archivos: ['public/images/galeria/proyecto-ambala-1.webp',
  *                  'public/images/galeria/proyecto-ambala-2.webp'],
  *     },
+ *     // forma 2 con reparto declarado: la misma foto en las variantes de una familia
+ *     '<documentId del ítem 1>': { endpoint: 'item-menus', campo: 'imagen',
+ *       archivos: ['public/images/cafe-menu/aromatica-flora-nativa.webp'], compartida: true },
+ *     '<documentId del ítem 2>': { endpoint: 'item-menus', campo: 'imagen',
+ *       archivos: ['public/images/cafe-menu/aromatica-flora-nativa.webp'], compartida: true },
  *   }
  *
  * · la forma se decide por la CLAVE: si tiene la forma de ruta del inventario es
@@ -210,11 +229,16 @@
  *   el alias: un alias no puede inventar un id;
  * · un alias se resuelve en el nivel más alto y su enlace sale etiquetado con
  *   `origen: 'alias'`;
+ * · `compartida: true` (solo en forma 2, solo sobre el campo de portada, solo con un
+ *   archivo) permite que N filas del MISMO endpoint declaren el MISMO archivo: salen N
+ *   entradas de `enlazar`, una por documento. La reserva del archivo sigue cerrando el
+ *   paso a cualquier regla y a cualquier otro endpoint;
  * · una fila que no se puede firmar (el archivo no está en el inventario, ningún
  *   registro trae ese endpoint/slug o ese documentId, el campo no es un campo de
  *   medio de la tabla, la ruta cae fuera del directorio del endpoint, el archivo
  *   está en otra fila, el registro ya tiene otra fila para ese campo, la fila por
- *   ruta declara `portada`, o la `portada` declarada no es una de sus `archivos`
+ *   ruta declara `portada` o `compartida`, la fila compartida trae más de un archivo
+ *   o no es el campo de portada, la `portada` declarada no es una de sus `archivos`
  *   o no cae en la fila que escribe el campo repetible) NO escribe nada: su
  *   motivo va a `motivosAlias` con la razón exacta.
  *   `motivosAlias` **no es un balde de archivos** (ver PARTICIÓN arriba).
@@ -490,7 +514,7 @@ function agruparSeries(infos) {
  * @param {{
  *   archivos: string[],
  *   registros: Array<{endpoint: string, documentId: string, slug?: string, nombre?: string, marca?: string, campo?: string}>,
- *   alias?: Record<string, {endpoint: string, slug: string} | {endpoint: string, campo: string, archivos: string[], portada?: string}>
+ *   alias?: Record<string, {endpoint: string, slug: string} | {endpoint: string, campo: string, archivos: string[], portada?: string, compartida?: boolean}>
  * }} in rutas de archivo → registro declarado, o `{}` / ausente si no hay alias
  * @returns {{
  *   enlazar: Array<{endpoint: string, documentId: string, campo: string, archivo?: string, archivos?: string[], origen?: string}>,
@@ -537,7 +561,7 @@ export function manifesto({ archivos, registros, alias = {} }) {
 
   // --- 1. ALIAS. Orden de clave, no de autoría: dos alias escritos en distinto
   //         orden dan la misma salida.
-  const aliasPorArchivo = new Set();
+  const aliasPorArchivo = new Map(); // archivo → {endpoint, campo, clave, compartida} de quien lo declaró primero
   for (const clave of Object.keys(alias).sort()) {
     const fila = alias[clave];
     const porRutaKey = RE_RUTA.test(clave);
@@ -559,9 +583,14 @@ export function manifesto({ archivos, registros, alias = {} }) {
     let rutas;
     let i;
     let portada = null;
+    let compartida = false;
     if (porRutaKey) {
       if (fila.portada !== undefined) {
         motivosAlias.push({ archivo: clave, motivo: `una fila por ruta no declara portada: ${clave}` });
+        continue;
+      }
+      if (fila.compartida !== undefined) {
+        motivosAlias.push({ archivo: clave, motivo: `una fila por ruta no declara \`compartida\`: ${clave}` });
         continue;
       }
       if (typeof fila.slug !== 'string') {
@@ -598,6 +627,20 @@ export function manifesto({ archivos, registros, alias = {} }) {
           motivo: `la fila de ${clave} trae ${fila.archivos.length} archivos para ${campo}, que no es un campo repetible de ${fila.endpoint}`,
         });
         continue;
+      }
+      if (fila.compartida === true) {
+        if (fila.archivos.length !== 1) {
+          motivosAlias.push({ archivo: clave, motivo: `una fila compartida declara UN solo archivo: ${clave}` });
+          continue;
+        }
+        if (campo !== cfg.campo) {
+          motivosAlias.push({
+            archivo: clave,
+            motivo: `\`compartida\` solo se declara sobre el campo de portada de ${fila.endpoint} (${cfg.campo}): ${clave}`,
+          });
+          continue;
+        }
+        compartida = true;
       }
       if (fila.portada !== undefined) {
         if (campo !== cfg.campoMultiple) {
@@ -657,14 +700,28 @@ export function manifesto({ archivos, registros, alias = {} }) {
     // clave y nunca pasa por ese bucle. Sin esta línea, dos alias sobre el mismo archivo
     // producen dos unidades ALIAS del mismo registro y la disputa se nombra a sí misma.
     const duplicada = rutas.find((a) => aliasPorArchivo.has(a));
-    if (duplicada) { motivosAlias.push({ archivo: clave, motivo: `${duplicada} ya está declarado en otra fila de alias` }); continue; }
-    for (const a of rutas) aliasPorArchivo.add(a);
+    if (duplicada) {
+      const previo = aliasPorArchivo.get(duplicada);
+      // `compartida` es la única apertura de esta reserva, y la abren las DOS filas: el
+      // dueño que no declaró compartir no deja entrar a nadie, y una fila que no lo dice
+      // no se sube a un archivo que otro sí declaró compartido. Y el reparto se mantiene
+      // dentro del campo de portada del MISMO endpoint: mudar el archivo a otro endpoint
+      // es otra decisión, no la misma dicha dos veces.
+      const seComparte = compartida && previo.compartida
+        && previo.endpoint === fila.endpoint && previo.campo === campo;
+      if (!seComparte) {
+        motivosAlias.push({ archivo: clave, motivo: `${duplicada} ya está declarado en otra fila de alias` });
+        continue;
+      }
+    }
+    for (const a of rutas) aliasPorArchivo.set(a, { endpoint: fila.endpoint, campo, clave, compartida });
     agregarUnidad(i, {
       nivel: NIVEL.ALIAS,
       campo,
       archivos: rutas,
       clave: porRutaKey ? clave : `${clave}:${campo}`,
       ...(portada ? { portada } : {}),
+      ...(compartida ? { compartida: true } : {}),
       mejorExt: Math.min(...rutas.map((a) => RANGO_EXT[porRuta.get(a).ext])),
       idLen: 0,
     });
@@ -721,12 +778,28 @@ export function manifesto({ archivos, registros, alias = {} }) {
     unidadesPorRegistro.set(i, lista.slice().sort(ordenUnidades));
   }
 
-  const duenio = new Map();          // archivo → registro que lo reclamó
+  /** archivo → registros que lo reclaman y lo enlazaron. Más de uno solo si la
+   *  declaración lo dice (`compartida`); ver el control de `aliasPorArchivo`. */
+  const duenio = new Map();
   const revisarPorArchivo = new Map(); // archivo → entrada del balde
   const enlacesPorRegistro = new Map();
   const notasPorRegistro = new Map();
   /** un archivo ya tiene balde (enlace, propuesta o bloqueo): no se toca dos veces */
   const ocupado = (a) => duenio.has(a) || revisarPorArchivo.has(a);
+  /**
+   * Si la unidad de este registro puede escribir sus archivos. Un archivo con balde
+   * está cerrado, salvo en el único caso que el contrato abre a propósito: una unidad
+   * declarada `compartida` sobre un archivo cuyos dueños son todos del mismo endpoint
+   * y campo, también declarados compartidos. Ese caso es la foto de una familia de
+   * ítems del café, que vive en un archivo y se pinta en el modal de cada variante.
+   */
+  const puedeReclamar = (reg, u) => u.archivos.every((a) => {
+    if (revisarPorArchivo.has(a)) return false;
+    const dueños = duenio.get(a);
+    if (!dueños) return true;
+    return u.compartida === true && dueños.every((d) => d.compartida
+      && d.reg.endpoint === reg.endpoint && d.campo === u.campo);
+  });
   const marcar = (archivo, motivo, extra) => {
     if (ocupado(archivo)) return;
     const { endpoint, documentId, campo } = extra ?? {};
@@ -745,7 +818,7 @@ export function manifesto({ archivos, registros, alias = {} }) {
     for (const u of unidadesPorRegistro.get(i) ?? []) {
       for (const a of u.archivos) {
         const lista = reclamos.get(a) ?? [];
-        lista.push({ i, nivel: u.nivel, idLen: u.idLen, campo: u.campo });
+        lista.push({ i, nivel: u.nivel, idLen: u.idLen, campo: u.campo, compartida: u.compartida === true });
         reclamos.set(a, lista);
       }
     }
@@ -755,6 +828,11 @@ export function manifesto({ archivos, registros, alias = {} }) {
     const nivel = Math.min(...rs.map((r) => r.nivel));
     const delNivel = rs.filter((r) => r.nivel === nivel);
     if (delNivel.length < 2) continue;
+    // La reserva de `aliasPorArchivo` hace que DOS reclamos al nivel ALIAS sobre un mismo
+    // archivo solo existan si cada fila declaró `compartida` — o sea, si un humano dijo «va
+    // en los tres». Eso no es una disputa sin desempate: es el destino declarado, y acá no
+    // hay nada que desempatar. Ningún otro nivel puede llegar a esta línea con dos dueños.
+    if (nivel === NIVEL.ALIAS && delNivel.every((r) => r.compartida)) continue;
     // El largo del slug solo desempata donde fue diseñado (identidad por slug).
     const mejor = Math.max(...delNivel.map((r) => r.idLen));
     const punteros = delNivel.filter((r) => r.idLen === mejor);
@@ -825,11 +903,11 @@ export function manifesto({ archivos, registros, alias = {} }) {
         // afirmación se cae y hay que volver a nombrar a los hermanos.
         continue;
       }
-      const libres = firmes.filter((u) => u.archivos.every((a) => !ocupado(a)));
+      const libres = firmes.filter((u) => puedeReclamar(reg, u));
       if (!libres.length) {
         const perdido = firmes[0].archivos.find((a) => ocupado(a));
-        const previo = duenio.get(perdido);
-        notas.push(`la tapa ya está asignada a ${previo ? etiqueta(previo) : `un archivo pasado a revisar (${perdido})`}`);
+        const dueños = duenio.get(perdido);
+        notas.push(`la tapa ya está asignada a ${dueños ? dueños.map((d) => etiqueta(d.reg)).join(', ') : `un archivo pasado a revisar (${perdido})`}`);
         continue;
       }
       const nivel = libres[0].nivel;
@@ -875,7 +953,7 @@ export function manifesto({ archivos, registros, alias = {} }) {
       }
       // Anotado el balde, el archivo deja de estar disponible: así un `revisar` por
       // sufijo no cae también en `pendientes` y los reclamantes que pierden se nombran.
-      for (const a of gana.archivos) duenio.set(a, reg);
+      for (const a of gana.archivos) duenio.set(a, [...(duenio.get(a) ?? []), { reg, campo: gana.campo, compartida: gana.compartida === true }]);
       for (const u of libres.filter((x) => x.nivel > gana.nivel)) {
         notas.push(`descartada por ambigüedad: ${u.archivos.join(' + ')}`);
       }

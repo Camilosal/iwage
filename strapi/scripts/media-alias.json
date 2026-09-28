@@ -1,16 +1,16 @@
 {
   "aviso": [
-    "ENVASE ACEPTADO — G3 el 2026-09-26 (33 filas), D3 el 2026-09-27 (7 filas nuevas y UNA reasignación), D4 el 2026-09-27 (6 `portada` declaradas en las mismas 6 filas) y D5 el 2026-09-27 (3 filas de `productos`: 43 filas en total). Es el RECIBO de lo aplicado, no una plantilla: `alias` es idéntico, fila por fila, a `media-alias-propuesto.json`, y `tests/media-alias-propuesto.test.mjs` vigila esa igualdad.",
+    "ENVASE ACEPTADO — G3 el 2026-09-26 (33 filas), D3 el 2026-09-27 (7 filas nuevas y UNA reasignación), D4 el 2026-09-27 (6 `portada` declaradas en las mismas 6 filas), D5 el 2026-09-27 (3 filas de `productos`) y D6 el 2026-09-27 (23 filas de `cafe-menu/`, con la extensión `compartida` del contrato): 66 filas en total. Es el RECIBO de lo aplicado, no una plantilla: `alias` es idéntico, fila por fila, a `media-alias-propuesto.json`, y `tests/media-alias-propuesto.test.mjs` vigila esa igualdad.",
     "Qué midió el seco antes de aceptarlas (`--dry-run`, con el token de alcance mínimo de G3): 106 registros leídos en 6 endpoints, 67 archivos en inventario, 33 filas de alias y 0 motivos sin firmar — es decir, las 33 filas aterrizaron en un destino real y ninguna quedó colgando. El recibo completo está en /home/ubuntu/backup/g3-dryrun-2026-09-26.txt.",
     "Qué escribió `--apply` con este archivo: 34 enlaces y 37 archivos. El enlace 34 (`public/images/cafe-menu/espresso-doble.webp` → `item-menus/eco9rlgy5goi8wabtjzp2ueu.imagen`) NO viene de acá: lo produjo la regla de `slug` exacto del manifiesto. Es identidad correcta (el nombre del archivo es el slug del ítem) pero queda fuera del censo de G3 y se consigna como desviación medida, porque el `cafe-menu` por nombre es materia de G6.",
     "La sonda obligatoria de un registro (antes del lote) dejó tres hechos: `POST /api/upload` responde 201 y Strapi renombra el archivo (`bitacora-inpa-vs-af.webp` → `/uploads/bitacora_inpa_vs_af_2348f58e8c.webp`), así que la idempotencia por NOMBRE sigue siendo la correcta porque `name` conserva el original; el valor del campo `media` es el `id` numérico y el `PUT /api/bitacoras/{documentId}` lo acepta; y la relación quedó escrita en las DOS filas del documento (la publicada y el borrador, `files_related_mph.related_id` 190 y 101), o sea que no hace falta ningún paso de publicación después del lote.",
-    "Qué NO cubre y por qué sigue abierto: 2 tapas de bitácora sin destino — `bitacora-calendario-manejo` (la lámina es defectuosa: pseudo-texto ilegible en el grabado, y su asunto ya tiene tapa en `bitacora-modulo5-manejo`) y `bitacora-red-meliponicultores` (la lámina está bien pero no existe ningún artículo de una red de meliponicultores: no es falta de alias, es falta de artículo). Los 3 `producto-*` que estaban acá como «D5, no esto» dejaron de estarlo el 2026-09-27: tienen fila y destino. Lo que sigue abierto son los 18 archivos de `cafe-menu/` (G6, D6) y las dos fichas de caja que se quedaron sin foto porque la lámina era una sola: `caja-af-estandar` y `caja-inpa-con-atril`.",
+    "Qué NO cubre y por qué sigue abierto: 2 tapas de bitácora sin destino — `bitacora-calendario-manejo` (la lámina es defectuosa: pseudo-texto ilegible en el grabado, y su asunto ya tiene tapa en `bitacora-modulo5-manejo`) y `bitacora-red-meliponicultores` (la lámina está bien pero no existe ningún artículo de una red de meliponicultores: no es falta de alias, es falta de artículo). Los 3 `producto-*` que estaban acá como «D5, no esto» dejaron de estarlo el 2026-09-27: tienen fila y destino. De los 19 archivos de `cafe-menu/` que estaban acá como «D6, no esto» quedan fuera tres, y por falta de contenido, no de cableado: `pan-yuca-miel.webp` (medido en los 17 `item_menus` publicados ninguno es pan de yuca) y `promo-duos-perfectos.webp` / `promo-reutilizable.webp` (las dos promos las pinta la plantilla — `src/pages/cafe/index.astro:152` la reutilizable y `:176` la de dúos — y ningún content-type tiene un campo donde ponerlas; la clave `'promo-duos'` de `LOCAL_IMAGES` (`src/lib/cafe.ts:243`) nunca dispara porque ningún ítem tiene esa `familia`). Al revés también falta: `te-de-guayaba-agria` no tiene lámina y 5 de las 9 historias de visitante publicadas tampoco, así que `LOCAL_IMAGES` (`src/lib/cafe.ts:233`) NO se borra. Siguen abiertas las dos fichas de caja que se quedaron sin foto porque la lámina era una sola: `caja-af-estandar` y `caja-inpa-con-atril`.",
     "D3 — qué midió el seco del 2026-09-27 antes de escribir: 106 registros, 67 archivos, 40 filas de alias, 41 enlaces, 3 en revisar, 20 pendientes, 6 ambigüedades y 0 motivos de alias sin firmar. Recibo en /tmp/d3-dryrun.txt (no versionado) y dump previo de `files`, `files_related_mph` y `bitacoras` en /home/ubuntu/backup/d3-pre-2026-09-27.sql (0600, 1.598.303 B).",
     "D3 — qué escribió `--apply`: 40 enlaces `ok` y 1 falla. La falla es la misma de G3 y por la misma razón: el enlace 41 (`espresso-doble.webp` → `item-menus/…`) lo derivó la regla de `slug` exacto del manifiesto, no una fila de este archivo, y el token lo rechazó con 403 en vez de escribirlo. Sale en exit 1, que es el diseño. Estado final medido: `files` 37→44, enlaces `files_related_mph` 72→86 (8 documentos × 2 versiones, menos los 2 enlaces que reemplazó la reasignación), 34 de 56 bitácoras publicadas con tapa, 0 archivos en dos documentos y 0 enlaces huérfanos. Las 7 láminas nuevas subieron a 1200×675 `image/webp` y responden 200 en `/uploads/`.",
     "D3 — la reasignación, que es la parte que puede pasar desapercibida: `bitacora-fermentacion-miel.webp` quedó en G3 sobre el Módulo 9 (conservación y cosecha) pero muestra frascos con espuma y burbujas, o sea fermentación. Se fue a `fermentacion-burbujas-y-un-frasco-que-explota` y el Módulo 9 pasó a `bitacora-modulo9-cosecha.webp`, que sí muestra la caja, las abejas y el extractor. Como el `PUT` reemplaza la relación, el enlace viejo desapareció: medido en la API publicada, los dos documentos responden uno y un solo archivo, cada uno el suyo.",
     "D3 — hallazgo aparte, NO de este envase: `conservacion-y-cosecha-de-miel` y `conservacion-y-cosecha-de-miel-angelita-humedad-frio-fermentacion-y-extraccion` (Módulo 9) son el mismo artículo publicado dos veces — 98,99% de similitud medida sobre el cuerpo. Cada uno recibió su tapa y ninguna se escribe dos veces; fusionarlas o retirar una es decisión del dueño sobre el contenido, no sobre el cableado.",
     "D4 (2026-09-27) tomó la decisión que estaba acá como \"NO toma\": los 6 `proyecto-meliponarios` reciben además su portada en `imagen`. No fue deducción de la plantilla —eso lo prohíbe `tests/normalizar-medio-2.test.mjs`— sino una clave `portada` en la misma fila que escribe la serie, con la lámina `-1` declarada en las 6. Medido al mirar las 9 fotos: en los 3 proyectos con dos láminas la `-1` es la vista general y la `-2` un detalle; en los 3 de una sola, la portada es esa foto.",
-    "Quién lo consume: `STRAPI_URL=… STRAPI_TOKEN=… node strapi/scripts/media-import.mjs --apply` (sin flags corre en seco). El token sale SOLO del entorno; nunca va en este archivo ni en la línea de comandos. El de G3 (`media-import-g3-2026-09-26`) vence a los 7 días y tiene 17 acciones: `find`/`findOne` en los 6 endpoints del inventario, `update` solo en `bitacora` y `proyecto-meliponario`, y `upload` en la media library.",
+    "Quién lo consume: `STRAPI_URL=… STRAPI_TOKEN=… node strapi/scripts/media-import.mjs --apply` (sin flags corre en seco). El token sale SOLO del entorno; nunca va en este archivo ni en la línea de comandos. El de G3 (`media-import-g3-2026-09-26`) vence a los 7 días y tiene 21 acciones medidas en la BD (D5 sumó 1 y D6 sumó 3): `find`/`findOne` en los 6 endpoints del inventario, `upload` en la media library, y `update` en `bitacora`, `proyecto-meliponario`, `producto` (D5), `item-menu`, `proveedor` e `historia-visitante` (D6). No tiene `delete` en ningún endpoint: este envase enlaza, nunca borra.",
     "Las claves `aviso` y cualquier otra fuera de `alias` se ignoran al leer.",
     "D4 — qué midió el seco del 2026-09-27 antes de escribir: 106 registros, 67 archivos, 40 filas, 47 enlaces (40 de fila + 6 portadas + 1 regla de `slug` sobre `item-menus`), 3 en revisar, 20 pendientes, 6 ambigüedades (las mismas de D3: la regla de `nombre` también veía la serie que la fila ya declaró), 0 motivosAlias y la PARTICIÓN cerrando 44 + 3 + 20 = 67 de 67.",
     "D4 — qué escribió `--apply`: 46 enlaces `ok` y 1 falla, otra vez la misma de G3/D3 (`espresso-doble.webp` → `item-menus` con 403; es D6). Cero `POST /api/upload`: las 6 portadas son archivos que ya estaban en la librería, así que no se subió ni se duplicó ninguno.",
@@ -22,7 +22,14 @@
     "D5 — qué escribió el segundo `--apply`: 49 enlaces `ok` y 1 falla, que sigue siendo la misma de G3/D3/D4 (`espresso-doble.webp` → `item-menus`, 403; es D6). Cero subidas nuevas: los tres nombres ya estaban y el importador empareja por nombre, así que `files` quedó en 47 con **0 nombres repetidos**. Esa es la prueba de que repetir un lote a medio terminar no duplica la librería.",
     "D5 — verificación medida después de escribir: `files_related_mph` pasó de 98 a 104 filas y las 6 nuevas son `field='imagen'` sobre `api::producto.producto` (3 documentos × borrador y publicado), cada una con su archivo: `producto-caja-1` → `Caja INPA Nogal Cafetero`, `producto-miel-1` → `Miel Angelita 120ml`, `producto-miel-2` → `Miel con propóleo 250ml`. 46 de 47 archivos con enlace y uno solo sin él (`espresso-doble.webp`). En la API publicada (`status=published&populate=imagen`) los tres devuelven su `/uploads/producto_*_<hash>.webp` a `1024×1024 image/webp` y las tres URLs responden 200 (88 318 – 106 304 B). Verificado en BD, API y URL servida; no en navegador: `npm run build` está prohibido en este tree y publicar es D10.",
     "D5 — el arreglo que hubo que hacer en el manifiesto para poder escribir esto. Iterar los campos de un mismo registro en orden alfabético (`'galeria' < 'imagen'`) hacía que un `galeria` deducible por `nombre` le ganara el archivo al `imagen` DECLARADO por alias: el producto perdía su propia tapa contra sí mismo y el seco anunciaba `la tapa ya está asignada a caja-inpa-nogal-cafetero` contra el registro al que ya se la había asignado. Ahora los campos de un registro se recorren ordenados por su mejor nivel de decisión (alias → slug → nombre → sufijo) y solo después alfabéticamente. Medido: las dos corridas en seco del mismo envase —el módulo de `HEAD` (pre-arreglo) y el arreglado— dan 49 y 50 enlaces y el `diff` toca **solo las tres líneas de producto**: afuera estaban `producto-caja-1 → ….galeria` y un `galeria` de DOS miel-archivos sobre un mismo producto, adentro los tres con `(alias) → ….imagen`, uno por producto. Los otros 47 enlaces salen idénticos, así que el arreglo no mueve nada de lo ya aplicado. Lo fijan `F2-c el alias declarado le gana al nombre del MISMO registro` y `F2-c dos filas declaradas parten una serie en disputa` en `tests/media-manifest.test.mjs`; la otra mitad del yerro (el arrastre de serie bloqueada) se demostró inalcanzable por construcción y se borró, con la medición instrumentada escrita en el módulo.",
-    "D5 — hallazgo consignado y NO arreglado acá: la D11 crece con los productos. De los 14 `productos`, 3 tienen `slug: null` medido también en la fila publicada, y dos de ellos son justo los que acaban de recibir tapa (`Miel Angelita 120ml`, `Miel con propóleo 250ml`). Su foto ya está cableada y servida, pero `getProductoBySlug` (`src/lib/tienda.ts:195`) filtra por `slug`, así que la ficha de detalle sigue inalcanzable. Igual que con los 6 proyectos: o se rellenan los `slug` en el panel o se rutea por `documentId`. Es contenido/ rutas, no medios."
+    "D5 — hallazgo consignado y NO arreglado acá: la D11 crece con los productos. De los 14 `productos`, 3 tienen `slug: null` medido también en la fila publicada, y dos de ellos son justo los que acaban de recibir tapa (`Miel Angelita 120ml`, `Miel con propóleo 250ml`). Su foto ya está cableada y servida, pero `getProductoBySlug` (`src/lib/tienda.ts:195`) filtra por `slug`, así que la ficha de detalle sigue inalcanzable. Igual que con los 6 proyectos: o se rellenan los `slug` en el panel o se rutea por `documentId`. Es contenido/ rutas, no medios.",
+    "D6 — qué midió el seco del 2026-09-27 antes de escribir: 106 registros en 6 endpoints, 67 archivos, 66 filas de alias, 73 enlaces (66 de fila + 6 portadas de D4 + 1 regla de `slug` sobre `espresso-doble`), 0 en revisar, 5 pendientes, 11 ambigüedades y 0 motivosAlias. La PARTICIÓN cerró en el seco y volvió a cerrar idéntica después del `--apply`: 62 enlazados + 0 en revisar + 5 pendientes = 67 de 67. Recibo en .superpowers/sdd/2026-09-24-media-strapi-consolidation/d6-seco.txt y d6-seco-post.txt (no versionados).",
+    "D6 — la extensión del contrato que hubo que escribir ANTES de poder firmar 14 de esas filas. La foto de una familia de ítems es UNA lámina (`cafe-origen-ambala.webp`) y las variantes son tres registros distintos con `slug` de variante (`cafe-ambala-pequeno/-mediano/-grande`); el contrato no permite un archivo declarado en dos filas, así que las 14 fotos de familia se habrían descartado como disputa. Se abrió una única puerta angosta, `compartida`, con la misma forma que `portada` en D4: solo en fila de forma 2, solo con UN archivo, solo sobre el campo de portada del endpoint, y declarada por las DOS partes (un `compartida` huérfano sigue rechazado). No debilita nada más: un archivo declarado `compartida` sigue cerrado a los reclamos por regla de nombre, y la PARTICIÓN no se mueve — un archivo, un balde, N entradas de `enlazar`. Por eso `enlazar.length` (73) es mayor que la cuenta de archivos enlazados (62 + 1 de la regla = 63): estaba pasando antes con las portadas y ahora también con las familias.",
+    "D6 — qué escribió el `--apply`: 73 enlaces `ok` y 0 fallas. Es la primera corrida de este envase que termina sin la falla de siempre: el enlace que G3, D3, D4 y D5 anunciaban con 403 (`espresso-doble.webp` → `item-menus/eco9rlgy5goi8wabtjzp2ueu.imagen`, derivado de la regla de `slug` exacto y no de una fila) se escribió porque el grant de `item-menu.update` lo habilita. 15 archivos nuevos a la librería y 28 enlaces nuevos: `files` 47→62 y `files_related_mph` 104→132 (16 en `item-menu.imagen`, 4 en `proveedor.foto`, 8 en `historia-visitante.imagen` = 4 documentos × borrador y publicado). Cero nombres repetidos en `files`, medido con `group by name having count(*)>1`.",
+    "D6 — cómo se abrió el alcance, otra vez sin tocar el panel ni reiniciar. El token 5 (`media-import-g3-2026-09-26`) pasó de 18 acciones a 21 con tres filas en `strapi_api_token_permissions` enlazadas por `strapi_api_token_permissions_token_lnk` con `ord` 5, 6 y 7 (`item-menu.update`, `proveedor.update`, `historia-visitante.update`); el dump previo de las 18 está en `d6-perms-pre.txt` (no versionado) y el SQL con su rollback documentado, en `d6-grant.sql`. La sonda que no escribe nada: `PUT /api/<endpoint>/zzzz…zzz` con `{}` responde 403 sin el permiso y 400 con él (el documento no existe, pero la autorización pasó). Medido después del grant: item-menus 400, proveedors 400, historia-visitantes 400, y el control negativo — `lote-miels`, al que NO se le otorgó el permiso — sigue en 403. El grant surte efecto en el servidor vivo, sin rebuild.",
+    "D6 — verificación medida por la API publicada, que es lo que ve el visitante: 16 de los 17 `item_menus` tienen `imagen` (el que falta es `te-de-guayaba-agria`, sin lámina), los 4 `proveedors` tienen `foto` y 4 de las 9 `historia_visitantes` publicadas tienen `imagen`. Las compartidas se ven compartidas de verdad: `cafe-ambala-pequeno/mediano/grande` devuelven las tres `/uploads/cafe_origen_ambala_1694ae1ce5.webp`, y las tres `aromatica-*` `/uploads/aromatica_flora_nativa_f8082aab07.webp` — un archivo, no tres copias. 16 URLs distintas servidas, 16 con 200.",
+    "D6 — el límite honesto de esto, para que nadie lea el censo como si la página ya mostrara el café. Los 8 enlaces de `proveedor.foto` y `historia-visitante.imagen` están en Strapi, pero las páginas todavía pintan literales hardcodeados: `src/pages/cafe/index.astro:47-50,58-61` y `:23,30,46,69` de `src/pages/cafe/visitantes.astro` siguen armando `/images/cafe-menu/proveedor-*.webp` a mano, y `itemImage` (`src/lib/cafe.ts:233-269`) sigue teniendo `LOCAL_IMAGES` debajo. Cambiar esa lectura es D8 (paso 1 y 2 de G6); el paso 3 —jubilar `LOCAL_IMAGES`— sigue bloqueado por huecos de contenido (`te-de-guayaba-agria`, 5 visitantes sin lámina), no de cableado. Y `pan-yuca-miel.webp` no tiene ítem que lo reciba: quedó consignado, no borrado.",
+    "D6 — las láminas de personas (`proveedor-*.webp`, `visitante-*.webp`) siguen con la procedencia sin resolver: son caras reales y dos archivos del inventario llevan nombre de persona sobre retratos que pueden ser de stock (D7). Cablearlas fue esta decisión; confirmar de dónde salieron, no."
   ],
   "alias": {
     "public/images/bitacora/bitacora-abeja-cultivo.webp": {
@@ -228,6 +235,181 @@
       "campo": "imagen",
       "archivos": [
         "public/images/galeria/producto-miel-2.webp"
+      ]
+    },
+    "ilaaa6t3n72tmmordbef1a05": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/aromatica-flora-nativa.webp"
+      ],
+      "compartida": true
+    },
+    "p82ytt0sna9cqp7lopdjpbrz": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/aromatica-flora-nativa.webp"
+      ],
+      "compartida": true
+    },
+    "p65brn4httpgu5amigxgovrh": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/aromatica-flora-nativa.webp"
+      ],
+      "compartida": true
+    },
+    "w9wq2iw3wfmwmdzy2gd8q5zm": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/cafe-origen-ambala.webp"
+      ],
+      "compartida": true
+    },
+    "hjdkzy1km2t4atfqbx6atwye": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/cafe-origen-ambala.webp"
+      ],
+      "compartida": true
+    },
+    "cdpops03i80vmkg42hfutfkb": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/cafe-origen-ambala.webp"
+      ],
+      "compartida": true
+    },
+    "cbzubzwcb5cp8l8an4gqt2l9": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/chocolate-cacao-local.webp"
+      ],
+      "compartida": true
+    },
+    "vqft9ea1lkww551ih5p49e0y": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/chocolate-cacao-local.webp"
+      ],
+      "compartida": true
+    },
+    "kskq64btl39z6p4iu1307d24": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/cold-brew-ambala.webp"
+      ],
+      "compartida": true
+    },
+    "vdrdlj9awajv7fcynd22511n": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/cold-brew-ambala.webp"
+      ],
+      "compartida": true
+    },
+    "fe6uleo5qlynudj1ervyo3a4": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/latte-miel-canela.webp"
+      ],
+      "compartida": true
+    },
+    "xu5i6z9p69bjeccljgfwk5m3": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/latte-miel-canela.webp"
+      ],
+      "compartida": true
+    },
+    "jdx18pkgvqxj6200dlw32vea": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/miel-angelita-cafe.webp"
+      ],
+      "compartida": true
+    },
+    "uooon3kf7wnkj72eu1h0skyl": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/miel-angelita-cafe.webp"
+      ],
+      "compartida": true
+    },
+    "ffnqvss36lkvq5s5ih17lc5a": {
+      "endpoint": "item-menus",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/queso-cumbre-arepa.webp"
+      ]
+    },
+    "upd2jasb6q4ouztydhjwicdl": {
+      "endpoint": "proveedors",
+      "campo": "foto",
+      "archivos": [
+        "public/images/cafe-menu/proveedor-meliponario.webp"
+      ]
+    },
+    "rfattgbvykim6ldxpzzg3snc": {
+      "endpoint": "proveedors",
+      "campo": "foto",
+      "archivos": [
+        "public/images/cafe-menu/proveedor-familia-cardona.webp"
+      ]
+    },
+    "mt0rrrwpsbuy5vt7nlakrgsb": {
+      "endpoint": "proveedors",
+      "campo": "foto",
+      "archivos": [
+        "public/images/cafe-menu/proveedor-finca-cumbre.webp"
+      ]
+    },
+    "cmfgpugrmxi6cpvoksjdei58": {
+      "endpoint": "proveedors",
+      "campo": "foto",
+      "archivos": [
+        "public/images/cafe-menu/proveedor-cacao-espinal.webp"
+      ]
+    },
+    "hqlswe9gi1hrtiw9onetw7a6": {
+      "endpoint": "historia-visitantes",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/visitante-colibri.webp"
+      ]
+    },
+    "s0yftcctneamgcyr6h7g6yjr": {
+      "endpoint": "historia-visitantes",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/visitante-guamo.webp"
+      ]
+    },
+    "xbrk9al9g178j22bbf3a8nhv": {
+      "endpoint": "historia-visitantes",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/visitante-dona-nelly.webp"
+      ]
+    },
+    "ouwrslvfhopuzyx8mihk7rd7": {
+      "endpoint": "historia-visitantes",
+      "campo": "imagen",
+      "archivos": [
+        "public/images/cafe-menu/visitante-angelitas.webp"
       ]
     }
   }

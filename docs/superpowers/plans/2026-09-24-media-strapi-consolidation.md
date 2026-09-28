@@ -1485,7 +1485,19 @@ Nota: `hero_configuracions` tiene **0 borradores** (sus 39 filas entraron por SQ
 > servidor vivo sin reinicio) y arreglar el orden en que un registro cobra sus campos, que hasta acá era
 > alfabético y dejaba el `galeria` deducible por encima del `imagen` declarado. Después: `files` **47**
 > (subieron los 3 y ninguno dos veces), enlaces **104**, `imagen` sobre `api::producto` **6** filas, y un solo
-> archivo sin enlace en toda la librería (`espresso-doble.webp`, que es D6). Los 6 proyectos siguen sin `slug`
+> archivo sin enlace en toda la librería (`espresso-doble.webp`, que es D6). Y **D6**, el mismo 2026-09-27, cerró
+> ese último archivo y cableó el café: las 4 fallas de `espresso-doble` en las corridas anteriores eran el alcance,
+> no el plan. Se escribieron 23 filas sobre `cafe-menu/` (15 ítems, 4 proveedores, 4 visitantes), y como la foto de
+> una familia es **una** lámina mientras el `slug` es de **variante**, hubo que extender el contrato con `compartida`
+> — la misma forma que `portada`: un archivo declarado en varias filas, solo sobre el campo de portada y solo si las
+> dos filas lo dicen —. Grant de tres `update` más (18 → **21** acciones, sonda `PUT` con documentId inventado: 403
+> → 400, con `lote-miels` — endpoint al que no se le otorgó el permiso — como negativa). Resultado: `files` 47 → **62**, enlaces 104 → **132**, y por
+> primera vez **0 fallas** en un `--apply` de este envase. En la API publicada: **16 de los 17** `item_menus` con
+> `imagen`, 4/4 `proveedors` con `foto`, 4/9 `historia_visitantes` con `imagen`; las tres variantes de una familia
+> devuelven la misma URL de un solo archivo. Lo que **no** cambió es lo que ve un visitante:
+> `src/pages/cafe/index.astro:47-50,58-61` y `src/pages/cafe/visitantes.astro:23,30,46,69` siguen pintando literales
+> y `LOCAL_IMAGES` sigue debajo — eso es el paso 2 y 3 de G6, o sea **D8**, y el 3 queda bloqueado por huecos de
+> contenido (`te-de-guayaba-agria` sin lámina, 5 visitantes sin lámina, `pan-yuca-miel.webp` sin ítem). Los 6 proyectos siguen sin `slug`
 > (medido 6/6 también en el endpoint publicado), así que su ficha de detalle es inalcanzable — y D5 midió lo
 > mismo en 3 de los 14 productos, dos de ellos justo los que acaban de recibir tapa: es **D11**, contenido y
 > URLs, no medios. `hero_configuracions` **no se tocó**: el token de esta corrida no tiene `update`
@@ -1639,6 +1651,18 @@ sin imagen», y la base local contesta `files = 0` con **17** filas en `item_men
 tabla tiene 17 filas). Borrar `LOCAL_IMAGES` hoy dejaría el menú sin fotos, así que aplica la
 propia condición de este task — «si el admin no tiene las imágenes, no se borra la regla» — y se
 destraba con el `--apply` del Task 10, cuyo pre-requisito es el volumen de F0.
+
+**Actualizado el 2026-09-27 con D6 — el paso 1 ya casi se cumple, y los pasos 2 y 3 no.** Medido con el paso 1
+sobre la API publicada: **16 de los 17** `item_menus` tienen `imagen`, 4/4 `proveedors` tienen `foto` y 4/9
+`historia_visitantes` tienen `imagen`. El único ítem sin foto es `te-de-guayaba-agria`, y no le falta cableado sino
+lámina. Consecuencia: **no se borra `LOCAL_IMAGES` todavía** — los pasos 2 y 3 quedan bloqueados por contenido, no
+por alcance, y es la decisión D8 con su gate propio (leer el dato de Strapi en
+`src/pages/cafe/index.astro:47-50,58-61` y `src/pages/cafe/visitantes.astro:23,30,46,69`, que hoy pintan
+literales). El paso 4, verificar en el navegador, sigue sin poder ejecutarse en este tree: `npm run build` está
+prohibido y publicar es D10. Nota de herramienta para quien repita el paso 1: con los corchetes literales en la URL
+`curl` hace glob y no escribe nada (silencioso), y si los escapas mal Strapi responde **400**. La forma con la que
+se midió: `curl -sg … '?status=published&pagination%5BpageSize%5D=20&populate=imagen'` — corchetes codificados y
+`populate` simple, porque en v5 el populate de un `media` no necesita el `[populate]=*` anidado que pide este paso.
 
 **Files:**
 - Modify: `src/lib/cafe.ts` (`LOCAL_IMAGES` ~232-243, `itemImage` ~245-268, `proveedorFoto` ~273-275, `proveedorIcono` ~281-291)
@@ -1979,7 +2003,9 @@ Todo lo de esta sección vive fuera del repo: los dos primeros cambios en `/home
 | 2026-09-25 | Dump previo `iwage-pre-f2-2026-09-25.sql` | restaurar el dump |
 | 2026-09-25 **ejecutada (G2)** | Reconstrucción del contenedor con los esquemas nuevos (`fa240b2`): imagen `c5d3fc49` en `latest`, arrancando con **drop de 11 columnas**. Dump previo `iwage-pre-rebuild-2026-09-25.sql` (2.515.184 B) | `docker tag negocio-iwage_strapi:pre-fa240b2 negocio-iwage_strapi:latest && docker compose up -d iwage_strapi` revierte código y esquema; **las columnas caídas solo las repone el dump** |
 | 2026-09-25 | 19 png movidos a `/home/ubuntu/backup/png-cafe-menu-2026-09-25` | moverlos de vuelta |
-| 2026-09-26 **ejecutada (G3)** | Importar y enlazar las 33 unidades aceptadas: 36 archivos a `/uploads` sobre el volumen `negocio_iwage_strapi_uploads`; `files` 0 → **37**, `files_related_mph` 0 → **72**; 27 bitácoras y 6 proyectos con medio en su fila publicada. Token dedicado `media-import-g3-2026-09-26` (`custom`, 17 acciones, vence 2026-10-03). Dump previo `iwage-pre-g3-2026-09-26.sql` (2.518.525 B) | `psql < iwage-pre-g3-2026-09-26.sql` repone `files` y enlaces; los bytes quedan en el volumen (no los toca un rebuild) y repetir el `--apply` no duplica, porque la identidad es el `name` |
+| 2026-09-26 **ejecutada (G3)** | Importar y enlazar las 33 unidades aceptadas: 36 archivos a `/uploads` sobre el volumen `negocio_iwage_strapi_uploads`; `files` 0 → **37**, `files_related_mph` 0 → **72**; 27 bitácoras y 6 proyectos con medio en su fila publicada. Token dedicado `media-import-g3-2026-09-26` (`custom`, 17 acciones al nacer —ver la fila del alcance de abajo—, vence 2026-10-03). Dump previo `iwage-pre-g3-2026-09-26.sql` (2.518.525 B) | `psql < iwage-pre-g3-2026-09-26.sql` repone `files` y enlaces; los bytes quedan en el volumen (no los toca un rebuild) y repetir el `--apply` no duplica, porque la identidad es el `name` |
+| 2026-09-27 **ejecutado (D5 y D6)** | Alcance del token 5, escrito en la BD y no en el repo: `strapi_api_token_permissions` + `…_token_lnk`. D5 sumó `api::producto.producto.update` (17 → 18, `ord` 4); D6 sumó `item-menu.update`, `proveedor.update` e `historia-visitante.update` (18 → **21**, `ord` 5/6/7, document_ids `6hw4mugws0qctqqzszuhhqov`, `14ji5bw8y4dz81dvvmp99kst`, `q9asbdnw3bwa477c6ji24o6w`). El alta surte en el servidor vivo, sin rebuild ni reinicio | borrar las 4 filas de `lnk` y las 4 de `strapi_api_token_permissions` con esos `document_id` (rollback escrito en `d6-grant.sql`; volcado previo de las 18 en `d6-perms-pre.txt` y en `/home/ubuntu/backup/d5-grant-pre-2026-09-27.sql`) |
+| 2026-09-27 **ejecutadas (D3, D4, D5, D6)** | Cuatro `--apply` sobre la base viva, cada uno con su seco y su dump previos: `files` 37 → 44 → 44 → **47** → **62**, `files_related_mph` 72 → 86 → 98 → 104 → **132**. D6 es el primero con **0 fallas**. Ningún nombre repetido en `files` en ninguna corrida | `psql < iwage-pre-g3-2026-09-26.sql` para `files` y enlaces (los bytes ya subidos quedan en el volumen); borrar los archivos y lazos de una corrida a mano es lo único que hace falta si se quiere volver a un punto intermedio, y volver a correr el envase reconstruye el estado final porque el `--apply` es idempotente |
 
 ### Task 1 — evidencia leída y parche preparado (2026-09-25 por la mañana) / **aplicado esa misma tarde**
 

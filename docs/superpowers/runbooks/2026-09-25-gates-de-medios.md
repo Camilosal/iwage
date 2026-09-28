@@ -13,14 +13,25 @@ una. **Ejecutadas: G1 el 2026-09-25 16:33 UTC, G2 esa misma noche (23:40 → 00:
 2026-09-26 (01:47 → 03:20 UTC)**; cada sección dice qué se midió para verificarla. **G0, a medias el
 2026-09-27**: scrub de las cuatro publicaciones, guarda anti-credenciales en la suite, rol propio
 `iwage_app` creado y probado, y clave de cifrado del panel definida y cableada (efectiva al recrear, o sea
-G8); falta la rotación coordinada del host, que no es de esta puerta. **Y tres corridas más de `--apply`
-sobre la base viva, todas el 2026-09-27: D3, D4 y D5.** D3 enlazó 7 tapas que G3 dejó sin par y reasignó una mal
+G8); falta la rotación coordinada del host, que no es de esta puerta. **Y cuatro corridas más de `--apply`
+sobre la base viva, todas el 2026-09-27: D3, D4, D5 y D6.** D3 enlazó 7 tapas que G3 dejó sin par y reasignó una mal
 asignada — 34 de 56 bitácoras publicadas con tapa—. D4 llenó la portada de los 6 proyectos: `imagen` pasó de 0
 a 6 documentos con portada, declarándola en la misma fila del envase que escribe su galería. D5 cerró la única
 disputa que todavía caía en `revisar` —los 3 `producto-*`—, y para escribirla hubo que abrir el alcance del token
 (`update` sobre `api::producto.producto`) y arreglar el orden en que el manifiesto recorre los campos de un mismo
-registro. Cada corrida está documentada en su propia sección bajo G3, con dump previo y verificación medida. Siguen
-cerradas: **G4**, **G5**, **G6**, **G7** y **G8** (empujar y desplegar, que nadie autorizó todavía). Abrió una
+registro. Cada corrida está documentada en su propia sección bajo G3, con dump previo y verificación medida.
+**D6 cables el café**: 23 filas nuevas sobre `cafe-menu/` (15 ítems, 4 proveedores, 4 historias de visitante), y
+para poder firmar la foto de una familia en cada variante hubo que **extender el contrato** con una cláusula nueva,
+`compartida`, declarada por las dos filas (es la misma forma que `portada` en D4). El grant sumó tres `update` más
+(`item-menu`, `proveedor`, `historia-visitante`; 18 → 21 acciones) y con eso **desapareció la falla que arrastraban
+G3, D3, D4 y D5** — `espresso-doble.webp` → `item-menus`, que la regla de `slug` firma sola: D6 fue la primera
+corrida con 73 enlaces `ok` y **0 fallas**. Esto abre **G6 a medias**: su paso 1 ya se cumple en la base
+(16 de los 17 `item_menus` con `imagen`, 4/4 proveedores con `foto`, 4/9 visitantes con `imagen`), pero las
+páginas siguen pintando literales hardcodeados (paso 2) y el paso 3 —jubilar `LOCAL_IMAGES`— sigue bloqueado por
+huecos de **contenido**, no de cableado: `te-de-guayaba-agria` sin lámina, 5 visitantes sin lámina,
+`pan-yuca-miel.webp` sin ítem y las dos `promo-*` sin campo. Sigue abierta una duda de procedencia sobre las
+láminas de personas (D7). Siguen cerradas: **G4**, **G5**, **G7** y **G8** (empujar y desplegar, que nadie
+autorizó todavía). Abrió una
 decisión nueva, **D11**: los 6 proyectos siguen con `slug: null` y por eso su ficha de detalle es inalcanzable — y
 D5 midió que **3 de los 14 `productos`** están igual, dos de ellos justo los que acaban de recibir tapa. Es
 contenido y URLs, no medios, y lo decide el dueño (está escrito en la sección de D4 y en la de D5). Que
@@ -860,6 +871,83 @@ con su mutante medido, `F2-a producto-caja-1` actualizado a los tres slugs reale
 `tests/media-alias-propuesto.test.mjs` (cuentas 43/35/8/6 y `SIN_PROPUESTA` reducido a las 2 tapas de bitácora).
 `npm test` **346/346**. Nada empujado, nada desplegado.
 
+### Resuelto el 2026-09-27 (decisión D6): el café se cablea, y para hacerlo hubo que extender el contrato
+
+**Qué estaba abierto.** Las 19 piezas de `public/images/cafe-menu/`, que G3 nunca tocó y que G6 tenía como
+deuda. La base tiene 17 `item_menus`, 4 `proveedors` y 9 `historia_visitantes` publicados, y hasta hoy ninguno
+tenía una sola relación con la librería (`files_related_mph` marcaba 0 filas para los tres tipos).
+
+**Por qué la regla de nombre no alcanzaba, que es el hallazgo de esta ronda.** El `slug` de un ítem es de
+**variante** (`cafe-ambala-pequeno`, `-mediano`, `-grande`) y la foto es **una por familia**
+(`cafe-origen-ambala.webp`). Seis familias, 14 variantes. Un alias por ruta firma un archivo contra UN registro;
+repetir la ruta en tres filas era exactamente lo que el contrato rechazaba como disputa. Lo mismo, por otro
+motivo, en `proveedors` e `historia-visitantes`: ninguno tiene campo de identidad por nombre medible
+(`ENDPOINTS_CON_MEDIO` no les declara `identidadNombre`), así que la regla solo disparaba sobre `espresso-doble`,
+que sí se llama igual que su `slug`. **18 de las 19 piezas no se podían firmar sin declarar.**
+
+**La decisión del dueño, y qué implica.** Ante la opción de poner una foto solo en el registro «representativo»
+y heredarla en la vista, o dejar el menú como estaba, se eligió **declararla en cada variante**: cada ítem es un
+documento y Strapi es el dueño del dato, así que una variante sin su `imagen` poblada es un hueco real, no un
+detalle de presentación. Eso obliga a abrir el contrato, y la apertura se escribió con la misma forma angosta que
+`portada` en D4.
+
+**`compartida`, la cláusula nueva.** Solo en fila de forma 2 (clave = `documentId`), solo con **un** archivo, solo
+sobre el **campo de portada** del endpoint, y **declarada por las dos partes**: un `compartida` huérfano sobre un
+archivo que otro ya declaró sigue rechazándose. Un archivo marcado así sigue cerrado a los reclamos por regla de
+nombre, y la PARTICIÓN no se mueve: un archivo vive en un solo balde aunque escriba N enlaces. Consecuencia
+medida y admitida en el contrato: `enlazar.length` puede ser mayor que la cuenta de archivos enlazados —acá 73
+enlaces sobre 63 archivos—, que es la misma contabilidad que D4 descubrió con las portadas.
+
+**El seco antes de escribir (2026-09-27):** 106 registros en 6 endpoints, 67 archivos, **66 filas**, 73 enlaces,
+0 en `revisar`, 5 pendientes, 11 ambigüedades, 0 `motivosAlias`. PARTICIÓN: 62 + 0 + 5 = 67 de 67.
+
+**El alcance, otra vez sin panel y sin reiniciar.** Tres filas nuevas en `strapi_api_token_permissions`
+(`item-menu.update`, `proveedor.update`, `historia-visitante.update`) enlazadas al token 5 con `ord` 5, 6 y 7:
+**18 → 21 acciones**. Volcado previo (`d6-perms-pre.txt`, no versionado) y SQL con rollback documentado
+(`d6-grant.sql`). La sonda que no escribe nada —`PUT /api/<endpoint>/zzz…` con `{}`: 403 sin permiso, 400 con él—
+dio 400 en los tres endpoints nuevos, 400 en `bitacoras` (ya autorizado) y **403 en `lote-miels`, al que no se le
+otorgó el permiso**: la negativa de control de que el alcance no se ensanchó de más. Reproducido hoy, al cerrar esta
+sección.
+
+**El `--apply`: 73 enlaces `ok` y 0 fallas.** Es la primera corrida de este envase sin la falla de siempre:
+`espresso-doble.webp` → `item-menus/eco9rlgy…imagen`, el enlace que la regla de `slug` deriva sin fila y que G3,
+D3, D4 y D5 vieron morir en 403 cuatro veces seguidas, se escribió. `files` 47 → **62** (15 subidas) y
+`files_related_mph` 104 → **132** (+28: 16 en `item-menu.imagen`, 4 en `proveedor.foto`, 8 en
+`historia-visitante.imagen` = 4 documentos × borrador y publicado). **0 nombres repetidos** en `files`. Correr el
+seco después del apply devuelve el mismo plan, byte a byte: la corrida es idempotente.
+
+**Medido por la API publicada, que es lo que vería el visitante.** 16 de los 17 `item_menus` con `imagen` (falla
+`te-de-guayaba-agria`, que no tiene lámina), **4/4** `proveedors` con `foto`, 4 de las 9
+`historia_visitantes` con `imagen`. Y lo que era el punto de la decisión, verificado: `cafe-ambala-pequeno`,
+`-mediano` y `-grande` devuelven las tres **la misma** `/uploads/cafe_origen_ambala_1694ae1ce5.webp`, y las tres
+`aromatica-*` la misma `/uploads/aromatica_flora_nativa_f8082aab07.webp` — una lámina en la librería, no tres
+copias. 16 URLs distintas, 16 con 200. Verificado en BD, API y URL servida; **no en navegador**: `npm run build`
+está prohibido en este tree y publicar es D10.
+
+**El límite honesto, para que nadie lea esto como «el café ya se gestiona desde Strapi».** Los datos están, la
+página todavía no los mira. `src/pages/cafe/index.astro:47-50,58-61` y `src/pages/cafe/visitantes.astro:23,30,46,69`
+siguen armando a mano `/images/cafe-menu/proveedor-*.webp` y `visitante-*.webp`, y `itemImage`
+(`src/lib/cafe.ts:233-269`) conserva `LOCAL_IMAGES` debajo. Eso es **D8** (pasos 1 y 2 de G6). Y el paso 3 —borrar
+`LOCAL_IMAGES`— queda **bloqueado y documentado**, por huecos de contenido: `te-de-guayaba-agria` y 5 visitantes
+sin lámina.
+
+**Consignados, no borrados (decisión del dueño: «consignarlos y seguir»).** `pan-yuca-miel.webp` no tiene ítem
+que lo reciba; `promo-duos-perfectos.webp` y `promo-reutilizable.webp` los pinta la plantilla
+(`src/pages/cafe/index.astro:176` y `:152` — y la clave `'promo-duos'` de `LOCAL_IMAGES`, `src/lib/cafe.ts:243`,
+nunca dispara porque ningún ítem tiene esa `familia`) y ningún content-type tiene un campo donde ponerlas. Quedan
+nombrados en el
+`aviso` de los dos envases y en `SIN_PROPUESTA` del teste, que es donde se ponen rojos si el día de mañana alguien
+les abre destino. Y las láminas de personas (`proveedor-*`, `visitante-*`) siguen con la **procedencia sin
+resolver**: caras reales con nombre de persona, dos de ellas candidatas a retrato de stock (D7).
+
+**Qué cambió en el repo.** `strapi/scripts/lib/media-manifest.mjs` (la cláusula `compartida`: validación de forma,
+reserva de archivo por `Map` en lugar de `Set`, salto de disputa cuando todos los dueños comparten, y el contrato
+reescrito arriba con la contabilidad nueva), `strapi/scripts/media-alias-propuesto.json` y
+`strapi/scripts/media-alias.json` (**66 filas**: 35 forma 1 + 31 forma 2; el recibo de D6 en 7 líneas nuevas de
+`aviso`), `tests/media-manifest.test.mjs` (+7 testes `F2-d`, 48 → 55) y `tests/media-alias-propuesto.test.mjs`
+(cuentas 66/35/31/6/14, inventario extendido a `cafe-menu/` —67 archivos—, y la guard de duplicados convertida de
+absoluta a «declarada»). `npm test` **353/353**. Nada empujado, nada desplegado.
+
 ## G4 · Vaciar Unsplash y placeholders en la base
 
 **Desbloquea:** que el admin no muestre como contenido lo que el sitio ya se niega a pintar.
@@ -917,7 +1005,7 @@ cuando el paso 1 dé 0. (Precisión del plan: son 17 filas, no «las 19 preparac
 | `src/pages/cafe/menu.astro:70` | `fallbackItems` — 17 filas literales, espejo de `item_menus` | 9 |
 | `src/pages/cafe/index.astro:46` | `fallbackProveedores` (4 filas) | 4 `proveedor-*.webp` |
 | `src/pages/cafe/index.astro:57` | `FALLBACK_HISTORIAS_HOME` (4 visitantes) | 4 `visitante-*.webp` |
-| `src/pages/cafe/menu.astro` (plantilla) | dos promos escritas a mano | `promo-duos-perfectos`, `promo-reutilizable` |
+| `src/pages/cafe/index.astro:152,176` (plantilla) | dos promos escritas a mano | `promo-duos-perfectos`, `promo-reutilizable` — re-medido el 2026-09-27 con D6: eran de `index.astro`, no de `menu.astro` |
 
 Medido contra el crawl de 185 URLs (`analyze.py`, sección «BIBLIOTECA EN DISCO vs RENDERIZADA»):
 **14 de las 19 se sirven y 5 no** — `pan-yuca-miel` y los cuatro `proveedor-*`. Los cuatro
@@ -932,6 +1020,18 @@ mientras que quitarle las imágenes es exactamente lo que ya se aprobó: «Strap
 fallbacks de imagen; con Strapi caído las tarjetas muestran el Icon tile y la página sobrevive».
 (4) Las 19 piezas entran al inventario del importador, así que la fila 6 las cuenta: hoy da
 `cafe-menu piezas=19 huerfanas=0`, y después de este borrado dará 19 hasta que se cableen.
+
+**Actualizado el 2026-09-27 con D6 — la precondición de arriba quedó vieja.** `files = 0` ya no es el estado: la
+librería tiene 62 archivos y las 19 piezas de `cafe-menu/` están en el inventario del importador. Del paso 1, que
+pedía «0 ítems sin imagen», **16 de los 17 `item_menus` tienen `imagen` poblada**, y también los 4 `proveedors`
+(`foto`) y 4 de las 9 `historia_visitantes` (`imagen`); el único hueco es `te-de-guayaba-agria`, sin lámina. O sea
+que la primera fila de la tabla de puntos de verdad (`LOCAL_IMAGES`) y las tres de literales
+(`fallbackItems`, `fallbackProveedores`, `FALLBACK_HISTORIAS_HOME`) **siguen siendo los cuatro puntos de verdad de
+la página**, porque D6 escribió el dato en Strapi pero nadie cambió la lectura: eso es **D8**, y es el paso 2 de
+esta puerta. El paso 3 —borrar `LOCAL_IMAGES` y los campos de imagen de los arreglos— sigue **bloqueado por
+contenido**: mientras `te-de-guayaba-agria` y 5 visitantes no tengan lámina, jubilar la regla deja huecos que hoy
+no deja. Las dos `promo-*` no tienen campo donde ir (ningún content-type las recibe) y `pan-yuca-miel.webp` no
+tiene ítem: quedaron consignados en el `aviso` del envase y en `SIN_PROPUESTA` del teste, no borrados.
 
 ## G7 · Permisos de lectura pública
 

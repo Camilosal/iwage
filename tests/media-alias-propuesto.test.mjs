@@ -1,6 +1,6 @@
 /**
  * El envase de alias que el importador recibe con `--alias=<ruta>` es un archivo de
- * decisiones editoriales, y este teste no decide ninguna: verifica que las 43 filas
+ * decisiones editoriales, y este teste no decide ninguna: verifica que las 66 filas
  * PROPUESTAS (`strapi/scripts/media-alias-propuesto.json`) son mecánicamente válidas
  * —el archivo existe en el inventario, el endpoint está en la tabla del manifiesto,
  * el campo es de los que la tabla declara, el slug y el documentId no se repiten— y
@@ -34,6 +34,12 @@
  * portada con UN archivo. Por eso el teste separa las filas por forma y exige a cada una
  * lo suyo.
  *
+ * D6 (2026-09-27) sumó 23 filas y estrenó `compartida`, así que la invariant «ningún
+ * archivo se declara dos veces» dejó de ser absoluta y pasó a ser declarada: lo que este
+ * teste exige ahora es que todo archivo con dos filas lo diga en las dos, en el mismo
+ * endpoint y sobre el campo de portada. Un reparto sin la bandera sigue siendo un error
+ * de transcripción, que es exactamente lo que la cláusula vieja cazaba.
+ *
  * Y la segunda mitad, que protege el estado DESPUÉS de G3 (aplicado el 2026-09-26 con
  * autorización del dueño): `media-alias.json` —el nombre que el importador lee cuando se
  * le pasa `--alias` por defecto— ya no está vacío, y lo que se le exige es ser EXACTAMENTE
@@ -63,9 +69,10 @@ const entradas = Object.entries(alias);
 // Forma 1 = la clave es la ruta del archivo. Forma 2 = la clave es el documentId.
 const F1 = entradas.filter(([, f]) => 'slug' in f);
 const F2 = entradas.filter(([, f]) => 'archivos' in f);
-/** 34 tapas de bitácora + 1 producto (D5) en forma 1, y 6 series de proyecto + 2 productos (D5) en forma 2. */
+/** 34 tapas de bitácora + 1 producto (D5) en forma 1; 6 series de proyecto, 2 productos
+ *  (D5) y 23 filas de café — 15 ítems, 4 proveedores, 4 visitantes— (D6) en forma 2. */
 const FILAS_F1 = 35;
-const FILAS_F2 = 8;
+const FILAS_F2 = 31;
 /**
  * Filas que declaran `portada` (D4, 2026-09-27): las 6 series de proyecto. Cada una
  * escribe DOS campos —`galeria` con la serie y `imagen` con la lámina declarada—, así
@@ -73,16 +80,45 @@ const FILAS_F2 = 8;
  */
 const FILAS_CON_PORTADA = 6;
 /**
- * Las 2 rutas que a PROPÓSITO no tienen fila, después de D5: las dos tapas de bitácora
- * sin destino — `calendario-manejo`, porque la lámina es defectuosa (pseudo-texto
- * ilegible) y su asunto ya tiene tapa en `modulo5-manejo`, y `red-meliponicultores`,
- * porque la lámina está bien pero el artículo no existe en la BD. Los 3 `producto-*` que
- * estaban acá ya tienen fila desde D5. Enumeradas, no derivadas: si una de estas cambia de
- * estado, este teste se pone rojo y alguien la lee.
+ * Archivos que se declaran en más de una fila (D6): las 6 fotos de familia del café,
+ * 14 filas sobre 6 archivos. Cada una de esas filas escribe su propio `imagen`, así que
+ * la cuenta de enlaces crece una vez por fila, no una vez por archivo.
+ */
+const FILAS_COMPARTIDAS = 14;
+/**
+ * Enlaces que no salen de una fila: `espresso-doble.webp` se llama exactamente como el
+ * `slug` del ítem, así que la REGLA de nombre lo firma sola y no necesita alias. Está
+ * acá porque el inventario de este teste incluye `cafe-menu/` y la cuenta de `enlazar`
+ * tiene que cerrar contra la corrida real, no contra la mitad que se propuso.
+ */
+const ENLACES_POR_REGLA = 1;
+/**
+ * Registros que existen en la lectura y NO necesitan fila porque la regla de `slug` los
+ * firma: `espresso-doble.webp` es exactamente el slug del ítem. Está acá porque el
+ * inventario de este teste lo ve y la cuenta de `enlazar` tiene que cerrar con la de la
+ * corrida real. Medido el 2026-09-27: es el único de los 17 `item_menus` que se firma solo.
+ */
+const REGISTROS_SIN_FILA = [
+  { endpoint: 'item-menus', documentId: 'eco9rlgy5goi8wabtjzp2ueu', slug: 'espresso-doble' },
+];
+
+/**
+ * Las 5 rutas que a PROPÓSITO no tienen fila después de D6, enumeradas y no derivadas: si
+ * una cambia de estado, este teste se pone rojo y alguien la lee. Dos tapas de bitácora —
+ * `calendario-manejo`, porque la lámina es defectuosa (pseudo-texto ilegible) y su asunto ya
+ * tiene tapa en `modulo5-manejo`, y `red-meliponicultores`, porque la lámina está bien pero el
+ * artículo no existe en la BD. Y tres archivos de `cafe-menu/`: `pan-yuca-miel`, porque el ítem
+ * no existe (17 `item_menus` publicados, ninguno es pan de yuca) y las dos `promo-*`, porque las pinta
+ * `src/pages/cafe/index.astro:152,176` y ningún content-type tiene un campo donde ir. Estos tres son
+ * huecos de CONTENIDO, no de cableado, y son la razón por la que `LOCAL_IMAGES`
+ * (`src/lib/cafe.ts:233`) sigue vivo: el paso 3 de G6 queda bloqueado y documentado.
  */
 const SIN_PROPUESTA = [
   'public/images/bitacora/bitacora-calendario-manejo.webp',
   'public/images/bitacora/bitacora-red-meliponicultores.webp',
+  'public/images/cafe-menu/pan-yuca-miel.webp',
+  'public/images/cafe-menu/promo-duos-perfectos.webp',
+  'public/images/cafe-menu/promo-reutilizable.webp',
 ];
 
 test('el archivo viene en el envase que `leerAlias()` acepta: {aviso, alias}', () => {
@@ -147,17 +183,43 @@ test('forma 2: clave con pinta de documentId, campo de la tabla y archivos exist
       assert.ok(existsSync(join(RAIZ, a)), `${clave}: ${a} no existe en disco`);
     }
     assert.equal(new Set(fila.archivos).size, fila.archivos.length, `${clave}: el mismo archivo dos veces en la misma serie`);
+    if ('compartida' in fila) {
+      // El módulo rechaza estas tres formas y el envase no tiene por qué contenerlas:
+      // una bandera que no es `true`, un reparto de serie, o compartir una galería en vez
+      // de la portada. Medido con mutantes M5..M7 en la ronda D6.
+      assert.equal(fila.compartida, true, `${clave}: \`compartida\` solo se escribe como true`);
+      assert.equal(fila.archivos.length, 1, `${clave}: una fila compartida declara UN solo archivo`);
+      assert.equal(fila.campo, cfg.campo, `${clave}: \`compartida\` solo vale sobre el campo de portada de ${fila.endpoint}`);
+    }
   }
 });
 
-test('ningún archivo se declara dos veces: ni entre dos filas, ni entre las dos formas', () => {
-  const vistos = new Map();
-  const ver = (ruta, clave) => {
-    assert.equal(vistos.get(ruta), undefined, `${ruta}: lo reclaman ${vistos.get(ruta) ?? ''} y ${clave}`);
-    vistos.set(ruta, clave);
-  };
-  for (const [ruta] of F1) ver(ruta, 'forma 1');
-  for (const [clave, fila] of F2) for (const a of fila.archivos) ver(a, clave);
+test('un archivo no se declara dos veces SIN DECIRLO: `compartida` es la única apertura', () => {
+  // Hasta D6 esta cláusula era absoluta: dos filas sobre la misma ruta eran un error de
+  // transcripción. Lo que sigue siendo un error es el reparto sin bandera, y lo que ahora
+  // se permite es el que las dos filas declaran — mismo endpoint, mismo campo, un archivo
+  // cada una. El módulo tiene los mismos tres guardes; este teste los exige en el ARCHIVO,
+  // para que una fila mal editada se vea acá y no en el `--apply`.
+  const porArchivo = new Map();
+  const ver = (ruta, clave, fila) => porArchivo.set(ruta, [...(porArchivo.get(ruta) ?? []), { clave, fila }]);
+  for (const [ruta, fila] of F1) ver(ruta, 'forma 1', fila);
+  for (const [clave, fila] of F2) for (const a of fila.archivos) ver(a, clave, fila);
+  for (const [ruta, reclamos] of [...porArchivo].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    if (reclamos.length < 2) continue;
+    const quienes = reclamos.map((r) => r.clave).join(', ');
+    for (const { clave, fila } of reclamos) {
+      assert.equal(fila.compartida, true, `${ruta}: lo reclaman ${quienes} y ${clave} no declaró \`compartida\``);
+    }
+    const destinos = new Set(reclamos.map(({ fila }) => `${fila.endpoint}.${fila.campo}`));
+    assert.equal(destinos.size, 1, `${ruta}: compartido entre destinos distintos: ${[...destinos].join(', ')}`);
+    assert.equal(reclamos.length, new Set(reclamos.map((r) => r.clave)).size,
+      `${ruta}: dos filas del mismo documento`);
+  }
+  // El reparto que se declaró, en número: 14 filas sobre 6 fotos de familia del café.
+  const compartidas = F2.filter(([, f]) => f.compartida === true);
+  assert.equal(compartidas.length, FILAS_COMPARTIDAS, 'cambió la cuenta de filas compartidas');
+  assert.equal(new Set(compartidas.flatMap(([, f]) => f.archivos)).size, 6,
+    'las filas compartidas no caen sobre 6 archivos de familia');
 });
 
 test('los destinos son distintos: dos tapas al mismo slug es disputa, y dos filas al mismo documentId también', () => {
@@ -171,7 +233,7 @@ test('los destinos son distintos: dos tapas al mismo slug es disputa, y dos fila
   assert.deepEqual(F2.map(([c]) => c).filter((c) => c.includes('/')), [], 'una forma 2 con clave de ruta');
 });
 
-test('manifesto() firma las 43 filas y no manda ninguna a motivosAlias', () => {
+test('manifesto() firma las 66 filas y no manda ninguna a motivosAlias', () => {
   // Los registros se derivan de la propia propuesta: lo que se prueba acá es la forma
   // del alias contra el resolutor real, no que la API exista (eso se midió por lectura
   // pública: los 34 slugs y los 6 documentId están en la BD del runtime).
@@ -182,33 +244,40 @@ test('manifesto() firma las 43 filas y no manda ninguna a motivosAlias', () => {
       slug: fila.slug,
       ...(ENDPOINTS_CON_MEDIO[fila.endpoint].tieneMarca ? { marca: 'meliponas' } : {}),
     })),
-    // Los proyectos reales: `slug: null` medido en 6/6, identidad solo por documentId.
+    // Los proyectos reales: `slug: null` medido en 6/6, identidad solo por documentId. Lo
+    // mismo traen los 4 `proveedors` y los 9 `historia_visitantes` (medido 2026-09-27), y
+    // los ítems del café se dejan SIN slug a propósito: con los slugs reales la regla no
+    // alcanza a ninguna foto de familia, así que lo que se prueba acá es el reparto
+    // declarado puro. La única fila que la regla sí firma sola está en `REGISTROS_SIN_FILA`.
     ...F2.map(([clave, fila]) => ({ endpoint: fila.endpoint, documentId: clave, slug: null })),
+    ...REGISTROS_SIN_FILA,
   ];
   // El inventario es el DISCO, no lo que la propuesta dice que tocó. Con la lista de la
   // propia propuesta como inventario, una fila que olvida un archivo no lo deja
   // pendiente: sencillamente nunca existió (medido: `ambala-2` fuera de su fila daba
-  // verde). Las 48 rutas de `bitacora/` y `galeria/` son lo que el importador ve.
+  // verde). Las 67 rutas de `bitacora/`, `galeria/` y `cafe-menu/` son lo que el importador
+  // ve — el tercero entró con D6, que es justo el directorio con huecos de contenido.
   const archivos = [...F1.map(([ruta]) => ruta), ...F2.flatMap(([, f]) => f.archivos)];
-  const EN_DIRECTORIOS = new Set(['bitacora', 'galeria']);
+  const EN_DIRECTORIOS = new Set(['bitacora', 'galeria', 'cafe-menu']);
   const inventario = [...EN_DIRECTORIOS]
     .flatMap((d) => readdirSync(join(RAIZ, 'public', 'images', d))
       .filter((f) => /\.(webp|png|jpe?g)$/i.test(f))
       .map((f) => `public/images/${d}/${f}`))
     .sort();
-  assert.equal(inventario.length, 48, 'el inventario cambió: hay que recountar qué se propuso y qué no');
+  assert.equal(inventario.length, 67, 'el inventario cambió: hay que recountar qué se propuso y qué no');
   const m = manifesto({ archivos: inventario, registros, alias });
 
   assert.deepEqual(m.motivosAlias, [], `ninguna fila se pudo firmar: ${JSON.stringify(m.motivosAlias)}`);
-  // Una fila con `portada` son DOS enlaces del mismo registro, así que la cuenta de
-  // entradas no es la cuenta de filas.
-  assert.equal(m.enlazar.length, entradas.length + FILAS_CON_PORTADA,
+  // Una fila con `portada` son DOS enlaces del mismo registro, y una fila compartida
+  // escribe la suya aunque el archivo ya tenga dueño: la cuenta de entradas no es la cuenta
+  // de filas. `ENLACES_POR_REGLA` es lo que la corrida real suma sin ninguna fila.
+  assert.equal(m.enlazar.length, entradas.length + FILAS_CON_PORTADA + ENLACES_POR_REGLA,
     'enlazar no cubre exactamente la propuesta');
   // Ningún archivo de la propuesta queda sin enlazar...
   const enlazados = new Set(m.enlazar.flatMap(archivosDelEnlace));
   assert.deepEqual(archivos.filter((a) => !enlazados.has(a)), [], 'un archivo propuesto y no enlazado es un alias que no ató');
-  // ...y lo que NO queda enlazado son exactamente los 5 que se saben sin decisión: 2 tapas
-  // de bitácora sin artículo (o sin lámina usable) y 3 archivos de producto. Si mañana
+  // ...y lo que NO queda enlazado son exactamente los 5 archivos sin decisión: 2 tapas de
+  // bitácora sin artículo (o sin lámina usable) y 3 láminas de café sin destino. Si mañana
   // alguien agrega una tapa y no la propone, esta igualdad la nombra.
   assert.deepEqual(inventario.filter((a) => !enlazados.has(a)).sort(), [...SIN_PROPUESTA].sort(),
     'la cuenta de archivos huérfanos cambió');
@@ -216,16 +285,22 @@ test('manifesto() firma las 43 filas y no manda ninguna a motivosAlias', () => {
   // archivo sale con `archivo`, no con `archivos` (bonifacio, esperanza y poblado lo
   // midieron). Discriminar por la presencia de `archivos` reordenaba esas tres.
   // Se cuentan archivos DISTINTOS, no la suma por enlace: la portada declarada es un
-  // segundo enlace sobre un archivo que ya está en su propia serie.
+  // segundo enlace sobre un archivo que ya está en su propia serie, y las 14 filas
+  // compartidas de D6 son 6 archivos. Lo único que se suma es el archivo que firma la
+  // regla sin fila declarada (`ENLACES_POR_REGLA`, uno, con un archivo).
   assert.equal(
     new Set(m.enlazar.flatMap(archivosDelEnlace)).size,
-    new Set(archivos).size,
+    new Set(archivos).size + ENLACES_POR_REGLA,
     'la cuenta de archivos enlazados no cierra con la del inventario de la propuesta',
   );
 
   const documentIdPorSlug = new Map(registros.map((r) => [r.slug, r.documentId]));
   const destinosF2 = new Set(F2.map(([c]) => c));
-  for (const enlace of m.enlazar) {
+  const porRegla = m.enlazar.filter((e) => e.origen === undefined);
+  assert.equal(porRegla.length, ENLACES_POR_REGLA, 'la regla de slug escribió otra cosa');
+  assert.deepEqual(porRegla.flatMap(archivosDelEnlace), ['public/images/cafe-menu/espresso-doble.webp'],
+    'el único enlace sin fila declarada tiene que ser el que la tabla firma sola');
+  for (const enlace of m.enlazar.filter((e) => e.origen !== undefined)) {
     const los = archivosDelEnlace(enlace);
     assert.equal(enlace.origen, 'alias', `${los[0]}: el enlace no vino del alias`);
     if (destinosF2.has(enlace.documentId)) {
@@ -254,8 +329,11 @@ test('el envase aplicado es la propuesta, exacta: ni una fila más y ni un endpo
     'media-alias.json se salió de la propuesta: toda fila nueva exige seco y revisión del dueño',
   );
   const endpoints = [...new Set(Object.values(aplicado.alias).map((v) => v.endpoint))].sort();
-  assert.deepEqual(endpoints, ['bitacoras', 'productos', 'proyecto-meliponarios'],
-    'el envase aplicado escribe en un endpoint que ninguna decisión abrió (G3, D3, D4 y D5)');
+  assert.deepEqual(
+    endpoints,
+    ['bitacoras', 'historia-visitantes', 'item-menus', 'productos', 'proveedors', 'proyecto-meliponarios'],
+    'el envase aplicado escribe en un endpoint que ninguna decisión abrió (G3, D3, D4, D5 y D6)',
+  );
   assert.equal(aplicado.alias['public/images/bitacora/bitacora-inpa-vs-af.webp'].slug,
                'cajas-inpa-vs-af-c2-b7-comparativas', 'la fila que sirvió de sonda se fue de su destino');
 });
