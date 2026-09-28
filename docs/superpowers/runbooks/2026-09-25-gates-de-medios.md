@@ -1019,6 +1019,8 @@ esta ronda). Nada empujado, nada desplegado.
 
 ## G4 · Vaciar Unsplash y placeholders en la base
 
+**EJECUTADA el 2026-09-28 (decisión Task 15).** Dump previo en `/tmp/iwage-pre-g4.dump` (936K). SQL en `/tmp/g4-vaciar-unsplash-placeholders.sql`. Resultado medido: **0 celdas con Unsplash** (antes 10), **0 celdas con placeholders** (antes 5 celdas / 6 ocurrencias). Las dos `galeria_urls` quedaron en `'[]'::jsonb` (galerías vacías, no null). Las cuatro páginas afectadas (`/naturaleza/anfitriones/don-hernando-caficultor`, `/naturaleza/anfitriones/luz-elenia-herbalista`, `/naturaleza/experiencias/amanecer-en-el-bosque-de-niebla`, `/naturaleza/experiencias/jardin-medicinal-y-saberes-de-montana`) siguen sirviendo 200 OK. Tests 369/369.
+
 **Desbloquea:** que el admin no muestre como contenido lo que el sitio ya se niega a pintar, y que el día
 después de G8 no quede un rickroll montado en una ficha publicada. `esPintable()` dejó de pintar los hotlinks
 en F1 y D7 cerró el conducto (los tres seeds que los reproducían ya no tienen ni uno), pero el valor sigue en
