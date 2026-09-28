@@ -121,24 +121,26 @@ const HOST_EMBED = /(^|\.)(youtu\.be|youtube\.com|youtube-nocookie\.com|vimeo\.c
  * ¿Esta URL se puede pintar? Se puede cuando es nuestra (relativa o alguna de las
  * maneras de decir este sitio) o cuando es un proveedor de video/recorrido conocido.
  *
- * Lo que NO pasa: el hotlink de imagen de un tercero. Medido otra vez el 2026-09-27 con esta
- * misma regla sobre la BD viva: **10 celdas con 15 URLs** de `images.unsplash.com` en 6 columnas
+ * Lo que NO pasa: el hotlink de imagen de un tercero. Medido el 2026-09-27 sobre la BD viva:
+ * **10 celdas con 15 URLs** de `images.unsplash.com` en 6 columnas
  * (`anfitriones.foto_perfil_url|foto_territorio|video_thumbnail`,
- * `experiencias.imagen_hero_url|galeria_urls|mapa_imagen_url`); dos son el retrato de stock de dos
- * anfitriones con nombre y apellido reales, presentados como su cara. Y no solo mienten:
- * el archivo está fuera del control del dueño del contenido, así que un día deja de servir. La
- * decisión aprobada fue «Strapi único dueño, sin hotlinks de imagen», y vaciar esas celdas es la
- * puerta **G4** del dueño (un `UPDATE`), no algo que este reductor pueda hacer.
+ * `experiencias.imagen_hero_url|galeria_urls|mapa_imagen_url`); dos eran el retrato de stock de dos
+ * anfitriones con nombre y apellido reales, presentados como su cara. Y no solo mentían:
+ * el archivo estaba fuera del control del dueño del contenido, así que un día deja de servir. La
+ * decisión aprobada fue «Strapi único dueño, sin hotlinks de imagen». **G4 se corrió el 2026-09-28**
+ * (Task 15): las 10 celdas quedaron a NULL / `'[]'` y **G5 jubiló las 6 columnas del esquema**, así
+ * que hoy la regla no tiene materia — se queda porque un descuido futuro del admin la reintroduce.
  *
  * Su límite, también medido: la regla frena la imagen de tercero, pero **no** al placeholder que
- * vive en un host de embed permitido. Son 5 celdas con 6 ocurrencias de dos URLs: el rickroll
- * (`youtube.com/watch?v=dQw4w9WgXcQ`) y la demo (`momento360.com/e/u/demo`) pasan y se sirven —enlace
- * de video y tour— en la ficha de `amanecer-en-el-bosque-de-niebla` y en la de `don-hernando-caficultor`. Distinguirlos por forma es imposible —un `watch?v=` legítimo
- * y la broma son el mismo string—, así que la única puerta es la data (G4).
+ * vive en un host de embed permitido. Eran 5 celdas con 6 ocurrencias de dos URLs: el rickroll
+ * (`youtube.com/watch?v=dQw4w9WgXcQ`) y la demo (`momento360.com/e/u/demo`) pasaban y se servían
+ * —enlace de video y tour— en la ficha de `amanecer-en-el-bosque-de-niebla` y en la de
+ * `don-hernando-caficultor`. Distinguirlos por forma es imposible —un `watch?v=` legítimo
+ * y la broma son el mismo string—, así que la única puerta era la data: también la cerró G4.
  *
  * El filtro va en el reductor y no solo en `toMediaItem` porque hay superficies que
- * llaman a `mediaSrc()` directamente (`naturaleza` con `foto_territorio`, `cafe.ts`,
- * `heroes.ts`): puesta la regla aquí, no existe forma de pintarlas por descuido.
+ * llaman a `mediaSrc()` directamente (`cafe.ts`, `heroes.ts`): puesta la regla aquí, no existe
+ * forma de pintarlas por descuido.
  */
 export function esPintable(input: unknown): boolean {
   const raw = rawOf(input);

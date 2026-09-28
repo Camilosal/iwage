@@ -30,12 +30,6 @@
         "images"
       ]
     },
-    "foto_perfil_url": {
-      "type": "string"
-    },
-    "video_thumbnail": {
-      "type": "string"
-    },
     "video_url": {
       "type": "string"
     },
@@ -57,14 +51,14 @@
     "generaciones_familia": {
       "type": "integer"
     },
-    "foto_territorio": {
-      "type": "string"
-    },
     "galeria": {
       "type": "media",
       "multiple": true,
       "required": false,
-      "allowedTypes": ["images", "videos"]
+      "allowedTypes": [
+        "images",
+        "videos"
+      ]
     },
     "nivel_escalafon": {
       "type": "integer",

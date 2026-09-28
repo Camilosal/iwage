@@ -15,7 +15,6 @@ if (!host) {
 
 const nivel = nivelInfo(host.nivel_escalafon);
 const foto = anfitrionFoto(host);
-const fotoTerritorio = mediaSrc(host.foto_territorio);
 const nivelesList = Object.entries(NIVELES_ESCALAFON).map(([key, n]) => ({ nivel: Number(key), ...n }));
 const firstName = host.nombre.split(' ')[0];
 const waPhone = getBrand('naturaleza')?.whatsapp || '573026693366';
@@ -230,17 +229,6 @@ const jsonLd = {
             </a>
           )}
         </div>
-        {fotoTerritorio && (
-          <div class="shrink-0 w-full md:w-44">
-            <img
-              src={fotoTerritorio}
-              alt={`${firstName} en su territorio`}
-              class="w-full aspect-[3/4] object-cover rounded-2xl shadow-md"
-              loading="lazy"
-            />
-            <p class="text-[10px] text-gray-400 text-center mt-2">{firstName} en su territorio</p>
-          </div>
-        )}
       </div>
     </section>
 

@@ -106,9 +106,6 @@
         "images"
       ]
     },
-    "imagen_hero_url": {
-      "type": "string"
-    },
     "galeria": {
       "type": "media",
       "multiple": true,
@@ -117,9 +114,6 @@
         "videos"
       ]
     },
-    "galeria_urls": {
-      "type": "json"
-    },
     "video_url": {
       "type": "string"
     },
@@ -127,9 +121,6 @@
       "type": "string"
     },
     "link_drone": {
-      "type": "string"
-    },
-    "mapa_imagen_url": {
       "type": "string"
     },
     "highlights": {

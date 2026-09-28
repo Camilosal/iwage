@@ -32,18 +32,15 @@ export interface Experiencia {
   es_destacado: boolean;
   publicado: boolean;
   /**
-   * Portada. `experiencia.imagen_hero` es `media` en el schema; el twin string que dejó la
-   * sincronización (`imagen_hero_url`, Grupo C) se sigue leyendo DENTRO de
-   * `experienciaParaPlantilla` porque con `files = 0` en la BD es el único valor alcanzable
-   * hoy. No se entrega por separado: sale un `MediaItem` o `null`. Retiro = Task 14.
+   * Portada. `experiencia.imagen_hero` es `media` en el schema.
+   * No se entrega por separado: sale un `MediaItem` o `null`.
    */
   imagen_hero: MediaItem | null;
-  /** Galería: la relación `media` y la columna json `galeria_urls` fusionadas y deduplicadas. */
+  /** Galería: la relación `media` de Strapi. */
   galeria: MediaItem[];
   video_url: string | null;
   tour_360_url: string | null;
   link_drone: string | null;
-  mapa_imagen_url: string | null;
   highlights: string[] | null;
   requirements: Array<string | { title?: string; desc?: string; iconName?: string }> | null;
   includes: string[] | null;
@@ -163,7 +160,7 @@ export interface Complemento {
   moneda: string;
   precio_por: 'persona' | 'grupo' | 'noche' | 'unidad';
   icono: string | null;
-  /** `complemento.imagen` es `media`; el twin `imagen_url` se lee dentro del normalizador. */
+  /** `complemento.imagen` es `media` en el schema. */
   imagen: MediaItem | null;
 }
 
@@ -173,9 +170,8 @@ export interface Anfitrion {
   slug: string;
   nombre: string;
   especialidad: string | null;
-  /** Foto del anfitrión: media de Strapi con el twin `foto_perfil_url` de respaldo. */
+  /** Foto del anfitrión: media de Strapi. */
   foto_perfil: MediaItem | null;
-  video_thumbnail: string | null;
   video_url: string | null;
   manifiesto: string | null;
   momento_favorito: string | null;
@@ -183,7 +179,6 @@ export interface Anfitrion {
   historia_personal: string | null;
   anos_en_territorio: number | null;
   generaciones_familia: number | null;
-  foto_territorio: string | null;
   /**
    * La galería del anfitrión. `anfitrion.galeria_fotos` era una columna json que el schema
    * YA no declara (la reemplazó `galeria`, tipo `media` multiple); el valor viejo quedó
@@ -529,7 +524,7 @@ export function normalizarComplemento(raw: unknown): Complemento {
     precio: fila.precio ? Number(fila.precio) : 0,
     moneda: fila.moneda || 'COP',
     icono: fila.icono ?? null,
-    imagen: medioCrudo(fila.imagen, fila.imagen_url),
+    imagen: medioCrudo(fila.imagen),
   };
 }
 
@@ -556,9 +551,9 @@ export function propiedadGestionVinculadaParaPlantilla(raw: unknown): PropiedadG
 function experienciaCruda(raw: unknown, nivel = 0): Experiencia {
   const fila = esObjeto(raw) ? raw : {};
   return {
-    ...sinClaves(fila, 'imagen_hero_url', 'galeria_urls'),
-    imagen_hero: medioCrudo(fila.imagen_hero, fila.imagen_hero_url),
-    galeria: galeriaFusionada(fila.galeria, fila.galeria_urls),
+    ...sinClaves(fila, 'imagen_hero_url', 'galeria_urls', 'mapa_imagen_url'),
+    imagen_hero: medioCrudo(fila.imagen_hero),
+    galeria: galeriaFusionada(fila.galeria, null),
     complementos: Array.isArray(fila.complementos) ? fila.complementos.map(normalizarComplemento) : null,
     proveedores: Array.isArray(fila.proveedores) ? fila.proveedores.map(proveedorParaPlantilla) : null,
     propiedades: Array.isArray(fila.propiedades) ? fila.propiedades.map(propiedadVinculadaParaPlantilla) : null,
@@ -581,8 +576,8 @@ export function experienciaParaPlantilla(raw: unknown): Experiencia {
 function anfitrionCruda(raw: unknown, nivel = 0): Anfitrion {
   const fila = esObjeto(raw) ? raw : {};
   return {
-    ...sinClaves(fila, 'foto_perfil_url', 'galeria_fotos'),
-    foto_perfil: medioCrudo(fila.foto_perfil, fila.foto_perfil_url),
+    ...sinClaves(fila, 'foto_perfil_url', 'galeria_fotos', 'foto_territorio', 'video_thumbnail'),
+    foto_perfil: medioCrudo(fila.foto_perfil),
     // `galeria_fotos` ya no está en el schema, pero la columna sigue en `anfitriones` con 2
     // JSON huérfanos de Unsplash. Passarla a la fusión no agregaba nada (Strapi no la
     // selecciona) y dejaba la puerta abierta a que resucitara si alguien la re-declara.
@@ -590,8 +585,6 @@ function anfitrionCruda(raw: unknown, nivel = 0): Anfitrion {
     experiencias: Array.isArray(fila.experiencias)
       ? (nivel === 0 ? fila.experiencias.map((e: unknown) => experienciaCruda(e, 1)) : fila.experiencias)
       : null,
-    // `foto_territorio` y `video_thumbnail` son columnas string del schema (Grupo C
-    // residual): no hay media que normalizar, así que siguen saliendo como texto.
   } as Anfitrion;
 }
 
@@ -610,9 +603,9 @@ export function paqueteParaPlantilla(raw: unknown): Paquete {
 
 /**
  * `null` = la experiencia no tiene imagen propia. Quien la pinta debe caer al mosaico Icon.
- * Cadena de respaldo equivalente a la vieja `imagen_hero_url → imagen_hero → galeria`:
- * el `MediaItem` de la portada ya resolvió media y twin adentro, y la galería ya fusionó
- * la columna json. La diferencia es que ahora trae el `alt` del admin.
+ * Cae a la primera pieza de la galería cuando la portada está vacía. Los twins string que
+ * existían (`imagen_hero_url`, `galeria_urls`) salieron del esquema con Task 15 / G5, así
+ * que la única fuente es el `media` de Strapi.
  */
 export function experienciaImagen(exp: Experiencia): MediaItem | null {
   return medioCrudo(exp?.imagen_hero) ?? toMediaList(exp?.galeria)[0] ?? null;

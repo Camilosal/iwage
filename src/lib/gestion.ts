@@ -25,12 +25,7 @@ export interface Complemento {
   moneda: string;
   precio_por: 'persona' | 'grupo' | 'noche' | 'unidad';
   icono: string | null;
-  /**
-   * La foto del servicio. `complemento.imagen` es `media` en el schema; el twin string
-   * `imagen_url` (Grupo C) se sigue leyendo DENTRO de `normalizarComplemento` porque con
-   * `files = 0` es la única columna que podría tener valor. No se entrega por separado:
-   * la plantilla recibe un `MediaItem` o `null`. Su retiro es el Task 14.
-   */
+  /** La foto del servicio: `complemento.imagen` es `media` en el schema. */
   imagen: MediaItem | null;
 }
 
@@ -295,7 +290,7 @@ function medioCrudo(...formas: unknown[]): MediaItem | null {
   return null;
 }
 
-/** Servicio adicional: `complemento.imagen` es `media`; `imagen_url` es el twin. */
+/** Servicio adicional: `complemento.imagen` es `media`. */
 export function normalizarComplemento(raw: any): Complemento {
   return {
     id: raw?.id,
@@ -308,7 +303,7 @@ export function normalizarComplemento(raw: any): Complemento {
     moneda: raw?.moneda || 'COP',
     precio_por: raw?.precio_por || 'persona',
     icono: raw?.icono || null,
-    imagen: medioCrudo(raw?.imagen, raw?.imagen_url),
+    imagen: medioCrudo(raw?.imagen),
   };
 }
 
@@ -330,14 +325,14 @@ export function normalizarProductoRecomendado(raw: any): ProductoRecomendado {
   };
 }
 
-/** Anfitrión vinculado a la propiedad: `anfitrion.foto_perfil` es `media`, `foto_perfil_url` el twin. */
+/** Anfitrión vinculado a la propiedad: `anfitrion.foto_perfil` es `media`. */
 function normalizarAnfitrionVinculado(raw: any): NonNullable<PropiedadGestion['anfitriones']>[number] {
   return {
     id: raw?.id,
     slug: raw?.slug,
     nombre: raw?.nombre,
     // Acá estaba el `foto_perfil: a.foto_perfil` crudo que pintaba `[object Object]`.
-    foto_perfil: medioCrudo(raw?.foto_perfil, raw?.foto_perfil_url),
+    foto_perfil: medioCrudo(raw?.foto_perfil),
     nivel_escalafon: raw?.nivel_escalafon,
     especialidad: raw?.especialidad,
   };
@@ -364,7 +359,7 @@ export function experienciaGestionParaPlantilla(raw: any): ExperienciaGestion {
     precio_desde: fila.precio_desde ? Number(fila.precio_desde) : null,
     // Tercer término: una fila que ya pasó por el borde trae el `MediaItem` en `imagen`
     // (así se devuelve `experienciaGestionParaPlantilla` sobre su propia salida).
-    imagen: medioCrudo(fila.imagen_hero, fila.imagen_hero_url, fila.imagen),
+    imagen: medioCrudo(fila.imagen_hero, fila.imagen),
     es_destacado: fila.es_destacado || false,
   };
 }

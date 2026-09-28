@@ -96,43 +96,31 @@ test('gestion: foto_perfil de anfitrion → MediaItem con url de sitio y alt del
   });
 });
 
-test('gestion: el twin foto_perfil_url sigue siendo fuente de datos (files = 0 en la BD hoy)', () => {
-  // Medido: `files` tiene 0 filas, así que en las 2 fichas de anfitriones el twin es el
-  // UNICO valor alcanzable. Retirarlo del código es Task 14; acá se sigue leyendo, pero
-  // sale normalizado. El media de Strapi gana cuando exista (el twin es el fallback).
-  //
-  // El fixture es una ruta PROPIA a propósito: desde `esPintable` un twin con hotlink de
-  // stock no es un valor, es ruido (se prueba abajo con el valor real de la BD).
+test('gestion: el twin foto_perfil_url YA no es fuente de datos (G5 lo sacó del esquema)', () => {
+  // Retirado el 2026-09-28 con Task 15 / G5: la columna salió de
+  // `anfitrion/schema.json`, de `normalizarAnfitrionVinculado` y de la BD (G4 la puso a NULL).
+  // El guard deja de probar que el twin funciona y pasa a probar que NADIE lo re-cablea:
+  // si alguien lo vuelve a meter en `medioCrudo(...)`, este test se pinta rojo.
   const soloTwin = normalizePropiedadGestion({
     anfitriones: [{ id: 9, slug: 'luz-elenia', nombre: 'Luz Elenia', foto_perfil_url: '/uploads/anfitriones/luz-elenia.jpg' }],
   });
-  assert.equal(soloTwin.anfitriones[0].foto_perfil.url, '/uploads/anfitriones/luz-elenia.jpg');
+  assert.equal(soloTwin.anfitriones[0].foto_perfil, null, 'el twin resurrecto volvió a pintar en gestión');
 
-  // El valor REAL de esa columna hoy (medido en `anfitriones.foto_perfil_url`): retrato de
-  // stock de Unsplash servido como la cara de una anfitriona con nombre y apellido.
-  // No se pinta; la tarjeta cae al mosaico Icon.
-  const twinDeStock = normalizePropiedadGestion({
-    anfitriones: [{
-      id: 12, slug: 'luz-elenia-herbalista', nombre: 'Luz Elenia',
-      foto_perfil_url: 'https://images.unsplash.com/photo-1544005516-d186bc47c4e8?w=300&q=80',
-    }],
-  });
-  assert.equal(twinDeStock.anfitriones[0].foto_perfil, null, 'el retrato de stock llegó a la ficha');
-
-  const fotoViejaComoString = normalizePropiedadGestion({
-    anfitriones: [{ id: 10, slug: 'x', nombre: 'X', foto_perfil: ADENTRO }],
-  });
-  assert.equal(fotoViejaComoString.anfitriones[0].foto_perfil.url, '/uploads/gestion/finca-paraiso.webp');
-
-  const conLosDos = normalizePropiedadGestion({
+  // El media de Strapi es la única fuente.
+  const conMedia = normalizePropiedadGestion({
     anfitriones: [{
       id: 11, slug: 'y', nombre: 'Y',
       foto_perfil_url: '/uploads/viejas/stale.jpg',
       foto_perfil: { url: '/uploads/nuevas/foto-nueva.webp', alternativeText: 'Foto nueva del admin' },
     }],
   });
-  assert.equal(conLosDos.anfitriones[0].foto_perfil.url, '/uploads/nuevas/foto-nueva.webp', 'el twin le ganó al media de Strapi');
-  assert.equal(conLosDos.anfitriones[0].foto_perfil_url, undefined, 'gestion.ts sigue entregando el twin por separado');
+  assert.equal(conMedia.anfitriones[0].foto_perfil.url, '/uploads/nuevas/foto-nueva.webp');
+  assert.equal(conMedia.anfitriones[0].foto_perfil.alt, 'Foto nueva del admin');
+
+  const fotoViejaComoString = normalizePropiedadGestion({
+    anfitriones: [{ id: 10, slug: 'x', nombre: 'X', foto_perfil: ADENTRO }],
+  });
+  assert.equal(fotoViejaComoString.anfitriones[0].foto_perfil.url, '/uploads/gestion/finca-paraiso.webp');
 });
 
 test('gestion: foto_perfil basura → null (no undefined, no el crudo)', () => {
@@ -207,10 +195,10 @@ test('gestion: complemento, producto recomendado y experiencia de gestión salen
   assert.equal(e.imagen.url, '/uploads/e/cafe.webp');
   assert.equal(e.imagen.alt, 'Cafetal en flor');
 
-  // Twins como única fuente (hoy es el caso real: `complementos.imagen_url` y
-  // `experiencias.imagen_hero_url` sí tienen columna; `files` tiene 0 filas).
-  assert.equal(normalizarComplemento({ imagen_url: '/uploads/c/vieja.jpg' }).imagen.url, '/uploads/c/vieja.jpg');
-  assert.equal(experienciaGestionParaPlantilla({ imagen_hero_url: ADENTRO }).imagen.url, '/uploads/gestion/finca-paraiso.webp');
+  // Twins como única fuente: G5 los sacó del esquema y G4 de la BD, así que ya NO pintan.
+  // El guard queda para que nadie los re-cablee al normalizador.
+  assert.equal(normalizarComplemento({ imagen_url: '/uploads/c/vieja.jpg' }).imagen, null, 'el twin imagen_url volvió a ser fuente');
+  assert.equal(experienciaGestionParaPlantilla({ imagen_hero_url: ADENTRO }).imagen, null, 'el twin imagen_hero_url volvió a ser fuente');
   // Y basura → null sin lanzar.
   assert.equal(normalizarComplemento({ imagen: {} }).imagen, null);
 
@@ -251,9 +239,10 @@ test('naturaleza: la ficha de experiencia conserva el alt del hero y cae a la ga
   assert.equal(experienciaGaleria(experienciaParaPlantilla({})).length, 0);
 });
 
-test('naturaleza: galeria_urls (json sincronizada) se fusiona con la relación de media sin perder el pie', () => {
-  // `galeria_urls` es columna json del Grupo C: no se toca en Strapi (gate del dueño) y
-  // HOY es la única galería con datos. `galeria` (media) está vacía en la BD (files = 0).
+test('naturaleza: la galería es solo la relación media; galeria_urls (json del Grupo C) ya no fusiona', () => {
+  // G5 sacó `galeria_urls` del esquema y G4 dejó las 2 filas en `'[]'`. La fusión con la
+  // columna json se retiró del borde; el guard impide que alguien la re-cablee: si vuelve,
+  // esta fila pintaría un ítem que Strapi ya no sirve.
   const exp = experienciaParaPlantilla({
     slug: 'amanecer', titulo: 'Amanecer',
     galeria: [{ url: '/uploads/e/niebla.webp', alternativeText: 'Niebla en el bosque' }],
@@ -263,11 +252,9 @@ test('naturaleza: galeria_urls (json sincronizada) se fusiona con la relación d
     ],
   });
   const galeria = experienciaGaleria(exp);
-  assert.deepEqual(galeria.map((m) => m.url), ['/uploads/e/niebla.webp', '/uploads/e/guaduales.webp'], 'el mismo archivo en las dos columnas debe dar 1 item');
-  // La relación de media (con alt y caption) es más rica que el json con solo `titulo`.
+  assert.deepEqual(galeria.map((m) => m.url), ['/uploads/e/niebla.webp'], 'galeria_urls resucitó: la columna json volvió a la galería');
   assert.equal(galeria[0].alt, 'Niebla en el bosque');
-  assert.equal(galeria[1].caption, 'Guaduales', 'el `titulo` histórico no llega a caption');
-  assert.deepEqual(exp.galeria.map((m) => m.url), ['/uploads/e/niebla.webp', '/uploads/e/guaduales.webp']);
+  assert.deepEqual(exp.galeria.map((m) => m.url), ['/uploads/e/niebla.webp']);
   assert.equal('galeria_urls' in exp, false, 'naturaleza.ts entrega la columna json por separado');
 });
 
@@ -290,11 +277,11 @@ test('naturaleza: el anfitrión pinta su foto con el alt del admin, y la galerí
   assert.equal('galeria_fotos' in host, false, 'anfitrionParaPlantilla sigue declarando galeria_fotos, un campo que ya no está en el schema');
 
 
-  // Twin `foto_perfil_url` como única fuente (así están las 2 filas de la BD hoy).
+  // Twin `foto_perfil_url`: G5 lo sacó del esquema y G4 de la BD. Ya no es fuente; el guard
+  // queda para que nadie lo re-cablee al normalizador.
   const delTwin = anfitrionParaPlantilla({ nombre: 'Luz', foto_perfil_url: '/uploads/a/luz.jpg' });
-  assert.equal(anfitrionFoto(delTwin).url, '/uploads/a/luz.jpg');
+  assert.equal(anfitrionFoto(delTwin), null, 'el twin foto_perfil_url volvió a pintar en la ficha');
   assert.equal('foto_perfil_url' in delTwin, false, 'el twin llegó a la plantilla: dos fuentes de verdad en el HTML');
-  assert.equal(delTwin.foto_perfil.alt, undefined);
   assert.equal(anfitrionFoto(anfitrionParaPlantilla({ nombre: 'Nada' })), null);
 });
 
