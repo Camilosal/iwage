@@ -41,6 +41,11 @@ export function organizacionMadre(): Record<string, unknown> {
       addressRegion: 'Tolima',
       addressCountry: 'CO',
     },
+    sameAs: [
+      'https://espaciosplus.com',
+      'https://camilosaldarriaga.com',
+      'https://www.instagram.com/iwage.meliponario',
+    ],
   };
 }
 
@@ -56,10 +61,15 @@ export function founderPersona(): Record<string, unknown> {
     sameAs: [
       'https://camilosaldarriaga.com',
       'https://www.linkedin.com/in/camilosaldarriaga',
+      'https://github.com/Camilosal',
       SITIO,
+      'https://espaciosplus.com',
     ],
     jobTitle: 'Fundador',
-    worksFor: { '@id': `${SITIO}/#organization` },
+    worksFor: [
+      { '@id': `${SITIO}/#organization` },
+      { '@type': 'Organization', name: 'Espacios Plus', url: 'https://espaciosplus.com' },
+    ],
     knowsAbout: [
       'Meliponicultura', 'Desarrollo rural', 'Turismo regenerativo',
       'Café de especialidad', 'Inmobiliaria rural', 'Property management',

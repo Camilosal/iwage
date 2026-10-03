@@ -16,6 +16,38 @@ Sitemap: ${base}/sitemap.xml
 # Block API and internal routes
 Disallow: /api/
 Disallow: /admin
+
+# AI search/citation bots — explicitly allowed
+User-agent: Googlebot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+# AI training bots (conscious decision: allowed)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
 `;
 
   return new Response(body, {

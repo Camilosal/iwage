@@ -79,6 +79,11 @@
           "url": "https://iwage.co/granja/",
           "description": "Granja autosustentable peri-urbana en construcción: agroecosistema, bio-refinería, gestión hídrica de ciclo cerrado, energía solar off-grid y gemelo digital, documentados en abierto."
         }
+      ],
+      "sameAs": [
+        "https://espaciosplus.com",
+        "https://camilosaldarriaga.com",
+        "https://www.instagram.com/iwage.meliponario"
       ]
     },
     {
@@ -86,7 +91,9 @@
       "@id": "https://iwage.co/#website",
       "url": "https://iwage.co",
       "name": "Iwagé",
-      "publisher": { "@id": "https://iwage.co/#organization" },
+      "publisher": {
+        "@id": "https://iwage.co/#organization"
+      },
       "inLanguage": "es-CO"
     },
     {
@@ -97,10 +104,21 @@
       "sameAs": [
         "https://camilosaldarriaga.com",
         "https://www.linkedin.com/in/camilosaldarriaga",
-        "https://iwage.co"
+        "https://github.com/Camilosal",
+        "https://iwage.co",
+        "https://espaciosplus.com"
       ],
       "jobTitle": "Fundador",
-      "worksFor": { "@id": "https://iwage.co/#organization" },
+      "worksFor": [
+        {
+          "@id": "https://iwage.co/#organization"
+        },
+        {
+          "@type": "Organization",
+          "name": "Espacios Plus",
+          "url": "https://espaciosplus.com"
+        }
+      ],
       "knowsAbout": [
         "Meliponicultura",
         "Tetragonisca angustula",

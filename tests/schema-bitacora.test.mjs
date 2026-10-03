@@ -103,7 +103,11 @@ test('founderPersona: un solo Person para el fundador, con su contexto y sus mat
   assert.equal(p.name, 'Manuel Camilo Saldarriaga Acosta');
   assert.equal(p.url, 'https://camilosaldarriaga.com');
   assert.equal(p.jobTitle, 'Fundador');
-  assert.equal(p.worksFor['@id'], 'https://iwage.co/#organization');
+  // worksFor son dos desde la unificación de identidad (iwage + Espacios Plus): la madre
+  // sigue primero y por referencia; la segunda se declara inline, sin `@id` propio.
+  assert.ok(Array.isArray(p.worksFor), 'worksFor cambió a lista de organizaciones');
+  assert.equal(p.worksFor[0]['@id'], 'https://iwage.co/#organization');
+  assert.equal(p.worksFor[1].name, 'Espacios Plus');
   assert.equal(p.knowsAbout.length, 8);
 });
 
