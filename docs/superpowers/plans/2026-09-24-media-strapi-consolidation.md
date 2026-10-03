@@ -2009,6 +2009,28 @@ las tres guardas que las exigían en disco — `media-alias-propuesto` (`SIN_PRO
 schema-bitacora), ajeno a medios. Lo que sigue esperando el redeploy son las **62 gemelas** (16 de
 café, 34 de bitácora, 12 de galería) y las 2 `promo-*` se quedan consignadas como hasta ahora.
 
+**El redeploy se ejecutó el 2026-10-03 (autorización del dueño: «commit, push y redeploy») y con él
+cayó la última puerta de este plan.** `git push` de los 6 commits (G8) y `docker compose build
+iwage_app && up -d` desde `/home/ubuntu/negocio`. Medición después del bundle nuevo: crawl de las
+**180 URLs del sitemap — 0 no-200**, 0 referencias a `/images/{bitacora,galeria,cafe-menu}` en el HTML
+servido, y las fichas pintan `/uploads/*` (verificado en bitácora, café y anfitriones). Las 2 `promo-*`
+siguen en su sitio. Un hallazgo del conteo: el bundle nuevo **sí** contenía las 62 cadenas, pero no
+como código — es el manifiesto de `public/` que Astro hornea en `entry.mjs` (`"assets":[...]`), que
+enumera lo que está en disco, no lo que se pinta; el gate honesto era (y fue) el crawl del HTML.
+**Retiro de las 62 gemelas ejecutado el mismo día**: respaldo en
+`/home/ubuntu/backup/huerfanas-f3-2026-10-03/` (62 archivos + MANIFEST con md5 + RESTORE.sh), `git rm`
+de las 62, `.gitkeep` en los baldes vacíos, y volteadas las guardas que las exigían en disco:
+`cafe-lee-de-strapi` (18 → exactamente las 2 `promo-*`), `censo-huerfanas` sobre el repo real
+(46 → 0; el testigo del bloque comentado de `ambala-1` vivía en el disco y la regresión queda cubierta
+por los testes con fixtures de ese mismo arquivo) y `media-alias-propuesto` (los `existsSync` se
+invierten a «no-volver-a-traer», y el inventario del manifiesto pasa de ser el disco a ser la propuesta
+más `espresso-doble.webp` — el único archivo que la regla firma sin fila y que antes entraba por el
+inventario). Suite tras el volteo: **369/369** (el rojo de `founderPersona` se cerró aparte, adaptando
+su teste a la forma de dos organizaciones que la otra sección le dio a `worksFor`). Con esto, la fila 6
+del censo cierra en **0 huérfanas en `public/images/{bitacora,galeria,cafe-menu}`**: todo el material
+audiovisual del sitio vive en el volumen `negocio_iwage_strapi_uploads` servido por `/uploads`, que era
+el objetivo con el que se abrió este plan.
+
 **Files:**
 - Create: `docs/superpowers/metrics/2026-09-XX-inventario-medios-post.md` (fecha del día de ejecución)
 

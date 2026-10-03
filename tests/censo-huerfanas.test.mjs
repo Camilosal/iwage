@@ -94,18 +94,15 @@ test('medirHuerfanas: png y jpeg son piezas, y lo que se nombra sale de lo que s
   }
 });
 
-// Regresión sobre el repo real: fija el número que este trabajo dejó medido.
-test('en el repo real, ambala-1 está huérfano y la cuenta es 46, no 48', () => {
+// Regresión sobre el repo real: la cuenta que este trabajo dejó medida al cerrar Task 16.
+test('en el repo real, los baldes de huérfanas quedaron vacíos: 0, no 46', () => {
   const m = medirHuerfanas({ repo: RAIZ, dirs: ['bitacora', 'galeria'] });
-  // 36/48 hasta el 2026-10-03: `bitacora-calendario-manejo` (lámina defectuosa, su asunto ya
-  // tiene tapa en `modulo5-manejo`) y `bitacora-red-meliponicultores` (sin artículo en la BD)
-  // se retiraron por decisión del dueño — Opción A de Task 16. Copias en
-  // /home/ubuntu/backup/retiro-huerfanas-2026-10-03/.
-  assert.equal(m.porDir.bitacora.total, 34, 'las tapas cambiaron de número: hay que recountar');
-  assert.equal(m.porDir.galeria.total, 12);
-  assert.equal(m.total, 46);
-  assert.ok(m.porDir.galeria.nombres.includes('galeria/proyecto-ambala-1.webp'),
-    'si aparece enlazada, es que el grep volvió a contar el bloque comentado de meliponas/index.astro');
-  assert.ok(!m.porDir.galeria.nombres.some((n) => n.includes('hero-')),
-    'los hero-*.webp no viven en estos baldes y no deben colarse');
+  // 36/12/48 → 34/12/46 con el retiro de las 3 sin gemelo (decisión del dueño, 2026-10-03) →
+  // 0/0/0 tras el redeploy de Task 16 del mismo día: las 62 gemelas se retiraron con respaldo
+  // en /home/ubuntu/backup/huerfanas-f3-2026-10-03/ y su material ya solo vive en /uploads.
+  // El testigo del bloque comentado (`proyecto-ambala-1`) vivía en el disco; la regresión del
+  // grep la siguen cubriendo los testes de arriba con fixtures.
+  assert.equal(m.porDir.bitacora.total, 0, 'algo volvió a caer al balde de bitácora: hay que recountar');
+  assert.equal(m.porDir.galeria.total, 0);
+  assert.equal(m.total, 0);
 });

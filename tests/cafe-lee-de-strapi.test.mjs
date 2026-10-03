@@ -19,9 +19,10 @@
  *  3. El relleno que se decidió CONSERVAR sigue ahí con sus filas: 17 en `fallbackItems` y 4 en
  *     `fallbackProveedores`, con `imagen: null` / `foto: null`. Este teste es la diferencia entre
  *     «jubilé las imágenes» y «jubilé la página»: si alguien borra las filas enteras, se rompe acá.
- *  4. Las 18 piezas de cafe-menu que siguen en disco. No son contenido: son las rutas que emite
- *     el bundle desplegado, y desaparecen después del deploy (D10), no antes. Eran 19:
- *     `pan-yuca-miel` se retiró el 2026-10-03 por decisión del dueño (ver Task 16).
+ *  4. Las únicas piezas de cafe-menu en disco son las 2 `promo-*` consignadas. Eran 19:
+ *     `pan-yuca-miel` se retiró el 2026-10-03 por decisión del dueño y las 16 gemelas
+ *     se retiraron tras el redeploy de ese día (Task 16), con respaldo en
+ *     /home/ubuntu/backup/huerfanas-f3-2026-10-03/.
  *
  * Los comentarios se quitan antes de casar (`tests/helpers/sin-comentarios.mjs`), así que la
  * prosa de este propio repo —que cita estos archivos para explicar por qué ya no están— no puede
@@ -168,10 +169,12 @@ test('el relleno conserva sus filas: 17 preparaciones y 4 proveedores, solo sin 
   assert.equal([...visitors.matchAll(/imagen:\s*'/g)].length, 0, 'un literal de imagen volvió al FALLBACK de visitantes.astro');
 });
 
-test('las 18 piezas de cafe-menu siguen en disco: las referencia el bundle desplegado hasta el deploy', () => {
+test('las 2 piezas de cafe-menu que quedan en disco son exactamente las promo-* consignadas', () => {
   const piezas = readdirSync(join(RAIZ, 'public/images/cafe-menu')).filter((f) => /\.webp$/i.test(f));
-  // 19 hasta el 2026-10-03, en que el dueño decidió el retiro de `pan-yuca-miel` (ningún
-  // ítem ni producto publicado la recibe; medido 0 de 180 URLs pintándola — Task 16). Las 16
-  // gemelas restantes sí las emite el bundle desplegado y se retiran con el redeploy, no antes.
-  assert.equal(piezas.length, 18, `cafe-menu tiene ${piezas.length}; las gemelas se borran después del deploy (D10), no con D8`);
+  // 18 hasta el redeploy del 2026-10-03 (Task 16): verificadas las 16 gemelas —el bundle nuevo
+  // no las emite, el crawl de las 180 URLs no las pinta y su par vive en /uploads— se retiraron
+  // con respaldo en /home/ubuntu/backup/huerfanas-f3-2026-10-03/. `pan-yuca-miel` había caído
+  // el mismo día por decisión del dueño. Quedan las 2 promos, que son contenido servido.
+  assert.deepEqual(piezas.sort(), ['promo-duos-perfectos.webp', 'promo-reutilizable.webp'],
+    `cafe-menu tiene ${piezas.join(', ')}; las promos se pintan desde la plantilla y no tienen campo en Strapi`);
 });

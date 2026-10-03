@@ -113,11 +113,11 @@ const REGISTROS_SIN_FILA = [
  * dueño (Opción A en las tres)**, no por limpieza de duplicados: la primera es defectuosa
  * (pseudo-texto ilegible) y su asunto ya tiene tapa en `modulo5-manejo`; la segunda está sana
  * pero el artículo no existe en la BD; la tercera está sana pero ningún `item_menu` —ni
- * ningún producto publicado— la recibe. Medido antes de tocarlas: 0 de las 180 URLs del
- * sitemap pintan alguna de las tres (a diferencia de las 62 gemelas, que sí emite el bundle
- * desplegado y siguen bloqueadas detrás del redeploy — Task 16). Copias en
- * `/home/ubuntu/backup/retiro-huerfanas-2026-10-03/` con MANIFEST y RESTORE.sh, y en el
- * historial (`git show 9302a33^:<ruta>`).
+ * ningún producto publicado— la recibe. Y las **62 gemelas** cayeron el mismo día tras el
+ * redeploy de `iwage_web` (Task 16): verificadas 0 rutas `/images/` en el HTML de las 180
+ * URLs del sitemap y las gemelas retiradas con respaldo en
+ * `/home/ubuntu/backup/huerfanas-f3-2026-10-03/`. De los tres baldes solo quedan estas dos
+ * promos, que la plantilla de `pages/cafe/index.astro` sí pinta.
  *
  * Estaba escrito además que estos tres «son la razón por la que `LOCAL_IMAGES` sigue vivo». Ya no:
  * D8 (2026-09-27) borró la tabla y las 10 reglas por nombre, medido antes de tocarlas —disparaban
@@ -166,7 +166,10 @@ test('forma 1: endpoint de la tabla, slug de texto, archivo en su directorio y e
     // Un archivo del directorio de `bitacora` no puede declararse contra un endpoint de otro.
     assert.ok(ruta.startsWith(`public/images/${ENDPOINTS_CON_MEDIO[fila.endpoint].dir}/`),
       `${ruta}: saca el archivo del directorio de ${fila.endpoint}`);
-    assert.ok(existsSync(join(RAIZ, ruta)), `${ruta}: un alias que nombra un archivo inexistente no se puede firmar`);
+    // Post-Task 16 (redeploy 2026-10-03): la propuesta se aplicó (D3–D6) y las gemelas se
+    // retiraron de disco — su material ya solo vive en /uploads. El invariante se volteó:
+    // nombrar acá un archivo que VOLVIÓ a public/images es la falla.
+    assert.ok(!existsSync(join(RAIZ, ruta)), `${ruta}: una pieza importada y retirada volvió al balde`);
   }
 });
 
@@ -188,7 +191,8 @@ test('forma 2: clave con pinta de documentId, campo de la tabla y archivos exist
     for (const a of fila.archivos) {
       assert.equal(typeof a, 'string', `${clave}: archivo que no es ruta`);
       assert.ok(a.startsWith(`public/images/${cfg.dir}/`), `${clave}: ${a} saca el archivo del directorio de ${fila.endpoint}`);
-      assert.ok(existsSync(join(RAIZ, a)), `${clave}: ${a} no existe en disco`);
+      // Mismo invariante volteado que en forma 1 (Task 16, 2026-10-03).
+      assert.ok(!existsSync(join(RAIZ, a)), `${clave}: ${a} volvió a public/images después de importada`);
     }
     assert.equal(new Set(fila.archivos).size, fila.archivos.length, `${clave}: el mismo archivo dos veces en la misma serie`);
     if ('compartida' in fila) {
@@ -260,19 +264,22 @@ test('manifesto() firma las 66 filas y no manda ninguna a motivosAlias', () => {
     ...F2.map(([clave, fila]) => ({ endpoint: fila.endpoint, documentId: clave, slug: null })),
     ...REGISTROS_SIN_FILA,
   ];
-  // El inventario es el DISCO, no lo que la propuesta dice que tocó. Con la lista de la
-  // propia propuesta como inventario, una fila que olvida un archivo no lo deja
-  // pendiente: sencillamente nunca existió (medido: `ambala-2` fuera de su fila daba
-  // verde). Las 67 rutas de `bitacora/`, `galeria/` y `cafe-menu/` son lo que el importador
-  // ve — el tercero entró con D6, que es justo el directorio con huecos de contenido.
+  // El inventario ya NO es el disco: las 62 gemelas se retiraron con el redeploy de Task 16
+  // (2026-10-03) tras aplicarse la propuesta (D3–D6), y lo que quedó en los tres baldes es
+  // exactamente `SIN_PROPUESTA` — medido abajo como testigo. El inventario que recibe
+  // `manifesto()` es la propuesta misma más el único archivo que la regla de `slug` firma
+  // sin fila declarada (`espresso-doble.webp`, ver `REGISTROS_SIN_FILA`), que antes entraba
+  // por el disco y ya no entra por otro lado.
   const archivos = [...F1.map(([ruta]) => ruta), ...F2.flatMap(([, f]) => f.archivos)];
   const EN_DIRECTORIOS = new Set(['bitacora', 'galeria', 'cafe-menu']);
-  const inventario = [...EN_DIRECTORIOS]
+  const disco = [...EN_DIRECTORIOS]
     .flatMap((d) => readdirSync(join(RAIZ, 'public', 'images', d))
       .filter((f) => /\.(webp|png|jpe?g)$/i.test(f))
       .map((f) => `public/images/${d}/${f}`))
     .sort();
-  assert.equal(inventario.length, 64, 'el inventario cambió: hay que recountar qué se propuso y qué no (64 = 67 − las 3 huérfanas retiradas por el dueño el 2026-10-03)');
+  assert.deepEqual(disco, [...SIN_PROPUESTA].sort(),
+    'volvió una pieza importada y retirada a los baldes, o se fue una promo consignada');
+  const inventario = [...new Set([...archivos, 'public/images/cafe-menu/espresso-doble.webp'])].sort();
   const m = manifesto({ archivos: inventario, registros, alias });
 
   assert.deepEqual(m.motivosAlias, [], `ninguna fila se pudo firmar: ${JSON.stringify(m.motivosAlias)}`);
@@ -284,11 +291,12 @@ test('manifesto() firma las 66 filas y no manda ninguna a motivosAlias', () => {
   // Ningún archivo de la propuesta queda sin enlazar...
   const enlazados = new Set(m.enlazar.flatMap(archivosDelEnlace));
   assert.deepEqual(archivos.filter((a) => !enlazados.has(a)), [], 'un archivo propuesto y no enlazado es un alias que no ató');
-  // ...y lo que NO queda enlazado son exactamente los 5 archivos sin decisión: 2 tapas de
-  // bitácora sin artículo (o sin lámina usable) y 3 láminas de café sin destino. Si mañana
-  // alguien agrega una tapa y no la propone, esta igualdad la nombra.
-  assert.deepEqual(inventario.filter((a) => !enlazados.has(a)).sort(), [...SIN_PROPUESTA].sort(),
-    'la cuenta de archivos huérfanos cambió');
+  // ...y con el inventario de la propuesta ya no queda nada sin enlazar por definición: el
+  // testigo de las piezas sin decisión se corrió arriba, sobre el disco (`SIN_PROPUESTA`).
+  // Si mañana alguien agrega una fila y el manifiesto no la cubre, la cuenta de `enlazar`
+  // de arriba es la que habla.
+  assert.deepEqual(inventario.filter((a) => !enlazados.has(a)), [],
+    'un archivo del inventario quedó sin enlazar');
   // `archivosDelEnlace` es el helper del contrato para esto: una serie de UN solo
   // archivo sale con `archivo`, no con `archivos` (bonifacio, esperanza y poblado lo
   // midieron). Discriminar por la presencia de `archivos` reordenaba esas tres.
