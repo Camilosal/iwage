@@ -1992,6 +1992,23 @@ qué no toca borrar todavía:
   sin gemelo + `pan-yuca-miel`) como decisión de contenido. Nada de esto se ejecutó acá porque un deploy
   requiere 'sí' explícito del dueño.
 
+**Las 3 consignadas sin gemelo — RETIRADAS el 2026-10-03 por decisión del dueño («Opción A en todas»).**
+Revisadas una a una antes de decidir: `bitacora-calendario-manejo` está defectuosa (pseudo-texto ilegible
+y meses mal escritos, verificado visualmente) y su asunto ya tiene tapa enlazada — medido en vivo: la
+ficha de `modulo-5-c2-b7-manejo` sirve `/uploads/bitacora_modulo5_manejo_*.webp` —; `bitacora-red-
+meliponicultores` está sana pero no existe el artículo en la BD (0 filas); `pan-yuca-miel` está sana pero
+no hay ítem que la reciba (17 `item_menus`, 0 de pan de yuca) **ni producto publicado que la mencione**
+(medido sobre la BD viva; el copy «Pan de yuca y miel» solo vive en `seed-productos.mjs`, nunca llegó a
+produción). El gate del redeploy **no las aplica**: son las 3 sin gemelo, y un crawl de las 180 URLs del
+sitemap con el bundle desplegado midió **0 páginas pintándolas** (las cadenas solo existen en el JS
+inerte), a diferencia de las 62 gemelas que el bundle vivo sí emite. Ejecutado: copia a
+`/home/ubuntu/backup/retiro-huerfanas-2026-10-03/` con MANIFEST+RESTORE.sh, `git rm` de las 3, y volteadas
+las tres guardas que las exigían en disco — `media-alias-propuesto` (`SIN_PROPUESTA` 5→2, inventario
+67→64), `cafe-lee-de-strapi` (19→18) y `censo-huerfanas` (bitácora 36→34, total 48→46). Suite:
+**368/369**, el único rojo es `founderPersona`, de los cambios sin commitear de otra sección (entity/
+schema-bitacora), ajeno a medios. Lo que sigue esperando el redeploy son las **62 gemelas** (16 de
+café, 34 de bitácora, 12 de galería) y las 2 `promo-*` se quedan consignadas como hasta ahora.
+
 **Files:**
 - Create: `docs/superpowers/metrics/2026-09-XX-inventario-medios-post.md` (fecha del día de ejecución)
 

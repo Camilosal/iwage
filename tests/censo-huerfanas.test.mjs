@@ -95,11 +95,15 @@ test('medirHuerfanas: png y jpeg son piezas, y lo que se nombra sale de lo que s
 });
 
 // Regresión sobre el repo real: fija el número que este trabajo dejó medido.
-test('en el repo real, ambala-1 está huérfano y la cuenta es 48, no 47', () => {
+test('en el repo real, ambala-1 está huérfano y la cuenta es 46, no 48', () => {
   const m = medirHuerfanas({ repo: RAIZ, dirs: ['bitacora', 'galeria'] });
-  assert.equal(m.porDir.bitacora.total, 36, 'las tapas cambiaron de número: hay que recountar');
+  // 36/48 hasta el 2026-10-03: `bitacora-calendario-manejo` (lámina defectuosa, su asunto ya
+  // tiene tapa en `modulo5-manejo`) y `bitacora-red-meliponicultores` (sin artículo en la BD)
+  // se retiraron por decisión del dueño — Opción A de Task 16. Copias en
+  // /home/ubuntu/backup/retiro-huerfanas-2026-10-03/.
+  assert.equal(m.porDir.bitacora.total, 34, 'las tapas cambiaron de número: hay que recountar');
   assert.equal(m.porDir.galeria.total, 12);
-  assert.equal(m.total, 48);
+  assert.equal(m.total, 46);
   assert.ok(m.porDir.galeria.nombres.includes('galeria/proyecto-ambala-1.webp'),
     'si aparece enlazada, es que el grep volvió a contar el bloque comentado de meliponas/index.astro');
   assert.ok(!m.porDir.galeria.nombres.some((n) => n.includes('hero-')),

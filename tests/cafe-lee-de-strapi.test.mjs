@@ -19,8 +19,9 @@
  *  3. El relleno que se decidió CONSERVAR sigue ahí con sus filas: 17 en `fallbackItems` y 4 en
  *     `fallbackProveedores`, con `imagen: null` / `foto: null`. Este teste es la diferencia entre
  *     «jubilé las imágenes» y «jubilé la página»: si alguien borra las filas enteras, se rompe acá.
- *  4. Las 19 piezas siguen en disco. No son contenido: son las rutas que emite el bundle
- *     desplegado, y desaparecen después del deploy (D10), no antes.
+ *  4. Las 18 piezas de cafe-menu que siguen en disco. No son contenido: son las rutas que emite
+ *     el bundle desplegado, y desaparecen después del deploy (D10), no antes. Eran 19:
+ *     `pan-yuca-miel` se retiró el 2026-10-03 por decisión del dueño (ver Task 16).
  *
  * Los comentarios se quitan antes de casar (`tests/helpers/sin-comentarios.mjs`), así que la
  * prosa de este propio repo —que cita estos archivos para explicar por qué ya no están— no puede
@@ -167,7 +168,10 @@ test('el relleno conserva sus filas: 17 preparaciones y 4 proveedores, solo sin 
   assert.equal([...visitors.matchAll(/imagen:\s*'/g)].length, 0, 'un literal de imagen volvió al FALLBACK de visitantes.astro');
 });
 
-test('las 19 piezas de cafe-menu siguen en disco: las referencia el bundle desplegado hasta el deploy', () => {
+test('las 18 piezas de cafe-menu siguen en disco: las referencia el bundle desplegado hasta el deploy', () => {
   const piezas = readdirSync(join(RAIZ, 'public/images/cafe-menu')).filter((f) => /\.webp$/i.test(f));
-  assert.equal(piezas.length, 19, `cafe-menu tiene ${piezas.length}; se borran después del deploy (D10), no con D8`);
+  // 19 hasta el 2026-10-03, en que el dueño decidió el retiro de `pan-yuca-miel` (ningún
+  // ítem ni producto publicado la recibe; medido 0 de 180 URLs pintándola — Task 16). Las 16
+  // gemelas restantes sí las emite el bundle desplegado y se retiran con el redeploy, no antes.
+  assert.equal(piezas.length, 18, `cafe-menu tiene ${piezas.length}; las gemelas se borran después del deploy (D10), no con D8`);
 });

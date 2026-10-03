@@ -103,13 +103,21 @@ const REGISTROS_SIN_FILA = [
 ];
 
 /**
- * Las 5 rutas que a PROPÓSITO no tienen fila después de D6, enumeradas y no derivadas: si
- * una cambia de estado, este teste se pone rojo y alguien la lee. Dos tapas de bitácora —
- * `calendario-manejo`, porque la lámina es defectuosa (pseudo-texto ilegible) y su asunto ya
- * tiene tapa en `modulo5-manejo`, y `red-meliponicultores`, porque la lámina está bien pero el
- * artículo no existe en la BD. Y tres archivos de `cafe-menu/`: `pan-yuca-miel`, porque el ítem
- * no existe (17 `item_menus` publicados, ninguno es pan de yuca) y las dos `promo-*`, porque las pinta
- * el template de `pages/cafe/index.astro` y ningún content-type tiene un campo donde ir.
+ * Las 2 rutas que a PROPÓSITO no tienen fila, enumeradas y no derivadas: si una cambia de
+ * estado, este teste se pone rojo y alguien la lee. Son las dos `promo-*` de `cafe-menu/`,
+ * porque las pinta el template de `pages/cafe/index.astro` y ningún content-type tiene un
+ * campo donde ir.
+ *
+ * Estaban además `bitacora-calendario-manejo`, `bitacora-red-meliponicultores` y
+ * `pan-yuca-miel` en esta lista. **Se retiraron de disco el 2026-10-03 por decisión del
+ * dueño (Opción A en las tres)**, no por limpieza de duplicados: la primera es defectuosa
+ * (pseudo-texto ilegible) y su asunto ya tiene tapa en `modulo5-manejo`; la segunda está sana
+ * pero el artículo no existe en la BD; la tercera está sana pero ningún `item_menu` —ni
+ * ningún producto publicado— la recibe. Medido antes de tocarlas: 0 de las 180 URLs del
+ * sitemap pintan alguna de las tres (a diferencia de las 62 gemelas, que sí emite el bundle
+ * desplegado y siguen bloqueadas detrás del redeploy — Task 16). Copias en
+ * `/home/ubuntu/backup/retiro-huerfanas-2026-10-03/` con MANIFEST y RESTORE.sh, y en el
+ * historial (`git show 9302a33^:<ruta>`).
  *
  * Estaba escrito además que estos tres «son la razón por la que `LOCAL_IMAGES` sigue vivo». Ya no:
  * D8 (2026-09-27) borró la tabla y las 10 reglas por nombre, medido antes de tocarlas —disparaban
@@ -117,9 +125,6 @@ const REGISTROS_SIN_FILA = [
  * `tests/cafe-lee-de-strapi.test.mjs`, y lo que se ve en el censo es la fila 6.
  */
 const SIN_PROPUESTA = [
-  'public/images/bitacora/bitacora-calendario-manejo.webp',
-  'public/images/bitacora/bitacora-red-meliponicultores.webp',
-  'public/images/cafe-menu/pan-yuca-miel.webp',
   'public/images/cafe-menu/promo-duos-perfectos.webp',
   'public/images/cafe-menu/promo-reutilizable.webp',
 ];
@@ -267,7 +272,7 @@ test('manifesto() firma las 66 filas y no manda ninguna a motivosAlias', () => {
       .filter((f) => /\.(webp|png|jpe?g)$/i.test(f))
       .map((f) => `public/images/${d}/${f}`))
     .sort();
-  assert.equal(inventario.length, 67, 'el inventario cambió: hay que recountar qué se propuso y qué no');
+  assert.equal(inventario.length, 64, 'el inventario cambió: hay que recountar qué se propuso y qué no (64 = 67 − las 3 huérfanas retiradas por el dueño el 2026-10-03)');
   const m = manifesto({ archivos: inventario, registros, alias });
 
   assert.deepEqual(m.motivosAlias, [], `ninguna fila se pudo firmar: ${JSON.stringify(m.motivosAlias)}`);
