@@ -55,7 +55,7 @@ const opciones = [
         <SectionHeader
           label="Formulario"
           title="Cuéntanos tu idea"
-          subtitle="Máximo 5 campos. Sin spam, sin newsletters no solicitados."
+          subtitle="Máximo 6 campos. Sin spam, sin newsletters no solicitados."
         />
         <div class="space-y-6">
           <div class="flex items-start gap-3">
@@ -92,6 +92,10 @@ const opciones = [
             <input type="tel" id="whatsapp" name="whatsapp" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="+57 300 000 0000" />
           </div>
           <div>
+            <label for="email" class="block text-sm font-medium text-text-secondary mb-2">Email</label>
+            <input type="email" id="email" name="email" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="tu@correo.com" />
+          </div>
+          <div>
             <label for="municipio" class="block text-sm font-medium text-text-secondary mb-2">Municipio</label>
             <input type="text" id="municipio" name="municipio" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="¿Dónde estás?" />
           </div>
@@ -110,6 +114,7 @@ const opciones = [
             <label for="mensaje" class="block text-sm font-medium text-text-secondary mb-2">Mensaje</label>
             <textarea id="mensaje" name="mensaje" rows="4" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand resize-none" placeholder="Cuéntanos más sobre tu proyecto..."></textarea>
           </div>
+          <input type="hidden" name="marca" value="meliponas" />
           <button type="submit" class="w-full bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
             Enviar mensaje
           </button>

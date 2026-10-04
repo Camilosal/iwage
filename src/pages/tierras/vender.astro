@@ -235,6 +235,11 @@ const FAQS_VENTA = [
           </div>
         </div>
         <div>
+          <label for="rad-email" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Email</label>
+          <input id="rad-email" name="email" type="email" placeholder="tu@correo.com"
+            class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all" />
+        </div>
+        <div>
           <label for="rad-mensaje" class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Cuéntanos sobre el predio</label>
           <textarea id="rad-mensaje" name="mensaje" rows="3" placeholder="¿Tiene casa? ¿Cultivos? ¿Fuente de agua? ¿Documentos al día?"
             class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:border-[#52B788] focus:ring-1 focus:ring-[#52B788] transition-all resize-none"></textarea>
@@ -325,8 +330,10 @@ const FAQS_VENTA = [
         body: JSON.stringify({
           nombre: fd.get('nombre'),
           whatsapp: fd.get('whatsapp'),
+          email: fd.get('email'),
           municipio: fd.get('municipio'),
           tipo_proyecto: 'radicacion_venta',
+          marca: 'tierras',
           mensaje: `[RADICACIÓN] Tipo: ${tipoProp} | Área: ${area} | Precio esperado: ${precio} | ${(fd.get('mensaje') as string) || 'Sin detalles adicionales'}`,
         }),
       });
