@@ -70,8 +70,11 @@ const testimonials = [
 const { data: bitacoraPosts } = await getBitacoraByMarca('meliponas', { pageSize: 4 });
 
 // Proyectos: 4 priorizados (destacados) o los últimos 4
+// `.filter(p => p.slug)`: sin slug no hay ruta de detalle; enlazar `/null` fue
+// medido en producción (2026-10-04) antes del backfill de slugs en Strapi.
 const proyectos = await getProyectos();
 const proyectosHome = proyectos
+  .filter((p) => Boolean(p.slug))
   .sort((a, b) => {
     if (a.destacado !== b.destacado) return b.destacado ? 1 : -1;
     return (b.orden ?? 0) - (a.orden ?? 0);

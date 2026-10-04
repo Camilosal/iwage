@@ -4,6 +4,7 @@ import Icon from '@/components/shared/Icon.astro';
 import { getBitacoraBySlug, getBitacoraByMarca, formatFecha } from '@/lib/bitacora';
 import { rutaDeLaMarcaDelArticulo } from '@/lib/bitacora-ruta';
 import { renderMarkdown } from '@/lib/render-markdown';
+import { obtenerRegistroDeEnlaces } from '@/lib/enlaces-registro';
 
 const BRAND = 'gestion';
 const BRAND_NAME = 'Iwagé Gestión';
@@ -28,7 +29,7 @@ const { data: related } = await getBitacoraByMarca(BRAND as any, { pageSize: 4 }
 const relatedPosts = related.filter(a => a.slug !== slug).slice(0, 3);
 
 // Render content with full markdown support
-const htmlContent = article.contenido ? renderMarkdown(article.contenido) : '';
+const htmlContent = article.contenido ? renderMarkdown(article.contenido, { registro: await obtenerRegistroDeEnlaces(), marca: BRAND }) : '';
 
 // Word count for reading metadata
 const wordCount = article.contenido ? article.contenido.split(/\s+/).length : 0;

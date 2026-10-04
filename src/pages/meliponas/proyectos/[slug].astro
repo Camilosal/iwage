@@ -4,6 +4,7 @@ import MediaGallery from '@/components/shared/MediaGallery.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getProyectoBySlug, TIPO_LABELS, ESTADO_LABELS, MODELO_CAJA_LABELS, SALUD_LABELS } from '@/lib/proyectos';
 import { renderMarkdown } from '@/lib/render-markdown';
+import { obtenerRegistroDeEnlaces } from '@/lib/enlaces-registro';
 
 const { slug } = Astro.params;
 const proyecto = await getProyectoBySlug(slug!);
@@ -29,6 +30,8 @@ const iwageFeatures = [
 const iwageScore = iwageFeatures.filter((f) => f.active).length;
 
 const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+const registro = await obtenerRegistroDeEnlaces();
 ---
 
 <BrandLayout title={pageTitle} description={pageDesc}>
@@ -93,7 +96,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
     {proyecto.descripcion && (
       <div class="mt-10 mb-12">
         <div class="prose prose-lg dark:prose-invert max-w-none text-text-secondary leading-relaxed">
-          <Fragment set:html={renderMarkdown(proyecto.descripcion)} />
+          <Fragment set:html={renderMarkdown(proyecto.descripcion, { registro, marca: "meliponas" })} />
         </div>
       </div>
     )}
@@ -304,7 +307,7 @@ const fmtDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDate
           <Icon name="clipboard-list" class="w-4 h-4" /> Notas Técnicas
         </h2>
         <div class="prose prose-sm dark:prose-invert max-w-none text-text-secondary">
-          <Fragment set:html={renderMarkdown(proyecto.notas_tecnicas)} />
+          <Fragment set:html={renderMarkdown(proyecto.notas_tecnicas, { registro, marca: "meliponas" })} />
         </div>
       </div>
     )}

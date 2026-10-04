@@ -4,6 +4,7 @@ import MediaGallery from '@/components/shared/MediaGallery.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getProductoBySlug, getProductos, getProductosPorFamilia, CATEGORIAS } from '@/lib/tienda';
 import { renderMarkdown } from '@/lib/render-markdown';
+import { obtenerRegistroDeEnlaces } from '@/lib/enlaces-registro';
 import { getCatalogo, resolveRecurso } from '@/lib/catalogo';
 import { SITE } from '@/config/site';
 import { absUrl, type MediaItem } from '@/lib/media';
@@ -108,6 +109,8 @@ if (faq.length > 0) {
     })),
   };
 }
+
+const registro = await obtenerRegistroDeEnlaces();
 ---
 
 <BrandLayout title={pageTitle} description={pageDesc}>
@@ -340,7 +343,7 @@ if (faq.length > 0) {
       <section class="mt-16 pt-10 border-t border-border">
         <h2 class="text-xl font-bold text-text-primary mb-6">Descripción</h2>
         <div class="prose prose-sm dark:prose-invert max-w-3xl text-text-secondary leading-relaxed">
-          <Fragment set:html={renderMarkdown(producto.descripcion)} />
+          <Fragment set:html={renderMarkdown(producto.descripcion, { registro, marca: "meliponas" })} />
         </div>
       </section>
     )}
@@ -396,7 +399,7 @@ if (faq.length > 0) {
                 <Icon name="chevron-down" class="w-4 h-4 text-text-muted shrink-0 group-open:rotate-180 transition-transform" />
               </summary>
               <div class="px-5 pb-4 text-sm text-text-secondary leading-relaxed">
-                <Fragment set:html={renderMarkdown(f.respuesta)} />
+                <Fragment set:html={renderMarkdown(f.respuesta, { registro, marca: "meliponas" })} />
               </div>
             </details>
           ))}

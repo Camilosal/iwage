@@ -11,6 +11,7 @@
  */
 import Icon from '@/components/shared/Icon.astro';
 import { renderMarkdown } from '@/lib/render-markdown';
+import { obtenerRegistroDeEnlaces } from '@/lib/enlaces-registro';
 import { formatFecha, SECTIONS } from '@/lib/granja-experimentos';
 import type { Experimento } from '@/lib/granja-experimentos';
 
@@ -51,6 +52,8 @@ const activeSections = SECTIONS.filter(s => {
 // Word count
 const allText = activeSections.map(s => (experimento as any)[s.field] || '').join(' ');
 const wordCount = allText ? allText.split(/\s+/).length : 0;
+
+const registro = await obtenerRegistroDeEnlaces();
 ---
 
 {activeSections.length > 0 ? (
@@ -95,7 +98,7 @@ const wordCount = allText ? allText.split(/\s+/).length : 0;
               <p class="text-[11px] text-text-muted">{section.desc}</p>
             </div>
           </div>
-          <div class="px-5 py-4 article-body" set:html={renderMarkdown(content)}></div>
+          <div class="px-5 py-4 article-body" set:html={renderMarkdown(content, { registro, marca: "granja" })}></div>
         </div>
       );
     })}

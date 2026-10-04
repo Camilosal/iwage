@@ -10,7 +10,7 @@
  *
  * `tests/normalizar-medio.test.mjs` ya cierra ese hueco para la bitácora, que es el carril por
  * el que entró el defecto. Este archivo cierra los otros once módulos: la regla es la misma,
- * aplicada a las 45 llamadas que hay en el repo, leídas sobre el código SIN comentarios para
+ * aplicada a las 46 llamadas que hay en el repo, leídas sobre el código SIN comentarios para
  * que la prosa no las satisfaga (la lección del mutante MT4).
  *
  * Qué NO intenta hacer, y por qué. La tentación era derivar «qué lee cada llamada» buscando los
@@ -21,7 +21,7 @@
  * qué se pobla está escrita a mano, fila por fila, y lo mecánico es el contraste contra el
  * esquema: una clave que deja de existir, o que se pide por la vía equivocada, revienta acá.
  *
- * Alcance medido el 2026-09-25: 45 llamadas `strapiFetch(` en `src/**` (32 estaban en el
+ * Alcance medido el 2026-10-04: 46 llamadas `strapiFetch(` en `src/**` (32 estaban en el
  * barrido original de `populate-sweep.mjs`, que solo recorría `src/lib/*.ts` a profundidad 1 y
  * por eso se perdió las 7 del índice RAG, las 2 de `seo-landings` y el envase de `llms.txt`).
  */
@@ -116,6 +116,9 @@ const CONTRATOS = {
     { ep: 'item-menus', poblar: ['imagen'] },
     { ep: 'proveedors', poblar: ['foto'] },
     { ep: 'historia-visitantes', poblar: ['imagen'] },
+  ],
+  'src/lib/enlaces-registro.ts': [
+    { ep: 'productos', poblar: [], motivo: 'el registro de enlaces solo lee `slug` y `marca` para reparar hrefs' },
   ],
   'src/lib/gestion.ts': [
     { ep: 'propiedades-gestion', poblar: ['galeria', 'imagen_principal'] },
@@ -257,7 +260,7 @@ function archivosConLlamadas() {
 
 // ── 1. Cobertura: ninguna llamada se queda sin clasificar ────────────────────
 
-test('las 45 llamadas a Strapi del repo están clasificadas, ni una más ni una menos', () => {
+test('las 46 llamadas a Strapi del repo están clasificadas, ni una más ni una menos', () => {
   const encontrados = archivosConLlamadas().sort();
   assert.deepEqual(
     encontrados,
@@ -280,7 +283,7 @@ test('las 45 llamadas a Strapi del repo están clasificadas, ni una más ni una 
         'Una llamada nueva sin contrato es exactamente el C1 esperando a pasar.',
     );
   }
-  assert.equal(total, 45, `se esperaban 45 llamadas en todo src/ y hay ${total}`);
+  assert.equal(total, 46, `se esperaban 46 llamadas en todo src/ y hay ${total}`);
 });
 
 // ── 2. C1: lo que la fila consume está pedido ────────────────────────────────

@@ -4,6 +4,7 @@ import MediaGallery from '@/components/shared/MediaGallery.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getCultivoBySlug, getCultivos, MESES_LABELS } from '@/lib/polinizacion';
 import { renderMarkdown } from '@/lib/render-markdown';
+import { obtenerRegistroDeEnlaces } from '@/lib/enlaces-registro';
 
 const { slug } = Astro.params;
 const cultivo = await getCultivoBySlug(slug!);
@@ -22,6 +23,8 @@ const relacionados = todosCultivos.filter((c) => c.slug !== cultivo.slug).slice(
 
 // Compute total service duration
 const diasTotales = (cultivo.dias_alistamiento ?? 0) + (cultivo.dias_en_campo ?? 0) + (cultivo.dias_recuperacion ?? 0);
+
+const registro = await obtenerRegistroDeEnlaces();
 ---
 
 <BrandLayout title={pageTitle} description={pageDesc}>
@@ -75,7 +78,7 @@ const diasTotales = (cultivo.dias_alistamiento ?? 0) + (cultivo.dias_en_campo ??
     <!-- Description -->
     {cultivo.descripcion && (
       <div class="prose prose-sm dark:prose-invert max-w-none mb-8 text-text-secondary leading-relaxed">
-        <Fragment set:html={renderMarkdown(cultivo.descripcion)} />
+        <Fragment set:html={renderMarkdown(cultivo.descripcion, { registro, marca: "meliponas" })} />
       </div>
     )}
     {cultivo.descripcion_corta && !cultivo.descripcion && (
@@ -308,7 +311,7 @@ const diasTotales = (cultivo.dias_alistamiento ?? 0) + (cultivo.dias_en_campo ??
         </h2>
         {cultivo.condiciones_servicio && (
           <div class="prose prose-sm dark:prose-invert max-w-none mb-4 text-text-secondary">
-            <Fragment set:html={renderMarkdown(cultivo.condiciones_servicio)} />
+            <Fragment set:html={renderMarkdown(cultivo.condiciones_servicio, { registro, marca: "meliponas" })} />
           </div>
         )}
         {cultivo.restricciones && cultivo.restricciones.length > 0 && (
