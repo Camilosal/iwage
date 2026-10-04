@@ -1,4 +1,5 @@
 import { SIMULADOR_URL, INTRANET_URL } from './tools';
+import { meliponas } from './brands/meliponas';
 export const SITE = {
   name: 'Iwagé',
   tagline: 'Meliponario & Biotecnología Nativa',
@@ -48,10 +49,14 @@ export const NAV_FLAT_LINKS: NavChild[] = NAV_LINKS.flatMap((item) =>
 );
 
 export const SEO = {
+  // `SEO.home` es la portada del Meliponario, no la del ecosistema (la única llamada está en
+  // `src/pages/meliponas/index.astro:141`). Se lee de la configuración de marca en vez de
+  // reescribirse: eran dos copias literales del mismo título y la misma descripción, y la
+  // descripción vive además en el JSON-LD de la organización, en el pie de marca y en la tarjeta
+  // del hub — editarlas por separado garantiza que algún día digan cosas distintas.
   home: {
-    title: 'Iwagé Meliponario · Miel Angelita y cajas para meliponas · Ibagué, Tolima',
-    description:
-      'Miel de Tetragonisca angustula del corredor Ambalá. Cajas INPA y AF en Nogal Cafetero. Polinización gestionada y asistencia técnica en Ibagué, Tolima.',
+    title: meliponas.seo.defaultTitle,
+    description: meliponas.seo.defaultDescription,
   },
   tienda: {
     title: 'Tienda Iwagé · Miel Angelita · Cajas INPA y AF · Kits meliponicultura',

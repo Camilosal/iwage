@@ -48,7 +48,7 @@ export const meliponas: BrandConfig = {
   seo: {
     defaultTitle: 'Iwagé Meliponario · Miel Angelita y cajas para meliponas · Ibagué, Tolima',
     defaultDescription:
-      'Miel de Tetragonisca angustula del corredor Ambalá. Cajas INPA y AF en Nogal Cafetero. Polinización gestionada y asistencia técnica en Ibagué, Tolima.',
+      'Miel de Tetragonisca angustula del corredor Ambalá. Cajas INPA/AF en nogal cafetero, polinización gestionada, proyectos e I+D. Ibagué, Tolima.',
   },
   whatsapp: '573026693366',
   instagram: '@iwage.meliponario',
