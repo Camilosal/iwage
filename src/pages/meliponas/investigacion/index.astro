@@ -1,0 +1,312 @@
+---
+import BrandLayout from '@/layouts/BrandLayout.astro';
+import Section from '@/components/Section.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
+import Icon from '@/components/shared/Icon.astro';
+import { SEO } from '@/config/site';
+import { getBrand } from '@/config/brands';
+import Hero from '@/components/Hero.astro';
+import { getHeroBySlug } from '@/lib/heroes';
+import { getBitacoraBySlug, type EntradaBitacora } from '@/lib/bitacora';
+
+// Las tres líneas del I+D. Se llaman líneas, no frentes, porque «frente» en este sitio nombra a
+// las cuatro áreas del meliponario (Tienda, Proyectos, Polinización, I+D) y esta página es una de
+// ellas: usar la misma palabra en dos alturas distintas dejaría un «tres frentes» y un «los otros
+// tres frentes» en la misma hoja. Cada línea tiene un destino real dentro del sitio: dos llevan a
+// una ficha de estándar ya publicada y uno a la bitácora técnica. Ninguno apunta a una página que
+// falte por escribir.
+const lineas = [
+  {
+    numero: '01',
+    icono: 'clipboard-list',
+    titulo: 'Estándares y sistemas de registro',
+    etiqueta: 'Miel · Cajas · Polinización asistida · Gestión del meliponario',
+    desc: 'Un sistema de registro para cada objeto: la miel por lote, la caja por ID, la polinización asistida por predio y el meliponario por temporada. La regla es simple — lo que no queda registrado no pasó, y lo que no es comparable entre dos temporadas todavía no es un estándar.',
+    href: '/meliponas/trazabilidad',
+    cta: 'Ver los estándares',
+  },
+  {
+    numero: '02',
+    icono: 'cpu',
+    titulo: 'Automatización e IoT',
+    etiqueta: 'Sensores · Registro continuo · Alertas',
+    desc: 'Temperatura y humedad dentro de la caja, peso de la colonia y actividad de entrada y salida. El objetivo no es acumular series: es detectar una colonia en problema antes de que se pierda, con nodos que tengan que sobrevivir sin internet confiable y sin corriente estable.',
+    href: '/meliponas/trazabilidad/cajas',
+    cta: 'Ver el estándar de cajas',
+  },
+  {
+    numero: '03',
+    icono: 'hexagon',
+    titulo: 'Diseño desde la abeja',
+    etiqueta: 'Cajas · Cadena de frío · Jardines de néctar · Perfilación de la miel',
+    desc: 'La caja se piensa primero para Tetragonisca angustula y después para la producción, porque las dos cosas van juntas: una colonia con nido correcto, frío correcto y néctar continuo produce más y mejor. Adentro entran la cadena de frío desde la cosecha, los jardines que sostienen la floración cuando el entorno no alcanza, y la perfilación de la miel por lote y por territorio.',
+    href: '/meliponas/bitacora',
+    cta: 'Leer la bitácora técnica',
+  },
+];
+
+// Evidencia publicada. Se lista lo que ya está escrito, no lo que se planea escribir, y cada
+// enlace se arma con la `marca` que devuelve Strapi: el nodo de sensores está documentado en la
+// bitácora de la granja y no por eso hay que fingir que es de meliponas.
+const EVIDENCIA: Array<{ linea: string; slugs: string[] }> = [
+  {
+    linea: 'Estándares y registro',
+    slugs: [
+      'la-ruta-de-la-miel-del-nido-silvestre-a-tu-frasco',
+      'pureza-en-la-miel-de-angelita-lo-que-no-es-adulteracion',
+      'resultados-polinizacion-aguacate-hass',
+      'resultados-polinizacion-maracuya',
+      'resultados-polinizacion-mora-castilla',
+    ],
+  },
+  {
+    linea: 'Automatización e IoT',
+    slugs: [
+      'edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable',
+    ],
+  },
+  {
+    linea: 'Diseño desde la abeja',
+    slugs: [
+      'cajas-inpa-vs-af-c2-b7-comparativas',
+      'conservacion-y-cosecha-de-miel',
+      'el-jardin-suspendido-10-plantas-en-matera-que-complementan-la-flora-del-meliponario',
+      'flora-melifera-nativa',
+      'el-sabor-del-territorio-por-que-la-miel-de-angelita-es-naturalmente-mas-acida',
+      'por-que-la-miel-del-corredor-ambala-sabe-diferente-a-la-del-huila',
+      'miel-angelita-vs-apis-mellifera',
+    ],
+  },
+];
+
+const hero = await getHeroBySlug('/meliponas/investigacion');
+const whatsapp = getBrand('meliponas').whatsapp;
+
+// `getBitacoraBySlug` devuelve null si Strapi falla o si el artículo se borró, así que un hueco
+// aquí no rompe la página: simplemente deja de listar ese enlace. Filtrar nulos es obligatorio,
+// no decorativo — una ficha retirada dejaría un 404 en medio de la única prueba del frente.
+const grupos = (
+  await Promise.all(
+    EVIDENCIA.map(async (g) => ({
+      linea: g.linea,
+      entradas: (await Promise.all(g.slugs.map(getBitacoraBySlug))).filter(
+        (e): e is EntradaBitacora => e !== null,
+      ),
+    })),
+  )
+).filter((g) => g.entradas.length > 0);
+
+const totalPublicado = grupos.reduce((n, g) => n + g.entradas.length, 0);
+
+const principios = [
+  {
+    icono: 'line-chart',
+    titulo: 'Medir antes de afirmar',
+    desc: 'Cada resultado que se publica salió de una ficha de campo o de un análisis, con su lote y su fecha. Si no hay dato, se dice que no lo hay.',
+  },
+  {
+    icono: 'book-open',
+    titulo: 'Publicar lo que se aprende',
+    desc: 'Las guías técnicas de la bitácora están abiertas, incluidas las que le sirven a quien compite. El conocimiento cerrado no mejora la meliponicultura colombiana.',
+  },
+  {
+    icono: 'sprout',
+    titulo: 'Diseñar desde la biología',
+    desc: 'Primero cómo vive la colonia, después cómo rinde. Una caja que rinde más pero estresa al nido se descarta, por muy buena que sea la cifra.',
+  },
+];
+
+// Las otras tres áreas, para que el visitante no tenga que volver al home para ver el conjunto.
+const otrosFrentes = [
+  { titulo: 'Tienda', desc: 'Miel de Angelita, cajas INPA/AF y kits.', href: '/meliponas/tienda' },
+  { titulo: 'Proyectos', desc: 'Meliponarios a la medida para colegios, fincas y jardines.', href: '/meliponas/proyectos' },
+  { titulo: 'Polinización', desc: 'Polinización gestionada en cultivos del corredor Ambalá.', href: '/meliponas/polinizacion' },
+];
+---
+
+<BrandLayout title={SEO.investigacion.title} description={SEO.investigacion.description}>
+  {hero ? (
+    <Hero
+      titulo={hero.titulo}
+      subtitulo={hero.subtitulo}
+      imagen={hero.imagen}
+      cta_primario_texto={hero.cta_primario_texto}
+      cta_primario_url={hero.cta_primario_url}
+      cta_secundario_texto={hero.cta_secundario_texto}
+      cta_secundario_url={hero.cta_secundario_url}
+      label="Biotecnología Nativa · Tolima"
+    />
+  ) : (
+    <header class="bg-dark-bg text-dark-text">
+      <div class="max-w-6xl mx-auto px-6 py-16 md:py-24">
+        <div class="max-w-3xl">
+          <p class="font-mono text-xs uppercase tracking-widest text-accent mb-4">Investigación y desarrollo</p>
+          <h1 class="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-6">
+            El frente que sostiene<br />a los otros tres
+          </h1>
+          <p class="text-lg text-dark-text/60 leading-relaxed mb-8">
+            No es un laboratorio aparte. Es lo que pasa en el meliponario cuando algo no funciona
+            y hay que medirlo antes de cambiarlo: estándares de registro, sensores, cajas, frío,
+            néctar y perfil de la miel.
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <a href="#lineas" class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-4 font-medium hover:bg-accent-light transition-all">
+              Ver las tres líneas
+              <Icon name="arrow-down" class="w-5 h-5" />
+            </a>
+            <a href="#publicado" class="inline-flex items-center gap-2 border border-dark-text/20 text-dark-text rounded-full px-8 py-4 font-medium hover:bg-dark-text/5 transition-all">
+              Lo que ya está publicado
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+  )}
+
+  <!-- Las tres líneas -->
+  <Section id="lineas">
+    <ScrollReveal>
+      <SectionHeader
+        label="I+D"
+        title="Tres líneas de trabajo"
+        subtitle="Una define cómo se registra, otra cómo se mide sola, y la tercera cómo se diseña a partir de las dos."
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6">
+      {lineas.map((linea, i) => (
+        <ScrollReveal delay={i * 100}>
+          <a href={linea.href} class="group block bg-surface-raised rounded-2xl border border-border p-8 shadow-sm hover:shadow-lg hover:border-brand/30 transition-all h-full">
+            <div class="flex items-center justify-between mb-5">
+              <Icon name={linea.icono} class="w-9 h-9 text-brand" />
+              <span class="font-mono text-xs text-accent">{linea.numero}</span>
+            </div>
+            <h2 class="text-xl font-bold text-text-primary mb-2 group-hover:text-brand transition-colors">{linea.titulo}</h2>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-accent mb-3">{linea.etiqueta}</p>
+            <p class="text-sm text-text-secondary leading-relaxed mb-6">{linea.desc}</p>
+            <span class="inline-flex items-center gap-2 text-brand font-medium text-sm group-hover:gap-3 transition-all">
+              {linea.cta}
+              <Icon name="arrow-right" class="w-4 h-4" />
+            </span>
+          </a>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Lo publicado -->
+  {totalPublicado > 0 && (
+    <Section bg="sunken" id="publicado">
+      <ScrollReveal>
+        <SectionHeader
+          label="Evidencia"
+          title="Lo que ya está publicado"
+          subtitle={`${totalPublicado} piezas técnicas abiertas, agrupadas por la línea a la que responden. Se citan con datos, no con promesas.`}
+        />
+      </ScrollReveal>
+      <div class="space-y-10">
+        {grupos.map((g, gi) => (
+          <ScrollReveal delay={gi * 100}>
+            <div>
+              <h3 class="font-mono text-xs uppercase tracking-widest text-accent mb-4">{g.linea}</h3>
+              <ul class="grid md:grid-cols-2 gap-4">
+                {g.entradas.map((e) => (
+                  <li>
+                    <a
+                      href={`/${e.marca}/bitacora/${e.slug}`}
+                      class="group flex items-start gap-4 bg-surface-raised border border-border rounded-xl p-5 hover:border-brand/40 transition-colors h-full"
+                    >
+                      <Icon name="book-open" class="w-5 h-5 text-brand shrink-0 mt-0.5" />
+                      <span>
+                        <span class="block text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">{e.titulo}</span>
+                        {e.extracto && <span class="block text-xs text-text-secondary mt-1 line-clamp-2">{e.extracto}</span>}
+                        <span class="block text-[10px] uppercase tracking-widest text-text-muted mt-2">
+                          Bitácora {e.marca}
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </ScrollReveal>
+        ))}
+      </div>
+    </Section>
+  )}
+
+  <!-- Principios -->
+  <Section>
+    <ScrollReveal>
+      <SectionHeader
+        label="Cómo trabajamos"
+        title="Tres reglas que no se negocian"
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      {principios.map((p, i) => (
+        <ScrollReveal delay={i * 100}>
+          <div class="text-center p-6">
+            <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mx-auto mb-4">
+              <Icon name={p.icono} class="w-6 h-6" />
+            </div>
+            <h3 class="font-semibold text-text-primary mb-2">{p.titulo}</h3>
+            <p class="text-sm text-text-secondary">{p.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Los otros tres frentes -->
+  <Section bg="sunken" compact>
+    <ScrollReveal>
+      <SectionHeader
+        label="El meliponario completo"
+        title="Los otros tres frentes"
+        subtitle="El I+D no se vende: lo que sale de acá se ve en la tienda, en los proyectos y en los cultivos."
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-4">
+      {otrosFrentes.map((o, i) => (
+        <ScrollReveal delay={i * 80}>
+          <a href={o.href} class="group flex items-center justify-between gap-4 bg-surface-raised border border-border rounded-xl px-5 py-4 hover:border-brand/40 transition-colors">
+            <span>
+              <span class="block text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">{o.titulo}</span>
+              <span class="block text-xs text-text-secondary mt-0.5">{o.desc}</span>
+            </span>
+            <Icon name="arrow-right" class="w-4 h-4 text-brand shrink-0 group-hover:translate-x-1 transition-transform" />
+          </a>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Cierre: salida de conversión real -->
+  <Section compact>
+    <ScrollReveal>
+      <div class="max-w-xl mx-auto text-center">
+        <h2 class="text-2xl font-bold text-text-primary mb-3">¿Trabajas en algo de esto?</h2>
+        <p class="text-text-secondary mb-7">
+          Colmenas instrumentadas, protocolos de registro, ensayos de flora o perfiles de miel:
+          si tienes un predio, un grupo de investigación o una duda concreta que medir, escríbenos.
+        </p>
+        <div class="flex flex-wrap justify-center gap-3">
+          <a href="/meliponas/contacto" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+            Escribir al equipo
+            <Icon name="arrow-right" class="w-4 h-4" />
+          </a>
+          <a
+            href={`https://wa.me/${whatsapp}?text=${encodeURIComponent('Hola, quiero hablar sobre investigación y desarrollo en meliponicultura.')}`}
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 border border-brand text-brand rounded-full px-6 py-3 font-medium hover:bg-brand/5 transition-all"
+          >
+            WhatsApp
+          </a>
+        </div>
+      </div>
+    </ScrollReveal>
+  </Section>
+</BrandLayout>

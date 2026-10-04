@@ -35,6 +35,8 @@ de los Tres Ejes, documentada en camilosaldarriaga.com.
 - https://iwage.co/meliponas/tienda — Tienda online (miel, cajas, kits)
 - https://iwage.co/meliponas/polinizacion — Servicio de polinización gestionada
 - https://iwage.co/meliponas/proyectos — Diseño e instalación de meliponarios
+- https://iwage.co/meliponas/investigacion — Investigación y desarrollo: estándares, IoT y diseño desde la abeja
+- https://iwage.co/meliponas/trazabilidad — Tres estándares de trazabilidad verificables
 - https://iwage.co/tierras/propiedades — Listado de propiedades rurales
 - https://iwage.co/naturaleza/experiencias — Experiencias de turismo regenerativo
 - https://iwage.co/naturaleza/anfitriones — Guías y guardianes del territorio
@@ -54,7 +56,12 @@ en el corredor Ambalá, Ibagué, Tolima. Producción de miel de Angelita con tra
 por lote y colmena. Cajas tecnificadas INPA y AF en nogal cafetero. Servicio de
 polinización gestionada para cultivos (aguacate, café, mora, maracuyá, cítricos).
 Diseño e instalación de meliponarios para colegios (PRAE), fincas, centros turísticos.
-Asistencia técnica en meliponicultura.
+Asistencia técnica en meliponicultura. Cuatro frentes: Tienda, Proyectos, Polinización
+e Investigación y Desarrollo. El frente de I+D (/meliponas/investigacion) trabaja tres
+líneas: (1) estándares y sistemas de registro y trazabilidad de miel, cajas, procesos de
+polinización asistida y gestión de meliponarios; (2) automatización e IoT aplicados a la
+meliponicultura; (3) cajas pensadas en las abejas que además mejoran la producción,
+cadenas de frío, jardines y sistemas de perfilación de miel y aporte de néctar permanente.
 
 Productos principales:
 - Miel de abeja Angelita (T. angustula) — 100% pura, con trazabilidad QR

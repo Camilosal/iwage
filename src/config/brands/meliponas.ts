@@ -22,6 +22,7 @@ export const meliponas: BrandConfig = {
     { label: 'Tienda', href: '/meliponas/tienda' },
     { label: 'Polinización', href: '/meliponas/polinizacion' },
     { label: 'Proyectos', href: '/meliponas/proyectos' },
+    { label: 'I+D', href: '/meliponas/investigacion' },
     {
       label: 'Herramientas',
       href: '/meliponas/herramientas',

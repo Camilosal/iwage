@@ -2271,6 +2271,33 @@ Fuera de las firmes quedan **5 medias** (`1`, `19`, `24`, `49` y `hero-ecosistem
 
 **Estado al cerrar:** todo lo anterior se midió contra el servidor de desarrollo en `127.0.0.1:4331` (`./node_modules/.bin/astro dev --background --port 4331`; el 4321 es del contenedor), con `npm test` en 388/388 y `npm run build` limpio; el servidor quedó detenido. **Producción no se tocó esta noche**: los dos commits de esta noche (`1831e7c` código, `0b2c06e` registro) están locales, y con estos ya son diez sin empujar. Las Strapi vivas sí cambiaron — la ficha nueva y el retipo son datos, no código. Las capturas de verificación (`hub-*.png`, `crop-*.png`, `banda-meliponario.png`, `ficha-central.png`) son efímeras; la herramienta que las produce ya está guardada en `fuentes/shot.mjs` dentro del respaldo. Conviene conservarla: es un CDP sobre el chromium del sistema que fuerza `.reveal{opacity:1}` antes de disparar, porque en un `--screenshot` estático el ScrollReveal deja la página en negro y uno termina aprobando imágenes que nunca vio.
 
+### El cuarto frente: I+D (2026-10-04, madrugada)
+
+El dueño corrigió el modelo mental del sitio: **el meliponario tiene cuatro frentes, no tres**, y el que faltaba es Investigación y Desarrollo, con tres líneas internas — (1) estándares y sistemas de registro y trazabilidad de miel, cajas, polinización asistida y gestión de meliponarios; (2) automatización e IoT aplicados a la meliponicultura; (3) cajas pensadas en las abejas que además mejoran la producción, cadena de frío, jardines y perfilación de miel con aporte permanente de néctar. El home mostraba tres tarjetas y ninguna página del frente existía.
+
+**La página nueva** es `src/pages/meliponas/investigacion/index.astro`, calcada del estilo de `trazabilidad/index.astro` (tarjetas numeradas 01/02/03 con `Icon`, etiqueta mono, `href` y `cta`; hero de Strapi con cabecera estática de respaldo). Debajo lleva una sección de **evidencia publicada**: 13 fichas de bitácora pedidas por slug con `getBitacoraBySlug`, filtrando `null`, con la URL armada sobre la `marca` que devuelve Strapi. Las 13 resuelven 200 medidas una por una: 12 de `meliponas` y 1 de `granja` (el nodo ESP32 está documentado en la bitácora de la granja; fingirlo de meliponas sería el defecto contrario). La sección está guardada por `{totalPublicado > 0 && ...}`: si Strapi cae, la página no muestra una promesa vacía.
+
+**Ocho puntos de sincronización**, que es lo que cuesta un frente más y no el archivo nuevo: `src/config/site.ts` (`NAV_LINKS` + `SEO.investigacion`), `src/config/brands/meliponas.ts` (`nav`), `src/pages/meliponas/index.astro` (cuarta tarjeta + encabezado + rejilla), `src/lib/sitemap-bitacora.ts` (`STATIC_PAGES`), `src/lib/rag/url-map.ts` (entrada con las tres líneas y sus palabras clave), `src/lib/rag/context.ts` (`BRAND_INFO.meliponas.desc` y la línea de la marca en el prompt base), `src/data/llms-plantilla.txt` (URL en la estructura + las tres líneas en la prosa de la marca) y `src/pages/ayuda/usuarios/marcas.astro` (viñeta). Faltaba cualquiera de ellos y el sitio se desmentía a sí mismo: navegación con tres frentes, RAG que no conoce el cuarto, `llms.txt` que lo niega.
+
+**La palabra «frente» ahora tiene una sola altura.** Dos choques de vocabulario aparecieron al escribir esto y ambos se resolvieron por medida, no por gusto:
+
+- «Tres frentes de trabajo» dentro de la página de I+D chocaban con «Los otros tres frentes» en la misma hoja. Las tres internas pasan a llamarse **líneas** (`lineas`, `#lineas`, `EVIDENCIA[].linea`); **frente** queda reservado para las cuatro áreas de la marca.
+- El encabezado del home decía «Tres líneas de acción» y yo lo iba a subir a «Cuatro líneas de acción» — pero `src/pages/index.astro:19` y `llms-plantilla.txt:4` ya llaman **líneas de acción** a las seis marcas del ecosistema. Prestar el término en dos alturas era el mismo defecto. El home dice ahora **«Cuatro frentes»**, que además es la palabra del dueño.
+
+**La cuarta tarjeta no lleva foto, a propósito.** `image: null` con comentario: la única lámina que retrataría el frente es `12` (panal silvestre) o `1` (INPA vs AF) y ninguna muestra investigación. Poner una de adorno es justo el defecto que documentamos en café — la imagen negando lo que dice la tarjeta. La tarjeta conserva su icono (`microscope`, verificado contra el mapa de `Icon.astro`) hasta que exista una foto propia, que entra en la cola.
+
+**Un defecto de layout que la cuarta tarjeta destapó.** `FeatureCard.astro` no tenía `h-full`, así que en la fila de cuatro los fondos quedaban desiguales (medido en la captura: bordes inferiores en y≈327, 297, 300, 327). Con `h-full` en el ancla, las cuatro cierran en la misma y. Es un cambio de una clase y `FeatureCard` solo se usa en este home.
+
+**Mediciones de la barra y el pie, que son donde un elemento extra rompe algo.** La nav desktop aparece con `lg` (1024px), no con `md`. Con seis ítems: una sola fila y `documentElement.scrollWidth === innerWidth` en 768, 820, 900, 1000, 1024, 1280 y 1440 — sin quiebre ni desborde horizontal. El pie de marca (`BrandFooter.astro`) no se entera: los enlaces primarios viven **todos en una columna «Navegación»**, así que siguen siendo 5 columnas en 1 fila a 1440/1280/1024/820. El menú móvil incluye «I+D» (verificado sobre el HTML renderizado).
+
+**Pendiente del frente, para cuando haya créditos y decisión:**
+
+- No hay registro `heroes` con slug `/meliponas/investigacion`, así que hoy la página muestra la cabecera estática de respaldo (que es la captura aprobada, no un fallback roto). Crear el registro le da foto y CTAs propios.
+- Falta la foto propia del frente para la cuarta tarjeta del home.
+- `defaultDescription` de la marca (`src/config/brands/meliponas.ts:51`) sigue enumerando miel, cajas, polinización y asistencia técnica sin mencionar I+D. No miente —no dice «tres»— y tocar el `og:description` de toda una marca es decisión del dueño, no un arreglo de consistencia, así que se queda como está hasta que lo diga.
+
+**Estado al cerrar esto:** `npm test` 388/388, `npm run build` limpio, todo verificado contra el servidor de desarrollo en `127.0.0.1:4331`. Ningún dato de Strapi cambió en este paso: el cuarto frente es puro código y configuración.
+
 ### Task 1 — evidencia leída y parche preparado (2026-09-25 por la mañana) / **aplicado esa misma tarde**
 
 Step 1, todo por lectura, el 2026-09-25:

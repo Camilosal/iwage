@@ -18,6 +18,7 @@ export const NAV_LINKS: NavItem[] = [
   { label: 'Tienda', href: '/meliponas/tienda' },
   { label: 'Polinización', href: '/meliponas/polinizacion' },
   { label: 'Proyectos', href: '/meliponas/proyectos' },
+  { label: 'I+D', href: '/meliponas/investigacion' },
   {
     label: 'Herramientas',
     href: '/meliponas/herramientas',
@@ -66,6 +67,11 @@ export const SEO = {
     title: 'Diseño e Instalación de Meliponarios · Iwagé',
     description:
       'Diseño, instalación y acompañamiento de meliponarios a la medida para colegios (PRAE), fincas, centros turísticos y paisajismo en el Tolima.',
+  },
+  investigacion: {
+    title: 'Investigación y Desarrollo en Meliponicultura · Iwagé',
+    description:
+      'Estándares de registro, automatización e IoT aplicados a la meliponicultura. Cajas, cadena de frío, jardines de néctar y perfilación de la miel por lote.',
   },
   trazabilidad: {
     title: 'Trazabilidad Iwagé · Estándares de Miel, Cajas IoT y Polinización',

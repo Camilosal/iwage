@@ -31,6 +31,7 @@ export const STATIC_PAGES: Array<[path: string, priority: number, changefreq: Si
   ['/meliponas/tienda', 0.9, 'daily'],
   ['/meliponas/polinizacion', 0.8, 'weekly'],
   ['/meliponas/proyectos', 0.8, 'weekly'],
+  ['/meliponas/investigacion', 0.7, 'monthly'],
   ['/meliponas/proyectos/lineas/fincas-productivas', 0.7, 'monthly'],
   ['/meliponas/proyectos/lineas/paisajismo-residencial', 0.7, 'monthly'],
   ['/meliponas/proyectos/lineas/prae-educativo', 0.7, 'monthly'],

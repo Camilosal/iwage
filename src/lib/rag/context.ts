@@ -8,7 +8,7 @@ import { SITE } from '../../config/site';
 // ── Brand Personas ───────────────────────────────────────
 
 const BRAND_INFO: Record<string, { name: string; desc: string; icon: string }> = {
-  meliponas: { name: 'Iwagé Meliponas', desc: 'Centro de meliponicultura: miel de Angelita, cajas INPA/AF, polinización y proyectos.', icon: '🐝' },
+  meliponas: { name: 'Iwagé Meliponas', desc: 'Centro de meliponicultura con cuatro frentes: miel de Angelita, cajas INPA/AF, polinización, proyectos, e I+D (estándares de registro y trazabilidad, IoT aplicado, diseño de cajas, cadena de frío y perfilación de la miel).', icon: '🐝' },
   cafe: { name: 'Café Iwagé', desc: 'Café comunitario con proveedores locales a menos de 4km.', icon: '☕' },
   tierras: { name: 'Iwagé Tierras', desc: 'Propiedades rurales verificadas en el Tolima con Sello VAP.', icon: '🏡' },
   naturaleza: { name: 'Iwagé Naturaleza', desc: 'Turismo regenerativo con experiencias curadas y anfitriones locales.', icon: '🌿' },
@@ -25,7 +25,7 @@ export function buildSystemPrompt(brand: string, results: RetrievalResult[]): st
   const brandInfo = BRAND_INFO[brand] || BRAND_INFO.general;
 
   const basePrompt = `Eres el asistente virtual de Iwagé, un ecosistema de 5 marcas rurales en Ibagué, Tolima, Colombia:
-- 🐝 Meliponas: meliponicultura, miel de Angelita, cajas INPA/AF, polinización
+- 🐝 Meliponas: meliponicultura, miel de Angelita, cajas INPA/AF, polinización, proyectos e I+D
 - ☕ Café: café comunitario con proveedores locales
 - 🏡 Tierras: propiedades rurales verificadas con Sello VAP
 - 🌿 Naturaleza: turismo regenerativo con experiencias y anfitriones

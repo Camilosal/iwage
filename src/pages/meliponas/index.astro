@@ -64,6 +64,17 @@ const features = [
     href: '/meliponas/polinizacion',
     image: portadaCultivos,
   },
+  {
+    // `image: null` a propósito. La única lámina que retrata el frente es `12` (el panal silvestre
+    // de la ruta de la miel) o `1` (INPA vs AF), y ninguna de las dos muestra investigación: poner
+    // una de adorno sería el defecto que acabamos de documentar en café — la imagen negando lo que
+    // dice la tarjeta. La tarjeta conserva su icono hasta que exista una foto propia.
+    icon: 'microscope',
+    title: 'Investigación y Desarrollo',
+    description: 'Estándares de registro, sensores en la caja, diseño de cajas desde la biología de la colonia, cadena de frío y perfilación de la miel.',
+    href: '/meliponas/investigacion',
+    image: null,
+  },
 ];
 
 const testimonials = [
@@ -158,17 +169,19 @@ const meliponarioLocation = {
     </ScrollReveal>
   </Section>
 
-  <!-- Features: Tres líneas de acción -->
+  <!-- Los cuatro frentes. No «líneas de acción»: el hub del ecosistema ya llama así a sus seis
+       marcas, y prestar el término en dos alturas distintas es la misma ambigüedad que se resolvió
+       en /meliponas/investigacion reservando «frente» para el área y «línea» para su interior. -->
   <Section width="7xl" compact>
     <ScrollReveal>
       <SectionHeader
         label="Qué hacemos"
-        title="Tres líneas de acción"
-        subtitle="Un ecosistema completo alrededor de las abejas nativas y el territorio."
+        title="Cuatro frentes"
+        subtitle="Todo alrededor de las abejas nativas y del territorio donde viven."
         align="center"
       />
     </ScrollReveal>
-    <div class="grid md:grid-cols-3 gap-6">
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
       {features.map((f, i) => (
         <ScrollReveal delay={i * 100}>
           <FeatureCard icon={f.icon} title={f.title} description={f.description} href={f.href} image={f.image} />
