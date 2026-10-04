@@ -11,8 +11,6 @@ const REGISTRO = {
     { slug: 'resultados-polinizacion-aguacate-hass', marca: 'meliponas' },
     { slug: 'cafe-agroecologico-iwage', marca: 'cafe' },
     { slug: 'siembra-de-cobertura-en-terrazas', marca: 'tierras' },
-    { slug: 'cuaderno-campo', marca: 'granja' },
-    { slug: 'gestion-hidrica', marca: 'granja' },
   ],
   productos: [
     { slug: 'miel-angelita-120ml', marca: 'meliponas' },
@@ -20,7 +18,6 @@ const REGISTRO = {
     { slug: 'kit-observacion', marca: 'meliponas' },
     { slug: 'cafe-grano-selva-340g', marca: 'cafe' },
   ],
-  experimentos: ['sistema-autosustentable-iwage', 'meliponario-iwage', 'gestion-hidrica-ciclo-cerrado'],
 };
 
 test('normalizarSlug: decodifica, sin acentos, mata el c2-b7 literal y el ·', () => {
@@ -112,31 +109,8 @@ test('deja intactos los enlaces que no son de la migración', () => {
 });
 
 test('registro vacío: ningún enlace de marca se rompe en el render', () => {
-  const vacio = { bitacoras: [], productos: [], experimentos: [] };
+  const vacio = { bitacoras: [], productos: [] };
   assert.equal(repararEnlaceInterno('/modulo-3-el-nido', vacio, 'meliponas'), '/meliponas/bitacora');
   assert.equal(repararEnlaceInterno('/producto/miel', vacio, 'granja'), '/granja/tienda');
   assert.equal(repararEnlaceInterno('/cafe/menu', vacio, 'granja'), null);
-});
-
-// Los 9 enlaces que midió el rastreo del 2026-10-04: el texto de WP llamaba a la
-// ficha del experimento con el slug de la bitácora, y la ruta respondía 302 al índice.
-test('/<marca>/experimentos/<slug-de-bitácora> → el balde donde el slug sí vive', () => {
-  assert.equal(
-    repararEnlaceInterno('/granja/experimentos/cuaderno-campo', REGISTRO, 'granja'),
-    '/granja/bitacora/cuaderno-campo',
-  );
-  assert.equal(
-    repararEnlaceInterno('/granja/experimentos/gestion-hidrica/', REGISTRO, 'granja'),
-    '/granja/bitacora/gestion-hidrica',
-  );
-  // El slug que sí es un experimento publicado: se deja intacto.
-  assert.equal(
-    repararEnlaceInterno('/granja/experimentos/gestion-hidrica-ciclo-cerrado', REGISTRO, 'granja'),
-    null,
-  );
-  // Ni experimento ni bitácora: no se inventa un destino.
-  assert.equal(
-    repararEnlaceInterno('/granja/experimentos/algo-que-no-existe', REGISTRO, 'granja'),
-    null,
-  );
 });

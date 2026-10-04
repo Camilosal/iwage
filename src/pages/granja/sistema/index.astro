@@ -17,7 +17,7 @@ const subsistemas = [
     desc: 'Captación de lluvia, tratamiento y reutilización de aguas grises. El agua se gana con hábitos, no solo con infraestructura.',
     estado: 'operando',
     articulos: [
-      { titulo: 'Gestión hídrica de ciclo cerrado', slug: 'gestion-hidrica' },
+      { titulo: 'Gestión hídrica de ciclo cerrado', slug: 'gestion-hidrica', balde: 'bitacora' },
     ],
   },
   {
@@ -27,7 +27,7 @@ const subsistemas = [
     desc: 'Generación de energía para la granja — sistema solar off-grid como primera etapa, sin limitarse a él.',
     estado: 'operando',
     articulos: [
-      { titulo: 'Sistema solar off-grid', slug: 'solar-offgrid' },
+      { titulo: 'Sistema solar off-grid', slug: 'solar-offgrid', balde: 'bitacora' },
     ],
   },
   {
@@ -37,8 +37,8 @@ const subsistemas = [
     desc: 'Nada que sale se considera basura: compostaje, biodigestión y ciclos de nutrientes cerrados dentro del predio.',
     estado: 'construccion',
     articulos: [
-      { titulo: 'La bio-refinería doméstica', slug: 'biorefineria-domestica' },
-      { titulo: 'Compostaje rural: cerrar el ciclo de nutrientes', slug: 'compostaje-rural-como-cerrar-el-ciclo-de-nutrientes-en-la-finca' },
+      { titulo: 'La bio-refinería doméstica', slug: 'biorefineria-domestica', balde: 'experimentos' },
+      { titulo: 'Compostaje rural: cerrar el ciclo de nutrientes', slug: 'compostaje-rural-como-cerrar-el-ciclo-de-nutrientes-en-la-finca', balde: 'bitacora' },
     ],
   },
   {
@@ -48,8 +48,8 @@ const subsistemas = [
     desc: 'Tres formas de cultivar integradas: huerta intensiva, agroforestería y producción animal en sinergia.',
     estado: 'construccion',
     articulos: [
-      { titulo: 'El agroecosistema productivo', slug: 'agroecosistema-productivo' },
-      { titulo: 'El cuaderno de campo', slug: 'cuaderno-campo' },
+      { titulo: 'El agroecosistema productivo', slug: 'agroecosistema-productivo', balde: 'experimentos' },
+      { titulo: 'El cuaderno de campo', slug: 'cuaderno-campo', balde: 'bitacora' },
     ],
   },
   {
@@ -59,9 +59,9 @@ const subsistemas = [
     desc: 'Home Assistant, sensores ESP32 y edge computing rural: cada subsistema medido, registrado y trazable.',
     estado: 'operando',
     articulos: [
-      { titulo: 'Home Assistant y el gemelo digital', slug: 'home-assistant' },
-      { titulo: 'Edge computing rural con ESP32', slug: 'edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable' },
-      { titulo: 'ESG sin greenwashing', slug: 'esg-sin-greenwashing' },
+      { titulo: 'Home Assistant y el gemelo digital', slug: 'home-assistant', balde: 'bitacora' },
+      { titulo: 'Edge computing rural con ESP32', slug: 'edge-computing-rural-como-un-esp32-sobrevive-meses-con-dos-baterias-y-sin-internet-confiable', balde: 'bitacora' },
+      { titulo: 'ESG sin greenwashing', slug: 'esg-sin-greenwashing', balde: 'bitacora' },
     ],
   },
   {
@@ -71,8 +71,8 @@ const subsistemas = [
     desc: 'Materiales no convencionales, técnicas de bioconstrucción, climatización pasiva, control de olores y ruido, neuroarquitectura y permacultura arquitectónica.',
     estado: 'diseno',
     articulos: [
-      { titulo: 'Bioarquitectura en pendiente y en plano', slug: 'bioarquitectura-terrenos' },
-      { titulo: 'Climatización pasiva y gestión de olores', slug: 'climatizacion-olores' },
+      { titulo: 'Bioarquitectura en pendiente y en plano', slug: 'bioarquitectura-terrenos', balde: 'bitacora' },
+      { titulo: 'Climatización pasiva y gestión de olores', slug: 'climatizacion-olores', balde: 'bitacora' },
     ],
   },
 ];
@@ -147,9 +147,9 @@ const hero = await getHeroBySlug('/granja/sistema');
                 <Icon name="layers" class="w-4 h-4 shrink-0" />
                 Ver página del subsistema →
               </a>
-              <p class="text-[11px] font-mono uppercase tracking-widest text-text-muted">Experimentos del subsistema</p>
+              <p class="text-[11px] font-mono uppercase tracking-widest text-text-muted">Contenido del subsistema</p>
               {s.articulos.map((a) => (
-                <a href={`/granja/experimentos/${a.slug}`} class="group flex items-center gap-2 text-sm text-text-secondary hover:text-brand transition-colors">
+                <a href={`/granja/${a.balde}/${a.slug}`} class="group flex items-center gap-2 text-sm text-text-secondary hover:text-brand transition-colors">
                   <Icon name="file-text" class="w-4 h-4 text-text-muted group-hover:text-brand transition-colors shrink-0" />
                   <span class="line-clamp-1">{a.titulo}</span>
                 </a>

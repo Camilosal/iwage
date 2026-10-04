@@ -20,8 +20,6 @@ export interface RegistroEnlaces {
   bitacoras: { slug: string; marca: string }[];
   /** Slugs de producto publicados; `marca` decide el balde de la tienda. */
   productos: { slug: string; marca: string }[];
-  /** Slugs de experimento publicados: dicen cuándo `/x/experimentos/<slug>` es válido. */
-  experimentos: string[];
 }
 
 /** Primeros segmentos que SÍ son rutas legítimas del sitio. */
@@ -143,17 +141,6 @@ export function repararEnlaceInterno(
     }
     // Irreparable: al índice de bitácora de la marca actual mejor que al 404.
     return `/${marcaActual}/bitacora`;
-  }
-
-  // 3) `/granja/experimentos/<x>` donde `x` NO es un experimento sino una bitácora.
-  // Medido el 2026-10-04 sobre las 209 URLs del sitemap: 9 enlaces del cuerpo
-  // escrito en WP llamaban a la ficha del experimento con el slug de la bitácora
-  // (`gestion-hidrica`, `cuaderno-campo`, `home-assistant`, `esg-sin-greenwashing`…).
-  // La ruta no existe y responde 302 al índice: el lector hace clic y aterriza en
-  // la lista. Se reescribe al balde donde el slug sí vive.
-  if (seg.length === 3 && seg[1] === 'experimentos' && !registro.experimentos.includes(seg[2])) {
-    const b = registro.bitacoras.find((x) => normalizarSlug(x.slug) === normalizarSlug(seg[2]));
-    if (b) return `/${b.marca}/bitacora/${b.slug}`;
   }
 
   return null;
