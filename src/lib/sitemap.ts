@@ -11,6 +11,7 @@
 import { strapiFetch, CACHE_TTL } from './strapi';
 import { PERFILES_COMPRADOR } from './tierras';
 import { getCultivos } from './polinizacion';
+import { getProveedores, proveedorSlug } from './cafe';
 import {
   indicesDeBitacora,
   MARCAS_BITACORA,
@@ -127,6 +128,14 @@ export async function collectSitemapUrls(): Promise<{ urls: SitemapUrl[]; failed
   // Perfiles de comprador (rutas prerenderizadas desde datos locales)
   for (const perfil of PERFILES_COMPRADOR) {
     urls.push({ loc: `/tierras/perfiles/${perfil.id}`, priority: 0.7, changefreq: 'monthly' });
+  }
+
+  // Proveedores de café: el slug de la URL lo calcula `proveedorSlug` (no hay
+  // columna `slug` publicada en la tabla), así que el índice debe usar el MISMO
+  // derivador que resuelve `/cafe/proveedores/[slug]` o declararía rutas muertas.
+  for (const p of await getProveedores()) {
+    const s = proveedorSlug(p);
+    if (s) urls.push({ loc: `/cafe/proveedores/${s}`, priority: 0.6, changefreq: 'monthly' });
   }
 
   // Contenido dinámico de Strapi

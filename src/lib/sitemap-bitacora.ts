@@ -49,6 +49,7 @@ export const STATIC_PAGES: Array<[path: string, priority: number, changefreq: Si
   ['/cafe/menu', 0.8, 'weekly'],
   ['/cafe/recetas', 0.7, 'weekly'],
   ['/cafe/proveedores', 0.7, 'weekly'],
+  ['/cafe/visitantes', 0.6, 'monthly'],
   ['/cafe/nosotros', 0.6, 'monthly'],
   ['/cafe/ayuda', 0.5, 'monthly'],
   ['/cafe/contacto', 0.6, 'monthly'],
@@ -78,6 +79,7 @@ export const STATIC_PAGES: Array<[path: string, priority: number, changefreq: Si
   ['/naturaleza/escalafon', 0.6, 'monthly'],
   ['/naturaleza/se-anfitrion', 0.7, 'monthly'],
   ['/naturaleza/impacto', 0.6, 'monthly'],
+  ['/naturaleza/nosotros', 0.6, 'monthly'],
   ['/naturaleza/ayuda', 0.5, 'monthly'],
   ['/naturaleza/contacto', 0.6, 'monthly'],
 
@@ -91,12 +93,22 @@ export const STATIC_PAGES: Array<[path: string, priority: number, changefreq: Si
   ['/gestion/propietarios/finca-productiva', 0.6, 'monthly'],
   ['/gestion/propietarios/segunda-residencia', 0.6, 'monthly'],
   ['/gestion/propietarios/operacion-turistica', 0.6, 'monthly'],
+  ['/gestion/nosotros', 0.6, 'monthly'],
   ['/gestion/ayuda', 0.5, 'monthly'],
   ['/gestion/contacto', 0.6, 'monthly'],
 
   // Granja
   ['/granja/', 0.9, 'daily'],
   ['/granja/sistema', 0.8, 'weekly'],
+  // Los subsistemas se enlazan desde /granja y /granja/sistema con 200 medido
+  // (2026-10-04) pero faltaban del índice: sin entrada no hay crawl.
+  ['/granja/sistema/agroecosistema-productivo', 0.7, 'monthly'],
+  ['/granja/sistema/bioarquitectura', 0.7, 'monthly'],
+  ['/granja/sistema/biorefineria-domestica', 0.7, 'monthly'],
+  ['/granja/sistema/energia', 0.7, 'monthly'],
+  ['/granja/sistema/gemelo-digital', 0.7, 'monthly'],
+  ['/granja/sistema/gestion-hidrica', 0.7, 'monthly'],
+  ['/granja/servicios', 0.7, 'monthly'],
   ['/granja/tienda', 0.9, 'daily'],
   ['/granja/visitas', 0.8, 'weekly'],
   ['/granja/experimentos', 0.8, 'daily'],
