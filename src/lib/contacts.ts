@@ -19,6 +19,7 @@ export interface ContactoIwage {
   municipio?: string;
   tipo_proyecto?: string;
   mensaje?: string;
+  marca?: string;
   fuente: 'iwage-contacto' | 'iwage-pedido' | 'iwage-tienda';
 }
 
@@ -43,7 +44,7 @@ export async function persistirContacto(contacto: ContactoIwage): Promise<boolea
       phone: contacto.telefono || '',
       company: contacto.municipio || '',
       servicio: contacto.tipo_proyecto || contacto.fuente,
-      sector: '',
+      sector: contacto.marca || '',
       presupuesto: '',
       message: contacto.mensaje || `Lead automático desde ${contacto.fuente}`,
       source: contacto.fuente,

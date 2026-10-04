@@ -12,6 +12,7 @@ interface Lead {
   municipio?: string;
   tipo_proyecto: string;
   mensaje?: string;
+  marca?: string;
   fecha: string;
 }
 
@@ -42,7 +43,12 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   try {
     const body = await request.json();
-    const { nombre, email, whatsapp, municipio, tipo_proyecto, mensaje } = body;
+    const { nombre, email, whatsapp, telefono, municipio, tipo_proyecto, interes, mensaje, marca } = body;
+
+    // Dos dialectos de formulario conviven en el sitio: los formularios de marca
+    // envían (telefono, interes) y los de proyecto envían (whatsapp, tipo_proyecto).
+    const numero = typeof whatsapp === 'string' && whatsapp.trim() ? whatsapp : telefono;
+    const motivo = typeof tipo_proyecto === 'string' && tipo_proyecto.trim() ? tipo_proyecto : interes;
 
     // Validation
     if (!nombre || typeof nombre !== 'string' || nombre.trim().length < 2) {
@@ -51,13 +57,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    if (!whatsapp || typeof whatsapp !== 'string' || whatsapp.trim().length < 7) {
+    if (!numero || typeof numero !== 'string' || numero.trim().length < 7) {
       return new Response(JSON.stringify({ error: 'El número de WhatsApp es requerido.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    if (!tipo_proyecto || typeof tipo_proyecto !== 'string') {
+    if (!motivo || typeof motivo !== 'string') {
       return new Response(JSON.stringify({ error: 'Selecciona un tipo de proyecto.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -68,16 +74,17 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const lead: Lead = {
       nombre: nombre.trim(),
       email: (typeof email === 'string' && email.includes('@')) ? email.trim() : undefined,
-      whatsapp: whatsapp.trim(),
+      whatsapp: numero.trim(),
       municipio: municipio?.trim() || undefined,
-      tipo_proyecto,
+      tipo_proyecto: motivo,
       mensaje: mensaje?.trim() || undefined,
+      marca: typeof marca === 'string' && marca.trim() ? marca.trim() : undefined,
       fecha: new Date().toISOString(),
     };
 
     // Notificación por email (SES) — best-effort, no bloquea la respuesta al usuario
     enviarNotificacion({
-      asunto: `[Iwagé] Nuevo contacto: ${lead.nombre} — ${lead.tipo_proyecto}`,
+      asunto: `[Iwagé] Nuevo contacto${lead.marca ? ` ${lead.marca}` : ''}: ${lead.nombre} — ${lead.tipo_proyecto}`,
       html: `
         <h2 style="font-family:sans-serif;">Nuevo mensaje de contacto en iwage.co</h2>
         ${tablaDatos([
@@ -85,12 +92,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
           ['Email', lead.email],
           ['WhatsApp', lead.whatsapp],
           ['Municipio', lead.municipio],
+          ['Marca', lead.marca],
           ['Tipo de proyecto', lead.tipo_proyecto],
           ['Fecha', lead.fecha],
         ])}
         ${lead.mensaje ? `<p style="font-family:sans-serif;"><strong>Mensaje:</strong><br>${escapeHtml(lead.mensaje)}</p>` : ''}
       `,
-      texto: `Nuevo contacto Iwagé\nNombre: ${lead.nombre}\nEmail: ${lead.email || '-'}\nWhatsApp: ${lead.whatsapp}\nMunicipio: ${lead.municipio || '-'}\nTipo: ${lead.tipo_proyecto}\nMensaje: ${lead.mensaje || '-'}`,
+      texto: `Nuevo contacto Iwagé\nNombre: ${lead.nombre}\nEmail: ${lead.email || '-'}\nWhatsApp: ${lead.whatsapp}\nMunicipio: ${lead.municipio || '-'}\nMarca: ${lead.marca || '-'}\nTipo: ${lead.tipo_proyecto}\nMensaje: ${lead.mensaje || '-'}`,
     }).catch(() => {});
 
     // Persistir en sistema centralizado (form-handler DB) + suscribir a Listmonk
@@ -101,6 +109,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       municipio: lead.municipio,
       tipo_proyecto: lead.tipo_proyecto,
       mensaje: lead.mensaje,
+      marca: lead.marca,
       fuente: 'iwage-contacto',
     }).catch(() => {});
 

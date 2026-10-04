@@ -7,6 +7,14 @@ import { getCafeConfig } from '@/lib/cafe';
 
 const config = await getCafeConfig();
 const whatsapp = (config?.whatsapp ?? '573026693366').replace(/\+/g, '');
+
+const INTERESES = [
+  { value: 'visita', label: 'Visitar el café y el meliponario' },
+  { value: 'b2b', label: 'Suministro para mi negocio' },
+  { value: 'menu', label: 'Menú y productos' },
+  { value: 'proveedores', label: 'Ser proveedor de origen' },
+  { value: 'otro', label: 'Otra pregunta' },
+];
 ---
 
 <BrandLayout brand="cafe" title="Contacto · Café Iwagé" description="Escríbenos para visitas, suministro B2B o cualquier pregunta. Café Iwagé, corredor Ambalá, Ibagué, Tolima.">
@@ -78,38 +86,106 @@ const whatsapp = (config?.whatsapp ?? '573026693366').replace(/\+/g, '');
         </div>
       </ScrollReveal>
 
-      <!-- Quick contact form (WhatsApp-based) -->
+      <!-- Lead form -->
       <ScrollReveal delay={100}>
         <div class="bg-surface-raised rounded-2xl border border-border p-6 md:p-8">
           <h2 class="text-lg font-semibold text-text-primary mb-4">Escríbenos directo</h2>
           <p class="text-sm text-text-secondary mb-6">
-            La forma más rápida de contactarnos es por WhatsApp. Respondemos en menos de 2 horas en horario de atención.
+            Déjanos tus datos y te respondemos por WhatsApp en menos de 2 horas en horario de atención.
           </p>
-          <div class="space-y-4">
-            <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20visitar%20el%20café`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
-              <Icon name="coffee" class="w-5 h-5 text-brand shrink-0" />
+          <form id="contact-form" class="space-y-4">
+            <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Planear una visita</p>
-                <p class="text-xs text-text-muted">Conoce el café y el meliponario</p>
+                <label for="nombre" class="block text-sm font-medium text-text-secondary mb-2">Nombre *</label>
+                <input type="text" id="nombre" name="nombre" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="Tu nombre" />
               </div>
-            </a>
-            <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20información%20sobre%20suministro%20B2B`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
-              <span class="text-accent shrink-0"><Icon name="store" class="w-5 h-5" /></span>
               <div>
-                <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Suministro para mi negocio</p>
-                <p class="text-xs text-text-muted">Café y miel al por mayor</p>
+                <label for="whatsapp" class="block text-sm font-medium text-text-secondary mb-2">WhatsApp *</label>
+                <input type="tel" id="whatsapp" name="whatsapp" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="+57 300 000 0000" />
               </div>
-            </a>
-            <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20el%20café`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
-              <Icon name="help-circle" class="w-5 h-5 text-accent" />
-              <div>
-                <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Otra pregunta</p>
-                <p class="text-xs text-text-muted">Lo que necesites saber</p>
-              </div>
-            </a>
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-text-secondary mb-2">Email</label>
+              <input type="email" id="email" name="email" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" placeholder="tu@correo.com" />
+            </div>
+            <div>
+              <label for="tipo_proyecto" class="block text-sm font-medium text-text-secondary mb-2">¿Qué te interesa? *</label>
+              <select id="tipo_proyecto" name="tipo_proyecto" required class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand">
+                <option value="">Selecciona una opción</option>
+                {INTERESES.map((i) => (
+                  <option value={i.value}>{i.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label for="mensaje" class="block text-sm font-medium text-text-secondary mb-2">Mensaje</label>
+              <textarea id="mensaje" name="mensaje" rows="4" class="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand resize-none" placeholder="Cuéntanos más..."></textarea>
+            </div>
+            <input type="hidden" name="marca" value="cafe" />
+            <button type="submit" class="w-full bg-brand text-white rounded-full px-6 py-3 font-medium hover:bg-brand-light transition-all">
+              Enviar mensaje
+            </button>
+            <p id="form-status" class="text-sm text-center hidden"></p>
+          </form>
+
+          <div class="mt-8 pt-6 border-t border-border">
+            <p class="text-xs font-mono uppercase tracking-widest text-text-muted mb-3">O escríbenos ya</p>
+            <div class="space-y-3">
+              <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20visitar%20el%20café`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
+                <Icon name="coffee" class="w-5 h-5 text-brand shrink-0" />
+                <div>
+                  <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Planear una visita</p>
+                  <p class="text-xs text-text-muted">Conoce el café y el meliponario</p>
+                </div>
+              </a>
+              <a href={`https://wa.me/${whatsapp}?text=Hola%2C%20quiero%20información%20sobre%20suministro%20B2B`} target="_blank" rel="noopener" class="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all group">
+                <span class="text-accent shrink-0"><Icon name="store" class="w-5 h-5" /></span>
+                <div>
+                  <p class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">Suministro para mi negocio</p>
+                  <p class="text-xs text-text-muted">Café y miel al por mayor</p>
+                </div>
+              </a>
+            </div>
           </div>
         </div>
       </ScrollReveal>
     </div>
   </Section>
 </BrandLayout>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const status = document.getElementById('form-status') as HTMLElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const data = new FormData(form);
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(data)),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        status.textContent = '¡Mensaje enviado! Te contactamos por WhatsApp muy pronto.';
+        status.className = 'text-sm text-center text-brand';
+        form.reset();
+      } else {
+        status.textContent = result.error || 'Error al enviar. Intenta de nuevo.';
+        status.className = 'text-sm text-center text-red-500';
+      }
+    } catch {
+      status.textContent = 'Error de conexión. Intenta de nuevo.';
+      status.className = 'text-sm text-center text-red-500';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Enviar mensaje';
+      status.classList.remove('hidden');
+    }
+  });
+</script>
