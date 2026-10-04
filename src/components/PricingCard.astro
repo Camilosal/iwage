@@ -7,10 +7,10 @@ interface Props {
   period?: string;
   features: string[];
   cta: string;
-  href?: string;
+  href: string;
   featured?: boolean;
 }
-const { tier, price, period, features, cta, href = '/contacto', featured = false } = Astro.props;
+const { tier, price, period, features, cta, href, featured = false } = Astro.props;
 ---
 
 <div class={`rounded-2xl p-6 flex flex-col ${featured ? 'bg-brand text-white shadow-lg ring-2 ring-accent scale-[1.02]' : 'bg-surface-raised border border-border shadow-sm'}`}>

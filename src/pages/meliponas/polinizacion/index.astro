@@ -51,12 +51,15 @@ const queOfrecemos = [
   'Colmenas con trazabilidad QR e identidad digital',
 ];
 
+// Cada plan cierra en el contacto de Meliponas, no en `/contacto`: ese genérico responde 301
+// solo por una regla de nginx, en el dev server es un 404 y le quita la marca al viaje.
 const planes = [
   {
     tier: 'Diagnóstico',
     price: 'Gratis',
     features: ['Visita técnica al predio', 'Evaluación de flora', 'Recomendación inicial', 'Sin compromiso'],
     cta: 'Agendar diagnóstico',
+    href: '/meliponas/contacto',
   },
   {
     tier: 'Polinización Estándar',
@@ -64,6 +67,7 @@ const planes = [
     period: '/mes',
     features: ['4-8 colmenas según área', 'Instalación incluida', 'Monitoreo quincenal', 'Reporte mensual', 'Ajustes de densidad'],
     cta: 'Solicitar servicio',
+    href: '/meliponas/contacto',
     featured: true,
   },
   {
@@ -72,6 +76,7 @@ const planes = [
     period: '/mes',
     features: ['8-20 colmenas', 'Instalación + diseño paisajístico', 'Monitoreo semanal', 'Reporte con datos IoT', 'Asesoría de flora complementaria', 'Prioridad en cosecha de miel'],
     cta: 'Cotizar proyecto',
+    href: '/meliponas/contacto',
   },
 ];
 ---
