@@ -8,7 +8,8 @@ import SimulatorWidget from '@/components/SimulatorWidget.astro';
 import ProjectCard from '@/components/ProjectCard.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
-import { getProyectos, TIPO_LABELS } from '@/lib/proyectos';
+import { getProyectos, TIPO_LABELS, type TipoProyecto } from '@/lib/proyectos';
+import { cardPhotoStyle } from '@/lib/media';
 import Hero from '@/components/Hero.astro';
 import { getHeroBySlug } from '@/lib/heroes';
 
@@ -20,11 +21,22 @@ const hero = await getHeroBySlug('/meliponas/proyectos');
 const tiposPresentes = [...new Set(proyectosData.map((p) => p.tipo))];
 const filtros = ['todos', ...tiposPresentes];
 
-const aplicaciones = [
-  { icon: 'graduation-cap', title: 'PRAE Educativo', desc: 'Proyectos ambientales escolares con meliponas como eje transversal.', checks: ['Material didáctico incluido', 'Talleres presenciales'], href: '/meliponas/proyectos/lineas/prae-educativo' },
-  { icon: 'tractor', title: 'Fincas Productivas', desc: 'Polinización y producción de miel integrada al sistema agroforestal.', checks: ['Diagnóstico gratuito', 'Acompañamiento técnico'], href: '/meliponas/proyectos/lineas/fincas-productivas' },
-  { icon: 'palmtree', title: 'Turismo de Naturaleza', desc: 'Experiencias de observación y cata de miel para visitantes.', checks: ['Sendero interpretativo', 'Guía de experiencia'], href: '/meliponas/proyectos/lineas/turismo-naturaleza' },
-  { icon: 'home', title: 'Paisajismo Residencial', desc: 'Colmenas ornamentales seguras para jardines y terrazas.', checks: ['Cajas con tapa acrílica', 'Sin riesgo de picadura'], href: '/meliponas/proyectos/lineas/paisajismo-residencial' },
+// Cada línea se retrata con la portada del primer proyecto real de su tipo (`getProyectos` viene
+// ordenado por orden:asc, nombre:asc). Sin proyecto portado, la tarjeta conserva su Icon tile.
+const retratoDeTipo = (tipo: TipoProyecto) => proyectosData.find((p) => p.tipo === tipo)?.imagen?.url ?? null;
+
+const aplicaciones: Array<{
+  icon: string;
+  title: string;
+  desc: string;
+  checks: string[];
+  href: string;
+  image: string | null;
+}> = [
+  { icon: 'graduation-cap', title: 'PRAE Educativo', desc: 'Proyectos ambientales escolares con meliponas como eje transversal.', checks: ['Material didáctico incluido', 'Talleres presenciales'], href: '/meliponas/proyectos/lineas/prae-educativo', image: retratoDeTipo('club') },
+  { icon: 'tractor', title: 'Fincas Productivas', desc: 'Polinización y producción de miel integrada al sistema agroforestal.', checks: ['Diagnóstico gratuito', 'Acompañamiento técnico'], href: '/meliponas/proyectos/lineas/fincas-productivas', image: retratoDeTipo('finca') },
+  { icon: 'palmtree', title: 'Turismo de Naturaleza', desc: 'Experiencias de observación y cata de miel para visitantes.', checks: ['Sendero interpretativo', 'Guía de experiencia'], href: '/meliponas/proyectos/lineas/turismo-naturaleza', image: retratoDeTipo('turismo') },
+  { icon: 'home', title: 'Paisajismo Residencial', desc: 'Colmenas ornamentales seguras para jardines y terrazas.', checks: ['Cajas con tapa acrílica', 'Sin riesgo de picadura'], href: '/meliponas/proyectos/lineas/paisajismo-residencial', image: retratoDeTipo('residencial') },
 ];
 
 const ecosistema = [
@@ -75,7 +87,7 @@ const etapas = [
     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
       {aplicaciones.map((a, i) => (
         <ScrollReveal delay={i * 80}>
-          <a href={a.href} class="group/line block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm h-full hover:shadow-md hover:-translate-y-1 hover:border-brand/40 transition-all duration-300">
+          <a href={a.href} style={cardPhotoStyle(a.image ?? undefined)} class={`group/line block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm h-full hover:shadow-md hover:-translate-y-1 hover:border-brand/40 transition-all duration-300${a.image ? ' card-photo' : ''}`}>
             <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4">
               <Icon name={a.icon} class="w-6 h-6" />
             </div>

@@ -1,18 +1,23 @@
 ---
 import Icon from '@/components/shared/Icon.astro';
+import { cardPhotoStyle } from '@/lib/media';
 
 interface Props {
   icon: string;
   title: string;
   description: string;
   href?: string;
+  /** Foto de fondo (`.card-photo` en global.css). Sin foto, la tarjeta conserva su Icon tile. */
+  image?: string | null;
 }
-const { icon, title, description, href } = Astro.props;
+const { icon, title, description, href, image } = Astro.props;
+const fondo = cardPhotoStyle(image ?? undefined);
 ---
 
 <a
   href={href || '#'}
-  class="group block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+  style={fondo}
+  class={`group block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300${fondo ? ' card-photo' : ''}`}
 >
   <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center mb-4 text-brand group-hover:bg-brand group-hover:text-white transition-colors duration-300">
     <Icon name={icon} class="w-6 h-6" />

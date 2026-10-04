@@ -9,11 +9,12 @@
  * `src/pages/index.astro:58` fija `hero-ecosistema.webp` sin pasar por la función.
  *
  * Por qué se barriendo FUERA de bloques comentados (la lección de la fila 6 del censo, que leía
- * 47 donde había 48): `src/pages/meliponas/index.astro:163-164` declara
- * `/videos/meliponario.{webm,mp4}` dentro de un `{/* … *\/}` y esos archivos no existen. Un
- * barrido tonto contaría dos huecos rotos en una superficie que no se sirve, y el día que el
- * dueño decida el Task 15 el número se movería sin que nadie tocara nada vivo. El bloque es
- * materia de esa decisión, no de esta puerta.
+ * 47 donde había 48): el `<video>` del Task 15 estaba declarado en `src/pages/meliponas/index.astro`
+ * dentro de un `{/* … *\/}` y apuntaba a `/videos/meliponario.{webm,mp4}`, archivos que nunca
+ * existieron. Un barrido tonto habría contado dos huecos rotos en una superficie que no se sirve.
+ * Ese bloque se borró el 2026-10-04 al rehacer la banda «Conoce el meliponario», así que hoy el
+ * caso real no está en el árbol y los dientes del barrido los sostienen los dos sintéticos de
+ * abajo. Si alguien vuelve a comentar una ruta de medio, la puerta sigue valiendo igual.
  *
  * Las plantillas no tienen `ts-node` que las revise, así que la única evidencia posible es de
  * texto fuente + disco. Correr: `npm test`.
@@ -54,16 +55,10 @@ test('el barrido ve el literal y lo ve solo si está fuera de comentarios', () =
   assert.equal(fueraDeComentarios('{/* <img src="/images/muerto.webp"> */}').includes('/images/muerto.webp'), false);
   assert.equal(fueraDeComentarios('<img src="/images/vivo.webp">').includes('/images/vivo.webp'), true);
 
-  // El caso real que obliga a la diferencia: en `meliponas/index.astro` el `<video>` del
-  // Task 15 está comentado y aponta a `/videos/meliponario.*`, que no existe en `public/`. Sin
-  // recorte, ese archivo daría dos huecos rotos en una superficie que no se sirve. Si el dueño
-  // resuelve el Task 15 —se graba o se borra el bloque—, `crudos` deja de verlos y este test
-  // avisa: hay que actualizar la historia, no dejar el barrido ciego.
-  const meliponas = readFileSync(join(RAIZ, 'src/pages/meliponas/index.astro'), 'utf8');
-  const crudos = [...meliponas.matchAll(LITERAL_MEDIO)].map((m) => m[1]);
-  const vivos = [...fueraDeComentarios(meliponas).matchAll(LITERAL_MEDIO)].map((m) => m[1]);
-  assert.ok(crudos.includes('/videos/meliponario.mp4'), 'cambió el bloque comentado del Task 15: actualiza este test');
-  assert.ok(!vivos.includes('/videos/meliponario.mp4'), 'el recorte de comentarios no está trabajando');
+  // Tercer diente, en la dirección que nadie prueba: un comentario que **sí** menciona una ruta
+  // viva no puede borrarla del censo. Sin este caso, un recorte demasiado agresivo pasaría verde.
+  const viva = '<img src="/images/hero-meliponas.webp" />\n{/* antes era /images/hero-meliponas.webp */}';
+  assert.equal([...fueraDeComentarios(viva).matchAll(LITERAL_MEDIO)].filter((m) => m[1] === '/images/hero-meliponas.webp').length, 1);
 });
 
 test('barrido: todo literal de /images/ o /videos/ en src/ existe en public/', () => {

@@ -179,6 +179,21 @@ body {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Foto de fondo en las tarjetas que encabezan la navegación. El velo se mezcla con el color de
+   la propia superficie (--color-surface-raised), así el texto conserva su contraste también en
+   modo oscuro. Va como background-image y no como <img> absoluto: la pintura cae debajo del
+   flujo normal y la tarjeta no necesita capas ni z-index. La ruta entra por --card-photo y la
+   valida cardPhotoStyle() en src/lib/media.ts, que solo admite /uploads/... */
+.card-photo {
+  background-image:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--color-surface-raised) 92%, transparent),
+      color-mix(in srgb, var(--color-surface-raised) 72%, transparent)),
+    var(--card-photo);
+  background-size: cover;
+  background-position: center;
+}
 .animate-fade-up {
   animation: fade-up 0.7s ease forwards;
 }

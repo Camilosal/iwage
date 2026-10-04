@@ -11,7 +11,9 @@ import ProjectCard from '@/components/ProjectCard.astro';
 import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { SEO } from '@/config/site';
-import { getProyectos } from '@/lib/proyectos';
+import { getProyectos, getProyectoBySlug } from '@/lib/proyectos';
+import { getProductos } from '@/lib/tienda';
+import { getCultivos } from '@/lib/polinizacion';
 import { SITE_METRICS } from '@/config/site-metrics';
 import { getBitacoraByMarca } from '@/lib/bitacora';
 import { getHeroBySlug } from '@/lib/heroes';
@@ -25,24 +27,42 @@ const stats = [
   { value: SITE_METRICS.trazabilidadPorLote, label: 'Trazable por lote' },
 ];
 
+// Retrato de cada tarjeta de navegación: la primera portada real del tema al que apunta, leída
+// de Strapi. Sin portada cargada, la tarjeta conserva su mosaico Icon — nunca una ruta inventada.
+const [meliponarioCentral, productosTienda, cultivosPolinizacion] = await Promise.all([
+  getProyectoBySlug('meliponario-central-iwage'),
+  getProductos({ marca: 'meliponas' }),
+  getCultivos(),
+]);
+// La tarjeta de la Tienda se decide por categoría, no por orden alfabético: «miel» es lo que
+// define la marca, y `getProductos` viene ordenado por categoria:asc (abono abriría primero).
+const portadaTienda =
+  productosTienda.find((p) => p.categoria === 'miel' && p.imagen)?.imagen?.url
+  ?? productosTienda.find((p) => p.imagen)?.imagen?.url
+  ?? null;
+const portadaCultivos = cultivosPolinizacion.find((c) => c.imagen)?.imagen?.url ?? null;
+
 const features = [
   {
     icon: 'shopping-bag',
     title: 'Tienda',
     description: 'Miel de Angelita pura, cajas tecnificadas INPA/AF y kits de meliponicultura con envío a todo Colombia.',
     href: '/meliponas/tienda',
+    image: portadaTienda,
   },
   {
     icon: 'sprout',
     title: 'Proyectos',
     description: 'Diseño e instalación de meliponarios para colegios, fincas, turismo y paisajismo residencial.',
     href: '/meliponas/proyectos',
+    image: meliponarioCentral?.imagen?.url ?? null,
   },
   {
     icon: 'flower-2',
     title: 'Polinización',
     description: 'Servicio de polinización gestionada con abejas nativas para cultivos del corredor Ambalá.',
     href: '/meliponas/polinizacion',
+    image: portadaCultivos,
   },
 ];
 
@@ -80,6 +100,17 @@ const proyectosHome = proyectos
     return (b.orden ?? 0) - (a.orden ?? 0);
   })
   .slice(0, 4);
+
+// La banda «Conoce el meliponario» habla de nuestro propio meliponario. Sin ficha o sin
+// fotos, la banda se retira entera: lo que había debajo era un mosaico de cuatro proyectos
+// de clientes vendido como «el día a día de nuestras colmenas» (medido 2026-10-04).
+const laminasCentral = meliponarioCentral
+  ? [meliponarioCentral.imagen, ...(meliponarioCentral.galeria ?? [])]
+      .flatMap((m) => (m && m.kind === 'imagen' ? [m] : []))
+      .slice(0, 3)
+  : [];
+const bandaMeliponario =
+  meliponarioCentral?.slug && laminasCentral.length > 0 ? { ...meliponarioCentral, laminas: laminasCentral } : null;
 
 // Coordenadas del meliponario base (Ibagué, Tolima) - gestionables desde Strapi en futuro
 const meliponarioLocation = {
@@ -135,76 +166,61 @@ const meliponarioLocation = {
     <div class="grid md:grid-cols-3 gap-6">
       {features.map((f, i) => (
         <ScrollReveal delay={i * 100}>
-          <FeatureCard icon={f.icon} title={f.title} description={f.description} href={f.href} />
+          <FeatureCard icon={f.icon} title={f.title} description={f.description} href={f.href} image={f.image} />
         </ScrollReveal>
       ))}
     </div>
   </Section>
 
-  <!-- Banda inmersiva: Conoce el meliponario (debajo de Tres líneas de acción) -->
-  <Section width="7xl" compact class="!py-10">
-    <ScrollReveal>
-      <div class="text-center mb-8">
-        <span class="font-mono text-xs uppercase tracking-widest text-accent">Experiencia</span>
-        <h2 class="mt-2 text-2xl md:text-3xl font-bold text-text-primary">Conoce el meliponario</h2>
-        <p class="mt-3 text-base md:text-lg text-text-secondary max-w-xl mx-auto">
-          Sumérgete en el día a día de nuestras colmenas: sonido, vuelo y territorio.
-        </p>
-      </div>
-      <div class="relative rounded-2xl overflow-hidden bg-surface-sunken border border-border" id="meliponario-immersive">
-        {/*
-        <video
-          autoplay
-          muted
-          loop
-          playsinline
-          webkit-playsinline
-          preload="metadata"
-          poster="/images/galeria/proyecto-ambala-1.webp"
-          class="w-full h-[50vh] max-h-[400px] object-cover"
-        >
-          <source src="/videos/meliponario.webm" type="video/webm" />
-          <source src="/videos/meliponario.mp4" type="video/mp4" />
-        </video>
-        */}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-1 p-1">
-          {proyectosHome.slice(0, 4).map((p) => (
-            <a
-              href={`/meliponas/proyectos/${p.slug}`}
-              class="relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:ring-offset-surface"
-              aria-label={`Ver proyecto: ${p.nombre}`}
-            >
-              {p.imagen ? (
+  <!-- Conoce el meliponario: nuestro propio meliponario, con sus fotos reales -->
+  {bandaMeliponario && (
+    <Section id="meliponario" width="7xl" compact class="!py-10">
+      <ScrollReveal>
+        <div class="text-center mb-8">
+          <span class="font-mono text-xs uppercase tracking-widest text-accent">Nuestra casa</span>
+          <h2 class="mt-2 text-2xl md:text-3xl font-bold text-text-primary">Conoce el meliponario</h2>
+          <p class="mt-3 text-base md:text-lg text-text-secondary max-w-xl mx-auto">
+            Las colonias propias del corredor Ambalá: de aquí sale la miel Angelita y aquí
+            prueban las cajas antes de irse a un proyecto.
+          </p>
+        </div>
+        <div class="rounded-2xl overflow-hidden bg-surface-sunken border border-border">
+          <a
+            href={`/meliponas/proyectos/${bandaMeliponario.slug}`}
+            class="grid grid-cols-3 gap-1 p-1 group focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:ring-offset-surface"
+            aria-label={`Ver ${bandaMeliponario.nombre}`}
+          >
+            {bandaMeliponario.laminas.map((m) => (
+              <span class="relative block overflow-hidden aspect-square">
                 <img
-                  src={p.imagen.url}
-                  alt={p.imagen.alt || p.nombre}
-                  class="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105"
+                  src={m.url}
+                  alt={m.alt || bandaMeliponario.nombre}
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"
                   width="400"
                   height="400"
                 />
-              ) : (
-                <div class="w-full aspect-square bg-brand-muted/30 flex items-center justify-center">
-                  <Icon name="flower-2" class="w-10 h-10 text-brand/40" />
-                </div>
-              )}
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <span class="absolute bottom-3 left-3 right-3 text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0">
-                {p.nombre}
               </span>
+            ))}
+          </a>
+          <div class="px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 class="font-semibold text-text-primary">{bandaMeliponario.nombre}</h3>
+              <p class="text-sm text-text-secondary mt-1">{bandaMeliponario.ubicacion}</p>
+            </div>
+            <a
+              href={`/meliponas/proyectos/${bandaMeliponario.slug}`}
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand text-white text-sm font-medium hover:gap-3 transition-all shrink-0"
+            >
+              Ver el meliponario
+              <Icon name="arrow-right" class="w-4 h-4" />
             </a>
-          ))}
+          </div>
         </div>
-        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm text-white">
-          <span class="font-mono text-xs uppercase tracking-wider">Explorar proyectos</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
-        </div>
-      </div>
-    </ScrollReveal>
-  </Section>
+      </ScrollReveal>
+    </Section>
+  )}
 
   <!-- Testimonials -->
   <Section bg="dark" width="7xl" compact>

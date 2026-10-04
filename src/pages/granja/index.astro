@@ -7,6 +7,7 @@ import StatGrid from '@/components/StatGrid.astro';
 import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
 import { getExperimentos, formatFecha } from '@/lib/granja-experimentos';
+import { cardPhotoStyle } from '@/lib/media';
 import { getBrand } from '@/config/brands';
 import { getHeroBySlug } from '@/lib/heroes';
 import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
@@ -78,6 +79,16 @@ const { data: experimentos } = await getExperimentos({ pageSize: 3, destacado: t
 // Fallback: si no hay destacados, traer los 3 más recientes
 const { data: recientes } = experimentos.length < 3 ? await getExperimentos({ pageSize: 3 }) : { data: [] };
 const experimentosHome = experimentos.length >= 3 ? experimentos : [...experimentos, ...recientes].slice(0, 3);
+
+// Retrato de cada subsistema: la foto del experimento más reciente de ese subsistema (la clave es
+// el último tramo del href y coincide con `experimentos.subsistema`). Medido hoy: los 10
+// experimentos publicados están sin imagen, así que las seis tarjetas conservan su Icon tile y el
+// fondo aparece solo cuando se les suba una lámina a Strapi.
+const { data: retratos } = await getExperimentos({ pageSize: 100 });
+const retratoDeSubsistema = (href: string) => {
+  const clave = href.split('/').pop() ?? '';
+  return retratos.find((e) => e.subsistema === clave)?.imagen?.url ?? null;
+};
 ---
 
 <BrandLayout brand="granja" title={brand.seo.defaultTitle} description={brand.seo.defaultDescription}>
@@ -122,9 +133,12 @@ const experimentosHome = experimentos.length >= 3 ? experimentos : [...experimen
       />
     </ScrollReveal>
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {subsistemas.map((s, i) => (
+      {subsistemas.map((s, i) => {
+        const image = retratoDeSubsistema(s.href);
+        const fondo = cardPhotoStyle(image ?? undefined);
+        return (
         <ScrollReveal delay={i * 80}>
-          <a href={s.href} class="group block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-brand/30 transition-all duration-300 h-full">
+          <a href={s.href} style={fondo} class={`group block bg-surface-raised rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-brand/30 transition-all duration-300 h-full${fondo ? ' card-photo' : ''}`}>
             <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center text-brand mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
               <Icon name={s.icon} class="w-6 h-6" />
             </div>
@@ -137,7 +151,8 @@ const experimentosHome = experimentos.length >= 3 ? experimentos : [...experimen
             </div>
           </a>
         </ScrollReveal>
-      ))}
+        );
+      })}
     </div>
     <div class="mt-10 text-center">
       <a href="/granja/sistema" class="inline-flex items-center gap-2 text-brand font-medium hover:gap-3 transition-all">

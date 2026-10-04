@@ -5,7 +5,8 @@ import SectionHeader from '@/components/SectionHeader.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Hero from '@/components/Hero.astro';
 import Icon from '@/components/shared/Icon.astro';
-import { getCafeConfig, getProveedores, CATEGORIAS_MENU, getMenuItems, proveedorFoto, proveedorIcono, proveedorSlug, getHistoriasVisitantes, historiaImagen, historiaSlug, type HistoriaVisitante } from '@/lib/cafe';
+import { getCafeConfig, getProveedores, CATEGORIAS_MENU, getMenuItems, itemImage, proveedorFoto, proveedorIcono, proveedorSlug, getHistoriasVisitantes, historiaImagen, historiaSlug, type HistoriaVisitante } from '@/lib/cafe';
+import { cardPhotoStyle } from '@/lib/media';
 import { getHeroBySlug } from '@/lib/heroes';
 import UltimasDeBitacora from '@/components/brand/UltimasDeBitacora.astro';
 
@@ -21,17 +22,19 @@ const [config, menuItems, proveedores, historias, hero] = await Promise.all([
 const categorias = CATEGORIAS_MENU.map(cat => {
   const items = menuItems.filter(i => i.categoria === cat.slug);
   const disponibles = items.filter(i => i.disponible).length;
-  return { ...cat, total: items.length, disponibles };
+  // Retrato de la categoría: la foto del primer producto portado de esa categoría.
+  const image = items.map(itemImage).find(Boolean) ?? null;
+  return { ...cat, total: items.length, disponibles, image };
 }).filter(c => c.total > 0);
 
 // Fallback si Strapi no responde
 const fallbackCategorias = categorias.length > 0 ? categorias : [
-  { slug: 'cafe', label: 'Café', icon: 'coffee', total: 4, disponibles: 4 },
-  { slug: 'signature', label: 'Signature', icon: 'sparkles', total: 2, disponibles: 2 },
-  { slug: 'panaderia', label: 'Panadería', icon: 'croissant', total: 1, disponibles: 1 },
-  { slug: 'infusion', label: 'Infusiones', icon: 'leaf', total: 3, disponibles: 3 },
-  { slug: 'frio', label: 'Fríos', icon: 'snowflake', total: 2, disponibles: 2 },
-  { slug: 'acompanamiento', label: 'Acompañamientos', icon: 'candy', total: 3, disponibles: 3 },
+  { slug: 'cafe', label: 'Café', icon: 'coffee', total: 4, disponibles: 4, image: null },
+  { slug: 'signature', label: 'Signature', icon: 'sparkles', total: 2, disponibles: 2, image: null },
+  { slug: 'panaderia', label: 'Panadería', icon: 'croissant', total: 1, disponibles: 1, image: null },
+  { slug: 'infusion', label: 'Infusiones', icon: 'leaf', total: 3, disponibles: 3, image: null },
+  { slug: 'frio', label: 'Fríos', icon: 'snowflake', total: 2, disponibles: 2, image: null },
+  { slug: 'acompanamiento', label: 'Acompañamientos', icon: 'candy', total: 3, disponibles: 3, image: null },
 ];
 
 // Historias por categoría (CMS o fallback)
@@ -121,7 +124,8 @@ const whatsapp = config?.whatsapp ?? '573026693366';
         <ScrollReveal delay={i * 60} class="h-full">
           <a
             href={`/cafe/menu#${cat.slug}`}
-            class="group relative block bg-surface-raised rounded-2xl border border-border p-4 text-center transition-all hover:border-brand/40 hover:shadow-md hover:scale-[1.02] h-full flex flex-col items-center justify-between"
+            style={cardPhotoStyle(cat.image ?? undefined)}
+            class={`group relative block bg-surface-raised rounded-2xl border border-border p-4 text-center transition-all hover:border-brand/40 hover:shadow-md hover:scale-[1.02] h-full flex flex-col items-center justify-between${cat.image ? ' card-photo' : ''}`}
           >
             <div>
               <div class="w-12 h-12 rounded-2xl bg-brand-muted flex items-center justify-center mx-auto mb-3 transition-colors group-hover:bg-brand/15">

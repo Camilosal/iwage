@@ -255,3 +255,13 @@ export function embedSrc(url: string): string {
   }
   return url;
 }
+
+/**
+ * Valor de `style` para la clase `.card-photo` (global.css): la foto de fondo de una tarjeta
+ * de navegación. Solo se acepta un medio del sitio servido en /uploads — la ruta se mete dentro
+ * de `url('…')` en un atributo style, así que cualquier otro carácter (comillas, paréntesis)
+ * sería inyección de CSS, no una imagen perdida. null → la tarjeta queda con su diseño de Icon.
+ */
+export function cardPhotoStyle(url: string | null | undefined): string | undefined {
+  return url && /^\/uploads\/[\w.\-/]+$/.test(url) ? `--card-photo: url('${url}')` : undefined;
+}
