@@ -100,6 +100,18 @@ const hero = await getHeroBySlug('/naturaleza/programas');
           <Icon name="calendar-days" class="w-10 h-10 block mx-auto mb-4 text-gray-400" />
           <p class="text-gray-500">Estamos diseñando nuevos programas. ¡Vuelve pronto!</p>
           <a href={`https://wa.me/${waPhone}?text=Hola,%20quiero%20info%20de%20paquetes`} target="_blank" rel="noopener" class="mt-4 inline-block text-sm text-[#4a7c23] underline">Consultar disponibilidad</a>
+          <!-- Sin paquetes publicados el visitante quedaba en un muro: salida a lo que sí está abierto -->
+          <div class="mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+            <a href="/naturaleza/experiencias" class="inline-flex items-center gap-1.5 text-[#2d5016] font-medium hover:text-[#4a7c23] transition-colors">
+              <Icon name="compass" class="w-4 h-4" /> Ver experiencias sueltas
+            </a>
+            <a href="/naturaleza/anfitriones" class="inline-flex items-center gap-1.5 text-[#2d5016] font-medium hover:text-[#4a7c23] transition-colors">
+              <Icon name="users" class="w-4 h-4" /> Conocer los anfitriones
+            </a>
+            <a href="/naturaleza/contacto" class="inline-flex items-center gap-1.5 text-gray-500 hover:text-[#4a7c23] transition-colors">
+              <Icon name="mail" class="w-4 h-4" /> Armar un paquete a tu medida
+            </a>
+          </div>
         </div>
       )}
     </div>

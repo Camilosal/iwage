@@ -61,6 +61,28 @@ const VAP_SVGS: Record<string, string> = {
     <div id="vap-app" class="max-w-4xl mx-auto px-4 py-10"></div>
   </div>
 
+  <!-- Cierre: la herramienta evalúa, pero quien termina quiere un siguiente paso -->
+  <section class="bg-[#0F120E] text-white py-12">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-bold mb-3">¿Y ahora qué hacemos con esta evaluación?</h2>
+      <p class="text-white/60 text-sm mb-7 max-w-xl mx-auto leading-relaxed">
+        El semáforo que acabas de calcular es insumo para una decisión concreta: tasar el predio,
+        radicarlo para venta, o pedir la revisión de un asesor.
+      </p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a href="/tierras/contacto" class="inline-flex items-center gap-2 bg-[#C8933E] text-white rounded-full px-6 py-3 text-sm font-bold hover:bg-[#C8933E]/90 transition-all">
+          <span set:html={lucideSvg('message-circle', 'w-4 h-4')} /> Revisión con un asesor
+        </a>
+        <a href="/tierras/vender" class="inline-flex items-center gap-2 border border-white/20 text-white rounded-full px-6 py-3 text-sm font-bold hover:border-[#52B788] hover:text-[#52B788] transition-all">
+          <span set:html={lucideSvg('file-text', 'w-4 h-4')} /> Radicar mi predio
+        </a>
+        <a href="/tierras/protocolo-vap" class="inline-flex items-center gap-2 text-white/60 text-sm font-bold hover:text-[#52B788] transition-colors">
+          <span set:html={lucideSvg('book-open', 'w-4 h-4')} /> El protocolo completo
+        </a>
+      </div>
+    </div>
+  </section>
+
   <script type="application/json" id="vap-icon-svgs" set:html={JSON.stringify(VAP_SVGS)}></script>
 
   <script>
