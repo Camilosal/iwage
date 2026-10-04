@@ -44,7 +44,7 @@ de los Tres Ejes, documentada en camilosaldarriaga.com.
 - https://iwage.co/tierras/propiedades — Listado de propiedades rurales
 - https://iwage.co/naturaleza/experiencias — Experiencias de turismo regenerativo
 - https://iwage.co/naturaleza/anfitriones — Guías y guardianes del territorio
-- https://iwage.co/gestion/propiedades — Propiedades gestionadas
+- https://iwage.co/gestion/alojamientos — Alojamientos gestionados para huéspedes
 - https://iwage.co/granja/sistema — Mapa del sistema autosustentable (subsistemas)
 - https://iwage.co/granja/tienda — Tienda de la granja (cosecha, huevos, plántulas, compost)
 - https://iwage.co/granja/visitas — Visitas guiadas a la granja con reserva online

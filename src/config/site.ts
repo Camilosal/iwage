@@ -16,6 +16,12 @@ export type NavItem = { label: string; href?: string; children?: NavChild[] };
 // El grupo «Herramientas» se disolvió: su hoja (el panel) y la principal de trazabilidad ya no
 // existen. Los dos accesos externos —Modelador e Intranet— viven ahora en «Recursos», que es lo
 // que quedaba de ese menú una vez borradas las dos páginas internas.
+//
+// Estándar de «Ayuda»: dentro de la navegación de una marca, Ayuda apunta al centro de ayuda del
+// propio subsitio (/meliponas/ayuda), no al hub genérico (/ayuda/). Las seis marcas tienen hoja
+// propia y las seis configs de `src/config/brands/` ya lo cumplían; esta línea era la única que
+// se salía. El hub genérico sigue siendo la puerta del ecosistema completo — desde /legal/ y desde
+// el cierre «Guía de uso» de cada ayuda de marca, que son los dos sitios donde tiene sentido.
 export const NAV_LINKS: NavItem[] = [
   { label: 'Tienda', href: '/meliponas/tienda' },
   { label: 'Polinización', href: '/meliponas/polinizacion' },
@@ -27,7 +33,7 @@ export const NAV_LINKS: NavItem[] = [
     children: [
       { label: 'Bitácora', href: '/meliponas/bitacora' },
       { label: 'Quiénes Somos', href: '/meliponas/nosotros' },
-      { label: 'Ayuda', href: '/ayuda/' },
+      { label: 'Ayuda', href: '/meliponas/ayuda' },
       { label: 'Legal y Políticas', href: '/legal/' },
       { label: 'Contacto', href: '/meliponas/contacto' },
       { label: 'Modelador Técnico Financiero ↗', href: SIMULADOR_URL, external: true },
@@ -86,20 +92,10 @@ export const SEO = {
     description:
       'Polinización gestionada con diagnóstico de predio, contrato, colonias certificadas, monitoreo en campo e informe de resultados. Para productores agrícolas.',
   },
-  bitacora: {
-    title: 'Bitácora del Meliponario · Conocimiento abierto · Iwagé',
-    description:
-      'Guías técnicas, flora nativa, territorio Pijao y producción agroecológica desde el piedemonte tolimense.',
-  },
   nosotros: {
     title: 'Nosotros · Historia y territorio · Iwagé Meliponario',
     description:
       'Un proyecto que nació de la observación del territorio, la identidad Pijao y el deseo de construir economía local sin extractivismo.',
-  },
-  cafe: {
-    title: 'Café Iwagé · El territorio en cada taza',
-    description:
-      'Un café comunitario construido sobre ingredientes nombrados, proveedores a menos de 4km y un menú donde cada producto es un personaje.',
   },
   contacto: {
     title: 'Contacto · Hablemos de tu proyecto · Iwagé',
