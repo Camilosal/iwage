@@ -35,3 +35,12 @@ public/images/cafe-menu/*.png
 # no van al repo, que es publico. Rotar esos credenciales antes de versionar nada.
 scripts/
 /.superpowers/
+
+# Andamios de trabajo de este proyecto (116 MB): capturas, renders y PNG sin procesar que el
+# sitio no sirve. Se excluyen también en .dockerignore para que no entren al build.
+.scratch-melonino/
+vibe_images/
+
+# Originales del dueño (fotos reales de cajas INPA/AF), sin ninguna referencia en el código.
+# Viven solo en esta máquina: no versionar sin su permiso, y respaldarlos fuera de git.
+public/images/Meliponas/

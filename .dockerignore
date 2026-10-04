@@ -5,3 +5,8 @@ dist
 strapi/node_modules
 .env
 .env.*
+
+# Andamios de trabajo: 116 MB de capturas, renders y originales sin procesar que el sitio no
+# sirve. `COPY . .` los estaba metiendo en el stage de build en cada despliegue.
+.scratch-melonino/
+vibe_images/
