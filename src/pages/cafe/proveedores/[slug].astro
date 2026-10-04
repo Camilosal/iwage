@@ -351,4 +351,25 @@ const gestionLabel: Record<string, string> = {
       </div>
     </Section>
   )}
+
+  <!-- Cierre: conocer al proveedor termina en una compra o una visita -->
+  <Section bg="sunken" class="!py-14">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-xl md:text-2xl font-bold text-text-primary mb-3">El trabajo de {proveedor.nombre} está en tu taza</h2>
+      <p class="text-text-secondary mb-6">
+        Compra el café que sale de este predio, conoce la finca en persona, o hablemos de suministro.
+      </p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a href="/cafe/menu" class="inline-flex items-center gap-2 bg-brand text-white rounded-full px-6 py-3 text-sm font-medium hover:bg-brand-light transition-all">
+          <Icon name="shopping-bag" class="w-4 h-4" /> Ver el café
+        </a>
+        <a href="/cafe/visitantes" class="inline-flex items-center gap-2 border border-border text-text-primary rounded-full px-6 py-3 text-sm font-medium hover:border-brand hover:text-brand transition-all">
+          <Icon name="map-pin" class="w-4 h-4" /> Visitar la finca
+        </a>
+        <a href="/cafe/contacto" class="inline-flex items-center gap-2 text-text-muted text-sm font-medium hover:text-brand transition-colors">
+          <Icon name="message-circle" class="w-4 h-4" /> Escribirnos
+        </a>
+      </div>
+    </div>
+  </Section>
 </BrandLayout>
