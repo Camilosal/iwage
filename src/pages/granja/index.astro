@@ -74,20 +74,22 @@ const estadoConfig: Record<string, { label: string; class: string }> = {
   operando: { label: 'Operando', class: 'bg-emerald-100 text-emerald-700' },
 };
 
-// Experimentos destacados
-const { data: experimentos } = await getExperimentos({ pageSize: 3, destacado: true });
-// Fallback: si no hay destacados, traer los 3 más recientes
-const { data: recientes } = experimentos.length < 3 ? await getExperimentos({ pageSize: 3 }) : { data: [] };
-const experimentosHome = experimentos.length >= 3 ? experimentos : [...experimentos, ...recientes].slice(0, 3);
+// Dos lecturas de la misma colección, lanzadas juntas: los destacados para la preview y el
+// resto para el retrato de cada subsistema. Medido hoy: los 10 experimentos publicados están sin
+// imagen, así que las seis tarjetas conservan su Icon tile y el fondo aparece solo cuando se les
+// suba una lámina a Strapi.
+const [{ data: experimentos }, { data: todos }] = await Promise.all([
+  getExperimentos({ pageSize: 3, destacado: true }),
+  getExperimentos({ pageSize: 100 }),
+]);
+// El fallback y el retrato salen del mismo `todos` (viene ordenado por fecha descendente, igual
+// que la llamada suelta que reemplaza).
+const experimentosHome = experimentos.length >= 3 ? experimentos : [...experimentos, ...todos.slice(0, 3)].slice(0, 3);
 
-// Retrato de cada subsistema: la foto del experimento más reciente de ese subsistema (la clave es
-// el último tramo del href y coincide con `experimentos.subsistema`). Medido hoy: los 10
-// experimentos publicados están sin imagen, así que las seis tarjetas conservan su Icon tile y el
-// fondo aparece solo cuando se les suba una lámina a Strapi.
-const { data: retratos } = await getExperimentos({ pageSize: 100 });
+// La clave del subsistema es el último tramo del href y coincide con `experimentos.subsistema`.
 const retratoDeSubsistema = (href: string) => {
   const clave = href.split('/').pop() ?? '';
-  return retratos.find((e) => e.subsistema === clave)?.imagen?.url ?? null;
+  return todos.find((e) => e.subsistema === clave)?.imagen?.url ?? null;
 };
 ---
 
