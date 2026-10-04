@@ -92,12 +92,17 @@ const { data: bitacoraPosts } = await getBitacoraByMarca('meliponas', { pageSize
 // Proyectos: 4 priorizados (destacados) o los últimos 4
 // `.filter(p => p.slug)`: sin slug no hay ruta de detalle; enlazar `/null` fue
 // medido en producción (2026-10-04) antes del backfill de slugs en Strapi.
+// El desempate por `orden` va ASCENDENTE porque ese es el significado del campo en todo el
+// sitio (`proyectos`, `cafe`, `tienda`, `heroes`, `naturaleza` y el indexador RAG ordenan
+// `orden:asc`). Hoy no se nota: los seis proyectos no destacados comparten `orden: 0`. Se
+// notaría el día que alguien numere 1, 2, 3 para acomodar el home: el home los mostraría al
+// revés que el resto del sitio.
 const proyectos = await getProyectos();
 const proyectosHome = proyectos
   .filter((p) => Boolean(p.slug))
   .sort((a, b) => {
     if (a.destacado !== b.destacado) return b.destacado ? 1 : -1;
-    return (b.orden ?? 0) - (a.orden ?? 0);
+    return (a.orden ?? 0) - (b.orden ?? 0);
   })
   .slice(0, 4);
 
