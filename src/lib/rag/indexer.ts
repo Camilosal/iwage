@@ -481,7 +481,9 @@ async function indexLotesMiel(): Promise<KnowledgeChunk[]> {
           l.flora?.toLowerCase() || '',
           l.origen_meliponario?.toLowerCase() || '',
         ].filter(Boolean).map(k => String(k).toLowerCase()),
-        url: '/meliponas/trazabilidad',
+        // El hub /meliponas/trazabilidad se borró; el chunk de un lote de miel apunta ahora a la
+        // hoja del estándar de miel, que es la que explica ese registro.
+        url: '/meliponas/trazabilidad/miel',
         metadata: {
           codigo_lote: l.codigo_lote,
           fecha_cosecha: l.fecha_cosecha,

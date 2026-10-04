@@ -1,7 +1,8 @@
 import { defineMiddleware } from 'astro:middleware';
 
 /**
- * 301 Redirect map for dynamic slug routes (nginx handles static ones).
+ * 301 Redirect map for legacy routes that need a trailing slash variant covered, plus
+ * dynamic slug routes. Nginx still handles the root-level legacy paths.
  * Pattern: [regex, replacement function]
  */
 const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
@@ -24,6 +25,12 @@ const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = 
   // /gestion/propiedades → /gestion/alojamientos (las páginas se movieron en la migración)
   [/^\/gestion\/propiedades\/?$/, () => '/gestion/alojamientos'],
   [/^\/gestion\/propiedades\/([^/]+)\/?$/, (m) => `/gestion/alojamientos/${m[1]}`],
+  // Las dos hojas que se borraron al disolver el grupo «Herramientas» de la navegación. Van aquí y
+  // no en nginx porque `\/?$` cubre las dos formas (/ruta y /ruta/) con una sola línea; nginx
+  // necesitaría un bloque exacto por cada una. El ancla final es lo que deja pasar las tres fichas
+  // de estándar, que siguen vivas debajo de /meliponas/trazabilidad/.
+  [/^\/meliponas\/trazabilidad\/?$/, () => '/meliponas/investigacion'],
+  [/^\/meliponas\/herramientas\/?$/, () => '/meliponas/'],
   // /cafe/:anything → /cafe/:anything (subdomain catch-all handled at DNS level)
 ];
 

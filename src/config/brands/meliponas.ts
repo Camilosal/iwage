@@ -18,21 +18,13 @@ export const meliponas: BrandConfig = {
     sans: "'Inter', system-ui, sans-serif",
     mono: "'JetBrains Mono', ui-monospace, monospace",
   },
+  // Mismo despiece que `NAV_LINKS` en config/site.ts: el grupo «Herramientas» se disolvió y los
+  // dos accesos externos pasaron a «Recursos», con ↗ en ambos para que se lean como lo que son.
   nav: [
     { label: 'Tienda', href: '/meliponas/tienda' },
     { label: 'Polinización', href: '/meliponas/polinizacion' },
     { label: 'Proyectos', href: '/meliponas/proyectos' },
     { label: 'I+D', href: '/meliponas/investigacion' },
-    {
-      label: 'Herramientas',
-      href: '/meliponas/herramientas',
-      children: [
-        { label: 'Panel de Herramientas', href: '/meliponas/herramientas' },
-        { label: 'Trazabilidad', href: '/meliponas/trazabilidad' },
-        { label: 'Modelador Técnico Financiero ↗', href: SIMULADOR_URL, external: true },
-        { label: 'Intranet de Planeación', href: INTRANET_URL, external: true },
-      ],
-    },
     {
       label: 'Recursos',
       href: '/meliponas/bitacora',
@@ -42,6 +34,8 @@ export const meliponas: BrandConfig = {
         { label: 'Ayuda', href: '/meliponas/ayuda' },
         { label: 'Legal y Políticas', href: '/legal/' },
         { label: 'Contacto', href: '/meliponas/contacto' },
+        { label: 'Modelador Técnico Financiero ↗', href: SIMULADOR_URL, external: true },
+        { label: 'Intranet de Planeación ↗', href: INTRANET_URL, external: true },
       ],
     },
   ],

@@ -36,11 +36,11 @@ export const STATIC_PAGES: Array<[path: string, priority: number, changefreq: Si
   ['/meliponas/proyectos/lineas/paisajismo-residencial', 0.7, 'monthly'],
   ['/meliponas/proyectos/lineas/prae-educativo', 0.7, 'monthly'],
   ['/meliponas/proyectos/lineas/turismo-naturaleza', 0.7, 'monthly'],
-  ['/meliponas/herramientas', 0.6, 'monthly'],
-  ['/meliponas/trazabilidad', 0.7, 'monthly'],
-  ['/meliponas/trazabilidad/cajas', 0.6, 'monthly'],
-  ['/meliponas/trazabilidad/miel', 0.6, 'monthly'],
-  ['/meliponas/trazabilidad/polinizacion', 0.6, 'monthly'],
+  // Las tres hojas de estándar suben a 0.7: eran nietas de un hub, y ahora son la única
+  // trazabilidad publicada — su entrada vive en /meliponas/investigacion.
+  ['/meliponas/trazabilidad/cajas', 0.7, 'monthly'],
+  ['/meliponas/trazabilidad/miel', 0.7, 'monthly'],
+  ['/meliponas/trazabilidad/polinizacion', 0.7, 'monthly'],
   ['/meliponas/nosotros', 0.6, 'monthly'],
   ['/meliponas/ayuda', 0.5, 'monthly'],
   ['/meliponas/contacto', 0.6, 'monthly'],

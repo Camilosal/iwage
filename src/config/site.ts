@@ -4,8 +4,6 @@ export const SITE = {
   name: 'Iwagé',
   tagline: 'Meliponario & Biotecnología Nativa',
   url: process.env.APP_URL || 'https://iwage.co',
-  description:
-    'Centro de meliponicultura en Ibagué, Tolima. Miel de Angelita pura, cajas tecnificadas INPA/AF, proyectos de impacto y polinización asistida.',
   whatsapp: '+573026693366',
   email: 'info@iwage.co',
   instagram: '@iwage.meliponario',
@@ -15,21 +13,14 @@ export const SITE = {
 export type NavChild = { label: string; href: string; external?: boolean };
 export type NavItem = { label: string; href?: string; children?: NavChild[] };
 
+// El grupo «Herramientas» se disolvió: su hoja (el panel) y la principal de trazabilidad ya no
+// existen. Los dos accesos externos —Modelador e Intranet— viven ahora en «Recursos», que es lo
+// que quedaba de ese menú una vez borradas las dos páginas internas.
 export const NAV_LINKS: NavItem[] = [
   { label: 'Tienda', href: '/meliponas/tienda' },
   { label: 'Polinización', href: '/meliponas/polinizacion' },
   { label: 'Proyectos', href: '/meliponas/proyectos' },
   { label: 'I+D', href: '/meliponas/investigacion' },
-  {
-    label: 'Herramientas',
-    href: '/meliponas/herramientas',
-    children: [
-      { label: 'Panel de Herramientas', href: '/meliponas/herramientas' },
-      { label: 'Trazabilidad', href: '/meliponas/trazabilidad' },
-      { label: 'Modelador Técnico Financiero ↗', href: SIMULADOR_URL, external: true },
-      { label: 'Intranet de Planeación', href: INTRANET_URL, external: true },
-    ],
-  },
   {
     label: 'Recursos',
     href: '/meliponas/bitacora',
@@ -39,6 +30,8 @@ export const NAV_LINKS: NavItem[] = [
       { label: 'Ayuda', href: '/ayuda/' },
       { label: 'Legal y Políticas', href: '/legal/' },
       { label: 'Contacto', href: '/meliponas/contacto' },
+      { label: 'Modelador Técnico Financiero ↗', href: SIMULADOR_URL, external: true },
+      { label: 'Intranet de Planeación ↗', href: INTRANET_URL, external: true },
     ],
   },
 ];
@@ -78,11 +71,6 @@ export const SEO = {
     description:
       'Estándares de registro, automatización e IoT aplicados a la meliponicultura. Cajas, cadena de frío, jardines de néctar y perfilación de la miel por lote.',
   },
-  trazabilidad: {
-    title: 'Trazabilidad Iwagé · Estándares de Miel, Cajas IoT y Polinización',
-    description:
-      'Tres estándares verificables: miel con trazabilidad por lote y análisis de laboratorio, cajas INPA/AF con monitoreo IoT, y polinización gestionada con resultados medibles.',
-  },
   trazabilidadMiel: {
     title: 'Estándar de Miel · Trazabilidad por lote y análisis · Iwagé',
     description:
@@ -97,11 +85,6 @@ export const SEO = {
     title: 'Estándar de Polinización · Servicio con resultados medibles · Iwagé',
     description:
       'Polinización gestionada con diagnóstico de predio, contrato, colonias certificadas, monitoreo en campo e informe de resultados. Para productores agrícolas.',
-  },
-  herramientas: {
-    title: 'Herramientas del Meliponario · Trazabilidad, Modelador Pro e Intranet · Iwagé',
-    description:
-      'Panel de herramientas del meliponario Iwagé: sistema de trazabilidad (miel, cajas IoT y polinización), Modelador Técnico Financiero ↗ y la Intranet de planeación del ecosistema.',
   },
   bitacora: {
     title: 'Bitácora del Meliponario · Conocimiento abierto · Iwagé',

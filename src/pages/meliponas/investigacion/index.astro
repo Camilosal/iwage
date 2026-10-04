@@ -13,9 +13,9 @@ import { getBitacoraBySlug, type EntradaBitacora } from '@/lib/bitacora';
 // Las tres líneas del I+D. Se llaman líneas, no frentes, porque «frente» en este sitio nombra a
 // las cuatro áreas del meliponario (Tienda, Proyectos, Polinización, I+D) y esta página es una de
 // ellas: usar la misma palabra en dos alturas distintas dejaría un «tres frentes» y un «los otros
-// tres frentes» en la misma hoja. Cada línea tiene un destino real dentro del sitio: dos llevan a
-// una ficha de estándar ya publicada y uno a la bitácora técnica. Ninguno apunta a una página que
-// falte por escribir.
+// tres frentes» en la misma hoja. Cada línea tiene un destino real: la primera baja a las tres
+// fichas de estándar que se listan más abajo en esta misma hoja (el hub /meliponas/trazabilidad se
+// disolvió aquí), la segunda a la ficha de cajas y la tercera a la bitácora técnica.
 const lineas = [
   {
     numero: '01',
@@ -23,8 +23,8 @@ const lineas = [
     titulo: 'Estándares y sistemas de registro',
     etiqueta: 'Miel · Cajas · Polinización asistida · Gestión del meliponario',
     desc: 'Un sistema de registro para cada objeto: la miel por lote, la caja por ID, la polinización asistida por predio y el meliponario por temporada. La regla es simple — lo que no queda registrado no pasó, y lo que no es comparable entre dos temporadas todavía no es un estándar.',
-    href: '/meliponas/trazabilidad',
-    cta: 'Ver los estándares',
+    href: '#estandares',
+    cta: 'Ver los tres estándares',
   },
   {
     numero: '02',
@@ -43,6 +43,37 @@ const lineas = [
     desc: 'La caja se piensa primero para Tetragonisca angustula y después para la producción, porque las dos cosas van juntas: una colonia con nido correcto, frío correcto y néctar continuo produce más y mejor. Adentro entran la cadena de frío desde la cosecha, los jardines que sostienen la floración cuando el entorno no alcanza, y la perfilación de la miel por lote y por territorio.',
     href: '/meliponas/bitacora',
     cta: 'Leer la bitácora técnica',
+  },
+];
+
+// Las tres fichas de estándar, ahora debajo de la línea que las define. El hub que las agrupaba se
+// borró, pero las URLs propias no se tocaron: son las páginas que la gente comparte y escanea, y
+// cada una ya tenía su propio título, descripción y sitemap. Se listan sin número para no prestar
+// sus 01/02/03 a los de las líneas de arriba, que significan otra cosa.
+const estandares = [
+  {
+    icono: 'hexagon',
+    titulo: 'Estándar de Miel',
+    audiencia: 'Para consumidores, chefs y compradores B2B',
+    desc: 'Trazabilidad por lote, cadena de frío, análisis de laboratorio y QR en cada frasco. Conoce el origen exacto de tu miel.',
+    href: '/meliponas/trazabilidad/miel',
+    cta: 'Ver estándar de miel',
+  },
+  {
+    icono: 'package',
+    titulo: 'Estándar de Cajas',
+    audiencia: 'Para meliponicultores y adoptantes',
+    desc: 'Cada caja INPA/AF lleva ID único, sensores IoT de temperatura y humedad, bitácora de colonia e historial transferible.',
+    href: '/meliponas/trazabilidad/cajas',
+    cta: 'Ver estándar de cajas',
+  },
+  {
+    icono: 'flower-2',
+    titulo: 'Estándar de Polinización',
+    audiencia: 'Para productores agrícolas',
+    desc: 'Servicio con diagnóstico de predio, contrato, colonias certificadas, monitoreo en campo e informe de resultados.',
+    href: '/meliponas/trazabilidad/polinizacion',
+    cta: 'Ver estándar de polinización',
   },
 ];
 
@@ -186,6 +217,36 @@ const otrosFrentes = [
             <p class="text-sm text-text-secondary leading-relaxed mb-6">{linea.desc}</p>
             <span class="inline-flex items-center gap-2 text-brand font-medium text-sm group-hover:gap-3 transition-all">
               {linea.cta}
+              <Icon name="arrow-right" class="w-4 h-4" />
+            </span>
+          </a>
+        </ScrollReveal>
+      ))}
+    </div>
+  </Section>
+
+  <!-- Las tres fichas de la línea 01. Van en banda tintada para que se lean como un desglose de
+       la línea anterior y no como una cuarta línea del frente. -->
+  <Section id="estandares" bg="brand-muted">
+    <ScrollReveal>
+      <SectionHeader
+        label="Línea 01"
+        title="Tres estándares, una misma promesa"
+        subtitle="No es un sello de marketing. Es la capacidad de responder, con datos, de dónde viene cada cosa y qué pasó con ella en cada etapa."
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6">
+      {estandares.map((e, i) => (
+        <ScrollReveal delay={i * 100}>
+          <a href={e.href} class="group block bg-surface-raised rounded-2xl border border-border p-8 shadow-sm hover:shadow-lg hover:border-brand/30 transition-all h-full">
+            <div class="mb-5">
+              <Icon name={e.icono} class="w-9 h-9 text-brand" />
+            </div>
+            <h3 class="text-xl font-bold text-text-primary mb-2 group-hover:text-brand transition-colors">{e.titulo}</h3>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-accent mb-3">{e.audiencia}</p>
+            <p class="text-sm text-text-secondary leading-relaxed mb-6">{e.desc}</p>
+            <span class="inline-flex items-center gap-2 text-brand font-medium text-sm group-hover:gap-3 transition-all">
+              {e.cta}
               <Icon name="arrow-right" class="w-4 h-4" />
             </span>
           </a>

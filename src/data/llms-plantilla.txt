@@ -36,7 +36,11 @@ de los Tres Ejes, documentada en camilosaldarriaga.com.
 - https://iwage.co/meliponas/polinizacion — Servicio de polinización gestionada
 - https://iwage.co/meliponas/proyectos — Diseño e instalación de meliponarios
 - https://iwage.co/meliponas/investigacion — Investigación y desarrollo: estándares, IoT y diseño desde la abeja
-- https://iwage.co/meliponas/trazabilidad — Tres estándares de trazabilidad verificables
+- https://iwage.co/meliponas/trazabilidad/miel — Estándar de miel: trazabilidad por lote, laboratorio y QR
+- https://iwage.co/meliponas/trazabilidad/cajas — Estándar de cajas: ID único, sensores IoT e historial transferible
+- https://iwage.co/meliponas/trazabilidad/polinizacion — Estándar de polinización: diagnóstico, contrato e informe de resultados
+- https://simulacion.iwage.co — Modelador Técnico Financiero (app externa)
+- https://intranet.iwage.co — Intranet de planeación del ecosistema (app externa, acceso restringido)
 - https://iwage.co/tierras/propiedades — Listado de propiedades rurales
 - https://iwage.co/naturaleza/experiencias — Experiencias de turismo regenerativo
 - https://iwage.co/naturaleza/anfitriones — Guías y guardianes del territorio

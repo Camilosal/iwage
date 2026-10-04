@@ -2298,6 +2298,39 @@ El dueño corrigió el modelo mental del sitio: **el meliponario tiene cuatro fr
 
 **Estado al cerrar esto:** `npm test` 388/388, `npm run build` limpio, todo verificado contra el servidor de desarrollo en `127.0.0.1:4331`. Ningún dato de Strapi cambió en este paso: el cuarto frente es puro código y configuración.
 
+### Se disuelve «Herramientas» y el hub de trazabilidad (2026-10-04, madrugada)
+
+Cuatro cosas pidió el dueño sobre la misma mesa: borrar las variables desactualizadas, buscar las referencias a la descripción obsoleta, sacar «Herramientas» de la barra llevando el Modelador y la Intranet a «Recursos», y retirar la hoja del panel junto con la principal de trazabilidad («ya no aplicarían»).
+
+**Primero el radio, después el bisturí.** Antes de borrar una sola línea se midió qué dependía de las dos rutas: 8 referencias en código, 0 en cuerpos de artículo (revisado sobre el contenido de Strapi), 2 registros huérfanos de `hero_configuracions`, 3 exportaciones de `tools.ts` que quedaban muertas con el panel y 2 entradas de `SEO`. Y un detalle que resolvió solo el asunto de las migas de pan: **las tres fichas de estándar nunca enlazaron al hub**, así que borrarlo no dejó ni un breadcrumb colgando.
+
+**Las dos decisiones que sí le tocaban al dueño** (se preguntaron y se respondieron así):
+
+- Las tres hojas de estándar no se quedan huérfanas: **viven dentro de I+D**. Se añade a `/meliponas/investigacion` una banda con las tres fichas y la línea 01 pasa a enlazarlas. Ninguna URL de estándar se pierde.
+- Los dos 301: `/meliponas/trazabilidad → /meliponas/investigacion` y `/meliponas/herramientas → /meliponas/`.
+
+**La banda nueva (`#estandares`) se copió del hub borrado, con dos cambios deliberados.** Las fichas se listan **sin número**: los 01/02/03 del hub habrían vuelto a significar otra cosa justo debajo de los 01/02/03 de las líneas, que es el mismo choque de vocabulario que ya costó dos correcciones en este frente. Y va en banda `brand-muted`, no en superficie normal, para que se lea como desglose de la línea 01 y no como una cuarta línea. La promesa del hub («No es un sello de marketing…») se aprovechó como subtítulo; la banda Origen/Historia/Verificación **no** se duplicó — solaparla con los tres principios que ya están debajo era repetir el mismo discurso en la misma hoja.
+
+**Los 301 van en `src/middleware.ts`, no en `nginx.conf`, y la razón es medible.** `nginx` solo sabe de coincidencias exactas: habrían hecho falta cuatro bloques para cubrir `/ruta` y `/ruta/`. Una entrada con `\/?$` cubre las dos formas y, además, viaja con el mismo despliegue que borra las páginas — no hay ventana en la que el código ya las quitó y el proxy todavía no lo sabe. El ancla final es lo que deja pasar las tres fichas: verificado con curl, `/meliponas/trazabilidad` y `/meliponas/trazabilidad/` responden 301 a I+D, y `/meliponas/trazabilidad/miel` sigue respondiendo 200.
+
+**`src/config/tools.ts` mentía en su cabecera** («Tres pilares: 1. Trazabilidad — páginas internas»). Con el panel borrado, cinco exportaciones (`IntranetDoc`, `IntranetCategory`, `INTRANET_CATEGORIES`, `INTRANET_LANDINGS`, `intranetUrl`) se quedaron sin ningún consumidor — confirmado por grep en `src/`, no por suposición. Se borraron y el archivo queda con las dos URLs reales y una cabecera que dice dónde se enlazan.
+
+**La hoja de ayuda era el único texto vivo que aún enseñaba las rutas muertas.** Tres parches en `src/pages/ayuda/usuarios/herramientas.astro`: el «Panel de herramientas» pasa a ser «Dónde están las herramientas» (los dos externos están en el menú Recursos), el Modelador ya no se describe «accesible desde el panel», y la sección de trazabilidad enlaza las tres fichas por su ruta. Aquí hubo una trampa que se evitó por verificación: al reescribir la primera frase escribí `/tierras/herramientas/` como si fuera un índice — `ls src/pages/tierras/herramientas/` muestra que **solo existen las tres hojas sueltas**, así que ese enlace habría sido un 404 dentro de una página de ayuda. Se cambió por «se listan más abajo con su ruta exacta».
+
+**Sincronización del resto del inventario:** fuera las dos rutas de `sitemap-bitacora.ts` y las dos de `url-map.ts`, con las tres fichas de estándar subiendo a 0.7 (eran nietas de un hub y ahora están a un clic del frente); enriquecidos los tres títulos y descripciones de `url-map` para que el RAG las encuentre sin el hub; `indexer.ts:484`, que apuntaba los chunks de lotes de miel al hub borrado, apunta ahora a `/meliponas/trazabilidad/miel`; y en `llms-plantilla.txt` entran las tres fichas y las dos apps externas.
+
+**Lo que se borró por pedido expreso:** `SITE.description`, la tercera copia del enunciado que quedó desactualizada con el frente anterior. Se reportó como «mina puesta» y el dueño decidió sacarla. También `SEO.trazabilidad` y `SEO.herramientas`, muertas al desaparecer sus páginas. La descripción de la marca queda con **una sola fuente de verdad** (`meliponas.seo.defaultDescription`).
+
+**Mediciones de cierre.** Barra: cinco grupos de nivel superior (Tienda, Polinización, Proyectos, I+D, Recursos) con los dos externos dentro de Recursos y marcados con ↗; verificado sobre el HTML renderizado, no sobre la configuración. Tarjetas: las dos bandas quedan parejas — 476/476/476 px en las líneas y 316/316/316 en los estándares, medidas por CDP; la desigualdad que aparenta la captura es la posición del CTA, no la altura de la caja. Enlaces: 0 referencias a las dos rutas borradas en las 15 hojas revisadas (ecosistema, hub, las cuatro áreas, las tres fichas, ayuda y legal). `npm test` 388/388 y `npm run build` limpio.
+
+**Tres cosas que se reportan y no se tocan, porque requieren decisión o son escritura a base de datos:**
+
+- Dos registros `hero_configuracions` apuntan a rutas que ya no existen: **id 9** (`/meliponas/trazabilidad`) e **id 12** (`/meliponas/herramientas`), los dos con la misma imagen `hero-meliponas.webp`. Borrarlos es una escritura en `iwage`, así que pide respaldo y archivo de restauración antes de tocarlos. Son datos muertos, no enlaces rotos: ninguna página los pide ya.
+- `SEO.bitacora` y `SEO.cafe` no los lee nadie. Son **preexistentes** a este cambio (no los produjo esta limpieza) y se dejan para que el dueño decida si les da uso o los retira.
+- Las dos configuraciones de navegación divergen en un ítem: `site.ts` dice `Ayuda → /ayuda/` y `brands/meliponas.ts` dice `Ayuda → /meliponas/ayuda`. También es preexistente, las dos páginas existen y ninguna produce un enlace roto; la barra usa la del registro de marca. Unirlas es una decisión de qué hoja quiere el dueño en el menú, no un bug.
+
+**Estado al cerrar esto:** todo es código y configuración. Ninguna fila de Strapi cambió en este paso, y producción sigue intacta — los 301 y la banda nueva se activan con el próximo despliegue.
+
 ### Task 1 — evidencia leída y parche preparado (2026-09-25 por la mañana) / **aplicado esa misma tarde**
 
 Step 1, todo por lectura, el 2026-09-25:
