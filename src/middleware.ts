@@ -31,6 +31,11 @@ const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = 
   // de estándar, que siguen vivas debajo de /meliponas/trazabilidad/.
   [/^\/meliponas\/trazabilidad\/?$/, () => '/meliponas/investigacion'],
   [/^\/meliponas\/herramientas\/?$/, () => '/meliponas/'],
+  // La «Caja INPA con atril» se retiró del catálogo el 2026-10-05: el mismo paquete ya existe
+  // como dos fichas (Caja INPA Mediana + Atril de guadua) y como Kit Meliponas Inicio. La URL
+  // vieja sigue circulando en Google y en los WhatsApp reenviados, así que devuelve a la caja
+  // y no a la tienda entera.
+  [/^\/meliponas\/tienda\/caja-inpa-con-atril\/?$/, () => '/meliponas/tienda/caja-inpa-nogal-cafetero'],
   // /cafe/:anything → /cafe/:anything (subdomain catch-all handled at DNS level)
 ];
 
