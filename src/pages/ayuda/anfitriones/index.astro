@@ -1,0 +1,51 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Guías para anfitriones';
+const description = 'Cómo se publican las fotos de tu experiencia, cómo conseguir 5 estrellas, cómo responder a una reseña negativa y cómo atender a quien llega.';
+
+const articles = [
+  { label: 'Subir fotos profesionales', href: '/ayuda/anfitriones/fotos-profesionales', desc: 'Cómo llegan las fotos al sitio, los cortes de formato que sí sirven, el texto alternativo y la checklist antes de enviar.' },
+  { label: 'Cómo conseguir 5 estrellas', href: '/ayuda/anfitriones/conseguir-5-estrellas', desc: 'El escalafón con sus números reales, los tres momentos que el huésped recuerda y cómo se pide una reseña sin que suene a cobro.' },
+  { label: 'Manejar reseñas negativas', href: '/ayuda/anfitriones/manejar-resenas-negativas', desc: 'Cómo se recogen y se publican las reseñas aquí, cuándo NO se publica una, y el protocolo de las primeras 48 horas.' },
+  { label: 'Tips de hospitalidad', href: '/ayuda/anfitriones/tips-de-hospitalidad', desc: 'La ficha llena antes de salir, el mensaje de la víspera, los primeros diez minutos y el cierre que casi nadie hace.' },
+];
+---
+
+<WikiLayout title={title} description={description} activePath="/ayuda/anfitriones">
+  <Fragment slot="breadcrumb">
+    <span class="text-text-primary">Anfitriones</span>
+  </Fragment>
+
+  <header class="mb-10">
+    <h1 class="text-3xl font-extrabold tracking-tight text-text-primary">Guías para anfitriones</h1>
+    <p class="mt-3 text-base text-text-secondary leading-relaxed max-w-2xl">
+      Lo que necesitas para que tu experiencia se vea bien en el sitio y se entregue mejor en el terreno: fotografía, calificaciones, reseñas y hospitalidad. Cuatro guías, escritas sobre cómo funciona la red hoy, no sobre cómo debería funcionar.
+    </p>
+  </header>
+
+  <div class="grid gap-4">
+    {articles.map((a, i) => (
+      <a href={a.href} class="group flex items-start gap-4 p-5 rounded-xl border border-border bg-surface-raised hover:border-brand/40 hover:shadow-md transition-all">
+        <div class="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center shrink-0 text-sm font-bold text-accent">
+          {i + 1}
+        </div>
+        <div>
+          <h2 class="text-base font-semibold text-text-primary group-hover:text-brand transition-colors">{a.label}</h2>
+          <p class="mt-1 text-sm text-text-secondary leading-relaxed">{a.desc}</p>
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <section class="mt-10 grid sm:grid-cols-2 gap-4">
+    <a href="/naturaleza/se-anfitrion" class="group p-5 rounded-xl border border-border bg-surface-raised hover:border-brand/40 transition-all">
+      <h3 class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">¿Todavía no eres anfitrión?</h3>
+      <p class="mt-1 text-sm text-text-secondary leading-relaxed">Radicación sin costo, auditoría del espacio, capacitación gratuita y publicación en el catálogo.</p>
+    </a>
+    <a href="/naturaleza/escalafon" class="group p-5 rounded-xl border border-border bg-surface-raised hover:border-brand/40 transition-all">
+      <h3 class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">Escalafón de anfitriones</h3>
+      <p class="mt-1 text-sm text-text-secondary leading-relaxed">Los cinco niveles —Semilla, Brote, Raíz, Guardián, Sabio— y qué se necesita para subir de cada uno.</p>
+    </a>
+  </section>
+</WikiLayout>

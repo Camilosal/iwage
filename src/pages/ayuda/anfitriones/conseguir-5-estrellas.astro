@@ -1,0 +1,112 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Cómo conseguir 5 estrellas';
+---
+
+<WikiLayout title={title} activePath="/ayuda/anfitriones/conseguir-5-estrellas">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/anfitriones/" class="hover:text-brand transition-colors">Anfitriones</a>
+    <span>/</span>
+    <span class="text-text-primary">Cómo conseguir 5 estrellas</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Cómo conseguir 5 estrellas</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Qué se está midiendo realmente</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        De cada anfitrión se guardan dos números: la <strong>calificación promedio</strong> y el <strong>número de reseñas</strong>. Los dos aparecen en tu perfil y en la ficha de la experiencia, donde se muestran hasta cuatro reseñas. Un cinco con dos reseñas no pesa lo mismo que un cuatro y medio con treinta.
+      </p>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Y la estrella no sube sola. El <a href="/naturaleza/escalafon" class="text-brand hover:underline">escalafón</a> pide cinco cosas a la vez: años en la plataforma, experiencias publicadas, reseñas, calificación y certificaciones. Esta es la tabla exacta que se aplica:
+      </p>
+      <div class="overflow-x-auto mt-4">
+        <table class="w-full text-sm border border-border rounded-xl overflow-hidden">
+          <thead>
+            <tr class="bg-surface-sunken text-left">
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Nivel</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Años</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Experiencias</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Reseñas</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Calificación</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Certificaciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-t border-border"><td class="px-4 py-2.5">Semilla</td><td class="px-4 py-2.5">0+</td><td class="px-4 py-2.5">0+</td><td class="px-4 py-2.5">0+</td><td class="px-4 py-2.5">—</td><td class="px-4 py-2.5">0+</td></tr>
+            <tr class="border-t border-border"><td class="px-4 py-2.5">Brote</td><td class="px-4 py-2.5">1+</td><td class="px-4 py-2.5">1+</td><td class="px-4 py-2.5">3+</td><td class="px-4 py-2.5">★ 4.0</td><td class="px-4 py-2.5">1+</td></tr>
+            <tr class="border-t border-border"><td class="px-4 py-2.5">Raíz</td><td class="px-4 py-2.5">3+</td><td class="px-4 py-2.5">2+</td><td class="px-4 py-2.5">10+</td><td class="px-4 py-2.5">★ 4.3</td><td class="px-4 py-2.5">2+</td></tr>
+            <tr class="border-t border-border"><td class="px-4 py-2.5">Guardián</td><td class="px-4 py-2.5">5+</td><td class="px-4 py-2.5">3+</td><td class="px-4 py-2.5">25+</td><td class="px-4 py-2.5">★ 4.5</td><td class="px-4 py-2.5">3+</td></tr>
+            <tr class="border-t border-border"><td class="px-4 py-2.5">Sabio Ancestral</td><td class="px-4 py-2.5">10+</td><td class="px-4 py-2.5">5+</td><td class="px-4 py-2.5">50+</td><td class="px-4 py-2.5">★ 4.7</td><td class="px-4 py-2.5">4+</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">La calificación se decide antes de que llegue el huésped</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Una reseña de 1 estrella casi nunca es sobre el paisaje: es sobre la diferencia entre lo que se prometió y lo que se entregó. Cierra esa brecha y las cinco estrellas salen solas.
+      </p>
+      <ol class="space-y-3 text-sm text-text-secondary list-decimal pl-5">
+        <li><strong>Publica la experiencia con lo que de verdad incluye.</strong> Guía, seguro de asistencia, transporte desde el punto de encuentro, hidratación y, si aplica, alimentación. Si algo no está, no lo dejes sugerir en la foto.</li>
+        <li><strong>Di la dificultad real y la edad mínima.</strong> El sitio clasifica en Suave, Moderada y Exigente. Una caminata «moderada» que resulta exigente produce una reseña negativa aunque la jornada haya sido buena.</li>
+        <li><strong>Declara el clima y sus consecuencias.</strong> Qué pasa si llueve, si hay polvo, si hace calor al mediodía. Lo advertido se aguanta; lo escondido se castiga.</li>
+        <li><strong>Pon el precio con sus límites.</strong> Qué hora de inicio, cuántas horas dura, qué no está incluido.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Los tres momentos que la gente recuerda</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Al final nadie recuerda el promedio de la jornada: se recuerdan el arranque, un pico y el cierre. Es lo que aparece citado en las reseñas.
+      </p>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">La llegada</p>
+          <p class="text-sm text-text-secondary leading-relaxed">Dónde se estaciona, dónde es el baño, si hay agua al bajar del carro. Los primeros diez minutos definen el humor del resto del día.</p>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">El pico</p>
+          <p class="text-sm text-text-secondary leading-relaxed">Un solo momento bien resuelto: la vista, el avistamiento, la explicación que nadie más da. Vale más que cinco actividades apuradas.</p>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">El cierre</p>
+          <p class="text-sm text-text-secondary leading-relaxed">La infusión, la mesa, la despedida con nombre. Es el último recuerdo y el que queda pegado a la calificación.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cómo se piden las reseñas</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Las reseñas se publican desde el equipo, no desde un formulario del huésped: se recogen por WhatsApp o correo después de la experiencia y se montan en tu perfil con autor, fecha, calificación y una línea de contexto del visitante.
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>En la hora siguiente</strong>, mientras el día está fresco. Al tercer día ya es una gestión pendiente.</li>
+        <li><strong>Con una pregunta concreta</strong>, no con «¿cómo la viste?»: «¿qué parte del recorrido te gustó más?» produce una reseña legible; lo otro produce un «todo bien».</li>
+        <li><strong>A quien la pasó bien de verdad.</strong> Pedirla a todos sin distinguir no es neutral, es diluir la señal.</li>
+        <li><strong>Sin recompensa.</strong> Un descuento por reseña se nota en el texto y le resta valor a las demás.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Lo que pesa en el promedio</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El promedio es aritmético, así que el volumen amortigua. Con veinte reseñas, una de 2 estrellas deja la calificación en 4.85 —por encima del umbral de Sabio Ancestral—. Con tres reseñas, la misma de 2 estrellas te deja en 4.0, justo el piso de Brote.
+      </p>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        La conclusión práctica: <strong>consigue volumen</strong>. Las primeras diez reseñas son las que más riesgo tienen y las que más te empujan. Y una reseña de 4 estrellas con un párrafo de detalle le sirve más a tu perfil que una de 5 que diga «bonito».
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Y cuando llegue la primera mala</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Va a llegar. El protocolo está en <a href="/ayuda/anfitriones/manejar-resenas-negativas" class="text-brand hover:underline">manejar reseñas negativas</a>, y la regla de fondo es simple: se responde al huésped en privado y se corrige el defecto en público.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

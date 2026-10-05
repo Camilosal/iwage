@@ -41,6 +41,13 @@ const equipoLinks = [
   { label: 'Configuración del sitio', href: '/ayuda/equipo/configuracion', icon: 'sliders' },
 ];
 
+const anfitrionesLinks = [
+  { label: 'Subir fotos profesionales', href: '/ayuda/anfitriones/fotos-profesionales', icon: 'camera' },
+  { label: 'Cómo conseguir 5 estrellas', href: '/ayuda/anfitriones/conseguir-5-estrellas', icon: 'star' },
+  { label: 'Manejar reseñas negativas', href: '/ayuda/anfitriones/manejar-resenas-negativas', icon: 'message-square' },
+  { label: 'Tips de hospitalidad', href: '/ayuda/anfitriones/tips-de-hospitalidad', icon: 'heart-handshake' },
+];
+
 function isActive(href: string): boolean {
   return activePath === href || activePath.startsWith(href + '/');
 }
@@ -130,6 +137,27 @@ function isActive(href: string): boolean {
                   ))}
                 </ul>
               </div>
+              <!-- Anfitriones -->
+              <div>
+                <h3 class="text-[11px] font-bold uppercase tracking-widest text-accent mb-3 px-3">Anfitriones</h3>
+                <ul class="space-y-0.5">
+                  {anfitrionesLinks.map((link) => (
+                    <li>
+                      <a
+                        href={link.href}
+                        class={`flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-colors ${
+                          isActive(link.href)
+                            ? 'bg-brand-muted text-brand font-semibold'
+                            : 'text-text-secondary hover:text-brand hover:bg-brand-muted/50'
+                        }`}
+                      >
+                        <Icon name={link.icon} class="w-4 h-4 shrink-0" />
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </aside>
 
@@ -158,6 +186,18 @@ function isActive(href: string): boolean {
                   <h3 class="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">Equipo</h3>
                   <ul class="space-y-0.5">
                     {equipoLinks.map((link) => (
+                      <li>
+                        <a href={link.href} class={`block px-3 py-2 text-sm rounded-lg transition-colors ${isActive(link.href) ? 'bg-brand-muted text-brand font-semibold' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/50'}`}>
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">Anfitriones</h3>
+                  <ul class="space-y-0.5">
+                    {anfitrionesLinks.map((link) => (
                       <li>
                         <a href={link.href} class={`block px-3 py-2 text-sm rounded-lg transition-colors ${isActive(link.href) ? 'bg-brand-muted text-brand font-semibold' : 'text-text-secondary hover:text-brand hover:bg-brand-muted/50'}`}>
                           {link.label}

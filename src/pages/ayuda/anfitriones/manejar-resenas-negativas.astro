@@ -1,0 +1,118 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Manejar reseñas negativas';
+---
+
+<WikiLayout title={title} activePath="/ayuda/anfitriones/manejar-resenas-negativas">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/anfitriones/" class="hover:text-brand transition-colors">Anfitriones</a>
+    <span>/</span>
+    <span class="text-text-primary">Manejar reseñas negativas</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Manejar reseñas negativas</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cómo funciona esto aquí, sin rodeos</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Las reseñas las recoge y las publica el equipo, después de la experiencia. <strong>No existe un formulario público donde el huésped escriba, ni un campo de respuesta del anfitrión debajo de cada reseña.</strong> Quiere decir dos cosas: que tú no puedes borrar ni editar una reseña, y que tampoco puedes contestarle en público. Lo que sí puedes hacer es lo que de verdad cambia el resultado — atender el reclamo y corregir lo que lo causó.
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Si te llega el reclamo por tu propio canal, atiéndelo primero a ti: eres quien estaba allá.</li>
+        <li>Si llega al equipo, te lo trasladamos con el texto y la fecha.</li>
+        <li>La decisión de publicar o no una reseña la toma el equipo, no el anfitrión, y se registra.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cuándo una reseña negativa NO se publica</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Se retira por criterio, nunca por comodidad. Los cuatro casos son cerrados y hay que poder documentarlos:
+      </p>
+      <ol class="space-y-3 text-sm text-text-secondary list-decimal pl-5">
+        <li><strong>La persona no asistió.</strong> Sin reserva verificada no hay experiencia que calificar.</li>
+        <li><strong>Es factualmente falsa.</strong> Afirma algo que se puede desmentir con el registro de la jornada: clima, horarios, lo que se sirvió.</li>
+        <li><strong>Es un ataque personal o revela datos privados</strong> del anfitrión o de otros huéspedes.</li>
+        <li><strong>Es extorsión de calificación:</strong> se ofrece borrarla a cambio de un descuento o un favor.</li>
+      </ol>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Que al anfitrión le parezca injusta <em>no</em> es ninguna de las cuatro. Una reseña de 2 estrellas escrita por alguien que sí fue se queda, aunque duela.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">El protocolo de las primeras 48 horas</h2>
+      <ol class="space-y-3 text-sm text-text-secondary list-decimal pl-5">
+        <li><strong>Responde en privado en menos de 24 horas.</strong> Un mensaje corto, por el canal donde llegó el reclamo.</li>
+        <li><strong>Escucha sin defenderte.</strong> El primer mensaje no es tu versión de los hechos; es una pregunta: «cuéntame qué fue lo que falló».</li>
+        <li><strong>Nombra el daño antes de ofrecer la solución.</strong> «Entiendo que llegaste dos horas y el guía no estaba» antes de cualquier explicación.</li>
+        <li><strong>Ofrece un remedio concreto:</strong> repetir la experiencia sin costo, un tramo reembolsado, o la devolución completa si la promesa no se cumplió. Nunca un «la próxima vez será mejor».</li>
+        <li><strong>Cierra por escrito</strong> con qué se acordó y cuándo se cumple.</li>
+        <li><strong>Corrige el defecto y cámbialo en la ficha.</strong> Si el reclamo era razonable, el sitio todavía está prometiendo lo que causó el reclamo.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Lo que nunca funciona</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-red-600 mb-2">Evítalo</p>
+          <ul class="space-y-2 text-sm text-text-secondary list-disc pl-4">
+            <li>Contestarle al huésped en público o en la reseña de otro.</li>
+            <li>Pedirle que borre o suba la nota «porque me afecta».</li>
+            <li>Publicar reseñas propias desde otros perfiles.</li>
+            <li>Discutir la memoria del huésped sobre lo que se dijo en la reserva.</li>
+          </ul>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">Sí funciona</p>
+          <ul class="space-y-2 text-sm text-text-secondary list-disc pl-4">
+            <li>Asumir la parte que te corresponde, en una línea, sin drama.</li>
+            <li>Arreglar el defecto y dejar constancia en la ficha.</li>
+            <li>Seguir entregando bien: el promedio se mueve con volumen.</li>
+            <li>Contarle al equipo lo que aprendiste, para que no le pase a otro aliado.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cuánto pesa de verdad una mala reseña</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        La calificación es un promedio aritmético, así que el efecto depende de cuántas reseñas tengas ya:
+      </p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border border-border rounded-xl overflow-hidden">
+          <thead>
+            <tr class="bg-surface-sunken text-left">
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Situación</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Antes</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Con una de 2★</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Efecto</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-t border-border">
+              <td class="px-4 py-2.5">Tres reseñas de 5★</td><td class="px-4 py-2.5">5.0</td><td class="px-4 py-2.5">4.0</td><td class="px-4 py-2.5">Caes al piso de Brote</td>
+            </tr>
+            <tr class="border-t border-border">
+              <td class="px-4 py-2.5">Veinte reseñas de 5★</td><td class="px-4 py-2.5">5.0</td><td class="px-4 py-2.5">4.85</td><td class="px-4 py-2.5">Sigue por encima de Sabio (★4.7)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Por eso la defensa real no es discutir una reseña: es <strong>no detener el flujo de experiencias buenas</strong>. El mismo defecto que te cuesta una de 2★ con tres reseñas te deja intacto con veinte.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Si el problema se repite</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Dos reseñas negativas que señalan lo mismo no son mala suerte: son un defecto del diseño de la experiencia. En ese caso escribe a <a href="/naturaleza/contacto" class="text-brand hover:underline">contacto de Naturaleza</a> y lo revisamos en la ficha —mejor cambiar lo que se promete que acumular reclamos—. Y para prevenir, la mayor parte de las reseñas malas se evitan con lo de <a href="/ayuda/anfitriones/tips-de-hospitalidad" class="text-brand hover:underline">hospitalidad</a>.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

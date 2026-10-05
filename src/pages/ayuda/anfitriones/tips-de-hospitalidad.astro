@@ -1,0 +1,177 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Tips de hospitalidad';
+---
+
+<WikiLayout title={title} activePath="/ayuda/anfitriones/tips-de-hospitalidad">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/anfitriones/" class="hover:text-brand transition-colors">Anfitriones</a>
+    <span>/</span>
+    <span class="text-text-primary">Tips de hospitalidad</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Tips de hospitalidad</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">La hospitalidad empieza en la ficha, no en el punto de encuentro</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El huésped llega con las expectativas que tú ayudaste a construir. La página de tu experiencia muestra un bloque de <strong>Cómo llegar</strong> (tiempo desde la ciudad, estado de la vía, si ofreces transporte), dos listas de <strong>Incluye / No incluye</strong>, el <strong>nivel de dificultad</strong>, la <strong>duración</strong> y el itinerario. Cada una de esas casillas vacías es un espacio donde el huésped imagina por su cuenta, y lo que imagina casi nunca coincide con lo que vas a entregar.
+      </p>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">Rellena sin vergüenza</p>
+          <ul class="space-y-2 text-sm text-text-secondary list-disc pl-4">
+            <li><strong>Estado de la vía:</strong> si el último tramo es destapado, dilo. Nadie reclama por un camino roto que le avisaron.</li>
+            <li><strong>No incluye:</strong> el transporte, la alimentación, el gasto personal. Decirlo corta la mitad de los reclamos.</li>
+            <li><strong>Duración real,</strong> con el regreso contado, no solo el recorrido.</li>
+            <li><strong>Punto de encuentro</strong> con un referente que exista en el mapa.</li>
+          </ul>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-red-600 mb-2">No toques</p>
+          <ul class="space-y-2 text-sm text-text-secondary list-disc pl-4">
+            <li>Bajar la dificultad para vender más: el que llega sin condición se queda atrás y escribe eso en la reseña.</li>
+            <li>Prometer alimentación que dependes de terceros.</li>
+            <li>Cambiar la ruta el mismo día sin avisar.</li>
+          </ul>
+          <p class="text-sm text-text-secondary leading-relaxed mt-3">
+            Y una regla que no es de cortesía sino de contrato: <strong>el aliado no puede aplicar condiciones de cancelación más restrictivas que las informadas al reservar</strong>. La política del sitio es la que vale.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">El mensaje de la víspera</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Un solo mensaje el día antes resuelve más quejas que cualquier discurso de bienvenida. Corto, con hora, y por el canal donde ya estaban hablando:
+      </p>
+      <div class="bg-surface-sunken border border-border rounded-xl p-5">
+        <p class="text-xs font-mono uppercase tracking-widest text-text-muted mb-3">Estructura, no plantilla</p>
+        <ol class="space-y-2 text-sm text-text-secondary list-decimal pl-5">
+          <li>Confirmación de fecha, hora y punto de encuentro.</li>
+          <li>Clima previsto y qué llevar acorde a eso (zapato cerrado, capa, sombrero).</li>
+          <li>Estado de la vía y cómo llegan quienes no tienen transporte.</li>
+          <li>Una línea sobre el ritmo: distancia, dificultad, si hay tramos fuertes.</li>
+          <li>Tu nombre y un número directo para el día de la salida.</li>
+        </ol>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Escribe tu nombre. Hay una diferencia enorme entre «el guía» y «Soy Julieta, nos vemos mañana a las 6:00». La segunda forma hace que la persona llegue a buscarte a ti, y no a un punto.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Los primeros diez minutos</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Ahí se decide el tono del resto del día, antes de cualquier paisaje:
+      </p>
+      <ul class="space-y-2.5 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Estás y llegaste antes.</strong> Esperar al guía es la primera señal de que nadie organizó esto.</li>
+        <li><strong>Pregunta los nombres y úsalos.</strong> Es el único recurso de hospitalidad que no cuesta nada y no se puede sustituir.</li>
+        <li><strong>Di dónde está el baño y dónde el agua</strong> antes de que alguien lo pregunte. Son las dos primeras necesidades y siempre dan pena pedirlas.</li>
+        <li><strong>Ritmo del más lento del grupo.</strong> No del promedio. Un grupo se parte por la mitad cuando dos personas van atrás calladas.</li>
+        <li><strong>Seguridad en voz alta, corta y sin dramatismo:</strong> qué no tocar, por dónde no pisar, a quién avisar si se separan. La red te capacita en primeros auxilios; el botiquín va contigo, no en la finca.</li>
+        <li><strong>El que vino solo es el más olvidado.</strong> Inclúyelo en la conversación del grupo desde el minuto uno.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Durante: contar, no nombrar</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        «Esto es un cafeto» es información. «Este cafeto está sembrado abajo de los guamos porque necesitan sombra, y por eso la miel de la zona sabe a guamo» es interpretación: conecta lo que la persona está viendo con lo que va a recordar. La formación de interpretación ambiental de la red existe exactamente para esto.
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li>Un solo dato bien contado vale más que veinte nombres científicos seguidos.</li>
+        <li>Pregunta qué saben ya y desde ahí sube; el que corrige a un experto se siente tonto, y el que no entiende se calla.</li>
+        <li>Deja silencios. En un mirador no hace falta llenar el aire.</li>
+        <li>Fotos: ofrécete tú a tomarles la foto del grupo. Es el recuerdo que se llevan y la razón por la que compartieron el link.</li>
+        <li>El territorio manda: no se alimenta fauna, no se llevan plantas, no se sale del sendero. Decirlo con naturalidad, no con regaño.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">El cierre, que casi nadie hace</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Bajar el grupo en el punto de encuentro y seguir de largo es lo más común y lo que más se siente. El cierre dura tres minutos:
+      </p>
+      <ol class="space-y-3 text-sm text-text-secondary list-decimal pl-5">
+        <li>Para el grupo, resume el día en una frase que incluya algo que pasó, no algo que se vio.</li>
+        <li>Agradece el tiempo: muchos de esos días son una única salida en el año.</li>
+        <li>Resuelve lo pendiente en el momento: quién cómo regresa, algo que quedó a medio explicar, un objeto olvidado.</li>
+        <li>Deja la puerta abierta a una pregunta o una foto que te llegue después.</li>
+      </ol>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        El pedido de reseña no va aquí. Va aparte, al día siguiente, y se pide como se explica en <a href="/ayuda/anfitriones/conseguir-5-estrellas" class="text-brand hover:underline">cómo conseguir 5 estrellas</a> —pedirla en la despedida suena a cobro—.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Lo que hunde una experiencia aunque el paisaje sea perfecto</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border border-border rounded-xl overflow-hidden">
+          <thead>
+            <tr class="bg-surface-sunken text-left">
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Falla</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Cómo se ve en la reseña</th>
+              <th class="px-4 py-2.5 font-semibold text-text-primary">Costo de arreglarla</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-secondary">
+            <tr class="border-t border-border">
+              <td class="px-4 py-2.5">Retraso del guía sin aviso</td>
+              <td class="px-4 py-2.5">«Llegué dos horas y nadie decía nada»</td>
+              <td class="px-4 py-2.5">Un mensaje la víspera</td>
+            </tr>
+            <tr class="border-t border-border">
+              <td class="px-4 py-2.5">Falta de agua o de baño</td>
+              <td class="px-4 py-2.5">«No había dónde sentarse ni ir al baño»</td>
+              <td class="px-4 py-2.5">Casi nada, si se prevé</td>
+            </tr>
+            <tr class="border-t border-border">
+              <td class="px-4 py-2.5">Grupo más grande de lo prometido</td>
+              <td class="px-4 py-2.5">«Éramos 20, nadie escuchaba»</td>
+              <td class="px-4 py-2.5">Cerrar el cupo a tiempo</td>
+            </tr>
+            <tr class="border-t border-border">
+              <td class="px-4 py-2.5">Ruta cambiada sin avisar</td>
+              <td class="px-4 py-2.5">«No era lo que había reservado»</td>
+              <td class="px-4 py-2.5">Avisar antes, no allá</td>
+            </tr>
+            <tr class="border-t border-border">
+              <td class="px-4 py-2.5">Guía con el teléfono en la mano</td>
+              <td class="px-4 py-2.5">«Estaba en otra»</td>
+              <td class="px-4 py-2.5">Silencio, que es gratis</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Ninguna de las cinco tiene que ver con el territorio. Todas dependen de una decisión tomada antes de salir.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Suspender también es hospitalidad</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Si el clima está malo, la vía no está segura, o el grupo no da para el terreno, <strong>se suspende y se ofrece reprogramación sin costo o devolución completa</strong>. Es una de las cuatro razones cerradas por las que una reseña no se publica, pero sobre todo es la diferencia entre un huésped que vuelve y uno que escribe que lo pusieron en riesgo. Ante la duda, no salgas. Y avisa con la mayor anticipación posible: cada hora cuenta para quien viajó desde otra ciudad.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Con qué te apoya la red en esto</h2>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Capacitación gratuita</strong> en primeros auxilios, interpretación ambiental, hospitalidad y bilingüismo. Dos días de formación, sin título profesional previo.</li>
+        <li><strong>Seguro básico</strong> de asistencia médica para incidentes durante las experiencias.</li>
+        <li><strong>Comunidad:</strong> foro de anfitriones y reuniones mensuales. Lo que a ti ya te salió mal, alguien más no lo repite.</li>
+        <li><strong>Producción de la experiencia:</strong> ruta, relato, fotografía y precios se construyen contigo, no se te entregan hechos.</li>
+        <li><strong>Ingresos transparentes:</strong> como guía recibes entre el 65 % y el 70 % del valor del tour; con alojamiento, entre el 70 % y el 75 % de la tarifa nocturna. Detallado en el acuerdo de alianza.</li>
+      </ul>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Para seguir: <a href="/ayuda/anfitriones/conseguir-5-estrellas" class="text-brand hover:underline">cómo conseguir 5 estrellas</a>, <a href="/ayuda/anfitriones/manejar-resenas-negativas" class="text-brand hover:underline">manejar reseñas negativas</a> y <a href="/naturaleza/se-anfitrion" class="text-brand hover:underline">postularse como anfitrión</a>.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

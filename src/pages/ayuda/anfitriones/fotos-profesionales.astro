@@ -1,0 +1,117 @@
+---
+import WikiLayout from '../layout.astro';
+
+const title = 'Fotos profesionales';
+---
+
+<WikiLayout title={title} activePath="/ayuda/anfitriones/fotos-profesionales">
+  <Fragment slot="breadcrumb">
+    <a href="/ayuda/anfitriones/" class="hover:text-brand transition-colors">Anfitriones</a>
+    <span>/</span>
+    <span class="text-text-primary">Fotos profesionales</span>
+  </Fragment>
+
+  <h1 class="text-3xl font-extrabold tracking-tight text-text-primary mb-6">Subir fotos profesionales</h1>
+
+  <div class="prose-wiki space-y-8">
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Cómo llegan las fotos al sitio</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Hoy <strong>no hay un botón de carga para el aliado</strong>. Tú envías las fotos y el equipo las publica en el CMS, en el contenido que te corresponde: tu perfil en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/naturaleza/anfitriones/</code>, la ficha de la experiencia en <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">/naturaleza/experiencias/</code> o la galería del proyecto. Por eso conviene enviarlas bien la primera vez: cada detalle que llega suelto es una ida y vuelta.
+      </p>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Por dónde enviarlas: <a href="/naturaleza/contacto" class="text-brand hover:underline">el formulario de contacto de Naturaleza</a>, el WhatsApp <strong>+57 302 669 3366</strong>, o <a href="mailto:info@iwage.co" class="text-brand hover:underline">info@iwage.co</a>. Indica siempre el nombre de la experiencia y en qué página quieres verse cada foto.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">El tamaño mínimo, y por qué</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El sitio no sirve el archivo que envías: genera recortes automáticos de <strong>500, 750 y 1000 px</strong> sobre el lado corto, y reparte el que toca según el ancho de la pantalla. Si la foto es más pequeña que el corte, ese corte simplemente no existe y el navegador tiene que estirar el que haya.
+      </p>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>1000 px o más en el lado corto:</strong> salen los tres recortes. Es el objetivo.</li>
+        <li><strong>Entre 500 y 1000:</strong> pierdes el corte grande; en pantalla completa se nota blando.</li>
+        <li><strong>Menos de 500:</strong> solo queda el miniaturado, y una foto así no debe ir de portada. Nos pasó con dos fotografías de 428 y 446 px: quedaron reducidas a su versión diminuta y la ficha tuvo que mostrar el original sin recortar.</li>
+      </ul>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Manda el archivo original del teléfono o de la cámara, sin redimensionar y sin capturas de pantalla. El formato se exporta solo.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Proporciones según dónde se va a ver</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        El recorte es <strong>al centro</strong>: lo que pongas en los bordes se puede perder. Deja aire alrededor del sujeto y no pegues el rostro ni el detalle al marco.
+      </p>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">Cuadrada 1:1</p>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            Retrato de anfitrión y fotos de producto. El marco de la ficha es cuadrado, así que una foto cuadrada no pierde nada.
+          </p>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-5">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-2">Horizontal 3:2 y 16:9</p>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            Portada de proyecto (se recorta a 1200×805) y láminas de bitácora (1200×675). Para paisaje, territorio y grupo, horizontal.
+          </p>
+        </div>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        Envía <strong>cada momento en las dos orientaciones</strong>, con seis a diez fotos por experiencia. De ese montón se elige la portada; una sola foto no deja margen de elección.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Qué se ve bien y qué delata una foto de archivo</h2>
+      <ul class="space-y-2 text-sm text-text-secondary list-disc pl-5">
+        <li><strong>Tu territorio real, en la época en que se reserva.</strong> Una foto con floración promete floración. El huésped compara la foto con lo que pisa el día del tour, y de esa comparación sale la reseña.</li>
+        <li><strong>El producto o el espacio que de verdad se paga.</strong> Si la foto muestra un modelo de caja, una habitación o un menú distinto del que reservan, la ficha miente aunque la imagen sea hermosa.</li>
+        <li><strong>Gente de espaldas o a tres cuartos.</strong> No publicamos rostros de frente de personas reales sin autorización escrita. Se ve el trabajo, el gesto y el territorio; no la cara del huésped.</li>
+        <li><strong>Flora y fauna del trópico alto andino, sin adornos prestados.</strong> Nos ha tocado bajar lantana de varias fotos: es ornamental y está invadiendo el corredor, así que aparece donde no debe.</li>
+        <li><strong>Luz natural, sin marcas de agua ni texto pegado.</strong> Los rótulos los escribe la ficha, no la imagen.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">El texto alternativo: escríbelo, no lo dejes en el nombre del archivo</h2>
+      <p class="text-sm text-text-secondary leading-relaxed mb-4">
+        Cada imagen del sitio lleva una descripción. La lee quien navega con lector de pantalla, la usan los buscadores y le sirve al equipo para no adivinar qué es cada archivo. Es obligatoria: ninguna foto se publica sin ella.
+      </p>
+      <div class="space-y-3">
+        <div class="bg-surface-raised border border-border rounded-xl p-4">
+          <p class="text-xs font-mono uppercase tracking-widest text-red-600 mb-1">No sirve</p>
+          <p class="text-sm text-text-secondary"><code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">IMG_2043</code> &nbsp;·&nbsp; <code class="px-1.5 py-0.5 bg-surface-sunken border border-border rounded text-xs font-mono">foto bonita del camino</code></p>
+        </div>
+        <div class="bg-surface-raised border border-border rounded-xl p-4">
+          <p class="text-xs font-mono uppercase tracking-widest text-accent mb-1">Sí sirve</p>
+          <p class="text-sm text-text-secondary">«Cafetal de sombra en floración, vereda El Carmen, Ambalá, Tolima» &nbsp;·&nbsp; «Manos de la anfitriona separando miel de cedazo, frascos de cerumen al fondo»</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed mt-4">
+        La fórmula: <strong>qué es + dónde + qué se está haciendo</strong>, en una línea. Si en la foto hay una persona que no quiere aparecer, descríbela por su acción («una guía señala el dosel») y no por su cara.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Lista de chequeo antes de enviar</h2>
+      <ol class="space-y-3 text-sm text-text-secondary list-decimal pl-5">
+        <li>Seis a diez fotos, horizontal y vertical, originales sin redimensionar.</li>
+        <li>Lado corto de al menos 1000 px en las que quieras de portada.</li>
+        <li>Sujeto al centro con aire alrededor; nada importante pegado al borde.</li>
+        <li>Sin marcas de agua, sin texto incrustado, sin capturas de pantalla.</li>
+        <li>Lo que se ve es lo que se reserva: mismo modelo, mismo espacio, misma época.</li>
+        <li>Sin rostros de frente de huéspedes ni de vecinos.</li>
+        <li>Una línea de descripción por foto, y el nombre de la experiencia al lado.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-text-primary mb-3">Siguiente paso</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Cuando el equipo publica tus fotos, se ven en tu perfil y en la ficha de la experiencia. De ahí sigue <a href="/ayuda/anfitriones/conseguir-5-estrellas" class="text-brand hover:underline">cómo conseguir 5 estrellas</a>, que es donde la foto empieza a cobrar: es lo primero que el huésped compara contra la realidad.
+      </p>
+    </section>
+  </div>
+</WikiLayout>

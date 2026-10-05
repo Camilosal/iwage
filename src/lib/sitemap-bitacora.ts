@@ -138,6 +138,11 @@ export const STATIC_PAGES: Array<[path: string, priority: number, changefreq: Si
   ['/ayuda/equipo/reservas-admin', 0.3, 'monthly'],
   ['/ayuda/equipo/sincronizacion', 0.3, 'monthly'],
   ['/ayuda/equipo/strapi-cms', 0.3, 'monthly'],
+  ['/ayuda/anfitriones/', 0.4, 'monthly'],
+  ['/ayuda/anfitriones/fotos-profesionales', 0.4, 'monthly'],
+  ['/ayuda/anfitriones/conseguir-5-estrellas', 0.4, 'monthly'],
+  ['/ayuda/anfitriones/manejar-resenas-negativas', 0.4, 'monthly'],
+  ['/ayuda/anfitriones/tips-de-hospitalidad', 0.4, 'monthly'],
 
   // Legal: solo el índice, porque `legal/_layout.astro:54` sirve las 5 hojas con
   // `noindex, follow`; declararlas sería pedirle a Google que las rastree para

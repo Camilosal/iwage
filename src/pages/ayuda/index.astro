@@ -3,7 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Icon from '@/components/shared/Icon.astro';
 
 const title = 'Centro de Ayuda';
-const description = 'Guía completa de la plataforma Iwagé: cómo usar el sitio, hacer reservas, comprar productos y administrar contenido.';
+const description = 'Guía completa de la plataforma Iwagé: cómo usar el sitio, hacer reservas, comprar productos, administrar contenido y atender huéspedes.';
 
 const usuarioArticles = [
   { label: 'Explorar la plataforma', href: '/ayuda/usuarios/explorar-plataforma', desc: 'Navegación, búsqueda y personalización del sitio', icon: 'globe' },
@@ -26,6 +26,13 @@ const equipoArticles = [
   { label: 'Pasarela de pagos', href: '/ayuda/equipo/pagos', desc: 'Integración Bold, webhooks y estados de pago', icon: 'credit-card' },
   { label: 'Órdenes y pedidos', href: '/ayuda/equipo/ordenes', desc: 'Flujo de órdenes por carrito y WhatsApp', icon: 'package' },
   { label: 'Configuración del sitio', href: '/ayuda/equipo/configuracion', desc: 'Variables de entorno y ajustes del sistema', icon: 'sliders' },
+];
+
+const anfitrionArticles = [
+  { label: 'Subir fotos profesionales', href: '/ayuda/anfitriones/fotos-profesionales', desc: 'Formatos, alt text y cómo llegan las fotos al sitio', icon: 'camera' },
+  { label: 'Cómo conseguir 5 estrellas', href: '/ayuda/anfitriones/conseguir-5-estrellas', desc: 'Escalafón, expectativas y el pedido de reseña', icon: 'star' },
+  { label: 'Manejar reseñas negativas', href: '/ayuda/anfitriones/manejar-resenas-negativas', desc: 'Protocolo de 48 horas y cuándo no se publica', icon: 'message-square' },
+  { label: 'Tips de hospitalidad', href: '/ayuda/anfitriones/tips-de-hospitalidad', desc: 'La víspera, los primeros diez minutos y el cierre', icon: 'heart-handshake' },
 ];
 
 const jsonLd = {
@@ -58,7 +65,7 @@ const jsonLd = {
         Guía de la plataforma <span class="text-brand">Iwagé</span>
       </h1>
       <p class="mt-5 text-base md:text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
-        Todo lo que necesitas saber sobre el ecosistema: cómo explorar, reservar, comprar y administrar contenido.
+        Todo lo que necesitas saber sobre el ecosistema: cómo explorar, reservar, comprar, administrar contenido y atender huéspedes.
       </p>
 
       <!-- Search hint -->
@@ -69,18 +76,18 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- Two audience cards -->
+  <!-- Three audience cards -->
   <section class="max-w-5xl mx-auto px-6 py-12">
-    <div class="grid md:grid-cols-2 gap-6 mb-14">
+    <div class="grid md:grid-cols-3 gap-5 mb-14">
       <!-- Usuarios -->
-      <a href="/ayuda/usuarios/" class="group relative overflow-hidden rounded-2xl border border-border bg-surface-raised p-8 transition-all hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5">
+      <a href="/ayuda/usuarios/" class="group relative overflow-hidden rounded-2xl border border-border bg-surface-raised p-6 transition-all hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5">
         <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-brand to-brand-light opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div class="flex items-center gap-4 mb-4">
-          <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center shrink-0">
             <Icon name="user" class="w-6 h-6 text-brand" />
           </div>
           <div>
-            <h2 class="text-xl font-bold text-text-primary">Soy Usuario</h2>
+            <h2 class="text-lg font-bold text-text-primary leading-tight">Soy Usuario</h2>
             <p class="text-xs text-text-muted">Clientes y visitantes del sitio</p>
           </div>
         </div>
@@ -92,16 +99,36 @@ const jsonLd = {
         </span>
       </a>
 
+      <!-- Anfitriones -->
+      <a href="/ayuda/anfitriones/" class="group relative overflow-hidden rounded-2xl border border-border bg-surface-raised p-6 transition-all hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5">
+        <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-brand to-brand-light opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-xl bg-brand-muted flex items-center justify-center shrink-0">
+            <Icon name="heart-handshake" class="w-6 h-6 text-brand" />
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-text-primary leading-tight">Soy Anfitrión</h2>
+            <p class="text-xs text-text-muted">Aliados de la red y guías locales</p>
+          </div>
+        </div>
+        <p class="text-sm text-text-secondary leading-relaxed">
+          Fotos, calificaciones, reseñas y atención: cómo publicar bien tu experiencia y cómo entregarla mejor en el terreno.
+        </p>
+        <span class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand group-hover:gap-3 transition-all">
+          Ver guías <Icon name="arrow-right" class="w-4 h-4" />
+        </span>
+      </a>
+
       <!-- Equipo -->
-      <a href="/ayuda/equipo/" class="group relative overflow-hidden rounded-2xl border border-border bg-surface-raised p-8 transition-all hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5">
+      <a href="/ayuda/equipo/" class="group relative overflow-hidden rounded-2xl border border-border bg-surface-raised p-6 transition-all hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5">
         <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-accent to-accent-light opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div class="flex items-center gap-4 mb-4">
-          <div class="w-12 h-12 rounded-xl bg-accent-muted flex items-center justify-center">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-xl bg-accent-muted flex items-center justify-center shrink-0">
             <Icon name="settings" class="w-6 h-6 text-accent" />
           </div>
           <div>
-            <h2 class="text-xl font-bold text-text-primary">Soy Administrador</h2>
-            <p class="text-xs text-text-muted">Equipo interno y aliados</p>
+            <h2 class="text-lg font-bold text-text-primary leading-tight">Soy Administrador</h2>
+            <p class="text-xs text-text-muted">Equipo interno de Iwagé</p>
           </div>
         </div>
         <p class="text-sm text-text-secondary leading-relaxed">
@@ -118,6 +145,20 @@ const jsonLd = {
       <h2 class="text-sm font-mono uppercase tracking-widest text-accent mb-6">Guías para usuarios</h2>
       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {usuarioArticles.map((a) => (
+          <a href={a.href} class="group flex flex-col gap-2 p-4 rounded-xl border border-border bg-surface-raised hover:border-brand/40 hover:shadow-md transition-all">
+            <Icon name={a.icon} class="w-5 h-5 text-brand" />
+            <span class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">{a.label}</span>
+            <span class="text-xs text-text-muted leading-relaxed">{a.desc}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- Quick links: Anfitriones -->
+    <div class="mb-12">
+      <h2 class="text-sm font-mono uppercase tracking-widest text-accent mb-6">Guías para anfitriones</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {anfitrionArticles.map((a) => (
           <a href={a.href} class="group flex flex-col gap-2 p-4 rounded-xl border border-border bg-surface-raised hover:border-brand/40 hover:shadow-md transition-all">
             <Icon name={a.icon} class="w-5 h-5 text-brand" />
             <span class="text-sm font-semibold text-text-primary group-hover:text-brand transition-colors">{a.label}</span>
