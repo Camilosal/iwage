@@ -176,3 +176,30 @@ test('el `image` del Article (que las rutas de bitácora entregan relativo) pasa
   assert.match(LAYOUT, /absUrl\(\s*mediaSrc\(\s*props\.article\.image\s*\)\s*\)/,
     'article.image llega relativo al Article');
 });
+
+// ── Las dos fichas de producto: su portada, no el hero de la marca ───
+//
+// Medido el 2026-10-05: compartir una ficha en WhatsApp o Facebook salía con
+// `hero-meliponas.webp`. La página, a diferencia de las siete rutas de bitácora, no
+// entregaba `ogImage` al layout —y el `image` del JSON-LD `Product` de ESA MISMA ficha sí
+// llevaba la foto, así que el desprecio era visible en la etiqueta y en el esquema a la
+// vez. Son `.astro`, no se importan: se les lee el texto, pelado de comentarios, y se
+// mira solo la etiqueta de apertura del layout.
+const FICHAS = [
+  ['meliponas', '../src/pages/meliponas/tienda/[slug].astro'],
+  ['granja', '../src/pages/granja/tienda/[slug].astro'],
+];
+
+test('las fichas de tienda entregan su portada al borde del og:image', () => {
+  for (const [marca, rel] of FICHAS) {
+    const fuente = sinComentarios(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8'));
+    const [etiqueta] = fuente.match(/<BrandLayout[^>]*>/) ?? [];
+    assert.ok(etiqueta, `${marca}: no se encuentra la etiqueta de apertura de <BrandLayout>`);
+    assert.match(etiqueta, /ogImage=\{producto\.imagen\?\.url/,
+      `${marca}: la ficha comparte el hero de la marca en vez de la foto del producto`);
+    // La portada también es la primera pieza de la galería: si alguien mueve el campo en
+    // Strapi sin mover la ficha, el og:image vuelve en silencio al hero.
+    assert.match(fuente, /producto\.imagen\s*&&\s*\{\s*image:\s*absUrl\(producto\.imagen\.url\)\s*\}/,
+      `${marca}: el JSON-LD ya no usa la portada, y la guarda de arriba se quedó sola`);
+  }
+});

@@ -114,7 +114,7 @@ if (faq.length > 0) {
 const registro = await obtenerRegistroDeEnlaces();
 ---
 
-<BrandLayout title={pageTitle} description={pageDesc}>
+<BrandLayout title={pageTitle} description={pageDesc} ogImage={producto.imagen?.url ?? undefined}>
   <script type="application/ld+json" set:html={JSON.stringify(productJsonLd)} />
 
   <div class="max-w-6xl mx-auto px-6 py-10">
