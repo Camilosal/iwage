@@ -37,10 +37,14 @@ const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = 
   // con una sola línea— y el destino es la bitácora de la marca, que es lo que ese blog era.
   [/^\/meliponas\/blog\/?$/, () => '/meliponas/bitacora'],
   // La «Caja INPA con atril» se retiró del catálogo el 2026-10-05: el mismo paquete ya existe
-  // como dos fichas (Caja INPA Mediana + Atril de guadua) y como Kit Meliponas Inicio. La URL
+  // como dos fichas (Caja INPA Mediana + su soporte) y como Kit Meliponas Inicio. La URL
   // vieja sigue circulando en Google y en los WhatsApp reenviados, así que devuelve a la caja
   // y no a la tienda entera.
   [/^\/meliponas\/tienda\/caja-inpa-con-atril\/?$/, () => '/meliponas/tienda/caja-inpa-nogal-cafetero'],
+  // El atril de guadua salió del catálogo el 2026-10-05 y lo reemplaza la casa techada: además
+  // de montar la caja, la cubre de la lluvia. Apunta al modelo de pedestal, que es el
+  // representante de la familia en el listado y el único de los dos con foto a 1024 px.
+  [/^\/meliponas\/tienda\/atril-de-guadua\/?$/, () => '/meliponas/tienda/casa-techada-pedestal'],
   // /cafe/:anything → /cafe/:anything (subdomain catch-all handled at DNS level)
 ];
 
