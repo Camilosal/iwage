@@ -139,7 +139,7 @@ const registro = await obtenerRegistroDeEnlaces();
             <span class="absolute top-4 right-4 z-10 bg-red-500 text-white text-sm font-bold rounded-full px-3 py-1.5 shadow-sm">-{descuento}%</span>
           )}
           {mediaItems.length > 0 ? (
-            <MediaGallery items={mediaItems} title={producto.nombre} />
+            <MediaGallery items={mediaItems} title={producto.nombre} variant="producto" />
           ) : (
             <div class="aspect-square rounded-2xl overflow-hidden bg-surface-sunken border border-border flex items-center justify-center text-text-muted">
               <Icon name="package" class="w-24 h-24" />
