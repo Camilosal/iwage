@@ -2355,6 +2355,34 @@ Tres pedidos: borrar los héroes muertos, revisar `SEO.bitacora`/`SEO.cafe`, y f
 
 **Pendiente que esta ronda destapó y no arregla:** cuatro etiquetas del hub de anfitriones de Naturaleza anuncían guías que no existen en el sitio («Subir fotos profesionales», «Cómo conseguir 5 estrellas», «Manejar reseñas negativas», «Tips de hospitalidad»). Ahora llaman a la hoja de ayuda correcta, pero la hoja no las contiene. O se escriben, o se cambian las etiquetas por preguntas que sí estén respondidas.
 
+### Vuelven las variaciones de la tienda Meliponas (2026-10-05, madrugada)
+
+El dueño lo vio en producción: «en la tienda no están saliendo las variaciones de los productos, en la miel la teníamos por presentación, en las cajas por tamaño». Medido, **el síntoma era 100% datos y 0% código**: `select count(familia) from productos where published_at is not null` dio **0** sobre 21 filas publicadas. El mecanismo sigue entero en `src/lib/tienda.ts` (`agruparPorFamilia`, `getProductosPorFamilia`, `nombreComun`) y en `src/pages/meliponas/tienda/[slug].astro:161-180` (el selector de pastillas, con puerta en `tieneVariaciones`). Sin `familia` en ninguna fila, el listado agrupa de cero y la ficha no pinta selector: todo funcionaba exactamente como estaba escrito.
+
+**Por qué no fue «re-ejecutar el seed».** `strapi/scripts/seed-productos.mjs` tiene las tres familias perdidas literalmente, así que parecía el camino corto. No: hace upsert filtrando por `nombre` y luego **PUT sobre la fila viva**, lo que habría pisado las `presentacion` con códigos de lote que están escritas a mano; y no contiene ningún paso de `publish`. Se usó solo como **fuente de datos**: `.scratch-melonino/variaciones.mjs` (en `.scratch-melonino/`, gitignoreado) recorta el literal desde `const productos = [` hasta `\n];` y evalúa únicamente ese dato, sin importar el script ni ejecutar su `create()`.
+
+**El mecanismo de Strapi v5 se midió y cambió el plan a mitad de camino.** `PUT /api/productos/{documentId}` sobre un documento **ya publicado lo re-publica solo**: la fila viva se borra y se re-crea con **id nuevo** (medido: 34 → 45) y `files_related_mph` queda re-punteada al id nuevo, con la imagen resolviendo igual. `POST /api/productos/{documentId}/actions/publish` responde **405** sobre una PUT que ya publicó. Y el `GET` por `documentId` solo responde sobre lo publicado, así que **un 404 ahí es borrador nuevo** — esa es la comprobación que usa `publicar()` antes de intentar ruta alguna.
+
+**Qué se escribió (3 filas tocadas, 7 creadas, todas publicadas):**
+
+| familia | eje | variaciones |
+|---|---|---|
+| `caja-af` | Tamaño | Pequeña 140.000 · **Mediana 165.000** (foto, `destacado`) · Grande 195.000 |
+| `caja-inpa` | Tamaño | Pequeña 150.000 · **Mediana 180.000** (foto, `destacado`) · Grande 210.000 |
+| `miel-angelita` | Presentación | **120 ml 25.000** (foto, `destacado`) · 250 ml 45.000 · 500 ml 78.000 |
+
+Las dos renombradas conservan su slug: `caja-af-estandar` hoy se llama «Caja AF Mediana» y `caja-inpa-nogal-cafetero` es «Caja INPA Mediana», porque al medir los enlaces internos ningún contenido llamaba a esos slugs y las URLs viejas siguen vivas. **`destacado: true` en las tres que tienen portada no es decoro:** el representante de la familia es `destacado` y si no, la más barata — sin foto. Sin marcarlo, las tres cards del listado habrían cambiado su foto por el mosaico Icon: una regresión visual por arreglar un selector.
+
+**Lo que deliberadamente no me inventé.** Las siete filas nuevas llevan `stock_cantidad: null` y `orden: 0` (la convención que ya mido en las vivas, no un default); `imagen` y `galeria` se despojaron del payload porque el dueño eligió dejarlas sin portada; y a las dos presentaciones nuevas de miel **se les quitó el «Lote L25-05-001»** que decía la semilla: es un lote que nadie verificó y afirmarlo en la ficha es inventar trazabilidad.
+
+**Respaldo antes de escribir:** `/home/ubuntu/backup/variaciones-2026-10-05/` — `productos.sql` (28 `INSERT` + `setval` de la secuencia), `productos-esquema.sql`, `filas-antes.txt`/`filas-despues.txt` y `restaurar.sh` ejecutable con dos niveles. `parcial` revierte por `document_id` (no por `id`: la PUT re-creó las filas y los ids del respaldo ya no coinciden) y `total` recarga el respaldo entero.
+
+**El sitemap se arregló solo, y la primera medición mentía.** Conté **209 URLs y 9 fichas** y estaba a punto de reportar que las siete fichas nuevas no salían y que hacía falta un rebuild. No: `/sitemap.xml` es **SSR** (`src/pages/sitemap.xml.ts`; `@astrojs/sitemap` se descartó justo porque solo cubría rutas prerenderizadas) con caché HTML SWR de 1 h, así que lo que medí fue una entrada vieja. Repetida la medición: **216 URLs y las 16 fichas de meliponas, las 7 nuevas incluidas**. La lección es la misma de las pastillas contadas con `grep -c` sobre HTML minificado: con una hora de caché entre la escritura y la lectura, **una medición única es una foto vieja, no un estado**.
+
+**Mediciones de cierre.** 21 documentos publicados (42 filas entre borrador y vivo), 18 con `familia`. El listado pinta una card por familia con sus etiquetas («120 ml · 250 ml · 500 ml», dos veces «Pequeña · Mediana · Grande») y «Desde $ 25.000 / 140.000 / 150.000». La ficha de `caja-af-estandar` muestra 3 pastillas, `h1` «Caja AF Mediana» y «Tamaño: Mediana»; la de la miel, 3 pastillas y «Presentación: 120 ml». Las 7 rutas nuevas responden 200, `/granja/tienda` sigue con sus 5 productos y los logs del contenedor salen limpios.
+
+**Deuda que esto destapó y no cierra.** (1) La brecha de portadas pasa de 10 a **17** filas sin imagen; son las 7 nuevas, por decisión del dueño, y solo se ve al entrar a una variación sin foto porque el representante de cada familia sí la tiene. (2) **`variantes` (jsonb) está muerto**: lo normaliza `normalizeProducto` (`src/lib/tienda.ts:69`) y no lo lee ninguna plantilla — el eje real hoy es `familia` + `etiqueta_variacion`. O se borra del schema o se le da un uso; no es un bug. (3) **«Caja INPA con atril» quedó suelto, sin familia**, aunque su 220.000 es exactamente Mediana 180.000 + Atril 40.000; retirar el bundle o dejarlo como combo anunciado es decisión de negocio, no técnica.
+
 ### Task 1 — evidencia leída y parche preparado (2026-09-25 por la mañana) / **aplicado esa misma tarde**
 
 Step 1, todo por lectura, el 2026-09-25:
