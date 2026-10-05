@@ -250,6 +250,12 @@ const registro = await obtenerRegistroDeEnlaces();
               Dimensiones: {producto.dimensiones}
             </p>
           )}
+          {producto.variantes?.map((eje) => (
+            <p class="flex items-start gap-2">
+              <Icon name="list-checks" class="w-4 h-4 shrink-0 mt-0.5 text-text-muted" />
+              <span>{eje.nombre}: {eje.opciones.join(' · ')}</span>
+            </p>
+          ))}
         </div>
 
         <!-- Sección de pedido -->
