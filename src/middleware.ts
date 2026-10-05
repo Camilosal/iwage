@@ -31,6 +31,11 @@ const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = 
   // de estándar, que siguen vivas debajo de /meliponas/trazabilidad/.
   [/^\/meliponas\/trazabilidad\/?$/, () => '/meliponas/investigacion'],
   [/^\/meliponas\/herramientas\/?$/, () => '/meliponas/'],
+  // La puerta vieja del blog de Meliponas estaba en nginx y mandaba a `/blog`, una hoja que no
+  // existe en ningún lado del repo: el 301 prometía una página y entregaba un 404. Va aquí por
+  // el mismo motivo que las dos de arriba —`\/?$` cubre `/meliponas/blog` y `/meliponas/blog/`
+  // con una sola línea— y el destino es la bitácora de la marca, que es lo que ese blog era.
+  [/^\/meliponas\/blog\/?$/, () => '/meliponas/bitacora'],
   // La «Caja INPA con atril» se retiró del catálogo el 2026-10-05: el mismo paquete ya existe
   // como dos fichas (Caja INPA Mediana + Atril de guadua) y como Kit Meliponas Inicio. La URL
   // vieja sigue circulando en Google y en los WhatsApp reenviados, así que devuelve a la caja
