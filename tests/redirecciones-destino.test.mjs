@@ -138,3 +138,25 @@ test('las tres puertas que se arreglaron el 2026-10-05 siguen en su destino', ()
     assert.ok(paginaExiste(final));
   }
 });
+
+// ── La forma del `Location`, que no es solo el destino ───────────────
+//
+// Medido el 2026-10-05 sobre el dominio público: `curl -sI https://iwage.co/tienda`
+// respondía `location: http://iwage.co/meliponas/tienda`. Nginx arma el `Location`
+// absoluto con SU esquema —escucha el :80 detrás del túnel de Cloudflare—, así que las
+// trece puertas legacy bajaban al visitante de HTTPS antes de entregarlo, y ahí se
+// quedaba porque el sitio también responde 200 por http. Las redirecciones del middleware
+// de Astro nunca hicieron eso: salen relativas (`location: /meliponas/investigacion`,
+// medido en la misma pasada). `absolute_redirect off` pone las de nginx en esa forma.
+test('las 301 de nginx salen relativas y no reescriben el esquema a http', () => {
+  assert.match(nginx, /^\s*absolute_redirect\s+off\s*;/m,
+    'falta `absolute_redirect off`: las puertas de nginx entregan `http://` y bajan de TLS');
+
+  // Ningún destino escrito puede venir absoluto: sería la misma fuga por otra puerta.
+  for (const r of reglasDeNginx(nginx)) {
+    assert.match(r.hacia, /^\//, `nginx: ${r.desde} apunta a un destino absoluto (${r.hacia})`);
+  }
+  for (const r of reglasDeMiddleware(middleware)) {
+    assert.match(r.hacia, /^\//, `middleware: ${r.desde} apunta a un destino absoluto (${r.hacia})`);
+  }
+});
