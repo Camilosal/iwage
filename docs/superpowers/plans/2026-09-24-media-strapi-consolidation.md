@@ -2141,7 +2141,7 @@ Cuatro piezas rechazadas (`31`, `33`, `37`, `78`) y una opcional (`77`). Las cua
 
 ```bash
 cd /home/ubuntu/negocio/data/app_iwage/.scratch-melonino
-T=$(grep -oE "[0-9a-f]{128}" ../scripts/seed-experimentos-via-api.mjs | head -1)   # el token sigue vivo: GET /api/upload/files -> 200
+T=<token de API de Strapi>                         # el envase lo recibe como argumento; el valor nunca se escribe en el repo
 node zonas.mjs "$T"                                  # anota los dos ids nuevos que imprime
 ```
 
