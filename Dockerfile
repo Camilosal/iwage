@@ -39,7 +39,9 @@ COPY --from=build /app/package.json ./package.json
 # Copy public assets if they exist
 COPY --from=build /app/public ./public
 
-# Nginx config
+# Nginx config y cabeceras. La ruta destino del primer COPY es contrato con la ruta que
+# aparece en cada `include` de nginx.conf; lo cuida tests/cabeceras-seguridad.test.mjs.
+COPY --chown=root:nginx nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --chown=root:nginx nginx.conf /etc/nginx/http.d/default.conf
 
 # Create non-root user for Astro
