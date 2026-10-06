@@ -13,7 +13,7 @@ const REGISTRO = {
     { slug: 'siembra-de-cobertura-en-terrazas', marca: 'tierras' },
   ],
   productos: [
-    { slug: 'miel-angelita-120ml', marca: 'meliponas' },
+    { slug: 'miel-angelita-120ml-frasco', marca: 'meliponas' },
     { slug: 'miel-con-propoleo-250ml', marca: 'meliponas' },
     { slug: 'kit-observacion', marca: 'meliponas' },
     { slug: 'cafe-grano-selva-340g', marca: 'cafe' },
@@ -30,12 +30,12 @@ test('normalizarSlug: decodifica, sin acentos, mata el c2-b7 literal y el ·', (
 test('/producto/<slug> con producto ambiguo pero ganador estricto → balde de la marca del producto', () => {
   assert.equal(
     repararEnlaceInterno('/producto/miel-abeja-angelita', REGISTRO, 'meliponas'),
-    '/meliponas/tienda/miel-angelita-120ml',
+    '/meliponas/tienda/miel-angelita-120ml-frasco',
   );
   // El enlace vive en una página de café, pero el producto es de meliponas.
   assert.equal(
     repararEnlaceInterno('/producto/miel angelita 120ml', REGISTRO, 'cafe'),
-    '/meliponas/tienda/miel-angelita-120ml',
+    '/meliponas/tienda/miel-angelita-120ml-frasco',
   );
 });
 
@@ -78,7 +78,7 @@ test('/contacto genérico → el contacto de la marca que renderiza', () => {
 test('barra final de la migración WP: repara igual que sin barra', () => {
   assert.equal(
     repararEnlaceInterno('/producto/miel-abeja-angelita/', REGISTRO, 'meliponas'),
-    '/meliponas/tienda/miel-angelita-120ml',
+    '/meliponas/tienda/miel-angelita-120ml-frasco',
   );
   assert.equal(
     repararEnlaceInterno('/p-cafe-agroecologico-iwage/', REGISTRO, 'meliponas'),
@@ -97,7 +97,7 @@ test('deja intactos los enlaces que no son de la migración', () => {
     '',
     '/',
     '/meliponas/',
-    '/meliponas/tienda/miel-angelita-120ml',
+    '/meliponas/tienda/miel-angelita-120ml-frasco',
     '/cafe/menu',
     '/ayuda/',
     '/granja/sistema/hidrico',

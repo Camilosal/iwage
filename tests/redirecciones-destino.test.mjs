@@ -139,6 +139,32 @@ test('las tres puertas que se arreglaron el 2026-10-05 siguen en su destino', ()
   }
 });
 
+// Las tres puertas de la miel Angelita, fijadas aparte del barrido general porque su arreglo no
+// fue solo «que el destino exista»: las presentaciones estaban mal numeradas, así que la ficha de
+// $78.000 pasó a llamarse 120 ml y a reclamar el slug que acaba de desocupar la ficha de $25.000.
+// Un 301 sobre `/meliponas/tienda/miel-angelita-120ml` habría pasado esta prueba —el destino
+// existe— y habría tapado una página viva, mandando a quien la tenía en marcadores a un producto
+// cuatro veces más caro. Lo que se fija acá es el slug con envase, que es lo que impide la sombra.
+test('las tres puertas de la miel Angelita llevan al slug con envase, no al pelado', () => {
+  const casos = [
+    ['/meliponas/tienda/miel-angelita-120ml', '/meliponas/tienda/miel-angelita-25ml-gotero'],
+    ['/meliponas/tienda/miel-angelita-250ml', '/meliponas/tienda/miel-angelita-60ml-botella'],
+    ['/meliponas/tienda/miel-angelita-500ml', '/meliponas/tienda/miel-angelita-120ml-frasco'],
+  ];
+  for (const [desde, esperado] of casos) {
+    const regla = reglas.find((r) => r.desde === desde && r.origen === 'src/middleware.ts');
+    assert.ok(regla, `se perdió la puerta ${desde}`);
+    assert.equal(regla.hacia, esperado, `${desde} ya no llega a ${esperado}`);
+    assert.ok(paginaExiste(esperado), `${esperado} no resuelve a ninguna hoja`);
+    assert.notEqual(desde, esperado, `${desde} se redirige a sí misma`);
+  }
+  // La sombra: ninguna de las tres puertas puede apuntar a un slug que sea idéntico a la puerta
+  // misma, y ningún destino puede ser `miel-angelita-<volumen>ml` pelado (sin envase).
+  for (const [, esperado] of casos) {
+    assert.match(esperado, /-(gotero|botella|frasco)$/, `${esperado} perdió el envase del slug`);
+  }
+});
+
 // ── La forma del `Location`, que no es solo el destino ───────────────
 //
 // Medido el 2026-10-05 sobre el dominio público: `curl -sI https://iwage.co/tienda`

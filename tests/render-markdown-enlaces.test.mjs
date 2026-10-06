@@ -10,7 +10,7 @@ const REGISTRO = {
     { slug: 'modulo-3-c2-b7-el-nido-por-dentro', marca: 'meliponas' },
     { slug: 'cafe-agroecologico-iwage', marca: 'cafe' },
   ],
-  productos: [{ slug: 'miel-angelita-120ml', marca: 'meliponas' }],
+  productos: [{ slug: 'miel-angelita-120ml-frasco', marca: 'meliponas' }],
 };
 
 test('párrafos: el markdown en línea se vuelve HTML', () => {
@@ -25,7 +25,7 @@ test('con registro: el enlace heredado se repara en el render, sin tocar la base
     registro: REGISTRO,
     marca: 'meliponas',
   });
-  assert.match(html, /href="\/meliponas\/tienda\/miel-angelita-120ml"/);
+  assert.match(html, /href="\/meliponas\/tienda\/miel-angelita-120ml-frasco"/);
   assert.match(html, /href="\/cafe\/bitacora\/cafe-agroecologico-iwage"/);
 });
 

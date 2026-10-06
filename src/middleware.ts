@@ -50,6 +50,19 @@ const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = 
   // sitemap desde agosto, así que devuelve al listado —que es donde ahora vive el ofrecimiento—
   // en vez de morir en 404.
   [/^\/meliponas\/tienda\/asistencia-tecnica-mensual\/?$/, () => '/meliponas/tienda'],
+  // Las tres presentaciones de la miel Angelita estaban mal numeradas el 2026-10-06: la que se
+  // vendía como 120 ml es en realidad la de 25 ml en gotero ámbar, la de 250 ml es la de 60 ml en
+  // botella pequeña y la de 500 ml es la de 120 ml en frasco. Los precios no se movieron.
+  //
+  // Los slugs nuevos llevan el envase porque si no la corrección se muerde la cola: el URL
+  // `miel-angelita-120ml` de la ficha de $25.000 es exactamente el URL que la ficha de $78.000
+  // pasaría a ocupar, así que un 301 sobre esa ruta habría tapado una página viva y enviado a
+  // quien la tenía en marcadores a un producto cuatro veces más caro. Con el envase en el slug
+  // —el mismo arreglo que ya usan `casa-techada-pedestal` y `casa-techada-pared`— las tres rutas
+  // viejas quedan desocupadas y las tres devoluciones son honestas.
+  [/^\/meliponas\/tienda\/miel-angelita-120ml\/?$/, () => '/meliponas/tienda/miel-angelita-25ml-gotero'],
+  [/^\/meliponas\/tienda\/miel-angelita-250ml\/?$/, () => '/meliponas/tienda/miel-angelita-60ml-botella'],
+  [/^\/meliponas\/tienda\/miel-angelita-500ml\/?$/, () => '/meliponas/tienda/miel-angelita-120ml-frasco'],
   // /cafe/:anything → /cafe/:anything (subdomain catch-all handled at DNS level)
 ];
 
