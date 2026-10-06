@@ -22,6 +22,14 @@ const agrupados = agruparPorFamilia(productos);
 // Pills solo para categorías con productos
 const categoriaLabel = new Map(CATEGORIAS.map((c) => [c.id, c.label]));
 const pills = CATEGORIAS.filter((c) => agrupados.some((g) => g.producto.categoria === c.id));
+
+// Las tres cosas que cubre la asistencia, en las palabras del dueño: selección, configuración
+// y acompañamiento en el uso de lo que se lleva.
+const ASISTENCIA = [
+  { icono: 'compass', titulo: 'Selección', desc: 'Qué le sirve a su colmena en este momento y qué puede esperar.' },
+  { icono: 'settings', titulo: 'Configuración', desc: 'Cómo se monta y se ajusta cada pieza cuando llega a la casa.' },
+  { icono: 'users', titulo: 'Acompañamiento', desc: 'Seguimos con usted mientras usa los productos.' },
+];
 ---
 
 <BrandLayout title={SEO.tienda.title} description={SEO.tienda.description}>
@@ -133,6 +141,44 @@ const pills = CATEGORIAS.filter((c) => agrupados.some((g) => g.producto.categori
         </p>
       </div>
     )}
+  </Section>
+
+  <!-- La asistencia técnica salió del catálogo como SKU y quedó como puerta: no es un producto
+       suelto, es el acompañamiento de todo lo que se lleva. -->
+  <Section bg="dark" width="7xl" compact id="asistencia-tecnica">
+    <ScrollReveal>
+      <SectionHeader
+        label="Asistencia técnica"
+        title="Antes de comprar y después de instalar"
+        subtitle="Le ayudamos a elegir los productos que necesita su meliponario, a configurarlos y a usarlos."
+        dark
+        align="center"
+      />
+    </ScrollReveal>
+    <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      {ASISTENCIA.map((a, i) => (
+        <ScrollReveal delay={i * 100}>
+          <div class="text-center p-6">
+            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-accent mx-auto mb-4">
+              <Icon name={a.icono} class="w-6 h-6" />
+            </div>
+            <h3 class="font-semibold text-dark-text mb-2">{a.titulo}</h3>
+            <p class="text-sm text-dark-text/60">{a.desc}</p>
+          </div>
+        </ScrollReveal>
+      ))}
+    </div>
+    <ScrollReveal>
+      <div class="text-center mt-8">
+        <a
+          href="/meliponas/contacto"
+          class="inline-flex items-center gap-2 bg-accent text-white rounded-full px-8 py-3.5 font-medium hover:bg-accent-light hover:scale-[1.02] transition-all"
+        >
+          Pedir asistencia técnica
+          <Icon name="arrow-right" class="w-5 h-5" />
+        </a>
+      </div>
+    </ScrollReveal>
   </Section>
 </BrandLayout>
 

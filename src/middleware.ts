@@ -45,6 +45,11 @@ const DYNAMIC_REDIRECTS: Array<[RegExp, (match: RegExpMatchArray) => string]> = 
   // de montar la caja, la cubre de la lluvia. Apunta al modelo de pedestal, que es el
   // representante de la familia en el listado y el único de los dos con foto a 1024 px.
   [/^\/meliponas\/tienda\/atril-de-guadua\/?$/, () => '/meliponas/tienda/casa-techada-pedestal'],
+  // La asistencia técnica dejó de ser una ficha con precio y pasó a banda de cierre en la tienda:
+  // la oferta sigue existiendo, lo que ya no existe es la SKU. La URL estaba publicada y en el
+  // sitemap desde agosto, así que devuelve al listado —que es donde ahora vive el ofrecimiento—
+  // en vez de morir en 404.
+  [/^\/meliponas\/tienda\/asistencia-tecnica-mensual\/?$/, () => '/meliponas/tienda'],
   // /cafe/:anything → /cafe/:anything (subdomain catch-all handled at DNS level)
 ];
 
