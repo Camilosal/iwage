@@ -10,6 +10,9 @@ export const GET: APIRoute = () => {
   const body = `User-agent: *
 Allow: /
 
+# Content signals for AI agents (https://contentsignals.org)
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+
 # Sitemap
 Sitemap: ${base}/sitemap.xml
 
