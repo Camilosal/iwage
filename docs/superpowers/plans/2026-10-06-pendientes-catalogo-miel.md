@@ -107,12 +107,12 @@ Los tres defectos que **impiden** publicarlas tal cual:
 
 ## FASE F7 — Cierre de cada lote
 
-- [ ] `npm test` verde (hoy 398) antes de construir.
-- [ ] `cd /home/ubuntu/negocio && docker compose build iwage_app && docker compose up -d iwage_app` — **con autorización**, porque recrea el contenedor y muere la caché de nginx.
-- [ ] Purgar solo `iwage:*` en `redis_app`, en dos pasadas MISS→HIT.
-- [ ] Verificar sobre la hoja servida: status, las secciones nuevas, `og:image`, JSON-LD (`name`, `sku`, `image`, `offers`), y que el sitemap dinámico liste los slugs vigentes.
-- [ ] Runbook en `docs/superpowers/plans/2026-09-24-media-strapi-consolidation.md` con el antes y el después, y con lo que **no** se hizo y por qué.
-- [ ] Commit por frente, sin `--amend`. **El push sigue esperando permiso: 10 commits acumulados.**
+- [x] `npm test` verde (hoy 398) antes de construir.
+- [x] `cd /home/ubuntu/negocio && docker compose build iwage_app && docker compose up -d iwage_app` — **con autorización**, porque recrea el contenedor y muere la caché de nginx.
+- [x] Purgar solo `iwage:*` en `redis_app`, en dos pasadas MISS→HIT.
+- [x] Verificar sobre la hoja servida: status, las secciones nuevas, `og:image`, JSON-LD (`name`, `sku`, `image`, `offers`), y que el sitemap dinámico liste los slugs vigentes.
+- [x] Runbook con el antes y el después, y con lo que **no** se hizo y por qué. Quedó en este mismo archivo («Registro de ejecución» y «Despliegue y push»), no en `2026-09-24-media-strapi-consolidation.md` como decía el casillero: el frente es de este plan y partir el relato entre dos documentos lo vuelve ilegible.
+- [x] Commit por frente, sin `--amend`. Push hecho con autorización: `b623230..f08e7a7`, 14 commits.
 
 ---
 
@@ -195,17 +195,35 @@ toca el esquema de Strapi, lo que queda aparte.
 
 ### Lo que NO cierra este paso
 
-1. **El sitio está contradictorio hasta que se despliegue.** El contenido de Strapi ya vive; el
-   código no. Medido ahora mismo: `/meliponas/trazabilidad/miel` sirve "L25-05-001" ×2 y "Mayo 2025"
-   mientras la ficha dice ANG-001; `/meliponas/proyectos` sirve "atriles"; las 8 cards de la tienda
-   llevan todavía `truncate`. Deploy = `docker compose build iwage_app && docker compose up -d
-   iwage_app`, **pendiente de autorización**.
-2. **F2 (pesos y envío) sin tocar**: #63 necesita los pesos y condiciones reales.
-3. **F5 (infra) sin tocar**: #52, #54, #44 piden Cloudflare y `docker-compose.yml`.
-4. **Las cuatro bitácoras** que narran la cosecha de mayo bajo el lote viejo siguen intactas. No es
+1. **F2 (pesos y envío) sin tocar**: #63 necesita los pesos y condiciones reales.
+2. **F5 (infra) sin tocar**: #52, #54, #44 piden Cloudflare y `docker-compose.yml`.
+3. **Las cuatro bitácoras** que narran la cosecha de mayo bajo el lote viejo siguen intactas. No es
    olvido: reescribirlas depende de si esa cosecha existió, y eso solo lo dice el dueño.
-5. **La guarda que el plan proponía** (ninguna ficha de miel nombra un envase que no es el suyo) se
+4. **La guarda que el plan proponía** (ninguna ficha de miel nombra un envase que no es el suyo) se
    descartó a propósito: la suite `npm test` es hermética y prueba código, no contenido de Strapi.
    Escribirla exigía inventar infra de auditoría sobre datos vivos para un caso que ya no está en
    los datos.
-6. **13 commits locales sin empujar** (los 10 previos + 3 de este paso).
+5. **`files` 91** (el frasco transparente de 120 ml) quedó huérfano, no borrado. Borrar medios no es
+   reversible con el respaldo SQL: las filas vuelven, los bytes no.
+
+### Despliegue y push (mismo día, con autorización del dueño)
+
+`docker compose build iwage_app && docker compose up -d iwage_app`. Imagen nueva, contenedor
+recreado, Redis purgado (`iwage:*`, 30 claves). El `html_cache` de nginx venía vacío por el
+recreado, así que no hubo que esperar los 120 s.
+
+Medido en el borde después del deploy:
+
+| qué | antes | después |
+|---|---|---|
+| `/meliponas/trazabilidad/miel` | "L25-05-001" ×2, "Mayo 2025" | "ANG-001" ×2, "Septiembre 2026" ×1, cero del lote viejo |
+| el visor QR | "código QR del frasco" | "código QR de la etiqueta" |
+| `/meliponas/proyectos` + las cuatro líneas | "atril" en las cinco | cero en las cinco |
+| cards de `/meliponas/tienda` | 8 × `truncate` | 8 × `line-clamp-2` |
+
+Barrido de humo: 16 rutas clave devuelven 200, `/naturaleza` su 301 de barra final, `/api/contacto`
+vivo (400 con payload inválida a propósito), y las tres puertas de la miel —`miel-angelita-120ml`,
+`-250ml`, `-500ml`— devuelven 301 cada una a su ficha correcta. La primera vez las probé con las
+rutas sin `ml` y me devolvieron 302: error de quien prueba, no del sitio.
+
+Push: `b623230..f08e7a7`, 14 commits, `master` sincronizado con `origin/master`.
