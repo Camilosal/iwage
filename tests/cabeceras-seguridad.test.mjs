@@ -179,3 +179,89 @@ test('lo que no declara add_header propio no necesita el include: los 301 hereda
     assert.ok(!l.cuerpo.includes(RUTA), `"location ${l.nombre}" duplica las cabeceras que ya hereda`);
   }
 });
+
+// ── Hosts de la CSP ──────────────────────────────────────────────────────
+// El día que las cabeceras empezaron a llegar a las hojas, el primer barrido en chromium sin
+// cabeza mostró cuatro scripts bloqueados: gtag, el pixel de Meta, el beacon que Cloudflare
+// inyecta él mismo y swetrix. Los tres primeros se ven en el fuente; swetrix no: la declaración
+// es `https://swetrix.org/swetrix.js`, que es un redirector, y CSP evalúa el destino del
+// redirect. Y el fallo es silencioso — la hoja sale 200, solo el console.log se entera.
+//
+// Esta prueba compara cada host con LA DIRECTIVA que lo goberna, no con la cabecera entera:
+// `img-src … https://cdn.jsdelivr.net` no autoriza un `<script>` de ese host, y demostrarlo con
+// una mutación del snippet fue lo que destapó que la versión anterior (buscar el host en cualquier
+// parte de la cadena, o aceptar script-src O connect-src) pasaba igual de ciega.
+//
+// La tabla es la lista de salidas que chromium hizo de verdad en producción (tres hojas, una sola
+// sesión, 2026-10-06). Los hosts que el fuente ya predice están repetidos aquí a propósito: lo que
+// se prueba es el par host+directiva, no solo la existencia del host.
+const LOS_QUE_MIDEN = [
+  ['www.googletagmanager.com', 'script-src', 'gtag.js se ejecuta como <script>'],
+  ['connect.facebook.net', 'script-src', 'fbevents.js idem'],
+  ['swetrix.org', 'script-src', 'el <script> que declara analytics.ts'],
+  ['cdn.jsdelivr.net', 'script-src', 'destino real del redirect de swetrix; CSP evalúa el destino'],
+  ['static.cloudflareinsights.com', 'script-src', 'beacon que Cloudflare inyecta en el borde'],
+  ['www.google-analytics.com', 'connect-src', 'de donde gtag sirve y a donde POSTEA /g/collect'],
+  ['analytics.google.com', 'connect-src', 'variante de ese mismo collect'],
+  ['region1.google-analytics.com', 'connect-src', 'variante regional, gtag la elige por ubicación'],
+  ['www.facebook.com', 'connect-src', 'el /tr del pixel, cuando dispara'],
+  ['cloudflareinsights.com', 'connect-src', 'a donde ese beacon POSTEA'],
+  ['analitica.camilosaldarriaga.com', 'connect-src', 'backend de swetrix'],
+];
+
+function hostsDeAnalytics() {
+  const archivos = ['src/config/analytics.ts', 'src/layouts/BaseLayout.astro', 'src/layouts/BrandLayout.astro'];
+  const hosts = new Set();
+  for (const a of archivos) {
+    for (const linea of leer(a).split('\n')) {
+      // Solo líneas que CARGAN algo: `j.src = 'https://…'`, `<script src=`, `createElement('script')`
+      // con la URL al lado, y las claves `scriptSrc` / `apiURL` / `noscriptURL` del config. Sin este
+      // filtro la lista traería también `<a href>` de redes sociales, que son navegaciones y CSP no
+      // las gobierna — y la guarda pediría abrir la política para enlaces que nunca se piden.
+      if (!/\bsrc\b|scriptSrc|apiURL|noscriptURL|['"]script['"]/.test(linea)) continue;
+      for (const m of linea.matchAll(/https:\/\/([a-z0-9.-]+\.[a-z]{2,})/gi)) hosts.add(m[1].toLowerCase());
+    }
+  }
+  // La propia casa no va en la CSP: la cubre 'self'.
+  for (const propio of ['iwage.co', 'www.iwage.co']) hosts.delete(propio);
+  return hosts;
+}
+
+const LINEA_CSP = SNIPPET.split('\n').find((l) => /^\s*add_header\s+Content-Security-Policy\b/.test(l));
+
+// Una dirección nombrada en la cabecera pero en la directiva equivocada bloquea igual, así que se
+// mira directiva por directiva.
+function directiva(nombre) {
+  const dentro = LINEA_CSP?.match(/"([^"]*)"/)?.[1] ?? '';
+  for (const parte of dentro.split(';')) {
+    const [clave, ...valores] = parte.trim().split(/\s+/);
+    if (clave === nombre) {
+      // Las fuentes de la cabecera llevan esquema (`https://cdn.jsdelivr.net`) y los hosts extraídos
+      // del fuente no. Sin normalizar la comparación nunca cuadra. Las palabras clave (`'self'`,
+      // `'unsafe-inline'`) se dejan intactas a propósito: son el testigo de que el parseo leyó la
+      // cabecera y no devolvió una lista vacía por un typo en el nombre de la directiva.
+      return valores.map((v) => v.replace(/^https?:\/\//, ''));
+    }
+  }
+  return [];
+}
+
+test('la CSP existe y el parser la lee de verdad', () => {
+  assert.ok(LINEA_CSP, 'security-headers.conf dejó de declarar Content-Security-Policy');
+  assert.deepEqual(directiva('default-src'), ["'self'"], 'el parseo de directivas no está leyendo la cabecera');
+});
+
+test('cada host de medición está en la directiva que lo goberna', () => {
+  for (const [host, dir, motivo] of LOS_QUE_MIDEN) {
+    assert.ok(directiva(dir).includes(host), `${host} fuera de ${dir} (${motivo}) — el navegador lo bloquea en silencio`);
+  }
+});
+
+test('todo host que los layouts cargan está declarado en la tabla con su directiva', () => {
+  const cargados = hostsDeAnalytics();
+  assert.ok(cargados.size >= 3, `el extractor dejó de encontrar los hosts de medición: ${[...cargados].join(', ')}`);
+  const enLaTabla = new Set(LOS_QUE_MIDEN.map(([h]) => h));
+  const falta = [...cargados].filter((h) => !enLaTabla.has(h)).sort();
+  assert.deepEqual(falta, [], `analytics añade un host sin guarda: ${falta.join(', ')} — medirlo en chrome y declararlo en LOS_QUE_MIDEN`);
+});
+
