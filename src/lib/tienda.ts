@@ -229,7 +229,7 @@ export async function getProductosPorCategoria(canal?: 'online' | 'local', marca
 /**
  * Get all variations (products) that belong to the same family.
  * Products sharing a `familia` key are variations of each other
- * (p.ej. Miel Angelita 120/250/500 ml). Sorted by price ascending so
+ * (p.ej. Miel Angelita: 25 ml gotero, 60 ml botella, 120 ml frasco). Sorted by price ascending so
  * sizes/models display from smallest to largest.
  */
 export async function getProductosPorFamilia(familia: string | null): Promise<Producto[]> {
