@@ -96,7 +96,8 @@ const variacionesLabel = `${variaciones} ${pluralEje(ejeVariacion)}`;
     <a href={href} class="block">
       <h3 class="text-base font-semibold text-text-primary leading-snug line-clamp-2 min-h-[2.75rem] mb-1 group-hover:text-brand transition-colors">{name}</h3>
     </a>
-    <p class="text-xs text-text-muted mb-2 min-h-[1rem] truncate">{presentation ?? '\u00A0'}</p>
+    <!-- no `truncate`: hay presentaciones de 68 caracteres y la línea mide ~37 -->
+    <p class="text-xs text-text-muted mb-2 min-h-[1rem] line-clamp-2">{presentation ?? '\u00A0'}</p>
     <!-- Sin line-clamp: la descripción de la card es `descripcion_corta` (una línea pensada),
          y recortarla con "…" hacía parecer que la ficha no tenía contenido. `min-h` mantiene el
          bloque de precio y CTA alineado cuando la descripción ocupa una sola línea. -->
