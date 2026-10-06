@@ -97,7 +97,10 @@ const variacionesLabel = `${variaciones} ${pluralEje(ejeVariacion)}`;
       <h3 class="text-base font-semibold text-text-primary leading-snug line-clamp-2 min-h-[2.75rem] mb-1 group-hover:text-brand transition-colors">{name}</h3>
     </a>
     <p class="text-xs text-text-muted mb-2 min-h-[1rem] truncate">{presentation ?? '\u00A0'}</p>
-    <p class="text-sm text-text-secondary leading-relaxed line-clamp-2 min-h-[2.875rem] mb-2">{description}</p>
+    <!-- Sin line-clamp: la descripción de la card es `descripcion_corta` (una línea pensada),
+         y recortarla con "…" hacía parecer que la ficha no tenía contenido. `min-h` mantiene el
+         bloque de precio y CTA alineado cuando la descripción ocupa una sola línea. -->
+    <p class="text-sm text-text-secondary leading-relaxed min-h-[2.875rem] mb-2">{description}</p>
     <p class:list={["text-xs mb-3 flex items-center gap-1", envioGratis ? "text-green-600 dark:text-green-400" : "invisible"]}>
       <Icon name="truck" class="w-3.5 h-3.5" /> Envío gratis
     </p>
