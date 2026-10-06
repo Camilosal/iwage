@@ -346,9 +346,11 @@ const registro = await obtenerRegistroDeEnlaces();
 
     <!-- ══ Descripción completa ══ -->
     {producto.descripcion && (
-      <section class="mt-16 pt-10 border-t border-border">
+      <section class="mt-10 pt-8 border-t border-border">
         <h2 class="text-xl font-bold text-text-primary mb-6">Descripción</h2>
-        <div class="prose prose-sm dark:prose-invert max-w-3xl text-text-secondary leading-relaxed">
+        <!-- max-w-none: sin el plugin typography, `prose` no aporta nada y el único freno era
+             max-w-3xl (768 px) contra una fila de 1152. La descripción ocupa el ancho completo. -->
+        <div class="prose prose-sm dark:prose-invert max-w-none text-text-secondary leading-relaxed">
           <Fragment set:html={renderMarkdown(producto.descripcion, { registro, marca: "meliponas" })} />
         </div>
       </section>
@@ -356,7 +358,7 @@ const registro = await obtenerRegistroDeEnlaces();
 
     <!-- ══ Elementos clave / diferenciadores (máx. 3) ══ -->
     {diferenciadores.length > 0 && (
-      <section class="mt-16 pt-10 border-t border-border">
+      <section class="mt-10 pt-8 border-t border-border">
         <h2 class="text-xl font-bold text-text-primary mb-2">Por qué es diferente</h2>
         <p class="text-sm text-text-secondary mb-8">Lo que hace único a este producto del meliponario</p>
         <div class:list={['grid gap-4', diferenciadores.length === 1 ? 'sm:grid-cols-1 max-w-xl' : diferenciadores.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3']}>
@@ -375,7 +377,7 @@ const registro = await obtenerRegistroDeEnlaces();
 
     <!-- ══ Mini-guía de uso (máx. 4) ══ -->
     {guiaUso.length > 0 && (
-      <section class="mt-16 pt-10 border-t border-border">
+      <section class="mt-10 pt-8 border-t border-border">
         <h2 class="text-xl font-bold text-text-primary mb-2">Cómo usarlo</h2>
         <p class="text-sm text-text-secondary mb-8">Guía rápida para aprovecharlo al máximo</p>
         <div class:list={['grid gap-4', guiaUso.length === 1 ? 'sm:grid-cols-1 max-w-xl' : guiaUso.length === 2 ? 'sm:grid-cols-2' : guiaUso.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-4']}>
@@ -395,7 +397,7 @@ const registro = await obtenerRegistroDeEnlaces();
 
     <!-- ══ Preguntas frecuentes del producto ══ -->
     {faq.length > 0 && (
-      <section class="mt-16 pt-10 border-t border-border">
+      <section class="mt-10 pt-8 border-t border-border">
         <h2 class="text-xl font-bold text-text-primary mb-6">Preguntas frecuentes</h2>
         <div class="max-w-3xl space-y-3">
           {faq.map((f) => (
@@ -415,7 +417,7 @@ const registro = await obtenerRegistroDeEnlaces();
 
     <!-- ══ Conexión con el ecosistema Iwagé ══ -->
     {ecosistema.length > 0 && (
-      <section class="mt-16 pt-10 border-t border-border">
+      <section class="mt-10 pt-8 border-t border-border">
         <h2 class="text-xl font-bold text-text-primary mb-2">Ecosistema Iwagé</h2>
         <p class="text-sm text-text-secondary mb-8">Este producto vive en otros espacios del territorio</p>
         <div class:list={['grid gap-4', ecosistema.length === 1 ? 'sm:grid-cols-1 max-w-xl' : ecosistema.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3']}>
@@ -435,7 +437,7 @@ const registro = await obtenerRegistroDeEnlaces();
 
     <!-- ══ Productos relacionados ══ -->
     {relacionados.length > 0 && (
-      <section class="mt-16 pt-10 border-t border-border">
+      <section class="mt-10 pt-8 border-t border-border">
         <h2 class="text-xl font-bold text-text-primary mb-6">También en {categoriaLabel}</h2>
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
           {relacionados.map((p) => (
